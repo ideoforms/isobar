@@ -24,8 +24,7 @@ class MidiIn:
                 print "found target input: %s" % target
 
         if self.midi is None:
-            print "Could not find MIDI source: %s" % target
-            raise Exception
+            raise Exception, "Could not find MIDI source: %s" % target
 
     def run(self):
         while True:

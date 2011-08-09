@@ -46,40 +46,46 @@ Current class list:
 
 Pattern classes:
 
-	Pattern
-	PAbs
-	PAdd
-	PAutomate
-	PBinOp
-	PBrown
-	PChoice
-	PConst
-	PConst
-	PCreep
-	PDegree
+    (pattern/core.py)
+	Pattern        - generic pattern superclass
+	PAbs           - absolute value of an input pattern
+	PAdd           - add two patterns together (shorthand: patternA + patternB)
+	PSub           - subtract pattern B from A (shorthand: patternA - patternB)
+	PMul           - divide pattern A by B (shorthand: patternA / patternB)
+	PDiv           - multiply pattern A by B (shorthand: patternA * patternB)
+
+    (pattern/sequence.py)
+	PConst         - constant value
+	PSeq           - sequence of fixed values (repeated N times)
+	PSeries        - geometric series
+	PLoop          - repeat an input pattern N times
+	PCreep         - creep through an input pattern by N notes each step
+	PStutter       - repeat each input value N times
+	PWrap          - wrap values around a given range
+	PPermut        - all permutations of a finite input pattern
+	PDegree        - map values to a given Scale
+
+    (pattern/chance.py)
+	PWhite         - white noise (uncorrelated values within a given range)
+	PBrown         - brownian noise
+	PIBrown        - brownian noise (integer values only)
+	PChoice        - random choice from a list
+	PWChoice       - weighted random choice from a list
+	PShuffle       - shuffle a finite input sequence
+
 	PDelay
 	PDiff
-	PDiv
-	PIBrown
 	PLSys
-	PLoop
 	PMarkov
-	PMul
-	PPermut
 	PSelfIndex
-	PSeq
-	PSeries
-	PShuffle
 	PSkip
-	PStutter
-	PSub
-	PWChoice
 	PWRamp
 	PWSine
-	PWalk
-	PWarp
-	PWhite
 	PWrap
+
+	PWarp
+	PWalk
+	PAutomate      - superclass for continuous value automation (in development)
 
 BACKGROUND
 -------------------------------------------------------------------------------
