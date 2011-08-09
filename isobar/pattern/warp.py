@@ -17,7 +17,7 @@ class PWRamp(PWarp):
         if self.pos > self.length:
             self.pos = 0
             self.vslope = self.value(self.slope)
-            print "new slope %s" % self.vslope
+            # print "new slope %s" % self.vslope
 
         # normalize to [-1, 1]
         pos_norm = 2.0 * self.pos / self.length - 1.0

@@ -55,10 +55,8 @@ class PShuffle(Pattern):
 		values = self.value(self.values)
 		repeats = self.value(self.repeats)
 
-		print "pos %d, rc %d" % (self.pos, self.rcount)
 		if self.pos >= len(values):
 			if self.rcount >= repeats:
-				print  "done all repeats"
 				return None
 			self.rcount += 1
 			self.pos = 0

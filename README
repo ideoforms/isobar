@@ -1,7 +1,9 @@
 INTRODUCTION
 -------------------------------------------------------------------------------
 Isobar is a Python library for expressing and constructing musical patterns,
-designed for use in algorithmic composition.
+designed for use in algorithmic composition. It allows for concise construction,
+manipulation and transposition of sequences, supporting scalar operations on
+lazy patterns.
 
 USAGE
 -------------------------------------------------------------------------------
@@ -25,6 +27,10 @@ timeline.sched({ 'note': ppitch + 60, 'dur': pdur, 'channel': 0 })
 timeline.sched({ 'note': ppitch + 24, 'dur': pdur * 4, 'channel': 1 })
 timeline.run()
 
+EXAMPLES
+-------------------------------------------------------------------------------
+More examples are available in the 'examples' directory with this
+distribution.
 
 CLASSES
 -------------------------------------------------------------------------------
@@ -74,4 +80,10 @@ Pattern classes:
 	PWarp
 	PWhite
 	PWrap
+
+BACKGROUND
+-------------------------------------------------------------------------------
+Isobar was first designed for the generative sound installation Variable 4:
+
+	http://www.variable4.org.uk/news/
 

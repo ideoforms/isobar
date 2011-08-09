@@ -16,7 +16,7 @@ class LSystem:
 				string_new = string_new + self.rule if char == "N" else string_new + char
 
 			self.string = string_new
-			print "(iter %d) string now %s" % (n, self.string)
+			# print "(iter %d) string now %s" % (n, self.string)
 
 	def next(self):
 		while self.pos < len(self.string):

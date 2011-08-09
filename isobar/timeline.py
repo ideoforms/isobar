@@ -38,7 +38,7 @@ class Timeline:
         # print "beat %d" % self.beats
 
     def reset(self):
-        print "tl reset!"
+        # print "tl reset!"
         self.beats = -.0001
         # XXX probably shouldn't have to do this - should channels read the tl ticks value?
         for channel in self.channels:
@@ -68,7 +68,6 @@ class Timeline:
 
 class Channel:
     def __init__(self, dict = {}):
-        print "d %s" % dict
         dict.setdefault('note', 60)
         dict.setdefault('transpose', 0)
         dict.setdefault('dur', 1)
@@ -130,7 +129,7 @@ class Channel:
 
         amp = self.dict['amp'].next()
         channel = self.dict['channel'].next()
-        print "playing %d, %d" % (note, amp)
+        # print "playing %d, %d" % (note, amp)
         if random.uniform(0, 1) < self.dict['omit'].next():
             return
 

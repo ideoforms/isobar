@@ -19,6 +19,4 @@ class PASine(PAutomate):
         # normalize to [0, 1]
         pos_norm = self.pos / self.length
         warp = math.sin(2.0 * math.pi * pos_norm) * self.amp
-        # print "warp, %f" % warp
-        print "warp is %d" % int(warp * 64 + 64)
         device.control(0, int(warp * 64 + 64))

@@ -122,7 +122,6 @@ class PCreep(Pattern):
                 for n in range(creep):
                     self.buffer.pop(0)
                     self.buffer.append(self.pattern.next())
-                print "new buffer: %s" % self.buffer
                 self.rcount = 1
             else:
                 self.rcount += 1
@@ -170,7 +169,6 @@ class PPermut(Pattern):
     def next(self):
         if self.permindex > len(self.permutations):
             n = 0
-            # print "doing %d" % self.count
             values = []
             while n < self.count:
                 v = self.input.next()
@@ -178,14 +176,12 @@ class PPermut(Pattern):
                     break
                 values.append(v)
                 n += 1
-            print "set: %s" % values
 
             permiter = itertools.permutations(values)
             self.permutations = []
             for n in permiter:
                 self.permutations.append(n)
 
-            print "permutations: %s" % self.permutations
             self.permindex = 0
             self.pos = 0
         elif self.pos >= len(self.permutations[0]):
