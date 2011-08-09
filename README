@@ -1,0 +1,77 @@
+INTRODUCTION
+-------------------------------------------------------------------------------
+Isobar is a Python library for expressing and constructing musical patterns,
+designed for use in algorithmic composition.
+
+USAGE
+-------------------------------------------------------------------------------
+
+# import important bits
+from isobar import *
+from isobar.io.midiout import *
+
+# create a pitch line comprised of multiple permutations on a pelog scale
+ppitch = PShuffle([ 0, 1, 2, 3, 4 ], 1)
+ppitch = PPermut(ppitch)
+ppitch = PDegree(ppitch, Key("F#", "pelog"))
+
+# create a permuted set of durations
+pdur = PShuffle([ 1, 1, 2, 2, 4 ], 1)
+pdur  = PPermut(pdur) * 0.25
+
+# schedule on a 60bpm timeline and send to MIDI output
+timeline = Timeline(60, MidiOut())
+timeline.sched({ 'note': ppitch + 60, 'dur': pdur, 'channel': 0 })
+timeline.sched({ 'note': ppitch + 24, 'dur': pdur * 4, 'channel': 1 })
+timeline.run()
+
+
+CLASSES
+-------------------------------------------------------------------------------
+
+Current class list:
+
+	Chord
+	Key
+	Note
+	Scale
+	Timeline
+	Clock
+
+Pattern classes:
+
+	Pattern
+	PAbs
+	PAdd
+	PAutomate
+	PBinOp
+	PBrown
+	PChoice
+	PConst
+	PConst
+	PCreep
+	PDegree
+	PDelay
+	PDiff
+	PDiv
+	PIBrown
+	PLSys
+	PLoop
+	PMarkov
+	PMul
+	PPermut
+	PSelfIndex
+	PSeq
+	PSeries
+	PShuffle
+	PSkip
+	PStutter
+	PSub
+	PWChoice
+	PWRamp
+	PWSine
+	PWalk
+	PWarp
+	PWhite
+	PWrap
+
