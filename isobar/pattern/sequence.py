@@ -26,6 +26,9 @@ class PSeq(Pattern):
 		self.list = list
 		self.repeats = repeats
 
+		self.reset()
+
+	def reset(self):
 		self.rcount = 0
 		self.pos = 0
 

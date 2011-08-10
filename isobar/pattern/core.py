@@ -4,6 +4,8 @@ import random
 import itertools
 
 class Pattern:
+	LENGTH_MAX = 65536
+
 	def __init__(self):
 		self.__generator__ = itertools.count(0)
 
@@ -68,6 +70,25 @@ class Pattern:
 
 	def next(self):
 		return self.__generator__.next()
+
+	def values(self):
+		values = []
+		for n in xrange(Pattern.LENGTH_MAX):
+			value = self.next()
+			if value is None:
+				break
+			else:
+				values.append(value)
+
+		self.reset()
+		return values
+
+	def reset(self):
+		""" reset a finite sequence back to position 0 """
+		pass
+
+	def copy(self):
+		return copy.deepcopy(self)
 
 	@staticmethod
 	def value(v):
