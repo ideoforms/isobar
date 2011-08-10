@@ -46,16 +46,15 @@ Current class list:
 
 Pattern classes:
 
-    (pattern/core.py)
+    CORE (pattern/core.py)
 	Pattern        - generic pattern superclass
-	PAbs           - absolute value of an input pattern
+	PConst         - constant value
 	PAdd           - add two patterns together (shorthand: patternA + patternB)
 	PSub           - subtract pattern B from A (shorthand: patternA - patternB)
 	PMul           - divide pattern A by B (shorthand: patternA / patternB)
 	PDiv           - multiply pattern A by B (shorthand: patternA * patternB)
 
-    (pattern/sequence.py)
-	PConst         - constant value
+    SEQUENCE (pattern/sequence.py)
 	PSeq           - sequence of fixed values (repeated N times)
 	PSeries        - geometric series
 	PLoop          - repeat an input pattern N times
@@ -65,30 +64,42 @@ Pattern classes:
 	PPermut        - all permutations of a finite input pattern
 	PDegree        - map values to a given Scale
 
-    (pattern/chance.py)
+    CHANCE (pattern/chance.py)
 	PWhite         - white noise (uncorrelated values within a given range, int or float)
 	PBrown         - brownian noise (random walk over a given range, int or float)
+	PWalk          - random walk over a given input list
 	PChoice        - random choice from a list
 	PWChoice       - weighted random choice from a list
 	PShuffle       - shuffle a finite input sequence
-
-	PDelay
-	PDiff
-	PLSys
-	PMarkov
+	PSkip          - skip over input values with some probability 
 	PSelfIndex
-	PSkip
-	PWRamp
-	PWSine
-	PWrap
 
-	PWarp
-	PWalk
+    OPERATORS (pattern/operator.py)
+	PDelay         - outputs the next value of an input pattern after N ticks
+	PDiff          - difference between last two input values
+	PAbs           - absolute value of an input pattern
+
+    L-SYSTEMS (pattern/lsystem.py)
+	PLSys          - integer sequence derived from Lindenmayer systems
+
+    MARKOV (pattern/markov.py)
+	PMarkov        - markov chain patterns
+
+    WARPING AND AUTOMATION [EXPERIMENTAL] (pattern/warp.py)
+	PWarp          - warp continuous values (abstract superclass)
+	PWRamp         - warp on a linear ramp
+	PWSine         - warp on a sine
 	PAutomate      - superclass for continuous value automation (in development)
 
+-------------------------------------------------------------------------------
 BACKGROUND
 -------------------------------------------------------------------------------
 Isobar was first designed for the generative sound installation Variable 4:
 
 	http://www.variable4.org.uk/news/
+
+Many of the concepts behind Pattern and its subclasses are inspired by the
+excellent pattern library of the SuperCollider synthesis language:
+
+	http://supercollider.sf.net
 
