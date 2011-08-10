@@ -26,9 +26,11 @@ class PWChoice(Pattern):
 		return wchoice(self.values, self.weights)
 
 class PWhite(Pattern):
-	"""Pattern: White noise (float)
+	"""Pattern: White noise 
 		- min: minimum value
-		- max: maximum value"""
+		- max: maximum value
+	   If values are given as floats, output values are also floats < max.
+	   If values are ints, output values are ints <= max (as random.randint)"""
 	def __init__(self, min = 0.0, max = 1.0, length = sys.maxint):
 		self.min = min
 		self.max = max
@@ -76,27 +78,21 @@ class PBrown(Pattern):
 		self.pos = 0
 
 	def next(self):
-		if self.pos >= self.length:
-			raise StopIteration
-		rv = self.value
-		self.pos += 1
-		# XXX would really like this to be triangular but not supported in python2.5
-		# self.value += random.triangular(-self.step, self.step)
-		self.value += random.uniform(-self.step, self.step)
-		self.value = min(max(self.value, self.min), self.max)
-		return rv
+		# pull out modulatable values
+		vstep = Pattern.value(self.step)
+		vmin = Pattern.value(self.min)
+		vmax = Pattern.value(self.max)
 
-class PIBrown(PBrown):
-	"""Pattern: Brownian noise (int). TO MERGE W/ PBROWN"""
-	def next(self):
 		if self.pos >= self.length:
 			raise StopIteration
 		rv = self.value
 		self.pos += 1
-		dv = random.randrange(-self.step, self.step)
-		if dv == 0: dv = self.step
-		self.value += dv
-		self.value = min(max(self.value, self.min), self.max)
+		if type(vmin) == float:
+			self.value += random.uniform(-vstep, vstep)
+		else:
+			self.value += random.randint(-vstep, vstep)
+		self.value = min(max(self.value, vmin), vmax)
+
 		return rv
 
 
@@ -109,6 +105,7 @@ class PWalk(Pattern):
 		self.pos = 0
 
 	def next(self):
+		# pull out modulatable values
 		vvalues = self.value(self.values)
 		vmin = self.value(self.min)
 		vmax = self.value(self.max)

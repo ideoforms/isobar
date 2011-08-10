@@ -66,9 +66,8 @@ Pattern classes:
 	PDegree        - map values to a given Scale
 
     (pattern/chance.py)
-	PWhite         - white noise (uncorrelated values within a given range)
-	PBrown         - brownian noise
-	PIBrown        - brownian noise (integer values only)
+	PWhite         - white noise (uncorrelated values within a given range, int or float)
+	PBrown         - brownian noise (random walk over a given range, int or float)
 	PChoice        - random choice from a list
 	PWChoice       - weighted random choice from a list
 	PShuffle       - shuffle a finite input sequence

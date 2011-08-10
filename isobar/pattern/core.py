@@ -69,13 +69,12 @@ class Pattern:
 	def next(self):
 		return self.__generator__.next()
 
+	@staticmethod
 	def value(v):
 		if isinstance(v, Pattern):
 			return Pattern.value(v.next())
 		else:
 			return v
-
-	value = staticmethod(value)
 
 class PConst(Pattern):
 	def __init__(self, value):
