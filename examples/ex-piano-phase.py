@@ -13,7 +13,7 @@ seq = PSeq([ -7, -5, 0, 2, 3, -5, -7, 2, 0, -5, 3, 2 ])
 dur = PConst(0.5)
 
 midi = MidiOut()
-timeline = Timeline(120)
+timeline = Timeline(160)
 timeline.output(midi)
 
 # schedule two identical melodies.

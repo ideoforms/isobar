@@ -7,6 +7,7 @@ import itertools
 from isobar.pattern.core import *
 from isobar.key import *
 from isobar.util import *
+from isobar.chord import *
 
 class PConst(Pattern):
 	"""Pattern: Constant value"""
@@ -52,10 +53,17 @@ class PSeries(Pattern):
 	"""Pattern: Arithmetic series"""
 
 	def __init__(self, start = 0, step = 1, length = sys.maxint):
+		self.start = start
 		self.value = start
 		self.step = step
 		self.length = length
 		self.count = 0
+
+	def reset(self):
+		self.value = self.start 
+		self.count = 0
+
+		Pattern.reset(self)
 
 	def next(self):
 		if self.count >= self.length:
@@ -76,6 +84,14 @@ class PLoop(Pattern):
 		self.pos = 0
 		self.rpos = 1
 		self.read_all = False
+
+	def reset(self):
+		self.pos = 0
+		self.rpos = 1
+		self.read_all = False
+		self.values = []
+
+		Pattern.reset(self)
 
 	def next(self):
 		if not self.read_all:
@@ -101,8 +117,12 @@ class PPingPong(Pattern):
 
 	def __init__(self, pattern, count = sys.maxint):
 		self.pattern = pattern
-		self.values = []
 		self.count = count
+		self.reset()
+
+	def reset(self):
+		self.pattern.reset()
+		self.values = []
 		self.pos = 0
 		self.dir = 1
 		self.rpos = 1
@@ -204,6 +224,13 @@ class PPermut(Pattern):
 		self.permindex = sys.maxint
 		self.permutations = []
 
+	def reset(self):
+		self.pos = sys.maxint
+		self.permindex = sys.maxint
+		self.permutations = []
+
+		Pattern.reset(self)
+
 	def next(self):
 		if self.permindex > len(self.permutations):
 			n = 0
@@ -239,4 +266,128 @@ class PDegree(Pattern):
 		degree = self.value(self.degree)
 		scale = self.value(self.scale)
 		return scale[degree]
+
+
+class PSubsequence(Pattern):
+	def __init__(self, pattern, offset, length):
+		self.pattern = pattern
+		self.offset = offset
+		self.length = length
+		self.pos = 0
+		self.values = []
+
+	def reset(self):
+		self.pos = 0
+
+		Pattern.reset(self)
+
+	def next(self):
+		offset = self.value(self.offset)
+		length = self.value(self.length)
+
+		# print "length is %d, pos %d" % (length, self.pos)
+		if self.pos >= length:
+			return None
+
+		while len(self.values) <= self.pos + offset:
+			self.values.append(self.pattern.next())
+
+		rv = self.values[offset + self.pos]
+		self.pos += 1
+
+		return rv
+
+class PImpulse(Pattern):
+	def __init__(self, period):
+		self.period = period
+		self.pos = period
+
+	def reset(self):
+		self.pos = 0
+	
+	def next(self):
+		period = self.value(self.period)
+
+		if self.pos >= period - 1:
+			rv = 1
+			self.pos = 0
+		else:
+			rv = 0
+			self.pos += 1
+
+		return rv
+
+class PReset(Pattern):
+	def __init__(self, pattern, trigger):
+		self.value = 0
+		self.pattern = pattern
+		self.trigger = trigger
+
+	def reset(self):
+		self.value = 0
+
+	def next(self):
+		value = self.trigger.next()
+		if value > 0 and self.value <= 0:
+			self.pattern.reset()
+			self.value = value
+		elif value <= 0 and self.value > 0:
+			self.value = value
+
+		return self.pattern.next()
+	
+class PCounter(Pattern):
+	def __init__(self, trigger):
+		self.trigger = trigger
+		self.value = 0
+		self.count = 0
+
+	def next(self):
+		value = self.trigger.next()
+		if value > 0 and self.value <= 0:
+			self.count += 1
+			self.value = value
+		elif value <= 0 and self.value > 0:
+			self.value = value
+
+		return self.count
+
+class PArp(Pattern):
+	UP = 0
+	DOWN = 1
+	CONVERGE = 2
+	DIVERGE = 2
+	RANDOM = 3
+
+	def __init__(self, chord = Chord.major, type = UP):
+		self.chord = chord
+		self.type = type
+		self.pos = 0
+		self.notes = self.chord.semitones()
+		self.offsets = []
+
+		if type == PArp.UP:
+			self.offsets = range(len(self.notes))
+		elif type == PArp.DOWN:
+			self.offsets = list(reversed(range(len(self.notes))))
+		elif type == PArp.CONVERGE:
+			self.offsets = [ (n / 2) if (n % 2 == 0) else (0 - (n + 1) / 2) for n in xrange(len(self.notes)) ]
+		elif type == PArp.DIVERGE:
+			self.offsets = [ (n / 2) if (n % 2 == 0) else (0 - (n + 1) / 2) for n in xrange(len(self.notes)) ]
+			self.offsets = list(reversed(self.offsets))
+		elif type == PArp.RANDOM:
+			self.offsets = range(len(self.notes))
+			random.shuffle(self.offsets)
+
+	def next(self):
+		type = self.value(self.type)
+		pos = self.value(self.pos)
+		rv = None
+
+		if pos < len(self.offsets):
+			offset = self.offsets[pos]
+			rv = self.notes[offset]
+			self.pos = pos + 1
+
+		return rv
 

@@ -32,19 +32,19 @@ class Markov:
 				a = range(len(self.edges))
 				a.remove(n)
 				target = random.choice(a)
-				print "sanitizing edge %d (%s) with link to %d" % (n, self.nodes[n], target)
+				# print "sanitizing edge %d (%s) with link to %d" % (n, self.nodes[n], target)
 				edge[target] = 1
 
 	def next(self, min = None, max = None):
 		if min is not None:
 			edges = self.edges[self.node][:]
-			print "selecting from some - %s" % edges
+			# print "selecting from some - %s" % edges
 			for n, edge in enumerate(edges):
 				if not min <= self.nodes[n] <= max:
 					edges[n] = 0
 			index = wnindex(edges)
 		else:
-			print "selecting from all - %s" % self.edges[self.node]
+			# print "selecting from all - %s" % self.edges[self.node]
 			index = windex(self.edges[self.node])
 
 		if index is not None:

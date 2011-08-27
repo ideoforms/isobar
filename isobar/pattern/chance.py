@@ -53,6 +53,12 @@ class PShuffle(Pattern):
 		self.pos = 0
 		self.rcount = 1
 
+	def reset(self):
+		self.pos = 0
+		self.rcount = 0
+
+		Pattern.reset(self)
+
 	def next(self):
 		values = self.value(self.values)
 		repeats = self.value(self.repeats)
@@ -69,19 +75,29 @@ class PShuffle(Pattern):
 
 class PBrown(Pattern):
 	"""Pattern: Brownian noise"""
-	def __init__(self, value = 0, step = 0.1, min = -1, max = 1, length = sys.maxint):
+	def __init__(self, value = 0, step = 0.1, min = -1, max = 1, repeats = True, length = sys.maxint):
+		self.init = value
 		self.value = value
 		self.step = step
 		self.min = min
 		self.max = max
 		self.length = length
+		self.repeats = repeats
 		self.pos = 0
+
+	def reset(self):
+		self.value = self.init
+		self.pos = 0
+
+		Pattern.reset(self)
 
 	def next(self):
 		# pull out modulatable values
 		vstep = Pattern.value(self.step)
 		vmin = Pattern.value(self.min)
 		vmax = Pattern.value(self.max)
+		vrepeats = Pattern.value(self.repeats)
+		# XXX todo - force no repeats
 
 		if self.pos >= self.length:
 			raise StopIteration
@@ -90,7 +106,11 @@ class PBrown(Pattern):
 		if type(vmin) == float:
 			self.value += random.uniform(-vstep, vstep)
 		else:
-			self.value += random.randint(-vstep, vstep)
+			# select new offset without repeats
+			steps = range(-vstep, vstep + 1)
+			if not vrepeats:
+				steps.remove(0)
+			self.value += random.choice(steps)
 		self.value = min(max(self.value, vmin), vmax)
 
 		return rv

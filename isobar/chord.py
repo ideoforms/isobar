@@ -7,7 +7,7 @@ class Chord:
 
 	dict = { }
 
-	def __init__(self, intervals = [], name = "unnamed chord", root = 0):
+	def __init__(self, intervals = [], root = 0, name = "unnamed chord"):
 		self.intervals = intervals
 		self.name = name
 		self.root = root
@@ -25,14 +25,16 @@ class Chord:
 	def byname(name):
 		return Chord.dict[name]
 
+	@staticmethod
 	def random():
 		key = random.choice(Chord.dict.keys())
 		c = copy.deepcopy(Chord.dict[key])
 		c.root = random.randint(0, 12)
 		return c
 
+	@staticmethod
 	def arbitrary(name = "chord"):
-		intervals_poss = [ 3, 3, 4, 4, 5, 6 ]
+		intervals_poss = [ 2, 3, 3, 4, 4, 5, 6 ]
 		intervals = []
 		top = random.randint(12, 18)
 		n = 0
@@ -43,16 +45,12 @@ class Chord:
 				break
 			intervals.append(interval)
 
-		return Chord(intervals, name if name else "chord", random.randint(0, 12))
+		return Chord(intervals, 0, name if name else "chord", random.randint(0, 12))
 
-	byname = staticmethod(byname)
-	random = staticmethod(random)
-	arbitrary = staticmethod(arbitrary)
+Chord.major			= Chord([ 4, 3, 5 ], 0, "major")
+Chord.minor			= Chord([ 3, 4, 5 ], 0, "minor")
+Chord.diminished	= Chord([ 3, 3, 6 ], 0, "diminished")
+Chord.augmented		= Chord([ 4, 4, 4 ], 0, "diminished")
 
-Chord.major			= Chord([ 4, 3, 5 ], "major")
-Chord.minor			= Chord([ 3, 4, 5 ], "minor")
-Chord.diminished	= Chord([ 3, 3, 6 ], "diminished")
-Chord.augmented		= Chord([ 4, 4, 4 ], "diminished")
-
-Chord.sus4			= Chord([ 5, 2, 5 ], "sus4")
-Chord.sus2			= Chord([ 7, 2, 5 ], "sus4")
+Chord.sus4			= Chord([ 5, 2, 5 ], 0, "sus4")
+Chord.sus2			= Chord([ 7, 2, 5 ], 0, "sus4")

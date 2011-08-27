@@ -1,3 +1,5 @@
+import random
+
 from isobar.note import *
 from isobar.pattern import *
 
@@ -32,6 +34,11 @@ class LSystem:
 				self.state.degree = self.state.degree - 1
 			elif token == '+':
 				self.state.degree = self.state.degree + 1
+			elif token == '?':
+				if random.uniform(0, 1) < 0.5:
+					self.state.degree = self.state.degree - 1
+				else:
+					self.state.degree = self.state.degree + 1
 			elif token == '\\':
 				self.state.semitones = self.state.semitones - 1
 			elif token == '/':
@@ -79,9 +86,9 @@ class PLSys(Pattern):
 
 	def next(self):
 		n = self.lsys.next()
-		if n is None:
-			self.lsys.reset()
-			n = self.lsys.next()
+# if n is None:
+#			self.lsys.reset()
+#			n = self.lsys.next()
 
 		return None if n is None else n.midinote
 

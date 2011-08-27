@@ -8,24 +8,37 @@ lazy patterns.
 USAGE
 -------------------------------------------------------------------------------
 
-# import important bits
 from isobar import *
 from isobar.io.midiout import *
 
-# create a pitch line comprised of multiple permutations on a pelog scale
-ppitch = PShuffle([ 0, 1, 2, 3, 4 ], 1)
-ppitch = PPermut(ppitch)
-ppitch = PDegree(ppitch, Key("F#", "pelog"))
+# create a repeating sequence with scalar transposition:
+# [ 48, 50, 57, 60 ] ...
+seqA = PSeq([ 0, 2, 7, 3 ]) + 48
 
-# create a permuted set of durations
-pdur = PShuffle([ 1, 1, 2, 2, 4 ], 1)
-pdur  = PPermut(pdur) * 0.25
+# apply pattern-wise transposition
+# [ 48, 62, 57, 72 ] ...
+seqA = seqA + PSeq([ 0, 12 ])
 
-# schedule on a 60bpm timeline and send to MIDI output
-timeline = Timeline(60, MidiOut())
-timeline.sched({ 'note': ppitch + 60, 'dur': pdur, 'channel': 0 })
-timeline.sched({ 'note': ppitch + 24, 'dur': pdur * 4, 'channel': 1 })
+# create a geometric chromatic series, repeated back and forth
+seqB = PSeries(0, 1, 12) + 72
+seqB = PPingPong(seqB)
+
+# create an velocity series, with emphasis every 4th note,
+# plus a random walk to create gradual dynamic changes
+amp = PSeq([ 60, 40, 30, 40 ]) + PBrown(0, 1, -20, 20)
+
+# a Timeline schedules events at a given BPM, sent over a specified output
+timeline = Timeline(120)
+
+midiout = MidiOut()
+timeline.output(midiout)
+
+# assign each of our Patterns to particular properties
+timeline.sched({ 'note': seqA, 'dur': 1 })
+timeline.sched({ 'note': seqB, 'dur': 0.25, 'amp': amp })
+
 timeline.run()
+
 
 EXAMPLES
 -------------------------------------------------------------------------------

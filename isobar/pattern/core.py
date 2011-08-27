@@ -65,13 +65,18 @@ class Pattern:
 		"""Binary op: divide two patterns"""
 		return self.__div__(operand)
 
+	def __mod__(self, operand):
+		"""Modulo"""
+		operand = operand if isinstance(operand, Pattern) else PConst(operand)
+		return PMod(self, operand)
+
 	def __iter__(self):
 		return self
 
 	def next(self):
 		return self.__generator__.next()
 
-	def values(self):
+	def all(self):
 		values = []
 		for n in xrange(Pattern.LENGTH_MAX):
 			value = self.next()
@@ -85,7 +90,29 @@ class Pattern:
 
 	def reset(self):
 		""" reset a finite sequence back to position 0 """
+		fields = vars(self)
+		for name, field in fields.items():
+			if isinstance(field, Pattern):
+				# print "reset: %s" % name
+				field.reset()
+
+	@staticmethod
+	def fromgenotype(self):
+		""" create a new object based on this genotype """
 		pass
+
+	def genotype(self):
+		""" return a string representation of this pattern, suitable for breeding """
+		genotype = ""
+		fields = vars(self)
+		for name, field in fields.items():
+			if isinstance(field, Pattern):
+				genotype += field.genotype()
+			else:
+				genotype += str(field)
+			genotype += "\0"
+
+		return genotype
 
 	def copy(self):
 		return copy.deepcopy(self)
@@ -155,3 +182,11 @@ class PDiv(PBinOp):
 		b = self.b.next()
 		return None if a is None or b is None else a / b
 
+class PMod(PBinOp):
+	def __str__(self):
+		return "(%s) % (%s)" % (self.a, self.b)
+
+	def next(self):
+		a = self.a.next()
+		b = self.b.next()
+		return None if a is None or b is None else a % b
