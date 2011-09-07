@@ -1,4 +1,7 @@
 TODO
+* OSC output 
+* more random distributions (levy, beta, gamma)
+* Pmap: map function over input pattern
 * add parameter to MidiIn/MidiOut for device name
 * exceptions when a finite operation is performed on an infinite series
 * PReverse: reverse a finite series (after Spiegel 1981, #2)
