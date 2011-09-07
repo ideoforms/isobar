@@ -76,6 +76,10 @@ Pattern classes:
 	PWrap          - wrap values around a given range
 	PPermut        - all permutations of a finite input pattern
 	PDegree        - map values to a given Scale
+    PImpulse       - generates an impulse every N steps
+    PReset         - resets an input pattern when an impulse is received
+    PSubsequence   - extracts a subsequence at a given index and length
+    PArp           - generates arpeggios with a range of settings
 
     CHANCE (pattern/chance.py)
 	PWhite         - white noise (uncorrelated values within a given range, int or float)
