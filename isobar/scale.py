@@ -2,66 +2,68 @@ import random
 
 
 class Scale:
-    dict = { }
+	dict = { }
 
-    def __init__(self, semitones = [ 0, 2, 4, 5, 7, 9, 11 ], name = "unnamed scale"):
-        self.semitones = semitones
-        self.name = name
-        self.octave_size = 12
-        if not Scale.dict.has_key(name):
-           Scale.dict[name] = self
+	def __init__(self, semitones = [ 0, 2, 4, 5, 7, 9, 11 ], name = "unnamed scale"):
+		self.semitones = semitones
+		self.name = name
+		self.octave_size = 12
+		if not Scale.dict.has_key(name):
+		   Scale.dict[name] = self
 
-    def __str__(self):
-        return "%s %s" % (self.name, self.semitones)
+	def __str__(self):
+		return "%s %s" % (self.name, self.semitones)
 
-    def __getitem__(self, key):
-        return self.get(key)
+	def __getitem__(self, key):
+		return self.get(key)
 
-    def get(self, n):
-        octave = int(n / len(self.semitones))
-        degree = n % len(self.semitones)
-        note = (self.octave_size * octave) + self.semitones[degree]
-        return note
+	def get(self, n):
+		if n is None:
+			return None
 
-    def copy(self):
-        other = Scale(self.semitones, self.name)
-        return other
+		octave = int(n / len(self.semitones))
+		degree = n % len(self.semitones)
+		note = (self.octave_size * octave) + self.semitones[degree]
+		return note
 
-    def change(self):
-        i = random.randint(0, len(self.semitones) - 1)
-        j = random.randint(0, len(self.semitones) - 1)
-        if i <> j:
-            tmp = self.semitones[i]
-            self.semitones[i] = self.semitones[j]
-            self.semitones[j] = tmp
-        return self
+	def copy(self):
+		other = Scale(self.semitones, self.name)
+		return other
 
-    def shuffle(self):
-        random.shuffle(self.semitones)
-        return self
+	def change(self):
+		i = random.randint(0, len(self.semitones) - 1)
+		j = random.randint(0, len(self.semitones) - 1)
+		if i <> j:
+			tmp = self.semitones[i]
+			self.semitones[i] = self.semitones[j]
+			self.semitones[j] = tmp
+		return self
 
-    def indexOf(self, note):
-        print "getting index of %d" % note
-        octave = int(note / self.octave_size)
-        index = octave * len(self.semitones)
-        note -= octave * self.octave_size
-        degree = 0
+	def shuffle(self):
+		random.shuffle(self.semitones)
+		return self
 
-        while note > self.semitones[degree] and degree < len(self.semitones) - 1:
-            degree += 1
+	def indexOf(self, note):
+		print "getting index of %d" % note
+		octave = int(note / self.octave_size)
+		index = octave * len(self.semitones)
+		note -= octave * self.octave_size
+		degree = 0
 
-        index += degree
-        return index
+		while note > self.semitones[degree] and degree < len(self.semitones) - 1:
+			degree += 1
 
-    def byname(name):
-        return Scale.dict[name]
+		index += degree
+		return index
 
-    def random():
-        key = random.choice(Scale.dict.keys())
-        return Scale.dict[key]
+	@staticmethod
+	def byname(name):
+		return Scale.dict[name]
 
-    byname = staticmethod(byname)
-    random = staticmethod(random)
+	@staticmethod
+	def random():
+		key = random.choice(Scale.dict.keys())
+		return Scale.dict[key]
 
 Scale.chromatic     = Scale([ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ], "chromatic")
 Scale.major         = Scale([ 0, 2, 4, 5, 7, 9, 11 ], "major")
@@ -69,9 +71,9 @@ Scale.minor         = Scale([ 0, 2, 3, 5, 7, 8, 11 ], "minor")
 Scale.minorPenta    = Scale([ 0, 3, 5, 7, 10 ], "minorPenta")
 Scale.majorPenta    = Scale([ 0, 2, 4, 7, 9 ], "majorPenta")
 Scale.ritusen       = Scale([ 0, 2, 5, 7, 9 ], "ritusen")
-Scale.pelog         = Scale([0,1,3,7,8], "pelog")
-Scale.augmented     = Scale([0,3,4,7,8,11], "augmented")
-Scale.augmented2    = Scale([0,1,4,5,8,9], "augmented 2")
+Scale.pelog         = Scale([ 0, 1, 3, 7, 8 ], "pelog")
+Scale.augmented     = Scale([ 0, 3, 4, 7, 8, 11 ], "augmented")
+Scale.augmented2    = Scale([ 0, 1, 4, 5, 8, 9 ], "augmented 2")
 
 Scale.ionian        = Scale([ 0, 2, 4, 5, 7, 9, 11 ], "ionian")
 Scale.dorian        = Scale([ 0, 2, 3, 5, 7, 9, 10 ], "dorian")

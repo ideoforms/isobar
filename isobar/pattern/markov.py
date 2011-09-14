@@ -66,7 +66,7 @@ class MarkovLearner:
 	def __init__(self):
 		# XXX! weeird bug - not passing an empty list here seems to share the same nodes ref between markov objects.
 		# why?
-		self.markov = markov([])
+		self.markov = Markov([])
 		print "new learner, markov is %s" % self.markov
 		self.last = None
 
@@ -88,7 +88,7 @@ class MarkovLearner:
 class MarkovLParallel:
 	def __init__(self, count):
 		self.count = count
-		self.learners = map(lambda n: markovlearner(), range(count))
+		self.learners = map(lambda n: MarkovLearner(), range(count))
 
 	def register(self, list):
 		for n in range(self.count):

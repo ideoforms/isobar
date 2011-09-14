@@ -265,6 +265,8 @@ class PDegree(Pattern):
 	def next(self):
 		degree = self.value(self.degree)
 		scale = self.value(self.scale)
+# print degree
+#		print scale
 		return scale[degree]
 
 

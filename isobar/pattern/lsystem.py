@@ -72,9 +72,10 @@ class LSysState:
 class PLSys(Pattern):
 	"""Pattern: L-system"""
 
-	def __init__(self, rule, depth = 3):
+	def __init__(self, rule, depth = 3, loop = True):
 		self.rule = rule
 		self.depth = depth
+		self.loop = loop
 		self.reset()
 
 	def __str__(self):
@@ -86,9 +87,9 @@ class PLSys(Pattern):
 
 	def next(self):
 		n = self.lsys.next()
-# if n is None:
-#			self.lsys.reset()
-#			n = self.lsys.next()
+		if self.loop and n is None:
+			self.lsys.reset()
+			n = self.lsys.next()
 
 		return None if n is None else n.midinote
 
