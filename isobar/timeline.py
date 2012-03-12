@@ -4,6 +4,8 @@ import copy
 from isobar import *
 from isobar.pattern import *
 
+import isobar.io
+
 class Timeline:
 	def __init__(self, bpm = 120, device = None):
 		"""expect to receive one tick per beat, generate events at 120bpm"""
@@ -53,9 +55,12 @@ class Timeline:
 		self.device = device
 
 	def sched(self, dict):
+		if not self.device:
+			self.device = isobar.io.MidiOut()
+
 		# hmm - why do we need to copy this?
 		# c = channel(copy.deepcopy(dict))
-		c = Channel(dict)
+		c = Channel(copy.copy(dict))
 		# XXX hack!
 		c.device = self.device
 		self.channels.append(c)
@@ -75,6 +80,7 @@ class Channel:
 		dict.setdefault('channel', 0)
 		dict.setdefault('omit', 0)
 		dict.setdefault('gate', 1.0)
+		dict.setdefault('phase', 0.0)
 
 		dict.setdefault('octave', 0)
 
@@ -95,6 +101,7 @@ class Channel:
 
 		dict['pos'] = 0
 		dict['dur_now'] = 0
+		dict['phase_now'] = dict['phase'].next()
 		dict['next_note'] = 0
 
 		self.dict = dict
@@ -103,13 +110,23 @@ class Channel:
 
 	def tick(self, time):
 		# print " - ch: pos = %.5f" % self.dict['pos']
-		if self.dict['pos'] >= self.dict['next_note']:
+
+		#----------------------------------------------------------------------
+		# process noteOffs before we play the next note, else notes
+		# of gate = 1.0 will immediately be cancelled.
+		#----------------------------------------------------------------------
+		self.processNoteOffs()
+
+		print "phase now: %f" % self.dict['phase_now']
+		if self.dict['pos'] >= self.dict['next_note'] + self.dict['phase_now']:
 			# self.dict['pos'] -= self.dict['dur_now']
 			self.dict['dur_now'] = self.dict['dur'].next()
+			self.dict['phase_now'] = self.dict['phase'].next()
+
 			self.play()
+
 			self.dict['next_note'] += self.dict['dur_now']
 
-		self.processNoteOffs()
 		self.dict['pos'] += time
 
 	def reset(self):
@@ -126,11 +143,14 @@ class Channel:
 		else:
 			note = self.dict['note'].next()
 
-		note += self.dict['transpose'].next()
+		if note is None:
+			print "finished"
+			return
 
-		amp = self.dict['amp'].next()
-
+		note   += self.dict['transpose'].next()
+		amp     = self.dict['amp'].next()
 		channel = self.dict['channel'].next()
+
 		# print "playing %d, %d" % (note, amp)
 		if random.uniform(0, 1) < self.dict['omit'].next():
 			return
@@ -140,7 +160,7 @@ class Channel:
 		gate = self.dict['gate'].next()
 		note_dur = self.dict['dur_now'] * gate
 		# print "gate %s, note_dur %s" % (gate, note_dur)
-		self.schedNoteOff(self.dict['next_note'] + note_dur, note, channel)
+		self.schedNoteOff(self.dict['next_note'] + note_dur + self.dict['phase_now'], note, channel)
 
 	def schedNoteOff(self, time, note, channel):
 		self.noteOffs.append([ time, note, channel ])

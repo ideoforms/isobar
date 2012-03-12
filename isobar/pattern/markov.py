@@ -54,6 +54,7 @@ class Markov:
 
 class PMarkov(Pattern):
 	def __init__(self, param, edges = []):
+		""" can take either a Markov object, or [ nodes, edges ] pair """
 		if isinstance(param, Markov):
 			self.markov = param
 		else:

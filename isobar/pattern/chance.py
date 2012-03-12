@@ -103,7 +103,7 @@ class PBrown(Pattern):
 			raise StopIteration
 		rv = self.value
 		self.pos += 1
-		if type(vmin) == float:
+		if type(vstep) == float:
 			self.value += random.uniform(-vstep, vstep)
 		else:
 			# select new offset without repeats
@@ -183,3 +183,24 @@ class PSkip(Pattern):
 			if self.pos >= 1:
 				self.pos -= 1
 				return self.pattern.next()
+
+class PFlipFlop(Pattern):
+	def __init__(self, initial = 0, p_on = 0.5, p_off = 0.5):
+		self.value = initial
+		self.p_on = p_on
+		self.p_off = p_off
+
+	def next(self):
+		self.value = Pattern.value(self.value)
+		self.p_on = Pattern.value(self.p_on)
+		self.p_off = Pattern.value(self.p_off)
+
+		if self.value == 0:
+			if random.uniform(0, 1) < self.p_on:
+				self.value = 1
+		else:
+			if random.uniform(0, 1) < self.p_off:
+				self.value = 0
+
+		return self.value
+

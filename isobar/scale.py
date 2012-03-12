@@ -17,6 +17,9 @@ class Scale:
 	def __getitem__(self, key):
 		return self.get(key)
 
+	def __eq__(self, other):
+		return self.semitones == other.semitones and self.octave_size == other.octave_size
+
 	def get(self, n):
 		if n is None:
 			return None
@@ -57,6 +60,10 @@ class Scale:
 		return index
 
 	@staticmethod
+	def all():
+		return Scale.dict.values()
+
+	@staticmethod
 	def byname(name):
 		return Scale.dict[name]
 
@@ -67,6 +74,7 @@ class Scale:
 
 Scale.chromatic     = Scale([ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ], "chromatic")
 Scale.major         = Scale([ 0, 2, 4, 5, 7, 9, 11 ], "major")
+Scale.minor         = Scale([ 0, 2, 3, 5, 7, 8, 11 ], "minor")
 Scale.minor         = Scale([ 0, 2, 3, 5, 7, 8, 11 ], "minor")
 Scale.minorPenta    = Scale([ 0, 3, 5, 7, 10 ], "minorPenta")
 Scale.majorPenta    = Scale([ 0, 2, 4, 7, 9 ], "majorPenta")

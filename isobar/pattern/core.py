@@ -3,8 +3,22 @@ import copy
 import random
 import itertools
 
+import isobar
+
+class EndOfPattern(Exception):
+	""" Exception signalling the end of an isobar pattern.
+	    """
+	pass
+
 class Pattern:
+	""" Pattern: Abstract superclass of all pattern generators.
+
+		Patterns are at the core of isoar. A Pattern implements the iterator
+		protocol
+	"""
+
 	LENGTH_MAX = 65536
+	GENO_SEPARATOR = "/"
 
 	def __init__(self):
 		self.__generator__ = itertools.count(0)
@@ -73,6 +87,9 @@ class Pattern:
 	def __iter__(self):
 		return self
 
+	def nextn(self, count):
+		return [ self.next() for n in range(count) ]
+
 	def next(self):
 		return self.__generator__.next()
 
@@ -97,20 +114,61 @@ class Pattern:
 				field.reset()
 
 	@staticmethod
-	def fromgenotype(self):
+	def fromgenotype(genotype):
 		""" create a new object based on this genotype """
-		pass
+		print "genotype: %s" % genotype
+		parts = genotype.split(Pattern.GENO_SEPARATOR)
+		classname = parts[0]
+		arguments = parts[1:]
+		try:
+			classes = vars(isobar)
+			classobj = classes[classname]
+			instance = classobj()
+			fields = vars(instance)
+			counter = 0
+			for name, field in fields.items():
+				instance.__dict__[name] = eval(arguments[counter])
+				print "%s - %s" % (name, arguments[counter])
+				counter += 1
+		except Exception, e:
+			print "fail: %s" % e
+			pass
+
+		return instance
+
+	def breedWith(self, other):
+		""" XXX: we should probably have a Genotype class that deals with all this """
+
+		genotypeA = self.genotype()
+		genotypeB = other.genotype()
+		genesA = genotypeA.split("/")[1:]
+		genesB = genotypeB.split("/")[1:]
+		genotype = [ genotypeA.split("/")[0] ]
+		for n in range(len(genesA)):
+			if random.uniform(0, 1) < 0.5:
+				genotype.append(genesA[n])
+			else:
+				genotype.append(genesB[n])
+		genotypeC = Pattern.GENO_SEPARATOR.join(genotype)
+		print "A %s\nB %s\n> %s" % (genotypeA, genotypeB, genotypeC)
+		return Pattern.fromgenotype(genotypeC)
 
 	def genotype(self):
 		""" return a string representation of this pattern, suitable for breeding """
-		genotype = ""
+		genotype = "%s" % (self.__class__.__name__)
 		fields = vars(self)
+
+		import base64
+
 		for name, field in fields.items():
+			genotype += Pattern.GENO_SEPARATOR
+
 			if isinstance(field, Pattern):
-				genotype += field.genotype()
+				genotype += "(%s)" % field.genotype()
+			elif isinstance(field, str):
+				genotype += base64.b64encode(field)
 			else:
 				genotype += str(field)
-			genotype += "\0"
 
 		return genotype
 
@@ -134,7 +192,18 @@ class PConst(Pattern):
 	def next(self):
 		return self.value
 
+class PDict(Pattern):
+	""" Pattern: A dict of patterns.
+        Thanks to Dan Stowell <http://www.mcld.co.uk/>
+	    """
+	def __init__(self, dict = {}):
+		self.dict = dict
 
+	def next(self):
+		vdict = self.value(self.dict)
+		rv = dict((k, Pattern.value(vdict[k])) for k in vdict)
+
+		return rv
 
 #------------------------------------------------------------------
 # binary operators

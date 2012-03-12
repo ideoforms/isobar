@@ -8,3 +8,10 @@ from chord import *
 from key import *
 from util import *
 from timeline import *
+
+import sys
+
+FOREVER = sys.maxint
+
+# REST = -sys.maxint - 1
+# END = -sys.maxint + 1

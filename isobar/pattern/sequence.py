@@ -10,7 +10,13 @@ from isobar.util import *
 from isobar.chord import *
 
 class PConst(Pattern):
-	"""Pattern: Constant value"""
+	""" PConst: Constant value.
+        Always returns a fixed value.
+
+		>>> p = PConst(4)
+		>>> p.nextn(16)
+		[4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+		"""
 
 	def __init__(self, value):
 		self.value = value
@@ -22,7 +28,14 @@ class PConst(Pattern):
 		return self.value
 
 class PSeq(Pattern):
-	"""Pattern: Fixed sequence"""
+	""" PSeq: Fixed sequence.
+		Takes an input list, and repeats the items in this list.
+
+		>>> p = PSeq([ 1, 2, 3, 5 ])
+		>>> p.nextn(10)
+		[1, 2, 3, 5, 1, 2, 3, 5, 1, 2, 3, 5, 1, 2, 3, 5]
+		"""
+
 	def __init__(self, list = [], repeats = sys.maxint):
 		self.list = list
 		self.repeats = repeats
@@ -50,7 +63,13 @@ class PSeq(Pattern):
 		return rv
 
 class PSeries(Pattern):
-	"""Pattern: Arithmetic series"""
+	""" PSeries: Arithmetic series.
+		Begins at start, increments by step.
+
+		>>> p = PSeries(3, 9)
+		>>> p.nextn(16)
+		[3, 12, 21, 30, 39, 48, 57, 66, 75, 84, 93, 102, 111, 120, 129, 138]
+		"""
 
 	def __init__(self, start = 0, step = 1, length = sys.maxint):
 		self.start = start
@@ -77,6 +96,17 @@ class PSeries(Pattern):
 		return n
 
 class PLoop(Pattern):
+	""" PLoop: Loop input.
+		Repeats its entire input pattern n times. Useful for pattern generators
+		which don't natively loop (unlike the contrived example).
+
+		Input must be finite or results may vary.
+
+		>>> p = PLoop(PSeq([ 1, 4, 9 ], 1))
+		>>> p.nextn(16)
+		[1, 4, 9, 1, 4, 9, 1, 4, 9, 1, 4, 9, 1, 4, 9, 1]
+		"""
+
 	def __init__(self, pattern, count = sys.maxint):
 		self.pattern = pattern
 		self.values = []
@@ -113,7 +143,12 @@ class PLoop(Pattern):
 		return rv
 
 class PPingPong(Pattern):
-	""" plays a pattern back and forth N times """
+	""" PPingPong: Ping-pong input pattern bak and forth N times.
+
+		>>> p = PPingPong(PSeq([ 1, 4, 9 ], 1))
+		>>> p.nextn(16)
+		[1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4]
+		"""
 
 	def __init__(self, pattern, count = sys.maxint):
 		self.pattern = pattern
@@ -151,9 +186,14 @@ class PPingPong(Pattern):
 		self.pos += self.dir
 		return rv
 
-# might also be nice to have a "repeats" param
-# (in which case, PStutter could also be written as PCreep(p, 1, 1, n)
 class PCreep(Pattern):
+	""" PCreep: Loop a <length>-note segment of input, creeping forward
+                 <creep> notes after <count> repeats.
+
+		>>> p = PCreep(PSeries(), 3, 1, 2)
+		>>> p.nextn(16)
+		[0, 1, 2, 0, 1, 2, 1, 2, 3, 1, 2, 3, 2, 3, 4, 2]
+		"""
 	def __init__(self, pattern, length = 4, creep = 1, count = 1):
 		self.pattern = pattern
 		self.length = length
@@ -189,6 +229,16 @@ class PCreep(Pattern):
 		return self.buffer[self.pos - 1]
 
 class PStutter(Pattern):
+	""" PStutter: Play each note of <pattern> <count> times.
+		Is really a more convenient way to do:
+
+			PCreep(pattern, 1, 1, count)
+
+		>>> p = PStutter(PSeries(), 2)
+		>>> p.nextn(16)
+		[0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7]
+		"""
+
 	def __init__(self, pattern, count = 2):   
 		self.pattern = pattern
 		self.count = count
@@ -203,6 +253,13 @@ class PStutter(Pattern):
 		return self.value
 
 class PWrap(Pattern):
+	""" PWrap: Wrap input note values within <min>, <max>.
+
+		>>> p = PWrap(PSeries(5, 3), 0, 10)
+		>>> p.nextn(16)
+		[5, 8, 1, 4, 7, 0, 3, 6, 9, 2, 5, 8, 1, 4, 7, 0]
+		"""
+
 	def __init__(self, pattern, min = 40, max = 80):
 		self.pattern = pattern
 		self.min = min
@@ -212,11 +269,18 @@ class PWrap(Pattern):
 		value = self.pattern.next()
 		while value < self.min:
 			value += self.max - self.min
-		while value > self.max:
+		while value >= self.max:
 			value -= self.max - self.min
 		return value
 
 class PPermut(Pattern):
+	""" PPermut: Generate every permutation of <count> input items.
+
+		>>> p = PPermut(PSeq([ 1, 11, 111, 1111 ]), 4)
+		>>> p.nextn(16)
+		[1, 11, 111, 1111, 1, 11, 1111, 111, 1, 111, 11, 1111, 1, 111, 1111, 11]
+		"""
+
 	def __init__(self, input, count = 8):
 		self.input = input
 		self.count = count
@@ -252,6 +316,9 @@ class PPermut(Pattern):
 		elif self.pos >= len(self.permutations[0]):
 			self.permindex = self.permindex + 1
 			self.pos = 0
+
+		if self.permindex >= len(self.permutations):
+			return None
 			
 		rv = self.permutations[self.permindex][self.pos]
 		self.pos += 1
@@ -393,3 +460,52 @@ class PArp(Pattern):
 
 		return rv
 
+
+
+class PEuclidean(Pattern):
+	def split_remainder(self, seq):
+		last = None
+		a = []
+		b = []
+		for value in seq:
+			if last is None or value == last:
+				a.append(value)
+				last = value
+			else:
+				b.append(value)
+		return (a, b)
+
+	def interleave(self, a, b):
+		if len(a) < len(b):
+			return [ a[n] + b[n] for n in range(len(a)) ] + b[len(a) - len(b):]
+		elif len(b) < len(a):
+			return [ a[n] + b[n] for n in range(len(b)) ] + a[len(b) - len(a):]
+		else:
+			return [ a[n] + b[n] for n in range(len(b)) ]
+
+	def euclidean(self, length, mod):
+		seqs = [ (1,) ] * mod + [ (0,) ] * (length - mod)
+		seqs, remainder = self.split_remainder(seqs)
+		while True:
+			if len(remainder) <= 1:
+				break
+			seqs = self.interleave(seqs, remainder)
+			seqs, remainder = self.split_remainder(seqs)
+
+		return reduce(lambda a, b: a + b, seqs + remainder)
+
+	def __init__(self, length, mod, phase = 0):
+		self.length = length
+		self.mod = mod
+		self.sequence = []
+		self.pos = phase
+	
+	def next(self):
+		length = self.value(self.length)
+		mod = self.value(self.mod)
+		sequence = self.euclidean(length, mod)
+		if self.pos >= len(sequence):
+			self.pos = 0
+		rv = sequence[self.pos]
+		self.pos += 1
+		return rv

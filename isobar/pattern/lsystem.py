@@ -12,6 +12,9 @@ class LSystem:
 		self.reset()
 
 	def iterate(self, count = 3):
+		if self.rule.count("[") != self.rule.count("]"):
+			raise ValueError, "Imbalanced brackets in rule string: %s" % self.rule
+
 		for n in range(count):
 			string_new = ""
 			for char in self.string:
