@@ -56,34 +56,34 @@ CLASSES
 
 Current class list:
 
-	Chord
-	Key
-	Note
-	Scale
-	Timeline
-	Clock
+    Chord
+    Key
+    Note
+    Scale
+    Timeline
+    Clock
 
 Pattern classes:
 
     CORE (pattern/core.py)
-	Pattern        - generic pattern superclass
-	PConst         - constant value
-	PAdd           - add two patterns together (shorthand: patternA + patternB)
-	PSub           - subtract pattern B from A (shorthand: patternA - patternB)
-	PMul           - divide pattern A by B (shorthand: patternA / patternB)
-	PDiv           - multiply pattern A by B (shorthand: patternA * patternB)
+    Pattern        - generic pattern superclass
+    PConst         - constant value
+    PAdd           - add two patterns together (shorthand: patternA + patternB)
+    PSub           - subtract pattern B from A (shorthand: patternA - patternB)
+    PMul           - divide pattern A by B (shorthand: patternA / patternB)
+    PDiv           - multiply pattern A by B (shorthand: patternA * patternB)
 
     SEQUENCE (pattern/sequence.py)
-	PSeq           - sequence of fixed values (repeated N times)
-	PSeries        - arithmetic series
-	PGeom          - geometric series
-	PLoop          - repeat an input pattern N times
-	PPingPong      - repeat input pattern back and forth N times
-	PCreep         - creep through an input pattern by N notes each step
-	PStutter       - repeat each input value N times
-	PWrap          - wrap values around a given range
-	PPermut        - all permutations of a finite input pattern
-	PDegree        - map values to a given Scale
+    PSeq           - sequence of fixed values (repeated N times)
+    PSeries        - arithmetic series
+    PGeom          - geometric series
+    PLoop          - repeat an input pattern N times
+    PPingPong      - repeat input pattern back and forth N times
+    PCreep         - creep through an input pattern by N notes each step
+    PStutter       - repeat each input value N times
+    PWrap          - wrap values around a given range
+    PPermut        - all permutations of a finite input pattern
+    PDegree        - map values to a given Scale
     PSubsequence   - extracts a subsequence at a given index and length
     PImpulse       - generates an impulse every N steps
     PReset         - resets an input pattern when an impulse is received
@@ -91,42 +91,42 @@ Pattern classes:
     PArp           - generates arpeggios with a range of settings
 
     CHANCE (pattern/chance.py)
-	PWhite         - white noise (uncorrelated values within a given range, int or float)
-	PBrown         - brownian noise (random walk over a given range, int or float)
-	PWalk          - random walk over a given input list
-	PChoice        - random choice from a list
-	PWChoice       - weighted random choice from a list
-	PShuffle       - shuffle a finite input list
-	PShuffleEvery  - every N steps, shuffles the next N values of an input pattern
-	PSkip          - skip over input values with some probability 
-	PFlipFlop      - flip a binary bit with some probability
+    PWhite         - white noise (uncorrelated values within a given range, int or float)
+    PBrown         - brownian noise (random walk over a given range, int or float)
+    PWalk          - random walk over a given input list
+    PChoice        - random choice from a list
+    PWChoice       - weighted random choice from a list
+    PShuffle       - shuffle a finite input list
+    PShuffleEvery  - every N steps, shuffles the next N values of an input pattern
+    PSkip          - skip over input values with some probability 
+    PFlipFlop      - flip a binary bit with some probability
 
     OPERATORS (pattern/operator.py)
-	PDelay         - outputs the next value of an input pattern after N ticks
-	PDiff          - difference between last two input values
-	PAbs           - absolute value of an input pattern
+    PDelay         - outputs the next value of an input pattern after N ticks
+    PDiff          - difference between last two input values
+    PAbs           - absolute value of an input pattern
 
     L-SYSTEMS (pattern/lsystem.py)
-	PLSys          - integer sequence derived from Lindenmayer systems
+    PLSys          - integer sequence derived from Lindenmayer systems
 
     MARKOV (pattern/markov.py)
-	PMarkov        - markov chain patterns
+    PMarkov        - markov chain patterns
 
     WARPING AND AUTOMATION [EXPERIMENTAL] (pattern/warp.py)
-	PWarp          - warp continuous values (abstract superclass)
-	PWRamp         - warp on a linear ramp
-	PWSine         - warp on a sine
-	PAutomate      - superclass for continuous value automation (in development)
+    PWarp          - warp continuous values (abstract superclass)
+    PWRamp         - warp on a linear ramp
+    PWSine         - warp on a sine
+    PAutomate      - superclass for continuous value automation (in development)
 
 -------------------------------------------------------------------------------
 BACKGROUND
 -------------------------------------------------------------------------------
-Isobar was first designed for the generative sound installation Variable 4:
+isobar was first designed for the generative sound installation Variable 4:
 
-	http://www.variable4.org.uk/
+    http://www.variable4.org.uk/
 
 Many of the concepts behind Pattern and its subclasses are inspired by the
 excellent pattern library of the SuperCollider synthesis language:
 
-	http://supercollider.sf.net
+    http://supercollider.sf.net
 
