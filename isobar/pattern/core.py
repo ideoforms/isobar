@@ -1,3 +1,7 @@
+#-------------------------------------------------------------------------------
+# isobar: a python library for expressing and manipulating musical patterns.
+#-------------------------------------------------------------------------------
+
 import sys
 import copy
 import random
@@ -5,17 +9,18 @@ import itertools
 
 import isobar
 
-class EndOfPattern(Exception):
-	""" Exception signalling the end of an isobar pattern.
-	    """
-	pass
 
 class Pattern:
 	""" Pattern: Abstract superclass of all pattern generators.
 
 		Patterns are at the core of isoar. A Pattern implements the iterator
-		protocol
-	"""
+		protocol, representing a sequence of values which are iteratively
+		returned by the next() method. A pattern may be finite, after which
+		point it raises an EndOfPattern exception. Call reset() to return
+		a pattern to its initial state.
+
+		Patterns can be subject to standard arithmetic operators as expected.
+		"""
 
 	LENGTH_MAX = 65536
 	GENO_SEPARATOR = "/"
@@ -25,6 +30,12 @@ class Pattern:
 
 	def __str__(self):
 		return "pattern"
+
+	def __len__(self):
+		# formerly defined as len(list(self)), but list(self) seeminly relies
+		# on a correct __len__ to function as expected.
+		items = self.all()
+		return len(items)
 
 	def __neg__(self):
 		return 0 - self
@@ -36,7 +47,7 @@ class Pattern:
 
 		# we actually want to retain references to our constituent patterns
 		# in case the user later changes parameters of one
-		operand = operand if isinstance(operand, Pattern) else PConst(operand)
+		operand = Pattern.pattern(operand)
 		return PAdd(self, operand)
 
 	def __radd__(self, operand):
@@ -45,23 +56,17 @@ class Pattern:
 
 	def __sub__(self, operand):
 		"""Binary op: subtract two patterns"""
-		# operand = copy.deepcopy(operand) if isinstance(operand, pattern) else PConst(operand)
-		# return PSub(copy.deepcopy(self), operand)
-		operand = operand if isinstance(operand, Pattern) else PConst(operand)
+		operand = Pattern.pattern(operand)
 		return PSub(self, operand)
 
 	def __rsub__(self, operand):
 		"""Binary op: subtract two patterns"""
-		# operand = copy.deepcopy(operand) if isinstance(operand, pattern) else PConst(operand)
-		# return PSub(operand, copy.deepcopy(self))
-		operand = operand if isinstance(operand, Pattern) else PConst(operand)
+		operand = Pattern.pattern(operand)
 		return PSub(operand, self)
 
 	def __mul__(self, operand):
 		"""Binary op: multiply two patterns"""
-		# operand = copy.deepcopy(operand) if isinstance(operand, pattern) else PConst(operand)
-		# return pmul(copy.deepcopy(self), operand)
-		operand = operand if isinstance(operand, Pattern) else PConst(operand)
+		operand = Pattern.pattern(operand)
 		return PMul(self, operand)
 
 	def __rmul__(self, operand):
@@ -70,9 +75,7 @@ class Pattern:
 
 	def __div__(self, operand):
 		"""Binary op: divide two patterns"""
-		# operand = copy.deepcopy(operand) if isinstance(operand, pattern) else PConst(operand)
-		# return PDiv(copy.deepcopy(self), operand)
-		operand = operand if isinstance(operand, Pattern) else PConst(operand)
+		operand = Pattern.pattern(operand)
 		return PDiv(self, operand)
 
 	def __rdiv__(self, operand):
@@ -81,26 +84,63 @@ class Pattern:
 
 	def __mod__(self, operand):
 		"""Modulo"""
-		operand = operand if isinstance(operand, Pattern) else PConst(operand)
+		operand = Pattern.pattern(operand)
 		return PMod(self, operand)
+
+	def __rmod__(self, operand):
+		"""Modulo (as operand)"""
+		operand = Pattern.pattern(operand)
+		return operand.__mod__(self)
+
+	def __rpow__(self, operand):
+		"""Power (as operand)"""
+		operand = Pattern.pattern(operand)
+		return operand.__pow__(self)
+
+	def __pow__(self, operand):
+		"""Power"""
+		operand = Pattern.pattern(operand)
+		return PPow(self, operand)
+
+	def __lshift__(self, operand):
+		"""Left bitshift"""
+		operand = Pattern.pattern(operand)
+		return PLShift(self, operand)
+
+	def __rshift__(self, operand):
+		"""Right bitshift"""
+		operand = Pattern.pattern(operand)
+		return PRShift(self, operand)
 
 	def __iter__(self):
 		return self
 
 	def nextn(self, count):
-		return [ self.next() for n in range(count) ]
+		rv = []
+		# can't do a naive [ self.next() for n in range(count) ]
+		# as we want to catch StopIterations.
+		try:
+			for n in range(count):
+				rv.append(self.next())
+		except StopIteration:
+			pass
+
+		return rv
 
 	def next(self):
 		return self.__generator__.next()
 
 	def all(self):
 		values = []
-		for n in xrange(Pattern.LENGTH_MAX):
-			value = self.next()
-			if value is None:
-				break
-			else:
+		try:
+			# do we even need a LENGTH_MAX?
+			# if we omit it, .all() will become an alias for list(pattern)
+			#  - maybe not such a bad thing.
+			for n in xrange(Pattern.LENGTH_MAX):
+				value = self.next()
 				values.append(value)
+		except StopIteration:
+			pass
 
 		self.reset()
 		return values
@@ -110,7 +150,6 @@ class Pattern:
 		fields = vars(self)
 		for name, field in fields.items():
 			if isinstance(field, Pattern):
-				# print "reset: %s" % name
 				field.reset()
 
 	@staticmethod
@@ -177,23 +216,49 @@ class Pattern:
 
 	@staticmethod
 	def value(v):
-		if isinstance(v, Pattern):
-			return Pattern.value(v.next())
-		else:
-			return v
+		""" Resolve a pattern to its value (that is, the next item in this
+			pattern, recursively).
+			"""
+		return Pattern.value(v.next()) if isinstance(v, Pattern) else v
+
+	@staticmethod
+	def pattern(v):
+		""" Patternify a value by wrapping it in PConst if necessary. """
+		return v if isinstance(v, Pattern) else PConst(v)
 
 class PConst(Pattern):
-	def __init__(self, value):
-		self.value = value
+	""" PConst: Constant pattern.
+        Returns a fixed value.
+
+		>>> p = PConst(4)
+		>>> p.nextn(16)
+		[4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+		"""
+	def __init__(self, constant):
+		self.constant = constant
 
 	def __str__(self):
 		return "constant"
 
 	def next(self):
-		return self.value
+		return self.constant
+
+class PRef(Pattern):
+	""" PRef: Pattern reference.
+	    Returns the next value of the pattern contained.
+		Useful to change an inner pattern in real time.
+		"""
+	def __init__(self, pattern):
+		self.pattern = pattern
+
+	def change(self, pattern):
+		self.pattern = pattern
+
+	def next(self):
+		return self.pattern.next()
 
 class PDict(Pattern):
-	""" Pattern: A dict of patterns.
+	""" PDict : A dict of patterns.
         Thanks to Dan Stowell <http://www.mcld.co.uk/>
 	    """
 	def __init__(self, dict = {}):
@@ -204,6 +269,17 @@ class PDict(Pattern):
 		rv = dict((k, Pattern.value(vdict[k])) for k in vdict)
 
 		return rv
+
+class PFunc(Pattern):
+	""" PFunc: Applies the given function to each event in its input.
+	    """
+	def __init__(self, fn, pattern):
+		self.fn = fn
+		self.pattern = Pattern.pattern(pattern)
+
+	def next(self):
+		value = self.pattern.next()
+		return self.fn(value)
 
 #------------------------------------------------------------------
 # binary operators
@@ -259,3 +335,30 @@ class PMod(PBinOp):
 		a = self.a.next()
 		b = self.b.next()
 		return None if a is None or b is None else a % b
+
+class PPow(PBinOp):
+	def __str__(self):
+		return "pow(%s, %s)" % (self.a, self.b)
+
+	def next(self):
+		a = self.a.next()
+		b = self.b.next()
+		return None if a is None or b is None else pow(a, b)
+
+class PLShift(PBinOp):
+	def __str__(self):
+		return "(%s << %s)" % (self.a, self.b)
+
+	def next(self):
+		a = self.a.next()
+		b = self.b.next()
+		return None if a is None or b is None else a << b
+
+class PRShift(PBinOp):
+	def __str__(self):
+		return "(%s >> %s)" % (self.a, self.b)
+
+	def next(self):
+		a = self.a.next()
+		b = self.b.next()
+		return None if a is None or b is None else a >> b

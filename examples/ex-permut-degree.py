@@ -20,9 +20,9 @@ pamp = PPermut(pamp)
 
 # schedule on a 60bpm timeline and send to MIDI output
 timeline = Timeline(60, MidiOut())
-timeline.sched({ 'note': ppitch + 60, 'dur': pdur, 'channel': 0, 'gate': 8, 'amp': pamp })
+timeline.sched({ 'note': ppitch + 60, 'dur': pdur, 'channel': 0, 'gate': 1, 'amp': pamp })
 timeline.sched({ 'note': ppitch + 24, 'dur': pdur * 4, 'channel': 1, 'gate': 2, 'amp': pamp })
-timeline.sched({ 'note': ppitch + 72, 'dur': pdur / 8, 'channel': 1, 'gate': 1, 'amp': pamp / 2 })
+timeline.sched({ 'note': ppitch + 72, 'dur': pdur / 2, 'channel': 1, 'gate': 1, 'amp': pamp / 2 })
 
 # add some continuous warping
 warp = PWRamp(2, PBrown(-0.1, 0.01, -0.15, -0.05))

@@ -11,3 +11,4 @@ from warp import *
 from automate import *
 from chordgen import *
 
+from fade import *

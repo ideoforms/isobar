@@ -5,36 +5,25 @@ import itertools
 from isobar.pattern.core import *
 from isobar.util import *
 
-class PChoice(Pattern):
-	"""Pattern: Random selection from list
-		- values: list to select from"""
-	def __init__(self, values = []):
-		self.values = values
-
-	def next(self):
-		return self.values[random.randint(0, len(self.values) - 1)]
-
-class PWChoice(Pattern):
-	"""Pattern: Weighted random selection from list
-		- values: list to select from
-		- weights: equal-sized list of weightings (not necessarily normalized)"""
-	def __init__(self, values = [], weights = []):
-		self.values = values
-		self.weights = weights
-
-	def next(self):
-		return wchoice(self.values, self.weights)
-
 class PWhite(Pattern):
-	"""Pattern: White noise 
-		- min: minimum value
-		- max: maximum value
+	""" PWhite: White noise between <min> and <max>.
 	   If values are given as floats, output values are also floats < max.
-	   If values are ints, output values are ints <= max (as random.randint)"""
-	def __init__(self, min = 0.0, max = 1.0, length = sys.maxint):
+	   If values are ints, output values are ints <= max (as random.randint)
+
+		>>> PWhite(0, 10).nextn(16)
+		[8, 10, 8, 1, 7, 3, 1, 9, 9, 3, 2, 10, 7, 5, 10, 4]
+
+		>>> PWhite(0.0, 10.0).nextn(16)
+		[3.6747936220022082, 0.61313530428271923, 9.1515368696591555, ... 6.2963694390145974 ]
+	   """
+	def __init__(self, min, max = None):
 		self.min = min
 		self.max = max
-		self.length = length
+
+		# also support a 1-argument case: PWhite(max)
+		if self.max is None:
+			self.max = min
+			self.min = -self.max
 
 	def next(self):
 		min = self.value(self.min)
@@ -45,36 +34,10 @@ class PWhite(Pattern):
 		else:
 			return random.randint(min, max)
 
-class PShuffle(Pattern):
-	"""Pattern: Shuffled list"""
-	def __init__(self, values = [], repeats = sys.maxint):
-		self.values = values
-		self.repeats = repeats
-		self.pos = 0
-		self.rcount = 1
-
-	def reset(self):
-		self.pos = 0
-		self.rcount = 0
-
-		Pattern.reset(self)
-
-	def next(self):
-		values = self.value(self.values)
-		repeats = self.value(self.repeats)
-
-		if self.pos >= len(values):
-			if self.rcount >= repeats:
-				return None
-			self.rcount += 1
-			self.pos = 0
-
-		rv = values[self.pos]
-		self.pos += 1
-		return rv
-
 class PBrown(Pattern):
-	"""Pattern: Brownian noise"""
+	""" PBrown: Brownian noise, beginning at <value>, step +/-<step>.
+	            Set <repeats> to False to prevent consecutive repeats.
+	    """
 	def __init__(self, value = 0, step = 0.1, min = -1, max = 1, repeats = True, length = sys.maxint):
 		self.init = value
 		self.value = value
@@ -93,11 +56,10 @@ class PBrown(Pattern):
 
 	def next(self):
 		# pull out modulatable values
-		vstep = Pattern.value(self.step)
-		vmin = Pattern.value(self.min)
-		vmax = Pattern.value(self.max)
+		vstep    = Pattern.value(self.step)
+		vmin     = Pattern.value(self.min)
+		vmax     = Pattern.value(self.max)
 		vrepeats = Pattern.value(self.repeats)
-		# XXX todo - force no repeats
 
 		if self.pos >= self.length:
 			raise StopIteration
@@ -117,7 +79,12 @@ class PBrown(Pattern):
 
 
 class PWalk(Pattern):
-	"""Pattern: Random walk around list"""
+	""" PWalk: Random walk around list.
+		       Jumps between <min> and <max> steps inclusive.
+
+		>>> PWalk([ 0, 2, 5, 8, 11 ], min = 1, max = 2).nextn(16)
+		[8, 11, 0, 8, 0, 11, 2, 11, 2, 0, 5, 8, 11, 8, 5, 8]
+		"""
 	def __init__(self, values = [], min = 1, max = 1):
 		self.values = values
 		self.min = min
@@ -125,21 +92,120 @@ class PWalk(Pattern):
 		self.pos = 0
 
 	def next(self):
-		# pull out modulatable values
-		vvalues = self.value(self.values)
-		vmin = self.value(self.min)
-		vmax = self.value(self.max)
+		vvalues = Pattern.value(self.values)
+		vmin    = Pattern.value(self.min)
+		vmax    = Pattern.value(self.max)
 
 		move = random.randint(vmin, vmax)
 		move = 0 - move if random.uniform(0, 1) < 0.5 else move
 		self.pos += move
 
-		if self.pos < 0:
+		while self.pos < 0:
 			self.pos += len(vvalues)
-		elif self.pos >= len(vvalues):
+		while self.pos >= len(vvalues):
 			self.pos -= len(vvalues)
 
 		return vvalues[self.pos]
+
+
+class PChoice(Pattern):
+	""" PChoice: Random selection from <values>
+
+		>>> p = PChoice([ 0, 1, 10, 11 ])
+		>>> p.nextn(16)
+		[11, 1, 0, 10, 1, 11, 1, 0, 11, 1, 11, 1, 1, 11, 11, 1]
+	    """
+	def __init__(self, values = []):
+		self.values = values
+
+	def next(self):
+		return self.values[random.randint(0, len(self.values) - 1)]
+
+class PWChoice(Pattern):
+	""" PWChoice: Random selection from <values>, weighted by <weights>.
+		          <weights> and <values> must be the same length, but not
+		          necessarily normalised.
+
+		>>> p = PWChoice([ 1, 11, 111 ], [ 8, 2, 1 ])
+		>>> p.nextn(16)
+		[111, 1, 1, 111, 1, 1, 1, 1, 1, 1, 1, 11, 1, 1, 1, 1]
+	    """
+	def __init__(self, values = [], weights = []):
+		self.values = values
+		self.weights = weights
+
+	def next(self):
+		return wnchoice(self.values, self.weights)
+
+class PShuffle(Pattern):
+	""" PShuffle: Shuffled list.
+
+		>>> p = PShuffle([ 1, 2, 3 ])
+		>>> p.nextn(16)
+		[1, 3, 2, 3, 2, 1, 2, 3, 1, 2, 3, 1, 1, 2, 3, 1]
+	    """
+	def __init__(self, values = [], repeats = sys.maxint):
+		self.values = copy.copy(values)
+		self.repeats = repeats
+
+		self.pos = 0
+		self.rcount = 1
+		random.shuffle(self.values)
+
+	def reset(self):
+		self.pos = 0
+		self.rcount = 0
+		random.shuffle(self.values)
+
+		Pattern.reset(self)
+
+	def next(self):
+		values = self.value(self.values)
+		repeats = self.value(self.repeats)
+
+		if self.pos >= len(values):
+			if self.rcount >= repeats:
+				raise StopIteration
+			random.shuffle(self.values)
+			self.rcount += 1
+			self.pos = 0
+
+		rv = values[self.pos]
+		self.pos += 1
+		return rv
+
+class PShuffleEvery(Pattern):
+	""" PShuffleEvery: Every <n> steps, take <n> values from <pattern> and reorder.
+
+		>>> p = PShuffleEvery(PSeries(0, 1), 4)
+		>>> p.nextn(16)
+	    """
+	def __init__(self, pattern, every = 4):
+		self.pattern = pattern
+		self.every = every
+		self.values = []
+		self.pos = 0
+
+	def begin(self):
+		kevery = Pattern.value(self.every)
+		self.values = self.pattern.nextn(kevery)
+		random.shuffle(self.values)
+		self.pos = 0
+
+	def reset(self):
+		# TODO: clarify the semantics of "reset" (which should trickle down to children)
+		#       vs the method called each time a new set of values is needed -- should
+		#       this be a flag to reset?
+		self.begin()
+		Pattern.reset(self)
+
+	def next(self):
+		if self.pos >= len(self.values):
+			self.begin()
+
+		rv = self.values[self.pos]
+		self.pos += 1
+		return rv
 
 class PSelfIndex(Pattern):
 	def __init__(self, count = 6):
@@ -167,6 +233,9 @@ class PSelfIndex(Pattern):
 		self.values = values_new
 
 class PSkip(Pattern):
+	""" PSkip: Skip events with some probability, 1 - <play>.
+		       Set <random> to False to skip events regularly.
+		"""
 	def __init__(self, pattern, play, random = True):
 		self.pattern = pattern
 		self.play = play
@@ -185,6 +254,15 @@ class PSkip(Pattern):
 				return self.pattern.next()
 
 class PFlipFlop(Pattern):
+	""" PFlipFlop: flip a binary bit with some probability.
+		           <initial> is initial value (0 or 1)
+		           <p_on> is chance of switching from 0->1
+		           <p_off> is chance of switching from 1->0
+
+		>>> p = PFlipFlop(0, 0.9, 0.5)
+		>>> p.nextn(16)
+		[1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1]
+		"""
 	def __init__(self, initial = 0, p_on = 0.5, p_off = 0.5):
 		self.value = initial
 		self.p_on = p_on

@@ -10,8 +10,8 @@ from isobar.util import *
 from isobar.chord import *
 
 class PConst(Pattern):
-	""" PConst: Constant value.
-        Always returns a fixed value.
+	""" PConst: Constant pattern.
+        Returns a fixed value.
 
 		>>> p = PConst(4)
 		>>> p.nextn(16)
@@ -48,7 +48,7 @@ class PSeq(Pattern):
 
 	def next(self):
 		if len(self.list) == 0 or self.rcount >= self.repeats:
-			return None
+			raise StopIteration
 
 		# support for pattern arguments
 		list = self.value(self.list)
@@ -64,7 +64,7 @@ class PSeq(Pattern):
 
 class PSeries(Pattern):
 	""" PSeries: Arithmetic series.
-		Begins at start, increments by step.
+		Begins at <start>, increments by <step>.
 
 		>>> p = PSeries(3, 9)
 		>>> p.nextn(16)
@@ -86,14 +86,47 @@ class PSeries(Pattern):
 
 	def next(self):
 		if self.count >= self.length:
-			return None
-			# raise StopIteration
+			# return None
+			raise StopIteration
+		step = Pattern.value(self.step)
 		n = self.value
-		# XXX need a general-use way of writing this
 		step = self.step.next() if isinstance(self.step, Pattern) else self.step
 		self.value += step
 		self.count += 1
 		return n
+
+class PGeom(Pattern):
+	""" PGeom: Geometric series.
+		Begins at <start>, multiplied by <step>.
+
+		>>> p = PGeom(1, 2)
+		>>> p.nextn(16)
+		[1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768]
+		"""
+
+	def __init__(self, start = 1, multiply = 2, length = sys.maxint):
+		self.start = start
+		self.value = start
+		self.multiply = multiply
+		self.length = length
+		self.count = 0
+
+	def reset(self):
+		self.value = self.start 
+		self.count = 0
+
+		Pattern.reset(self)
+
+	def next(self):
+		if self.count >= self.length:
+			raise StopIteration
+
+		multiply = Pattern.value(self.multiply)
+
+		rv = self.value
+		self.value *= multiply
+		self.count += 1
+		return rv
 
 class PLoop(Pattern):
 	""" PLoop: Loop input.
@@ -125,15 +158,15 @@ class PLoop(Pattern):
 
 	def next(self):
 		if not self.read_all:
-			rv = self.pattern.next()
-			if rv is None:
-				self.read_all = True
-			else:
+			try:
+				rv = self.pattern.next()
 				self.values.append(rv)
+			except StopIteration:
+				self.read_all = True
 
 		if self.read_all and self.pos >= len(self.values):
 			if self.rpos >= self.count:
-				return None
+				raise StopIteration
 			else:
 				self.rpos += 1
 				self.pos = 0
@@ -142,8 +175,32 @@ class PLoop(Pattern):
 		self.pos += 1
 		return rv
 
+class PConcat(Pattern):
+	""" PConcat: Concatenate the output of multiple sequences. 
+
+		>>> PConcat([ PSeq([ 1, 2, 3], 2), PSeq([ 9, 8, 7 ], 2) ]).nextn(16)
+		[1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4]
+		"""
+
+	def __init__(self, inputs):
+		self.inputs = inputs
+		self.current = inputs.pop(0)
+
+	def next(self):
+		try:
+			return self.current.next()
+		except StopIteration:
+			if len(self.inputs) > 0:
+				self.current = self.inputs.pop(0)
+				# can't just blindly return the first value of current
+				# -- what if it is empty? 
+				return self.next()
+			else:
+				# no more sequences left, so just return.
+				raise StopIteration
+
 class PPingPong(Pattern):
-	""" PPingPong: Ping-pong input pattern bak and forth N times.
+	""" PPingPong: Ping-pong input pattern back and forth N times.
 
 		>>> p = PPingPong(PSeq([ 1, 4, 9 ], 1))
 		>>> p.nextn(16)
@@ -165,11 +222,11 @@ class PPingPong(Pattern):
 
 	def next(self):
 		if not self.read_all:
-			rv = self.pattern.next()
-			if rv is None:
-				self.read_all = True
-			else:
+			try:
+				rv = self.pattern.next()
 				self.values.append(rv)
+			except StopIteration:
+				self.read_all = True
 
 		if self.read_all:
 			if self.pos >= len(self.values):
@@ -206,10 +263,11 @@ class PCreep(Pattern):
 			self.buffer.append(pattern.next())
 
 	def next(self):
-		pos = self.value(self.pos)
-		length = self.value(self.length)
-		creep = self.value(self.creep)
-		count = self.value(self.count)
+		pos     = Pattern.value(self.pos)
+		length  = Pattern.value(self.length)
+		creep   = Pattern.value(self.creep)
+		count   = Pattern.value(self.count)
+
 		while len(self.buffer) < length:
 				self.buffer.append(self.pattern.next())
 		while len(self.buffer) > length:
@@ -300,17 +358,15 @@ class PPermut(Pattern):
 			n = 0
 			values = []
 			while n < self.count:
-				v = self.input.next()
-				if v is None:
+				try:
+					v = self.input.next()
+				except StopIteration:
 					break
+
 				values.append(v)
 				n += 1
 
-			permiter = itertools.permutations(values)
-			self.permutations = []
-			for n in permiter:
-				self.permutations.append(n)
-
+			self.permutations = list(itertools.permutations(values))
 			self.permindex = 0
 			self.pos = 0
 		elif self.pos >= len(self.permutations[0]):
@@ -325,19 +381,29 @@ class PPermut(Pattern):
 		return rv
 
 class PDegree(Pattern):
+	""" PDegree: Map scale index <degree> to MIDI notes in <scale>.
+
+		>>> p = PDegree(PSeries(0, 1), Scale.major)
+		>>> p.nextn(16)
+		[0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26]
+		"""
 	def __init__(self, degree, scale = Scale.major):
 		self.degree = degree
 		self.scale = scale
 
 	def next(self):
-		degree = self.value(self.degree)
-		scale = self.value(self.scale)
-# print degree
-#		print scale
+		degree = Pattern.value(self.degree)
+		scale = Pattern.value(self.scale)
 		return scale[degree]
 
 
 class PSubsequence(Pattern):
+	""" PSubsequence: Returns a finite subsequence of an input pattern.
+
+		>>> p = PSubsequence(PSer
+		>>> p.nextn(16)
+		[0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26]
+		"""
 	def __init__(self, pattern, offset, length):
 		self.pattern = pattern
 		self.offset = offset
@@ -351,12 +417,12 @@ class PSubsequence(Pattern):
 		Pattern.reset(self)
 
 	def next(self):
-		offset = self.value(self.offset)
-		length = self.value(self.length)
+		offset = Pattern.value(self.offset)
+		length = Pattern.value(self.length)
 
 		# print "length is %d, pos %d" % (length, self.pos)
 		if self.pos >= length:
-			return None
+			raise StopIteration
 
 		while len(self.values) <= self.pos + offset:
 			self.values.append(self.pattern.next())
@@ -367,6 +433,12 @@ class PSubsequence(Pattern):
 		return rv
 
 class PImpulse(Pattern):
+	""" PImpulse: Outputs a 1 every <period> events, otherwise 0.
+
+		>>> p = PImpulse(4)
+		>>> p.nextn(16)
+		[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
+		"""
 	def __init__(self, period):
 		self.period = period
 		self.pos = period
@@ -387,6 +459,13 @@ class PImpulse(Pattern):
 		return rv
 
 class PReset(Pattern):
+	""" PReset: Resets <pattern> each time it receives a zero-crossing from
+	            <trigger>
+
+		>>> p = PReset(PSeries(0, 1), PImpulse(4))
+		>>> p.nextn(16)
+		[0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
+		"""
 	def __init__(self, pattern, trigger):
 		self.value = 0
 		self.pattern = pattern
@@ -406,6 +485,12 @@ class PReset(Pattern):
 		return self.pattern.next()
 	
 class PCounter(Pattern):
+	""" PCounter: Increments a counter by 1 for each zero-crossing in <trigger>.
+
+		>>> p = PCounter(PImpulse(4))
+		>>> p.nextn(16)
+		[1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4]
+		"""
 	def __init__(self, trigger):
 		self.trigger = trigger
 		self.value = 0
@@ -422,6 +507,20 @@ class PCounter(Pattern):
 		return self.count
 
 class PArp(Pattern):
+	""" PArp: Arpeggiator.
+
+		<type> can be one of:
+			PArp.UP
+			PArp.DOWN
+			PArp.UPDOWN
+			PArp.CONVERGE
+			PArp.DIVERGE
+			PArp.RANDOM
+
+		>>> p = PLoop(PArp(Chord.major, PArp.CONVERGE))
+		>>> p.nextn(16)
+		[0, 12, 4, 7, 0, 12, 4, 7, 0, 12, 4, 7, 0, 12, 4, 7]
+		"""
 	UP = 0
 	DOWN = 1
 	CONVERGE = 2
@@ -451,16 +550,14 @@ class PArp(Pattern):
 	def next(self):
 		type = self.value(self.type)
 		pos = self.value(self.pos)
-		rv = None
 
 		if pos < len(self.offsets):
 			offset = self.offsets[pos]
 			rv = self.notes[offset]
 			self.pos = pos + 1
-
-		return rv
-
-
+			return rv
+		else:
+			raise StopIteration
 
 class PEuclidean(Pattern):
 	def split_remainder(self, seq):

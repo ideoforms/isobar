@@ -1,15 +1,21 @@
 INTRODUCTION
 -------------------------------------------------------------------------------
-Isobar is a Python library for expressing and constructing musical patterns,
+isobar is a Python library for expressing and constructing musical patterns,
 designed for use in algorithmic composition. It allows for concise construction,
 manipulation and transposition of sequences, supporting scalar operations on
 lazy patterns.
+
+Most of the major parts of isobar are subclasses of Pattern, which implement's
+Python's iterator protocol. The next() method is called to generate the
+subsequent item in a pattern, with the StopIterator exception raised when a
+pattern is exhausted. Builtins such as list() and sorted() can thus be used to
+process the output of a Pattern.
 
 USAGE
 -------------------------------------------------------------------------------
 
 from isobar import *
-from isobar.io.midiout import *
+from isobar.io.midi import *
 
 # create a repeating sequence with scalar transposition:
 # [ 48, 50, 57, 60 ] ...
@@ -69,16 +75,19 @@ Pattern classes:
 
     SEQUENCE (pattern/sequence.py)
 	PSeq           - sequence of fixed values (repeated N times)
-	PSeries        - geometric series
+	PSeries        - arithmetic series
+	PGeom          - geometric series
 	PLoop          - repeat an input pattern N times
+	PPingPong      - repeat input pattern back and forth N times
 	PCreep         - creep through an input pattern by N notes each step
 	PStutter       - repeat each input value N times
 	PWrap          - wrap values around a given range
 	PPermut        - all permutations of a finite input pattern
 	PDegree        - map values to a given Scale
+    PSubsequence   - extracts a subsequence at a given index and length
     PImpulse       - generates an impulse every N steps
     PReset         - resets an input pattern when an impulse is received
-    PSubsequence   - extracts a subsequence at a given index and length
+    PCounter       - counts zero-crossings or impulses
     PArp           - generates arpeggios with a range of settings
 
     CHANCE (pattern/chance.py)
@@ -87,9 +96,10 @@ Pattern classes:
 	PWalk          - random walk over a given input list
 	PChoice        - random choice from a list
 	PWChoice       - weighted random choice from a list
-	PShuffle       - shuffle a finite input sequence
+	PShuffle       - shuffle a finite input list
+	PShuffleEvery  - every N steps, shuffles the next N values of an input pattern
 	PSkip          - skip over input values with some probability 
-	PSelfIndex
+	PFlipFlop      - flip a binary bit with some probability
 
     OPERATORS (pattern/operator.py)
 	PDelay         - outputs the next value of an input pattern after N ticks
@@ -113,7 +123,7 @@ BACKGROUND
 -------------------------------------------------------------------------------
 Isobar was first designed for the generative sound installation Variable 4:
 
-	http://www.variable4.org.uk/news/
+	http://www.variable4.org.uk/
 
 Many of the concepts behind Pattern and its subclasses are inspired by the
 excellent pattern library of the SuperCollider synthesis language:
