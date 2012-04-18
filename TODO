@@ -1,6 +1,7 @@
 TODO
-* support for reverse-direction timelines
-  (though may be tricky: how to handle nondeterministic patterns?)
+* better support for debug output and propagation between classes
+* unit test suite
+* auto-generated docs from comments
 * Pkey (see SC)
 * OSC output 
 * more random distributions (levy, beta, gamma)
@@ -12,6 +13,8 @@ TODO
 * introduce generic Pattern representation as chromosome (for EvoWorkshops?)
    -> generic breeding
    -> generic midpoint
+* support for reverse-direction timelines
+  (though may be tricky: how to handle nondeterministic patterns?)
 
 DONE
 * phasing example (with fractional durations)

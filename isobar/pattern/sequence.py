@@ -147,7 +147,6 @@ class PLoop(Pattern):
 		self.reset()
 
 	def reset(self):
-		print "reset"
 		self.pos = 0
 		self.rpos = 1
 		self.read_all = False

@@ -269,7 +269,7 @@ class PRef(Pattern):
 		return self.pattern.next()
 
 class PDict(Pattern):
-	""" PDict : A dict of patterns.
+	""" PDict: A dict of patterns.
         Thanks to Dan Stowell <http://www.mcld.co.uk/>
 	    """
 	def __init__(self, dict = {}):
@@ -334,22 +334,11 @@ class PKey(Pattern):
 		vdict = Pattern.value(self.dict)
 		return vdict[vkey]
 
-class PFunc(Pattern):
-	""" PFunc: Applies the given function to each event in its input.
-	    """
-	def __init__(self, fn, pattern):
-		self.fn = fn
-		self.pattern = Pattern.pattern(pattern)
-
-	def next(self):
-		value = self.pattern.next()
-		return self.fn(value)
-
 class PConcat(Pattern):
 	""" PConcat: Concatenate the output of multiple sequences. 
 
-		>>> PConcat([ PSeq([ 1, 2, 3], 2), PSeq([ 9, 8, 7 ], 2) ]).nextn(16)
-		[1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4]
+		>>> PConcat([ PSeq([ 1, 2, 3 ], 2), PSeq([ 9, 8, 7 ], 2) ]).nextn(16)
+		[1, 2, 3, 1, 2, 3, 9, 8, 7, 9, 8, 7]
 		"""
 
 	def __init__(self, inputs):
