@@ -35,10 +35,12 @@ class MidiIn:
 			data_note = data[0][0][1]
 			data_vel = data[0][0][2]
 			if data_type == 248:
+				# print "CLOCK"
 				if self.clocktarget is not None:
 					self.clocktarget.tick()
-			elif data_type == 144:
+			elif data_type == 250:
 				# TODO: is this the right midi code?
+				# print "RESET"
 				if self.clocktarget is not None:
 					self.clocktarget.reset_to_beat()
 			elif data_type & 0x90:
@@ -68,41 +70,42 @@ class MidiIn:
 
 
 class MidiOut:
-    def __init__(self):
-        pypm.Initialize()
-        self.midi = None
-        self.debug = False
+	def __init__(self):
+		pypm.Initialize()
+		self.midi = None
+		self.debug = False
 
-        for n in range(pypm.CountDevices()):
-            info = pypm.GetDeviceInfo(n)
-            name = info[1]
-            isOutput = info[3]
-            if name == MIDIOUT_DEFAULT and isOutput == 1:
-                self.midi = pypm.Output(n, 1)
-                print "Found MIDI output (%s)" % name
+		for n in range(pypm.CountDevices()):
+			info = pypm.GetDeviceInfo(n)
+			name = info[1]
+			isOutput = info[3]
+			if name == MIDIOUT_DEFAULT and isOutput == 1:
+				self.midi = pypm.Output(n, 1)
+				print "Found MIDI output (%s)" % name
 
-    def noteOn(self, note = 60, velocity = 64, channel = 0):
-        if self.debug:
-            print "channel %d, noteOn: %d" % (channel, note)
-        self.midi.WriteShort(0x90 + channel, int(note), int(velocity))
-        # time.sleep(0.001)
+	def tick(self, ticklen):
+		pass
 
-    def noteOff(self, note = 60, channel = 0):
-        if self.debug:
-            print "channel %d, noteOff: %d" % (channel, note)
-        self.midi.WriteShort(0x80 + channel, int(note), 0)
-        # time.sleep(0.001)
+	def noteOn(self, note = 60, velocity = 64, channel = 0):
+		if self.debug:
+			print "channel %d, noteOn: %d" % (channel, note)
+		self.midi.WriteShort(0x90 + channel, int(note), int(velocity))
 
-    def allNotesOff(self, channel = 0):
-        if self.debug:
-            print "channel %d, allNotesOff"
-        for n in range(128):
-            self.noteOff(n, channel)
+	def noteOff(self, note = 60, channel = 0):
+		if self.debug:
+			print "channel %d, noteOff: %d" % (channel, note)
+		self.midi.WriteShort(0x80 + channel, int(note), 0)
 
-    def control(self, control = 0, value = 0, channel = 0):
-        if self.debug:
-            print "channel %d, control %d: %d" % (channel, control, value)
-        self.midi.WriteShort(0xB0 + channel, int(control), int(value))
+	def allNotesOff(self, channel = 0):
+		if self.debug:
+			print "channel %d, allNotesOff"
+		for n in range(128):
+			self.noteOff(n, channel)
 
-    def __destroy__(self):
-        pypm.Terminate()
+	def control(self, control = 0, value = 0, channel = 0):
+		if self.debug:
+			print "channel %d, control %d: %d" % (channel, control, value)
+		self.midi.WriteShort(0xB0 + channel, int(control), int(value))
+
+	def __destroy__(self):
+		pypm.Terminate()

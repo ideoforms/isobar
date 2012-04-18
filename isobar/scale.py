@@ -74,8 +74,10 @@ class Scale:
 
 Scale.chromatic     = Scale([ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ], "chromatic")
 Scale.major         = Scale([ 0, 2, 4, 5, 7, 9, 11 ], "major")
+Scale.maj7          = Scale([ 0, 2, 4, 5, 7, 9, 10 ], "maj7") ## XXX?
 Scale.minor         = Scale([ 0, 2, 3, 5, 7, 8, 11 ], "minor")
-Scale.minor         = Scale([ 0, 2, 3, 5, 7, 8, 11 ], "minor")
+Scale.pureminor     = Scale([ 0, 3, 7 ], "pureminor")
+Scale.puremajor     = Scale([ 0, 4, 7 ], "puremajor")
 Scale.minorPenta    = Scale([ 0, 3, 5, 7, 10 ], "minorPenta")
 Scale.majorPenta    = Scale([ 0, 2, 4, 7, 9 ], "majorPenta")
 Scale.ritusen       = Scale([ 0, 2, 5, 7, 9 ], "ritusen")

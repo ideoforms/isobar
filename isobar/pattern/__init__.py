@@ -9,6 +9,6 @@ from lsystem import *
 from markov import *
 from warp import *
 from automate import *
-from chordgen import *
+from static import *
 
 from fade import *

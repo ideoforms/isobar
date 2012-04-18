@@ -29,48 +29,27 @@ class LSystem:
 			self.pos = self.pos + 1
 
 			if token == 'N':
-				# midinote = self.scale[self.state.degree]
-				return Note(self.state.degree, self.state.velocity)
+				return self.state
 			elif token == '_':
-				return Note.rest
+				return None
 			elif token == '-':
-				self.state.degree = self.state.degree - 1
+				self.state -= 1
 			elif token == '+':
-				self.state.degree = self.state.degree + 1
+				self.state += 1
 			elif token == '?':
-				if random.uniform(0, 1) < 0.5:
-					self.state.degree = self.state.degree - 1
-				else:
-					self.state.degree = self.state.degree + 1
-			elif token == '\\':
-				self.state.semitones = self.state.semitones - 1
-			elif token == '/':
-				self.state.semitones = self.state.semitones + 1
+				self.state += random.choice([ -1, 1 ])
 			elif token == '[':
-				self.stack.append(self.state.copy())
-				# print "pushing state: %s (new size = %d)" % (self.state, len(self.stack))
+				self.stack.append(self.state)
 			elif token == ']':
 				self.state = self.stack.pop()
-				# print "popping state: %s (new size = %d)" % (self.state, len(self.stack))
 
-		return None
+		raise StopIteration
 
 	def reset(self):
 		self.pos = 0
 		self.stack = []
-		self.state = LSysState()
+		self.state = 0
 
-class LSysState:
-	def __init__(self, degree = 0, velocity = 64, semitones = 0):
-		self.degree = degree
-		self.velocity = velocity
-		self.semitones = semitones
-
-	def __str__(self):
-		return "(%s, %s, %s)" % (self.degree, self.velocity, self.semitones)
-
-	def copy(self):
-		return LSysState(self.degree, self.velocity, self.semitones)
 
 class PLSys(Pattern):
 	"""Pattern: L-system"""
@@ -94,5 +73,5 @@ class PLSys(Pattern):
 			self.lsys.reset()
 			n = self.lsys.next()
 
-		return None if n is None else n.midinote
+		return None if n is None else n
 

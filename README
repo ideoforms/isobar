@@ -91,8 +91,8 @@ Pattern classes:
     PArp           - generates arpeggios with a range of settings
 
     CHANCE (pattern/chance.py)
-    PWhite         - white noise (uncorrelated values within a given range, int or float)
-    PBrown         - brownian noise (random walk over a given range, int or float)
+    PWhite         - white noise within a given range, int or float
+    PBrown         - brownian noise within a given range, int or float
     PWalk          - random walk over a given input list
     PChoice        - random choice from a list
     PWChoice       - weighted random choice from a list

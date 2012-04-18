@@ -5,22 +5,15 @@
 
 # import important things from isobar namespace.
 from isobar import *
-from isobar.io.midiout import *
 
 import random
 import time
 
 seq = PLSys("N[+N+N]?N[-N]+N", depth = 3)
 notes = seq.all()
-low = min(notes)
-hi = max(notes)
-strings = [ "" for n in xrange(low, hi) ]
-for note in notes:
-	for n in xrange(low, hi):
-		strings[n - low] += (" " if n >= note else "#")
+note_min = min(notes)
+note_max = max(notes)
 
-strings.reverse()
-for string in strings:
-	print string
-
-
+for note in seq:
+	note = note - note_min
+	print "#" * note

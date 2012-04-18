@@ -5,7 +5,7 @@
 
 # import important things from isobar namespace.
 from isobar import *
-from isobar.io.midiout import *
+from isobar.io.midi import *
 
 import random
 import time

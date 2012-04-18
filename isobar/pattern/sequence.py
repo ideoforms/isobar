@@ -140,15 +140,14 @@ class PLoop(Pattern):
 		[1, 4, 9, 1, 4, 9, 1, 4, 9, 1, 4, 9, 1, 4, 9, 1]
 		"""
 
-	def __init__(self, pattern, count = sys.maxint):
+	def __init__(self, pattern, count = sys.maxint, bang = False):
 		self.pattern = pattern
-		self.values = []
 		self.count = count
-		self.pos = 0
-		self.rpos = 1
-		self.read_all = False
+		self.bang = bang
+		self.reset()
 
 	def reset(self):
+		print "reset"
 		self.pos = 0
 		self.rpos = 1
 		self.read_all = False
@@ -157,7 +156,13 @@ class PLoop(Pattern):
 		Pattern.reset(self)
 
 	def next(self):
+		# print "%d, %d, %d" % (self.rebang, self.pos, self.rpos)
+		if self.bang and self.pos >= len(self.values) and self.rpos >= self.count:
+			self.reset()
+			self.pattern.bang()
+
 		if not self.read_all:
+			# print "reading all"
 			try:
 				rv = self.pattern.next()
 				self.values.append(rv)
@@ -171,6 +176,7 @@ class PLoop(Pattern):
 				self.rpos += 1
 				self.pos = 0
 
+		# print "pos = %d, value len = %d" % (self.pos, len(self.values))
 		rv = self.values[self.pos]
 		self.pos += 1
 		return rv
@@ -207,7 +213,7 @@ class PPingPong(Pattern):
 		[1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4]
 		"""
 
-	def __init__(self, pattern, count = sys.maxint):
+	def __init__(self, pattern, count = 1):
 		self.pattern = pattern
 		self.count = count
 		self.reset()
@@ -251,11 +257,13 @@ class PCreep(Pattern):
 		>>> p.nextn(16)
 		[0, 1, 2, 0, 1, 2, 1, 2, 3, 1, 2, 3, 2, 3, 4, 2]
 		"""
-	def __init__(self, pattern, length = 4, creep = 1, count = 1):
+	def __init__(self, pattern, length = 4, creep = 1, count = 1, prob = 1):
 		self.pattern = pattern
 		self.length = length
 		self.creep = creep
 		self.count = count
+		self.prob = prob
+
 		self.buffer = []
 		self.pos = 0
 		self.rcount = 1
@@ -267,6 +275,7 @@ class PCreep(Pattern):
 		length  = Pattern.value(self.length)
 		creep   = Pattern.value(self.creep)
 		count   = Pattern.value(self.count)
+		prob    = Pattern.value(self.prob)
 
 		while len(self.buffer) < length:
 				self.buffer.append(self.pattern.next())
@@ -274,14 +283,29 @@ class PCreep(Pattern):
 				self.buffer.pop(0)
 
 		if self.pos >= len(self.buffer):
-			if self.rcount >= count:
+			repeat = random.uniform(0, 1) < prob
+
+			if self.rcount >= count or not repeat:
+				#------------------------------------------------------------------------
+				# finished creeping, pull some more data from our buffer
+				#------------------------------------------------------------------------
 				for n in range(creep):
 					self.buffer.pop(0)
 					self.buffer.append(self.pattern.next())
 				self.rcount = 1
 			else:
+				#------------------------------------------------------------------------
+				# finished the Nth repeat but, still more repeats to do
+				#------------------------------------------------------------------------
 				self.rcount += 1
-			self.pos = 0
+
+			#------------------------------------------------------------------------
+			# reset to the start of our buffer
+			#------------------------------------------------------------------------
+			if not repeat:
+				self.pos -= 1
+			else:
+				self.pos = 0
 
 		self.pos += 1
 		return self.buffer[self.pos - 1]
@@ -300,11 +324,13 @@ class PStutter(Pattern):
 	def __init__(self, pattern, count = 2):   
 		self.pattern = pattern
 		self.count = count
-		self.pos = count
+		self.count_current = Pattern.value(count)
+		self.pos = self.count_current
 		self.value = 0
 
 	def next(self):
-		if self.pos >= self.count:
+		if self.pos >= self.count_current:
+			self.count_current = Pattern.value(self.count)
 			self.value = self.pattern.next()
 			self.pos = 0
 		self.pos += 1
@@ -394,8 +420,10 @@ class PDegree(Pattern):
 	def next(self):
 		degree = Pattern.value(self.degree)
 		scale = Pattern.value(self.scale)
-		return scale[degree]
+		if degree is None:
+			return None
 
+		return scale[degree]
 
 class PSubsequence(Pattern):
 	""" PSubsequence: Returns a finite subsequence of an input pattern.

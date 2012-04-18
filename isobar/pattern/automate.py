@@ -3,20 +3,24 @@ from isobar.pattern import *
 import math
 
 class PAutomate(Pattern):
-    pass
+	pass
 
 class PASine(PAutomate):
-    def __init__(self, length = 1, amp = 0.5):
-        self.length = length
-        self.amp = amp
-        self.pos = 0.0
+	def __init__(self, length = 1, amp = 0.5):
+		self.length = length
+		self.amp = amp
+		self.pos = 0.0
 
-    def play(self, device):
-        self.pos += 1/64.0
-        if self.pos > self.length:
-            self.pos = 0
+	def tick(self, ticklen):
+		pos_norm = self.pos / self.length
+		rv = math.sin(2.0 * math.pi * pos_norm) * self.amp
+		#------------------------------------------------------------------------
+		# normalize to [0, 1]
+		#------------------------------------------------------------------------
+		rv = 0.5 * rv + 0.5
 
-        # normalize to [0, 1]
-        pos_norm = self.pos / self.length
-        warp = math.sin(2.0 * math.pi * pos_norm) * self.amp
-        device.control(0, int(warp * 64 + 64))
+		self.pos += ticklen
+		if self.pos > self.length:
+			self.pos -= self.length
+
+		return rv

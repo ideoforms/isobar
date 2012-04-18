@@ -26,7 +26,7 @@ class Pattern:
 	GENO_SEPARATOR = "/"
 
 	def __init__(self):
-		self.__generator__ = itertools.count(0)
+		pass
 
 	def __str__(self):
 		return "pattern"
@@ -128,7 +128,8 @@ class Pattern:
 		return rv
 
 	def next(self):
-		return self.__generator__.next()
+		# default pattern should be void
+		raise StopIteration
 
 	def all(self):
 		values = []
@@ -149,8 +150,18 @@ class Pattern:
 		""" reset a finite sequence back to position 0 """
 		fields = vars(self)
 		for name, field in fields.items():
+			# print "reset: %s" % name
 			if isinstance(field, Pattern):
 				field.reset()
+			# look through list items and reset anything in here too
+			# (needed to reset items in PConcat)
+			elif isinstance(field, list):
+				for item in field:
+					if isinstance(item, Pattern):
+						field.reset()
+
+	def append(self, other):
+		return PConcat([ self, other ])
 
 	@staticmethod
 	def fromgenotype(genotype):
@@ -264,11 +275,64 @@ class PDict(Pattern):
 	def __init__(self, dict = {}):
 		self.dict = dict
 
+	def __getitem__(self, key):
+		return self.dict[key]
+
+	def __setitem__(self, key, value):
+		self.dict[key] = value
+
+	def __contains__(self, key):
+		return key in self.dict
+
+	def has_key(self, key):
+		return key in self.dict
+
+	def setdefault(self, key, value):
+		if not key in self.dict:
+			self.dict[key] = value
+
+	def keys(self):
+		return self.dict.keys()
+
+	def values(self):
+		return self.dict.values()
+
+	def items(self):
+		return self.dict.items()
+
 	def next(self):
-		vdict = self.value(self.dict)
-		rv = dict((k, Pattern.value(vdict[k])) for k in vdict)
+		vdict = Pattern.value(self.dict)
+		# for some reason, doing a list comprehension without the surrounding square
+		# brackets causes an inner StopIteration to be suppressed -- we want to
+		# explicitly raise it.
+		rv = dict([ (k, Pattern.value(vdict[k])) for k in vdict ])
 
 		return rv
+
+class PIndex(Pattern):
+	""" PIndex: Request a specified index from an array.
+	    """
+	def __init__(self, index, list):
+		self.index = index
+		self.list = list
+
+	def next(self):
+		index = Pattern.value(self.index)
+		index = int(index)
+		list = Pattern.value(self.list)
+		return list[index]
+
+class PKey(Pattern):
+	""" PKey: Request a specified key from a dictionary.
+	    """
+	def __init__(self, key, dict):
+		self.key = key
+		self.dict = dict
+
+	def next(self):
+		vkey = Pattern.value(self.key)
+		vdict = Pattern.value(self.dict)
+		return vdict[vkey]
 
 class PFunc(Pattern):
 	""" PFunc: Applies the given function to each event in its input.
@@ -280,6 +344,31 @@ class PFunc(Pattern):
 	def next(self):
 		value = self.pattern.next()
 		return self.fn(value)
+
+class PConcat(Pattern):
+	""" PConcat: Concatenate the output of multiple sequences. 
+
+		>>> PConcat([ PSeq([ 1, 2, 3], 2), PSeq([ 9, 8, 7 ], 2) ]).nextn(16)
+		[1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4]
+		"""
+
+	def __init__(self, inputs):
+		self.inputs = inputs
+		self.current = self.inputs.pop(0)
+
+	def next(self):
+		try:
+			return self.current.next()
+		except StopIteration:
+			if len(self.inputs) > 0:
+				self.current = self.inputs.pop(0)
+				# can't just blindly return the first value of current
+				# -- what if it is empty? 
+				return self.next()
+			else:
+				# no more sequences left, so just return.
+				raise StopIteration
+
 
 #------------------------------------------------------------------
 # binary operators

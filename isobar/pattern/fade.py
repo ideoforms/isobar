@@ -32,7 +32,7 @@ class PFadeNotewise(PFade):
 	def __init__(self, pattern, rate_min = 1, rate_max = 1, repeats = 1, repeats_postfade = 1):
 		PFade.__init__(self)
 
-		self.notes = list(pattern)
+		self.notes = pattern.all()
 		self.on = [ False ] * len(self.notes)
 		self.rate_min = rate_min
 		self.rate_max = rate_max
@@ -91,19 +91,29 @@ class PFadeNotewise(PFade):
 				self.fadeindex = 0
 				self.fade_out()
 
-		rv = self.notes[self.counter] if self.on[self.counter] else None
+		if type(self.notes[self.counter]) == dict:
+			if self.on[self.counter]:
+				rv = self.notes[self.counter]
+			else:
+				note = self.notes[self.counter].copy()
+				note["note"] = None
+				rv = note
+		else:
+			rv = self.notes[self.counter] if self.on[self.counter] else None
+		
 		self.counter += 1
 			
 		return rv
 
 class PFadeNotewiseRandom(PFadeNotewise):
-	def __init__(self, *args):
-		PFadeNotewise.__init__(self, *args)
+	def __init__(self, *args, **kwargs):
+		PFadeNotewise.__init__(self, *args, **kwargs)
 		self.ordering = range(len(self.notes))
 		random.shuffle(self.ordering)
 
 	def fade_in(self):
 		fade_count = random.randint(self.rate_min, self.rate_max)
+		if fade_count < 1: fade_count = 1
 		print "fading in %d times" % fade_count
 		for n in range(fade_count):
 			if self.fadeindex >= len(self.on):
@@ -115,6 +125,7 @@ class PFadeNotewiseRandom(PFadeNotewise):
 
 	def fade_out(self):
 		fade_count = random.randint(self.rate_min, self.rate_max)
+		if fade_count < 1: fade_count = 1
 		print "fading out %d times" % fade_count
 		for n in range(fade_count):
 			if self.fadeindex >= len(self.on):

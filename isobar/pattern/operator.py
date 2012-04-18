@@ -8,16 +8,28 @@ from isobar.pattern.core import *
 from isobar.key import *
 from isobar.util import *
 
-
-class PDiff(Pattern):
-	""" outputs the difference between the current and previous values of an input pattern """
+class PChanged(Pattern):
+	""" PChanged: Outputs a 1 if the value of a pattern has changed. """
 
 	def __init__(self, source):
 		self.source = source
-		self.current = self.value(self.source)
+		self.current = Pattern.value(self.source)
 
 	def next(self):
-		next = self.value(self.source)
+		next = Pattern.value(self.source)
+		rv = 0 if next == self.current else 1
+		self.current = next
+		return rv
+
+class PDiff(Pattern):
+	""" PDiff: Outputs the difference between the current and previous values of an input pattern """
+
+	def __init__(self, source):
+		self.source = source
+		self.current = Pattern.value(self.source)
+
+	def next(self):
+		next = Pattern.value(self.source)
 		rv = next - self.current
 		self.current = next
 		return rv
@@ -29,7 +41,7 @@ class PAbs(Pattern):
 		self.input = input
 
 	def next(self):
-		next = self.value(self.input)
+		next = Pattern.value(self.input)
 		if next is not None:
 			return abs(next)
 		return next
@@ -50,13 +62,13 @@ class PDelay(Pattern):
 	def __init__(self, source, delay):
 		self.source = source
 		self.delay = delay
-		self.counter = self.value(self.delay)
+		self.counter = Pattern.value(self.delay)
 
 	def next(self):
 		self.counter -= 1
 		if self.counter < 0:
-			self.counter = self.value(self.delay)
-			return self.value(self.source)
+			self.counter = Pattern.value(self.delay)
+			return Pattern.value(self.source)
 
 class PMap(Pattern):
 	""" PMap: Apply an arbitrary function to an input pattern.
@@ -78,7 +90,6 @@ class PMap(Pattern):
 	def next(self):
 		args = [ Pattern.value(value) for value in self.args ]
 		kwargs = dict((key, Pattern.value(value)) for key, value in self.kwargs.items())
-		print "args: %s" % args
 		value = self.input.next()
 		rv = self.operator(value, *args, **kwargs)
 		return rv
@@ -140,3 +151,51 @@ class PRound(PMap):
 		"""
 	def __init__(self, input, *args):
 		PMap.__init__(self, input, round, *args)
+
+class PPad(Pattern):
+	""" PPad: Pad <pattern> with rests until it reaches length <length>.
+		"""
+
+	def __init__(self, pattern, length):
+		self.pattern = pattern
+		self.length = length
+		self.count = 0
+
+	def next(self):
+		try:
+			rv = self.pattern.next()
+		except:
+			if self.count >= self.length:
+				raise StopIteration
+			rv = None
+
+		self.count += 1
+		return rv
+
+class PPadToMultiple(Pattern):
+	""" PPad: Pad <pattern> with rests until it reaches a length which is a
+		multiple of <multiple>. Enforces a minimum padding of <minimum_pad>.
+
+		Useful to create patterns which occupy a whole number of bars.
+		"""
+
+	def __init__(self, pattern, multiple, minimum_pad = 0):
+		self.pattern = pattern
+		self.multiple = multiple
+		self.minimum_pad = minimum_pad
+		self.count = 0
+		self.padcount = 0
+		self.terminated = False
+
+	def next(self):
+		try:
+			rv = self.pattern.next()
+		except:
+			if self.padcount >= self.minimum_pad and (self.count % self.multiple == 0):
+				raise StopIteration
+			else:
+				rv = None
+				self.padcount += 1
+
+		self.count += 1
+		return rv

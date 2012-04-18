@@ -25,12 +25,16 @@ class Key:
 
 	def get(self, degree):
 		""" Returns the <degree>th semitone within this key. """
+		if degree is None:
+			return None
+
 		semitone = self.scale[degree]
 		return semitone + self.tonic
 
 	def __getitem__(self, degree):
 		return self.get(degree)
 
+	@property
 	def semitones(self):
 		semitones = map(lambda n: (n + self.tonic) % 12, self.scale.semitones)
 		semitones.sort()

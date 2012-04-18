@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 from isobar import *
-from isobar.io.midiout import *
 
 #------------------------------------------------------------------------
 # walk up and down a minor scale

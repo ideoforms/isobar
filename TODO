@@ -1,6 +1,4 @@
 TODO
-* re-implement time warping 
-* time jitter (to implement both in Clock and Timeline)
 * support for reverse-direction timelines
   (though may be tricky: how to handle nondeterministic patterns?)
 * Pkey (see SC)
@@ -9,7 +7,6 @@ TODO
 * add parameter to MidiIn/MidiOut for device name
 * exceptions when a finite operation is performed on an infinite series
 * PRotate: move items from start to end of finite series (Spiegel 1981, #3)
-* "manipulation of musical patterns" examples
 * implement reset() for all finite sequences, and ensure it percolates through ops
   (to test: ensure that values() can be called twice in a row)
 * introduce generic Pattern representation as chromosome (for EvoWorkshops?)
@@ -25,3 +22,6 @@ DONE
 * PMap: map function over input pattern
 * PConcat: concatenate sequences
 * PReverse: reverse a finite series (after Spiegel 1981, #2)
+* PLoopThenReset: loop input N times, then send reset()
+* re-implement time warping 
+* time jitter/phase (to implement both in Clock and Timeline)

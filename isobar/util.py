@@ -1,7 +1,20 @@
 import random
 import math
 
-note_names = [ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" ]
+note_names = [
+	[ "C" ],
+	[ "C#", "Db" ],
+	[ "D" ],
+	[ "D#", "Eb" ],
+	[ "E" ],
+	[ "F" ],
+	[ "F#", "Gb" ],
+	[ "G" ],
+	[ "G#", "Ab" ],
+	[ "A" ],
+	[ "A#", "Bb" ],
+	[ "B" ]
+]
 
 def normalize(array):
 	if sum(array) == 0:
@@ -28,19 +41,23 @@ def wnchoice(array, weights):
 	return array[index]
 
 def nametomidi(name):
-	try:
-		return note_names.index(name)
-	except:
-		return None
+	if name[-1].isdigit():
+		octave = int(name[-1])
+		name = name[:-1]
+	else:
+		octave = 0
+
+	index = note_names.index(filter(lambda nameset: name in nameset, note_names)[0])
+	return octave * 12 + index
 
 def miditopitch(note):
 	degree = int(note) % len(note_names)
-	return note_names[degree]
+	return note_names[degree][0]
 
 def miditoname(note):
 	degree = int(note) % len(note_names)
 	octave = int(note / len(note_names)) - 1
-	str = "%s%d" % (note_names[degree], octave)
+	str = "%s%d" % (note_names[degree][0], octave)
 	frac = math.modf(note)[0]
 	if frac > 0:
 		str = (str + " + %2f" % frac)

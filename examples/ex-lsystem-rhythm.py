@@ -6,7 +6,7 @@
 
 # import important things from isobar namespace.
 from isobar import *
-from isobar.io.midiout import *
+from isobar.io.midi import *
 
 import random
 import time
@@ -19,28 +19,18 @@ import time
 #  [ = enter recursive branch
 #  ] = leave recursive branch
 notes = PLSys("N+[+N+N--N+N]+N[++N]", depth = 4)
-notes = PDegree(notes, Scale.chromatic)
+notes = notes + 60
 
 # use another l-system to generate time intervals.
 # take absolute values so that intervals are always positive.
 times = PLSys("[N+[NN]-N+N]+N-N+N", depth = 3)
-times = PAbs(PDiff(times))
-delay = PDelay(notes, times)
+times = PAbs(PDiff(times)) * 0.25
+# delay = PDelay(notes, times)
 
 # ...and another l-system for amplitudes.
 velocity = (PLSys("N+N[++N+N--N]-N[--N+N]") + PWhite(-4, 4)) * 8
 velocity = PAbs(velocity)
 
-m = MidiOut()
-
-# handle our own timing based on these patterns.
-while True:
-	note = delay.next()
-	if note is not None:
-		print note
-		vel = velocity.next()
-		m.noteOn(note, vel)
-		m.noteOff(note)
-	else:
-		print "-"
-	time.sleep(0.2)
+timeline = Timeline(120)
+timeline.sched({ 'note' : notes, 'amp' : velocity, 'dur' : times })
+timeline.run()
