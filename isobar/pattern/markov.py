@@ -53,6 +53,7 @@ class Markov:
 		return self.nodes[self.node]
 
 class PMarkov(Pattern):
+	""" PMarkov: Markov chain """
 	def __init__(self, param, edges = []):
 		""" can take either a Markov object, or [ nodes, edges ] pair """
 		if isinstance(param, Markov):

@@ -238,8 +238,7 @@ class Pattern:
 		return v if isinstance(v, Pattern) else PConst(v)
 
 class PConst(Pattern):
-	""" PConst: Constant pattern.
-        Returns a fixed value.
+	""" PConst: Pattern returning a fixed value
 
 		>>> p = PConst(4)
 		>>> p.nextn(16)
@@ -255,7 +254,7 @@ class PConst(Pattern):
 		return self.constant
 
 class PRef(Pattern):
-	""" PRef: Pattern reference.
+	""" PRef: Pattern containing a reference to another pattern
 	    Returns the next value of the pattern contained.
 		Useful to change an inner pattern in real time.
 		"""
@@ -269,7 +268,7 @@ class PRef(Pattern):
 		return self.pattern.next()
 
 class PDict(Pattern):
-	""" PDict: A dict of patterns.
+	""" PDict: Dict of patterns
         Thanks to Dan Stowell <http://www.mcld.co.uk/>
 	    """
 	def __init__(self, dict = {}):
@@ -369,6 +368,7 @@ class PBinOp(Pattern):
 		self.b = b
 
 class PAdd(PBinOp):
+	""" PAdd: Add elements of two patterns (shorthand: patternA + patternB) """
 	def __str__(self):
 		return "%s + %s" % (self.a, self.b)
 
@@ -379,6 +379,7 @@ class PAdd(PBinOp):
 		
 
 class PSub(PBinOp):
+	""" PSub: Subtract elements of two patterns (shorthand: patternA - patternB) """
 	def __str__(self):
 		return "%s - %s" % (self.a, self.b)
 
@@ -388,6 +389,7 @@ class PSub(PBinOp):
 		return None if a is None or b is None else a - b
 
 class PMul(PBinOp):
+	""" PMul: Multiply elements of two patterns (shorthand: patternA * patternB) """
 	def __str__(self):
 		return "(%s) * (%s)" % (self.a, self.b)
 
@@ -397,6 +399,7 @@ class PMul(PBinOp):
 		return None if a is None or b is None else a * b
 
 class PDiv(PBinOp):
+	""" PDiv: Divide elements of two patterns (shorthand: patternA / patternB) """
 	def __str__(self):
 		return "(%s) / (%s)" % (self.a, self.b)
 
@@ -406,6 +409,7 @@ class PDiv(PBinOp):
 		return None if a is None or b is None else a / b
 
 class PMod(PBinOp):
+	""" PMod: Modulo elements of two patterns (shorthand: patternA % patternB) """
 	def __str__(self):
 		return "(%s) % (%s)" % (self.a, self.b)
 
@@ -415,6 +419,7 @@ class PMod(PBinOp):
 		return None if a is None or b is None else a % b
 
 class PPow(PBinOp):
+	""" PPow: One pattern to the power of another (shorthand: patternA ** patternB) """
 	def __str__(self):
 		return "pow(%s, %s)" % (self.a, self.b)
 
@@ -424,6 +429,7 @@ class PPow(PBinOp):
 		return None if a is None or b is None else pow(a, b)
 
 class PLShift(PBinOp):
+	""" PLShift: Binary left-shift (shorthand: patternA << patternB) """
 	def __str__(self):
 		return "(%s << %s)" % (self.a, self.b)
 
@@ -433,6 +439,7 @@ class PLShift(PBinOp):
 		return None if a is None or b is None else a << b
 
 class PRShift(PBinOp):
+	""" PRShift: Binary right-shift (shorthand: patternA << patternB) """
 	def __str__(self):
 		return "(%s >> %s)" % (self.a, self.b)
 

@@ -26,6 +26,8 @@ class PStaticViaOSC (Pattern):
 		return self.value
 
 class PStaticTimeline (Pattern):
+	""" PStaticTimeline: Returns the position (in beats) of the current timeline. """
+
 	def __init__(self):
 		pass
 
@@ -51,6 +53,7 @@ class PStaticTimeline (Pattern):
 		return 0
 
 class PStaticGlobal(Pattern):
+	""" PStaticGlobal: Static global value identified by a string, with OSC listener """
 	dict = {}
 	listening = False
 
@@ -73,12 +76,10 @@ class PStaticGlobal(Pattern):
 
 			osc.init()
 			osc.listen(port = port)
-			print "LISTENING"
 			PStaticGlobal.listening = True
 
 		self.prefix = prefix
 		osc.bind(self.recv, prefix)
-		print "binding to %s" % prefix
 
 	@classmethod
 	def recv(self, msg, source = None):

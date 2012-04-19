@@ -65,58 +65,78 @@ Current class list:
 
 Pattern classes:
 
-    CORE (pattern/core.py)
-    Pattern        - generic pattern superclass
-    PConst         - constant value
-    PAdd           - add two patterns together (shorthand: patternA + patternB)
-    PSub           - subtract pattern B from A (shorthand: patternA - patternB)
-    PMul           - divide pattern A by B (shorthand: patternA / patternB)
-    PDiv           - multiply pattern A by B (shorthand: patternA * patternB)
+    CORE (core.py)
+    Pattern          - Abstract superclass of all pattern generators.
+    PConst           - Pattern returning a fixed value
+    PRef             - Pattern containing a reference to another pattern
+    PDict            - Dict of patterns
+    PIndex           - Request a specified index from an array.
+    PKey             - Request a specified key from a dictionary.
+    PConcat          - Concatenate the output of multiple sequences.
+    PAdd             - Add elements of two patterns (shorthand: patternA + patternB)
+    PSub             - Subtract elements of two patterns (shorthand: patternA - patternB)
+    PMul             - Multiply elements of two patterns (shorthand: patternA * patternB)
+    PDiv             - Divide elements of two patterns (shorthand: patternA / patternB)
+    PMod             - Modulo elements of two patterns (shorthand: patternA % patternB)
+    PPow             - One pattern to the power of another (shorthand: patternA ** patternB)
+    PLShift          - Binary left-shift (shorthand: patternA << patternB)
+    PRShift          - Binary right-shift (shorthand: patternA << patternB)
 
-    SEQUENCE (pattern/sequence.py)
-    PSeq           - sequence of fixed values (repeated N times)
-    PSeries        - arithmetic series
-    PGeom          - geometric series
-    PLoop          - repeat an input pattern N times
-    PPingPong      - repeat input pattern back and forth N times
-    PCreep         - creep through an input pattern by N notes each step
-    PStutter       - repeat each input value N times
-    PWrap          - wrap values around a given range
-    PPermut        - all permutations of a finite input pattern
-    PDegree        - map values to a given Scale
-    PSubsequence   - extracts a subsequence at a given index and length
-    PImpulse       - generates an impulse every N steps
-    PReset         - resets an input pattern when an impulse is received
-    PCounter       - counts zero-crossings or impulses
-    PArp           - generates arpeggios with a range of settings
+    SEQUENCE (sequence.py)
+    PSeq             - Sequence of values based on an array
+    PSeries          - Arithmetic series, beginning at <start>, increment by <step>
+    PGeom            - Geometric series, beginning at <start>, multiplied by <step>
+    PLoop            - Repeats a finite <pattern> for <n> repeats.
+    PConcat          - Concatenate the output of multiple finite sequences
+    PPingPong        - Ping-pong input pattern back and forth N times.
+    PCreep           - Loop <length>-note segment, progressing <creep> notes after <count> repeats.
+    PStutter         - Play each note of <pattern> <count> times.
+    PWrap            - Wrap input note values within <min>, <max>.
+    PPermut          - Generate every permutation of <count> input items.
+    PDegree          - Map scale index <degree> to MIDI notes in <scale>.
+    PSubsequence     - Returns a finite subsequence of an input pattern.
+    PImpulse         - Outputs a 1 every <period> events, otherwise 0.
+    PReset           - Resets <pattern> each time it receives a zero-crossing from
+    PCounter         - Increments a counter by 1 for each zero-crossing in <trigger>.
+    PArp             - Arpeggiator.
 
-    CHANCE (pattern/chance.py)
-    PWhite         - white noise within a given range, int or float
-    PBrown         - brownian noise within a given range, int or float
-    PWalk          - random walk over a given input list
-    PChoice        - random choice from a list
-    PWChoice       - weighted random choice from a list
-    PShuffle       - shuffle a finite input list
-    PShuffleEvery  - every N steps, shuffles the next N values of an input pattern
-    PSkip          - skip over input values with some probability 
-    PFlipFlop      - flip a binary bit with some probability
+    CHANCE (chance.py)
+    PWhite           - White noise between <min> and <max>.
+    PBrown           - Brownian noise, beginning at <value>, step +/-<step>.
+    PWalk            - Random walk around list.
+    PChoice          - Random selection from <values>
+    PWChoice         - Random selection from <values>, weighted by <weights>.
+    PShuffle         - Shuffled list.
+    PShuffleEvery    - Every <n> steps, take <n> values from <pattern> and reorder.
+    PSkip            - Skip events with some probability, 1 - <play>.
+    PFlipFlop        - flip a binary bit with some probability.
 
-    OPERATORS (pattern/operator.py)
-    PDelay         - outputs the next value of an input pattern after N ticks
-    PDiff          - difference between last two input values
-    PAbs           - absolute value of an input pattern
+    OPERATOR (operator.py)
+    PChanged         - Outputs a 1 if the value of a pattern has changed.
+    PDiff            - Outputs the difference between the current and previous values of an input pattern
+    PAbs             - Absolute value of <input>
+    PMap             - Apply an arbitrary function to an input pattern.
+    PMapEnumerated   - Apply arbitrary function to input, passing a counter.
+    PLinLin          - Map <input> from linear range [a,b] to linear range [c,d].
+    PLinExp          - Map <input> from linear range [a,b] to exponential range [c,d].
+    PRound           - Round <input> to N decimal places.
+    PPad             - Pad <pattern> with rests until it reaches length <length>.
+    PPadToMultiple   - Pad <pattern> with rests until its length is divisible by <multiple>.
 
-    L-SYSTEMS (pattern/lsystem.py)
-    PLSys          - integer sequence derived from Lindenmayer systems
+    STATIC (static.py)
+    PStaticTimeline  - Returns the position (in beats) of the current timeline.
+    PStaticGlobal    - Static global value identified by a string, with OSC listener
 
-    MARKOV (pattern/markov.py)
-    PMarkov        - markov chain patterns
+    FADE (fade.py)
+    PFadeNotewise    - Fade a pattern in/out by introducing notes at a gradual rate.
+    PFadeNotewise    - Fade a pattern in/out by gradually introducing random notes.
 
-    WARPING AND AUTOMATION [EXPERIMENTAL] (pattern/warp.py)
-    PWarp          - warp continuous values (abstract superclass)
-    PWRamp         - warp on a linear ramp
-    PWSine         - warp on a sine
-    PAutomate      - superclass for continuous value automation (in development)
+    MARKOV (markov.py)
+    PMarkov          - Markov chain
+
+    LSYSTEM (lsystem.py)
+    PLSys            - integer sequence derived from Lindenmayer systems
+
 
 -------------------------------------------------------------------------------
 BACKGROUND

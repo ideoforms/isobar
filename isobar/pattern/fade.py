@@ -27,7 +27,7 @@ class PFade(Pattern):
 		return "%s(%s)" % (classname, str(self.pattern))
 
 class PFadeNotewise(PFade):
-	""" PFadeNotewise: Fade in a pattern by introducing random notes. """
+	""" PFadeNotewise: Fade a pattern in/out by introducing notes at a gradual rate. """
 
 	def __init__(self, pattern, rate_min = 1, rate_max = 1, repeats = 1, repeats_postfade = 1):
 		PFade.__init__(self)
@@ -106,6 +106,7 @@ class PFadeNotewise(PFade):
 		return rv
 
 class PFadeNotewiseRandom(PFadeNotewise):
+	""" PFadeNotewise: Fade a pattern in/out by gradually introducing random notes. """
 	def __init__(self, *args, **kwargs):
 		PFadeNotewise.__init__(self, *args, **kwargs)
 		self.ordering = range(len(self.notes))

@@ -52,7 +52,7 @@ class LSystem:
 
 
 class PLSys(Pattern):
-	"""Pattern: L-system"""
+	""" PLSys: integer sequence derived from Lindenmayer systems """
 
 	def __init__(self, rule, depth = 3, loop = True):
 		self.rule = rule

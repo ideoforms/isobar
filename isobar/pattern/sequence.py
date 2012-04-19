@@ -9,26 +9,8 @@ from isobar.key import *
 from isobar.util import *
 from isobar.chord import *
 
-class PConst(Pattern):
-	""" PConst: Constant pattern.
-        Returns a fixed value.
-
-		>>> p = PConst(4)
-		>>> p.nextn(16)
-		[4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
-		"""
-
-	def __init__(self, value):
-		self.value = value
-
-	def __str__(self):
-		return "constant"
-
-	def next(self):
-		return self.value
-
 class PSeq(Pattern):
-	""" PSeq: Fixed sequence.
+	""" PSeq: Sequence of values based on an array
 		Takes an input list, and repeats the items in this list.
 
 		>>> p = PSeq([ 1, 2, 3, 5 ])
@@ -63,8 +45,7 @@ class PSeq(Pattern):
 		return rv
 
 class PSeries(Pattern):
-	""" PSeries: Arithmetic series.
-		Begins at <start>, increments by <step>.
+	""" PSeries: Arithmetic series, beginning at <start>, increment by <step>
 
 		>>> p = PSeries(3, 9)
 		>>> p.nextn(16)
@@ -96,8 +77,7 @@ class PSeries(Pattern):
 		return n
 
 class PGeom(Pattern):
-	""" PGeom: Geometric series.
-		Begins at <start>, multiplied by <step>.
+	""" PGeom: Geometric series, beginning at <start>, multiplied by <step>
 
 		>>> p = PGeom(1, 2)
 		>>> p.nextn(16)
@@ -129,9 +109,8 @@ class PGeom(Pattern):
 		return rv
 
 class PLoop(Pattern):
-	""" PLoop: Loop input.
-		Repeats its entire input pattern n times. Useful for pattern generators
-		which don't natively loop (unlike the contrived example).
+	""" PLoop: Repeats a finite <pattern> for <n> repeats.
+		Useful for pattern generators which don't natively loop.
 
 		Input must be finite or results may vary.
 
@@ -181,7 +160,7 @@ class PLoop(Pattern):
 		return rv
 
 class PConcat(Pattern):
-	""" PConcat: Concatenate the output of multiple sequences. 
+	""" PConcat: Concatenate the output of multiple finite sequences
 
 		>>> PConcat([ PSeq([ 1, 2, 3], 2), PSeq([ 9, 8, 7 ], 2) ]).nextn(16)
 		[1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4]
@@ -249,8 +228,7 @@ class PPingPong(Pattern):
 		return rv
 
 class PCreep(Pattern):
-	""" PCreep: Loop a <length>-note segment of input, creeping forward
-                 <creep> notes after <count> repeats.
+	""" PCreep: Loop <length>-note segment, progressing <creep> notes after <count> repeats.
 
 		>>> p = PCreep(PSeries(), 3, 1, 2)
 		>>> p.nextn(16)

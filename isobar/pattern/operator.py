@@ -173,8 +173,8 @@ class PPad(Pattern):
 		return rv
 
 class PPadToMultiple(Pattern):
-	""" PPad: Pad <pattern> with rests until it reaches a length which is a
-		multiple of <multiple>. Enforces a minimum padding of <minimum_pad>.
+	""" PPadToMultiple: Pad <pattern> with rests until its length is divisible by <multiple>.
+		Enforces a minimum padding of <minimum_pad>.
 
 		Useful to create patterns which occupy a whole number of bars.
 		"""
