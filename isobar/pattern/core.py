@@ -158,7 +158,11 @@ class Pattern:
 			elif isinstance(field, list):
 				for item in field:
 					if isinstance(item, Pattern):
-						field.reset()
+						item.reset()
+			elif isinstance(field, dict):
+				for item in field.values():
+					if isinstance(item, Pattern):
+						item.reset()
 
 	def append(self, other):
 		return PConcat([ self, other ])

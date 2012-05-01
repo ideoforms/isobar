@@ -40,7 +40,8 @@ class Timeline:
 		#------------------------------------------------------------------------
 		# some devices (ie, MidiFileOut) require being told to tick
 		#------------------------------------------------------------------------
-		self.device.tick(self.ticklen)
+		if self.device:
+			self.device.tick(self.ticklen)
 
 		#------------------------------------------------------------------------
 		# copy self.channels because removing from it whilst using it = bad idea
@@ -240,7 +241,7 @@ class Channel:
 			note = self.event['note'].next()
 
 		if note is None:
-			# print "(rest)"
+			print "(rest)"
 			return
 
 		note   += self.event['transpose'].next()
@@ -250,7 +251,7 @@ class Channel:
 		if random.uniform(0, 1) < self.event['omit'].next():
 			return
 
-		# print "note %d (%d)" % (note, amp)
+		print "note %d (%d)" % (note, amp)
 		self.device.noteOn(note, amp, channel)
 
 		gate = self.event['gate'].next()
