@@ -91,7 +91,9 @@ class PMap(Pattern):
 		args = [ Pattern.value(value) for value in self.args ]
 		kwargs = dict((key, Pattern.value(value)) for key, value in self.kwargs.items())
 		value = self.input.next()
+		print "applying sin to %f" % value
 		rv = self.operator(value, *args, **kwargs)
+		print "output is %f" % rv
 		return rv
 
 class PMapEnumerated(PMap):

@@ -252,6 +252,7 @@ class PSkip(Pattern):
 			if self.pos >= 1:
 				self.pos -= 1
 				return self.pattern.next()
+		return None
 
 class PFlipFlop(Pattern):
 	""" PFlipFlop: flip a binary bit with some probability.

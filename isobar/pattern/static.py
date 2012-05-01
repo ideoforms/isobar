@@ -1,6 +1,7 @@
 from isobar.pattern.core import *
 
 import inspect
+import math
 
 class PStaticViaOSC (Pattern):
 	initialised = False
@@ -32,6 +33,10 @@ class PStaticTimeline (Pattern):
 		pass
 
 	def next(self):
+		beats = self.get_beats()
+		return round(beats, 5)
+
+	def get_beats(self):
 		#------------------------------------------------------------------------
 		# determine the Timeline object we are embedded within and return
 		# its current number of beats.
@@ -48,8 +53,7 @@ class PStaticTimeline (Pattern):
 					# round to 5 DP to prevent rounding errors which may give us 
 					# a value of N.9999999....
 					#------------------------------------------------------------------------
-					return round(instance.beats, 5)
-
+					return instance.beats
 		return 0
 
 class PStaticGlobal(Pattern):
@@ -89,3 +93,16 @@ class PStaticGlobal(Pattern):
 		key = msg[2]
 		value = msg[3]
 		PStaticGlobal.set(key, value)
+
+class PStaticTimelineSine(PStaticTimeline):
+	def __init__(self, period):
+		self.period = period
+
+	def next(self):
+		period = Pattern.value(self.period)
+		# self.phase += math.pi * 2.0 / period
+
+		beats = self.get_beats()
+		rv = math.sin(2 * math.pi * beats / self.period)
+		return rv
+
