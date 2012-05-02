@@ -5,6 +5,7 @@
 import sys
 import copy
 import random
+import inspect
 import itertools
 
 import isobar
@@ -167,6 +168,19 @@ class Pattern:
 	def append(self, other):
 		return PConcat([ self, other ])
 
+	@property
+	def timeline(self):
+		""" returns the timeline that i am embedded in, if any """
+		stack = inspect.stack()
+		for frame in stack:
+			frameobj = frame[0]
+			args, _, _, value_dict = inspect.getargvalues(frameobj)
+			if len(args) and args[0] == 'self':
+				instance = value_dict.get('self', None)
+				classname = instance.__class__.__name__
+				if classname == "Timeline":
+					return instance
+
 	@staticmethod
 	def fromgenotype(genotype):
 		""" create a new object based on this genotype """
@@ -275,8 +289,19 @@ class PDict(Pattern):
 	""" PDict: Dict of patterns
         Thanks to Dan Stowell <http://www.mcld.co.uk/>
 	    """
-	def __init__(self, dict = {}):
-		self.dict = dict
+	def __init__(self, value = {}):
+
+		from isobar.pattern.sequence import *
+
+		if type(value) == dict:
+			self.dict = value
+		elif type(value) == list:
+			keys = value[0].keys()
+			print "transforming a list of dicts into a dict of PSeqs"
+			self.dict = {}
+			for key in keys:
+				print " - %s" % key
+				self.dict[key] = PSeq([ item[key] for item in value ], 1)
 
 	def __getitem__(self, key):
 		return self.dict[key]

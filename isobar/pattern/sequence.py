@@ -611,3 +611,26 @@ class PEuclidean(Pattern):
 		rv = sequence[self.pos]
 		self.pos += 1
 		return rv
+
+class PDecisionPoint(Pattern):
+	def __init__(self, fn):
+		self.fn = fn
+		self.pattern = self.fn()
+
+	def next(self):
+		print "next"
+		try:
+			print "enxt from pat"
+			return self.pattern.next()
+		except StopIteration:
+			print "STOPITERATION"
+			sys.stderr.write("HI?!")
+			self.pattern = self.fn()
+			# ?!?!!
+			# if not self.pattern:
+			# causes this to break horribly in the PStaticSeq case
+			# -- seems to try to evaluate self.pattern as a list
+			if self.pattern is None:
+				return None
+			return self.next()
+

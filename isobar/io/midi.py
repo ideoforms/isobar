@@ -17,11 +17,10 @@ class MidiIn:
 		for n in range(pypm.CountDevices()):
 			info = pypm.GetDeviceInfo(n)
 			name = info[1]
-			print "[%d] %s %s" % (n, name, info)
+			# print "[%d] %s %s" % (n, name, info)
 			isInput = info[2]
 			if name == target and isInput == 1:
 				self.midi = pypm.Input(n)
-				print "xx found target input: %s" % target
 
 		if self.midi is None:
 			raise Exception, "Could not find MIDI source: %s" % target
@@ -70,7 +69,7 @@ class MidiIn:
 
 
 class MidiOut:
-	def __init__(self):
+	def __init__(self, target = MIDIOUT_DEFAULT):
 		pypm.Initialize()
 		self.midi = None
 		self.debug = False
@@ -79,9 +78,12 @@ class MidiOut:
 			info = pypm.GetDeviceInfo(n)
 			name = info[1]
 			isOutput = info[3]
-			if name == MIDIOUT_DEFAULT and isOutput == 1:
+			if name == target and isOutput == 1:
 				self.midi = pypm.Output(n, 1)
 				print "Found MIDI output (%s)" % name
+
+		if self.midi is None:
+			raise Exception, "Could not find MIDI source: %s" % target
 
 	def tick(self, ticklen):
 		pass

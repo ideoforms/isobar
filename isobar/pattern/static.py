@@ -41,6 +41,7 @@ class PStaticTimeline (Pattern):
 		# determine the Timeline object we are embedded within and return
 		# its current number of beats.
 		#------------------------------------------------------------------------
+		"""
 		stack = inspect.stack()
 		for frame in stack:
 			frameobj = frame[0]
@@ -54,6 +55,11 @@ class PStaticTimeline (Pattern):
 					# a value of N.9999999....
 					#------------------------------------------------------------------------
 					return instance.beats
+		"""
+		timeline = self.timeline
+		if timeline:
+			return timeline.beats
+
 		return 0
 
 class PStaticGlobal(Pattern):
@@ -63,7 +69,8 @@ class PStaticGlobal(Pattern):
 
 	def __init__(self, name, value = None):
 		self.name = name
-		PStaticGlobal.set(name, value)
+		if value is not None:
+			PStaticGlobal.set(name, value)
 
 	def next(self):
 		name = Pattern.value(self.name)
@@ -71,6 +78,7 @@ class PStaticGlobal(Pattern):
 
 	@classmethod
 	def set(self, key, value):
+		print "setting %s to %s" % (key, value)
 		PStaticGlobal.dict[key] = value
 
 	@classmethod
@@ -105,4 +113,24 @@ class PStaticTimelineSine(PStaticTimeline):
 		beats = self.get_beats()
 		rv = math.sin(2 * math.pi * beats / self.period)
 		return rv
+
+
+class PStaticSeq(Pattern):
+	def __init__(self, sequence, duration):
+		self.sequence = sequence
+		self.duration = duration
+		self.start = None
+	
+	def next(self):
+		timeline = self.timeline
+		if self.start is None:
+			self.start = round(timeline.beats, 5)
+
+		now = round(timeline.beats, 5)
+		if now - self.start >= self.duration:
+			self.sequence.pop(0)
+			self.start = now
+			if len(self.sequence) == 0:
+				raise StopIteration
+		return self.sequence[0]
 
