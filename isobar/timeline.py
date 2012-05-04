@@ -37,6 +37,7 @@ class Timeline:
 			self.clockmode = self.CLOCK_INTERNAL
 		
 	def tick(self):
+		# print "tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events))
 		#------------------------------------------------------------------------
 		# some devices (ie, MidiFileOut) require being told to tick
 		#------------------------------------------------------------------------
@@ -105,9 +106,11 @@ class Timeline:
 	def output(self, device):
 		self.device = device
 
-	def sched(self, event, quantize = 0):
-		if not self.device:
-			self.device = isobar.io.MidiOut()
+	def sched(self, event, quantize = 0, delay = 0, count = 0, device = None):
+		if not device:
+			if not self.device:
+				self.device = isobar.io.MidiOut()
+			device = self.device
 
 		# hmm - why do we need to copy this?
 		# c = channel(copy.deepcopy(dict))
@@ -120,12 +123,15 @@ class Timeline:
 			if type(event) == dict and event.has_key("control"):
 				pass
 			else:
-				c = Channel(event)
-				c.device = self.device
+				c = Channel(event, count)
+				c.device = device
 				self.channels.append(c)
 
-		if quantize:
-			schedtime = quantize * math.ceil(float(self.beats) / quantize)
+		if quantize or delay:
+			if quantize:
+				schedtime = quantize * math.ceil(float(self.beats + delay) / quantize)
+			else:
+				schedtime = self.beats + delay
 			self.events.append({ 'time' : schedtime, 'fn' : addchan })
 		else:
 			addchan()
@@ -146,7 +152,7 @@ class AutomatorChannel:
 		pass	
 
 class Channel:
-	def __init__(self, events = {}):
+	def __init__(self, events = {}, count = 0):
 		#----------------------------------------------------------------------
 		# evaluate in case we have a pattern which gives us an event.
 		#----------------------------------------------------------------------
@@ -161,6 +167,8 @@ class Channel:
 
 		self.noteOffs = []
 		self.finished = False
+		self.count_max = count
+		self.count_now = 0
 
 	def next(self):
 		event = Pattern.value(self.events)
@@ -207,6 +215,12 @@ class Channel:
 				self.next_note += self.dur_now
 
 				self.next()
+
+				self.count_now += 1
+				print "count now = %d, max = %d" % (self.count_now, self.count_max)
+				if self.count_max and self.count_now >= self.count_max:
+					print "hit max event count = %d" % self.count_now
+					raise StopIteration
 		except StopIteration:
 			self.finished = True
 
@@ -227,6 +241,12 @@ class Channel:
 
 		if self.event.has_key("action"):
 			Pattern.value(self.event["action"])
+			return
+
+		if self.event.has_key("address"):
+			address = self.event["address"].next()
+			params = self.event["params"].next()
+			self.device.send(address, params)
 			return
 
 		note = None
