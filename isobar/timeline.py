@@ -2,6 +2,7 @@ import time
 import math
 import copy
 import thread
+import traceback
 from isobar import *
 from isobar.pattern import *
 
@@ -15,7 +16,7 @@ class Timeline:
 		"""expect to receive one tick per beat, generate events at 120bpm"""
 		self.ticklen = 1/24.0
 		self.beats = 0
-		self.device = device
+		self.devices = [ device ] if device else [] 
 		self.channels = []
 		self.automators = []
 
@@ -41,8 +42,8 @@ class Timeline:
 		#------------------------------------------------------------------------
 		# some devices (ie, MidiFileOut) require being told to tick
 		#------------------------------------------------------------------------
-		if self.device:
-			self.device.tick(self.ticklen)
+		for device in self.devices:
+			device.tick(self.ticklen)
 
 		#------------------------------------------------------------------------
 		# copy self.channels because removing from it whilst using it = bad idea
@@ -92,10 +93,14 @@ class Timeline:
 
 	def run(self):
 		# create clock with 64th-beat granularity
-		if self.clockmode == self.CLOCK_INTERNAL:
-			self.clock.run(self)
-		else:
-			self.clocksource.run()
+		try:
+			if self.clockmode == self.CLOCK_INTERNAL:
+				self.clock.run(self)
+			else:
+				self.clocksource.run()
+		except Exception, e:
+			print " *** Exception in background Timeline thread: %s" % e
+			traceback.print_exc(file = sys.stdout)
 
 	def warp(self, warper):
 		self.clock.warp(warper)
@@ -103,14 +108,14 @@ class Timeline:
 	def unwarp(self, warper):
 		self.clock.warp(warper)
 
-	def output(self, device):
-		self.device = device
+	def add_output(self, device):
+		self.devices.append(device)
 
 	def sched(self, event, quantize = 0, delay = 0, count = 0, device = None):
 		if not device:
-			if not self.device:
-				self.device = isobar.io.MidiOut()
-			device = self.device
+			if not self.devices:
+				self.add_output(isobar.io.MidiOut())
+			device = self.devices[0]
 
 		# hmm - why do we need to copy this?
 		# c = channel(copy.deepcopy(dict))
@@ -217,7 +222,6 @@ class Channel:
 				self.next()
 
 				self.count_now += 1
-				print "count now = %d, max = %d" % (self.count_now, self.count_max)
 				if self.count_max and self.count_now >= self.count_max:
 					print "hit max event count = %d" % self.count_now
 					raise StopIteration
@@ -240,8 +244,26 @@ class Channel:
 			print value
 
 		if self.event.has_key("action"):
-			Pattern.value(self.event["action"])
+			# might have passed a function (auto-wrapped in a pattern)
+			value = Pattern.value(self.event["action"])
+			try:
+				print "value is now %s" % value
+				value()
+			except Exception, e:
+				print "ex: %s" % e
+				import traceback
+				traceback.print_exc()
+				pass
+
 			return
+
+		if self.event.has_key("control"):
+			control = self.event["value"].next()
+			value = self.event["value"].next()
+			channel = self.event["channel"].next()
+			self.device.control(control, value, channel)
+			print "sending ctrl to ch%d: (%d, %d)" % (channel, control, value)
+			return 
 
 		if self.event.has_key("address"):
 			address = self.event["address"].next()
@@ -261,7 +283,7 @@ class Channel:
 			note = self.event['note'].next()
 
 		if note is None:
-			print "(rest)"
+			# print "(rest)"
 			return
 
 		note   += self.event['transpose'].next()
@@ -271,7 +293,7 @@ class Channel:
 		if random.uniform(0, 1) < self.event['omit'].next():
 			return
 
-		print "note %d (%d)" % (note, amp)
+		# print "note %d (%d)" % (note, amp)
 		self.device.noteOn(note, amp, channel)
 
 		gate = self.event['gate'].next()

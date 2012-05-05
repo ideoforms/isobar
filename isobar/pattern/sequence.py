@@ -1,6 +1,7 @@
 """Testing pydoc"""
 
 import sys
+import copy
 import random
 import itertools
 
@@ -19,7 +20,10 @@ class PSeq(Pattern):
 		"""
 
 	def __init__(self, list = [], repeats = sys.maxint):
-		self.list = list
+		#------------------------------------------------------------------------
+		# take a copy of the list to avoid changing the original
+		#------------------------------------------------------------------------
+		self.list = copy.copy(list)
 		self.repeats = repeats
 
 		self.reset()
@@ -618,15 +622,10 @@ class PDecisionPoint(Pattern):
 		self.pattern = self.fn()
 
 	def next(self):
-		print "next"
 		try:
-			print "enxt from pat"
 			return self.pattern.next()
 		except StopIteration:
-			print "STOPITERATION"
-			sys.stderr.write("HI?!")
 			self.pattern = self.fn()
-			# ?!?!!
 			# if not self.pattern:
 			# causes this to break horribly in the PStaticSeq case
 			# -- seems to try to evaluate self.pattern as a list

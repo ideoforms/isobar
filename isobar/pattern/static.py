@@ -29,8 +29,8 @@ class PStaticViaOSC (Pattern):
 class PStaticTimeline (Pattern):
 	""" PStaticTimeline: Returns the position (in beats) of the current timeline. """
 
-	def __init__(self):
-		pass
+	def __init__(self, timeline = None):
+		self.given_timeline = timeline
 
 	def next(self):
 		beats = self.get_beats()
@@ -38,25 +38,10 @@ class PStaticTimeline (Pattern):
 
 	def get_beats(self):
 		#------------------------------------------------------------------------
-		# determine the Timeline object we are embedded within and return
-		# its current number of beats.
+		# using the specified timeline (if given) or the currently-embedded
+		# timeline (otherwise), return the current position in beats.
 		#------------------------------------------------------------------------
-		"""
-		stack = inspect.stack()
-		for frame in stack:
-			frameobj = frame[0]
-			args, _, _, value_dict = inspect.getargvalues(frameobj)
-			if len(args) and args[0] == 'self':
-				instance = value_dict.get('self', None)
-				classname = instance.__class__.__name__
-				if classname == "Timeline":
-					#------------------------------------------------------------------------
-					# round to 5 DP to prevent rounding errors which may give us 
-					# a value of N.9999999....
-					#------------------------------------------------------------------------
-					return instance.beats
-		"""
-		timeline = self.timeline
+		timeline = self.given_timeline if self.given_timeline else self.timeline
 		if timeline:
 			return timeline.beats
 
@@ -74,7 +59,14 @@ class PStaticGlobal(Pattern):
 
 	def next(self):
 		name = Pattern.value(self.name)
-		return PStaticGlobal.dict[name]
+		value = PStaticGlobal.dict[name]
+		return Pattern.value(value)
+
+	# BROKEN: not sure why
+	@classmethod
+	def _get(self, key):
+		value = PStaticGlobal.dict[key]
+		return Pattern.value(value)
 
 	@classmethod
 	def set(self, key, value):
@@ -117,7 +109,10 @@ class PStaticTimelineSine(PStaticTimeline):
 
 class PStaticSeq(Pattern):
 	def __init__(self, sequence, duration):
-		self.sequence = sequence
+		#------------------------------------------------------------------------
+		# take a copy of the list to avoid changing the original
+		#------------------------------------------------------------------------
+		self.sequence = copy.copy(sequence)
 		self.duration = duration
 		self.start = None
 	
