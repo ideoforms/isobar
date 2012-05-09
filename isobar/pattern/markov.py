@@ -60,6 +60,7 @@ class PMarkov(Pattern):
 			self.markov = param
 		else:
 			self.markov = Markov(param, edges)
+		self.markov.normalize()
 
 	def next(self, min = None, max = None):
 		return self.markov.next(min, max)
