@@ -113,10 +113,8 @@ class PFadeNotewiseRandom(PFadeNotewise):
 		random.shuffle(self.ordering)
 
 	def fade_in(self):
-		print "fading between %d and %d" % (self.rate_min, self.rate_max)
 		fade_count = random.randint(self.rate_min, self.rate_max)
 		if fade_count < 1: fade_count = 1
-		print "fading in %d times" % fade_count
 		for n in range(fade_count):
 			if self.fadeindex >= len(self.on):
 				return
@@ -128,7 +126,6 @@ class PFadeNotewiseRandom(PFadeNotewise):
 	def fade_out(self):
 		fade_count = random.randint(self.rate_min, self.rate_max)
 		if fade_count < 1: fade_count = 1
-		print "fading out %d times" % fade_count
 		for n in range(fade_count):
 			if self.fadeindex >= len(self.on):
 				return

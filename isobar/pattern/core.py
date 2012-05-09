@@ -296,12 +296,15 @@ class PDict(Pattern):
 		if type(value) == dict:
 			self.dict = value
 		elif type(value) == list:
-			keys = value[0].keys()
-			print "transforming a list of dicts into a dict of PSeqs"
 			self.dict = {}
-			for key in keys:
-				print " - %s" % key
-				self.dict[key] = PSeq([ item[key] for item in value ], 1)
+			try:
+				keys = value[0].keys()
+				print "transforming a list of dicts into a dict of PSeqs"
+				for key in keys:
+					print " - %s" % key
+					self.dict[key] = PSeq([ item[key] for item in value ], 1)
+			except IndexError:
+				pass
 
 	def __getitem__(self, key):
 		return self.dict[key]
@@ -330,6 +333,9 @@ class PDict(Pattern):
 
 	def next(self):
 		vdict = Pattern.value(self.dict)
+		if not vdict:
+			raise StopIteration
+
 		# for some reason, doing a list comprehension without the surrounding square
 		# brackets causes an inner StopIteration to be suppressed -- we want to
 		# explicitly raise it.

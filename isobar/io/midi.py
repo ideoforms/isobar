@@ -34,12 +34,11 @@ class MidiIn:
 			data_note = data[0][0][1]
 			data_vel = data[0][0][2]
 			if data_type == 248:
-				# print "CLOCK"
 				if self.clocktarget is not None:
 					self.clocktarget.tick()
 			elif data_type == 250:
 				# TODO: is this the right midi code?
-				# print "RESET"
+				print "RESET"
 				if self.clocktarget is not None:
 					self.clocktarget.reset_to_beat()
 			elif data_type & 0x90:

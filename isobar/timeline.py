@@ -38,7 +38,24 @@ class Timeline:
 			self.clockmode = self.CLOCK_INTERNAL
 		
 	def tick(self):
-		# print "tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events))
+		if round(self.beats, 5) % 2 == 0:
+			print "tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events))
+
+		#------------------------------------------------------------------------
+		# copy self.events because removing from it whilst using it = bad idea.
+		# perform events before channels are executed because an event might
+		# include scheduling a quantized channel, which should then be
+		# immediately evaluated.
+		#------------------------------------------------------------------------
+		for event in self.events[:]:
+			#------------------------------------------------------------------------
+			# round needed because we can sometimes end up with beats = 3.99999999...
+			# http://docs.python.org/tutorial/floatingpoint.html
+			#------------------------------------------------------------------------
+			if round(event["time"], 8) <= round(self.beats, 8):
+				event["fn"]()
+				self.events.remove(event)
+
 		#------------------------------------------------------------------------
 		# some devices (ie, MidiFileOut) require being told to tick
 		#------------------------------------------------------------------------
@@ -63,18 +80,6 @@ class Timeline:
 				self.automators.remove(automator)
 
 		self.beats += self.ticklen
-
-		#------------------------------------------------------------------------
-		# copy self.events because removing from it whilst using it = bad idea
-		#------------------------------------------------------------------------
-		for event in self.events[:]:
-			#------------------------------------------------------------------------
-			# round needed because we can sometimes end up with beats = 3.99999999...
-			# http://docs.python.org/tutorial/floatingpoint.html
-			#------------------------------------------------------------------------
-			if round(event["time"], 8) <= round(self.beats, 8):
-				event["fn"]()
-				self.events.remove(event)
 
 	def reset_to_beat(self):
 		self.beats = round(self.beats) # + 1/24.0
@@ -135,6 +140,7 @@ class Timeline:
 		if quantize or delay:
 			if quantize:
 				schedtime = quantize * math.ceil(float(self.beats + delay) / quantize)
+				print "schedtime = %f" % schedtime
 			else:
 				schedtime = self.beats + delay
 			self.events.append({ 'time' : schedtime, 'fn' : addchan })
@@ -212,6 +218,7 @@ class Channel:
 
 		try:
 			if round(self.pos, 8) >= round(self.next_note + self.phase_now, 8):
+				print "NOTE"
 				self.dur_now = self.event['dur'].next()
 				self.phase_now = self.event['phase'].next()
 
@@ -223,7 +230,6 @@ class Channel:
 
 				self.count_now += 1
 				if self.count_max and self.count_now >= self.count_max:
-					print "hit max event count = %d" % self.count_now
 					raise StopIteration
 		except StopIteration:
 			self.finished = True
@@ -242,12 +248,13 @@ class Channel:
 		if self.event.has_key("print"):
 			value = Pattern.value(self.event["print"])
 			print value
+			return
 
 		if self.event.has_key("action"):
 			# might have passed a function (auto-wrapped in a pattern)
 			value = Pattern.value(self.event["action"])
 			try:
-				print "value is now %s" % value
+				# print "value is now %s" % value
 				value()
 			except Exception, e:
 				print "ex: %s" % e
@@ -262,7 +269,6 @@ class Channel:
 			value = self.event["value"].next()
 			channel = self.event["channel"].next()
 			self.device.control(control, value, channel)
-			print "sending ctrl to ch%d: (%d, %d)" % (channel, control, value)
 			return 
 
 		if self.event.has_key("address"):

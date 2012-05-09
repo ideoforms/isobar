@@ -1,9 +1,10 @@
 TODO
+* move from osc to OSC module
 * better support for debug output and propagation between classes
 * unit test suite
 * auto-generated docs from comments
 * Pkey (see SC)
-* OSC output 
+* improved OSC output 
 * more random distributions (levy, beta, gamma)
 * add parameter to MidiIn/MidiOut for device name
 * exceptions when a finite operation is performed on an infinite series
