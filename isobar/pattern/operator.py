@@ -152,6 +152,24 @@ class PRound(PMap):
 	def __init__(self, input, *args):
 		PMap.__init__(self, input, round, *args)
 
+class PIndexOf(Pattern):
+	""" PIndexOf: Find index of items from <pattern> in <list>
+
+		>>> p = PIndexOf([ chr(ord("a") + n) for n in range(26) ], PSeq("isobar"))
+		>>> p.nextn(16)
+		>>> [8, 18, 14, 1, 0, 17, 8, 18, 14, 1, 0, 17, 8, 18, 14, 1]
+		"""
+	def __init__(self, list, item):
+		self.list = list
+		self.item = item
+
+	def next(self):
+		list = Pattern.value(self.list)
+		item = Pattern.value(self.item)
+		if list is None or item is None:
+			return None
+		return list.index(item)
+
 class PPad(Pattern):
 	""" PPad: Pad <pattern> with rests until it reaches length <length>.
 		"""
