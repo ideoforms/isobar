@@ -70,7 +70,6 @@ class PStaticGlobal(Pattern):
 
 	@classmethod
 	def set(self, key, value):
-		print "setting %s to %s" % (key, value)
 		PStaticGlobal.dict[key] = value
 
 	@classmethod

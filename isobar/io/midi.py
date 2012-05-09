@@ -104,6 +104,7 @@ class MidiOut:
 			self.noteOff(n, channel)
 
 	def control(self, control = 0, value = 0, channel = 0):
+		# print "*** [CTRL] channel %d, control %d: %d" % (channel, control, value)
 		if self.debug:
 			print "channel %d, control %d: %d" % (channel, control, value)
 		self.midi.WriteShort(0xB0 + channel, int(control), int(value))

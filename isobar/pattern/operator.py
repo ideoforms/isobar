@@ -46,6 +46,17 @@ class PAbs(Pattern):
 			return abs(next)
 		return next
 
+class PCollapse(Pattern):
+	""" PCollapse: Skip over any rests in <input> """
+	def __init__(self, input):
+		self.input = input
+
+	def next(self):
+		rv = None
+		while rv == None:
+			rv = Pattern.value(self.input)
+		return rv
+
 class PReverse(Pattern):
 	""" reverses a finite sequence """
 
@@ -166,7 +177,7 @@ class PIndexOf(Pattern):
 	def next(self):
 		list = Pattern.value(self.list)
 		item = Pattern.value(self.item)
-		if list is None or item is None:
+		if list is None or item is None or item not in list:
 			return None
 		return list.index(item)
 

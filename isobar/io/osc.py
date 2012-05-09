@@ -36,6 +36,12 @@ class OSCOut:
 		for n in range(128):
 			self.noteOff(n, channel)
 
+	def control(self, control, value, channel = 0):
+		# if self.debug:
+		print "channel %d, control %d: %d" % (channel, control, value)
+		msg = OSCMessage("/control", [ control, value, channel ])
+		self.osc.send(msg)
+
 	def __destroy__(self):
 		self.osc.close()
 

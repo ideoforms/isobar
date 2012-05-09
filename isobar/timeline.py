@@ -19,6 +19,7 @@ class Timeline:
 		self.devices = [ device ] if device else [] 
 		self.channels = []
 		self.automators = []
+		self.max_channels = 0
 
 		self.debug = False
 		self.bpm = None
@@ -36,9 +37,9 @@ class Timeline:
 			self.bpm = bpm
 			self.clock = Clock(60.0 / self.bpm / 24.0)
 			self.clockmode = self.CLOCK_INTERNAL
-		
+
 	def tick(self):
-		if round(self.beats, 5) % 2 == 0:
+		if round(self.beats, 5) % 8 == 0:
 			print "tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events))
 
 		#------------------------------------------------------------------------
@@ -81,6 +82,17 @@ class Timeline:
 
 		self.beats += self.ticklen
 
+	def dump(self):
+		print "Timeline (clock: %s)" % ("external" if self.clockmode == self.CLOCK_EXTERNAL else "%sbpm" % self.bpm)
+
+		print " - %d devices" % len(self.devices)
+		for device in self.devices:
+			print "   - %s" % device
+
+		print " - %d channels" % len(self.channels)
+		for channel in self.channels:
+			print"   - %s" % channel
+
 	def reset_to_beat(self):
 		self.beats = round(self.beats) # + 1/24.0
 		for channel in self.channels:
@@ -122,6 +134,10 @@ class Timeline:
 				self.add_output(isobar.io.MidiOut())
 			device = self.devices[0]
 
+		if self.max_channels and len(self.channels) >= self.max_channels:
+			print "*** timeline: refusing to schedule channel (hit limit of %d)" % self.max_channels
+			return
+
 		# hmm - why do we need to copy this?
 		# c = channel(copy.deepcopy(dict))
 		# c = Channel(copy.copy(dict))
@@ -130,7 +146,7 @@ class Timeline:
 			# this isn't exactly the best way to determine whether a device is
 			# an automator or event generator. should we have separate calls?
 			#----------------------------------------------------------------------
-			if type(event) == dict and event.has_key("control"):
+			if type(event) == dict and event.has_key("control") and False:
 				pass
 			else:
 				c = Channel(event, count)
@@ -140,7 +156,6 @@ class Timeline:
 		if quantize or delay:
 			if quantize:
 				schedtime = quantize * math.ceil(float(self.beats + delay) / quantize)
-				print "schedtime = %f" % schedtime
 			else:
 				schedtime = self.beats + delay
 			self.events.append({ 'time' : schedtime, 'fn' : addchan })
@@ -181,6 +196,9 @@ class Channel:
 		self.count_max = count
 		self.count_now = 0
 
+	def __str__(self):
+		return "Channel(pos = %d, note = %s, dur = %s, dur_now = %d, channel = %s, control = %s)[count = %d/%d])" % (self.pos, self.event["note"], self.event["dur"], self.dur_now, self.event["channel"], self.event["control"] if "control" in self.event else "-", self.count_now, self.count_max)
+
 	def next(self):
 		event = Pattern.value(self.events)
 		event.setdefault('note', 60)
@@ -218,7 +236,6 @@ class Channel:
 
 		try:
 			if round(self.pos, 8) >= round(self.next_note + self.phase_now, 8):
-				print "NOTE"
 				self.dur_now = self.event['dur'].next()
 				self.phase_now = self.event['phase'].next()
 
@@ -265,9 +282,10 @@ class Channel:
 			return
 
 		if self.event.has_key("control"):
-			control = self.event["value"].next()
+			control = self.event["control"].next()
 			value = self.event["value"].next()
 			channel = self.event["channel"].next()
+			print "time line control: %d, %d [ch %d]" % (control, value, channel)
 			self.device.control(control, value, channel)
 			return 
 

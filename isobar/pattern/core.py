@@ -285,6 +285,14 @@ class PRef(Pattern):
 	def next(self):
 		return self.pattern.next()
 
+class PFunc(Pattern):
+	def __init__(self, fn):
+		self.fn = fn
+
+	def next(self):
+		fn = Pattern.value(self.fn)
+		return fn()
+
 class PDict(Pattern):
 	""" PDict: Dict of patterns
         Thanks to Dan Stowell <http://www.mcld.co.uk/>
@@ -299,9 +307,7 @@ class PDict(Pattern):
 			self.dict = {}
 			try:
 				keys = value[0].keys()
-				print "transforming a list of dicts into a dict of PSeqs"
 				for key in keys:
-					print " - %s" % key
 					self.dict[key] = PSeq([ item[key] for item in value ], 1)
 			except IndexError:
 				pass
@@ -446,7 +452,7 @@ class PDiv(PBinOp):
 class PMod(PBinOp):
 	""" PMod: Modulo elements of two patterns (shorthand: patternA % patternB) """
 	def __str__(self):
-		return "(%s) % (%s)" % (self.a, self.b)
+		return "(%s) %% (%s)" % (self.a, self.b)
 
 	def next(self):
 		a = self.a.next()
