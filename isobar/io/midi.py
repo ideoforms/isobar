@@ -63,7 +63,7 @@ class MidiIn:
 			# note on
 			return note(data_note, data_vel)
 
-	def __destroy__(self):
+	def close(self):
 		pypm.Terminate()
 
 

@@ -131,6 +131,7 @@ class Timeline:
 	def sched(self, event, quantize = 0, delay = 0, count = 0, device = None):
 		if not device:
 			if not self.devices:
+				print "timeline: adding default MIDI output"
 				self.add_output(isobar.io.MidiOut())
 			device = self.devices[0]
 
@@ -366,7 +367,7 @@ class Clock:
 						elif warp < 0:
 							self.ticksize /= (1.0 - warp)
 
-				time.sleep(0.0001)
+				time.sleep(0.002)
 				clock1 = time.time() * self.accelerate
 		except KeyboardInterrupt:
 			print "interrupt caught, exiting"

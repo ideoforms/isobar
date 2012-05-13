@@ -301,6 +301,8 @@ class PDict(Pattern):
 
 		from isobar.pattern.sequence import *
 
+		self.dict = {}
+
 		if type(value) == dict:
 			self.dict = value
 		elif type(value) == list:
