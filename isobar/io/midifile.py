@@ -1,4 +1,5 @@
 from isobar.note import *
+from isobar.pattern.core import *
 
 from midiutil.MidiFile import MIDIFile
 
@@ -40,11 +41,12 @@ class PatternWriterMIDI:
 		# naive approach: assume every duration is 1
 		# TODO: accept dicts or PDicts
 		for note in pattern:
+			vdur = Pattern.value(dur)
 			if note is not None:
-				self.score.addNote(tracknumber, self.channel, note, time, dur, self.volume)
-				time += dur
+				self.score.addNote(tracknumber, self.channel, note, time, vdur, self.volume)
+				time += vdur
 			else:
-				time += dur
+				time += vdur
 
 	def addTimeline(self, timeline):
 		# TODO: translate entire timeline into MIDI

@@ -27,6 +27,8 @@ class Timeline:
 		self.clocksource = None
 		self.thread = None
 
+		self.stop_when_done = False
+
 		self.events = []
 
 		if hasattr(bpm, "clocktarget"):
@@ -70,6 +72,9 @@ class Timeline:
 			channel.tick(self.ticklen)
 			if channel.finished:
 				self.channels.remove(channel)
+
+		if self.stop_when_done and len(self.channels) == 0:
+			raise StopIteration
 
 		#------------------------------------------------------------------------
 		# TODO: should automator and channel inherit from a common superclass?
@@ -115,6 +120,8 @@ class Timeline:
 				self.clock.run(self)
 			else:
 				self.clocksource.run()
+		except StopIteration:
+			print "timeline finished"
 		except Exception, e:
 			print " *** Exception in background Timeline thread: %s" % e
 			traceback.print_exc(file = sys.stdout)
