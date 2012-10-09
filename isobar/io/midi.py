@@ -1,4 +1,8 @@
-import pypm
+try:
+    import pypm
+except ImportError:
+    from pygame import pypm
+
 import random
 import time
 
