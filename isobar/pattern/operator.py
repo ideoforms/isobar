@@ -46,6 +46,43 @@ class PAbs(Pattern):
 			return abs(next)
 		return next
 
+class PNorm(Pattern):
+	""" PNorm: Normalise <input> to [0..1].
+	    Use maximum and minimum values found in history of size <window_size>.
+		"""
+
+	def __init__(self, input, window_size = None):
+		self.input = input
+		self.window_size = window_size
+
+		self.lower = None
+		self.upper = None
+		self.history = []
+
+	def next(self):
+		value = Pattern.value(self.input)
+		window_size = Pattern.value(self.window_size)
+
+		if window_size:
+			# TODO
+			pass
+		else:
+			if self.lower is None:
+				self.lower = value
+				self.upper = value
+			else:
+				if value > self.upper:
+					self.upper = value
+				if value < self.lower:
+					self.lower = value
+
+		if self.upper == self.lower:
+			rv = 0.0
+		else:
+			rv = (value - self.lower) / (self.upper - self.lower) 
+
+		return rv;
+
 class PCollapse(Pattern):
 	""" PCollapse: Skip over any rests in <input> """
 	def __init__(self, input):

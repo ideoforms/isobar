@@ -115,11 +115,14 @@ Pattern classes:
     PChanged         - Outputs a 1 if the value of a pattern has changed.
     PDiff            - Outputs the difference between the current and previous values of an input pattern
     PAbs             - Absolute value of <input>
+    PNorm            - Normalise <input> to [0..1].
+    PCollapse        - Skip over any rests in <input>
     PMap             - Apply an arbitrary function to an input pattern.
     PMapEnumerated   - Apply arbitrary function to input, passing a counter.
     PLinLin          - Map <input> from linear range [a,b] to linear range [c,d].
     PLinExp          - Map <input> from linear range [a,b] to exponential range [c,d].
     PRound           - Round <input> to N decimal places.
+    PIndexOf         - Find index of items from <pattern> in <list>
     PPad             - Pad <pattern> with rests until it reaches length <length>.
     PPadToMultiple   - Pad <pattern> with rests until its length is divisible by <multiple>.
 
@@ -149,4 +152,5 @@ Many of the concepts behind Pattern and its subclasses are inspired by the
 excellent pattern library of the SuperCollider synthesis language:
 
     http://supercollider.sf.net
+
 

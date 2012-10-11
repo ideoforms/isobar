@@ -1,4 +1,5 @@
 TODO
+* further oscillators: sine, saw, pulse
 * move from osc to OSC module
 * better support for debug output and propagation between classes
 * unit test suite
@@ -16,6 +17,7 @@ TODO
    -> generic midpoint
 * support for reverse-direction timelines
   (though may be tricky: how to handle nondeterministic patterns?)
+* support for MIDI file reading
 
 DONE
 * phasing example (with fractional durations)
@@ -29,3 +31,4 @@ DONE
 * PLoopThenReset: loop input N times, then send reset()
 * re-implement time warping 
 * time jitter/phase (to implement both in Clock and Timeline)
+* PNorm: normalization [0..1]
