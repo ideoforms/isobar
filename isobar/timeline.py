@@ -52,6 +52,9 @@ class Timeline:
 		#------------------------------------------------------------------------
 		for event in self.events[:]:
 			#------------------------------------------------------------------------
+			# the only event we currently get in a Timeline are add_channel events
+			#  -- which have a raw function associated with them.
+			# 
 			# round needed because we can sometimes end up with beats = 3.99999999...
 			# http://docs.python.org/tutorial/floatingpoint.html
 			#------------------------------------------------------------------------
@@ -188,7 +191,10 @@ class AutomatorChannel:
 class Channel:
 	def __init__(self, events = {}, count = 0):
 		#----------------------------------------------------------------------
-		# evaluate in case we have a pattern which gives us an event.
+		# evaluate in case we have a pattern which gives us an event
+		# eg: PSeq([ { "note" : 20, "dur" : 0.5 }, { "note" : 50, "dur" : PWhite(0, 2) } ])
+		# 
+		# is this ever even necessary? 
 		#----------------------------------------------------------------------
 		self.events = Pattern.pattern(events)
 
@@ -208,7 +214,12 @@ class Channel:
 		return "Channel(pos = %d, note = %s, dur = %s, dur_now = %d, channel = %s, control = %s)[count = %d/%d])" % (self.pos, self.event["note"], self.event["dur"], self.dur_now, self.event["channel"], self.event["control"] if "control" in self.event else "-", self.count_now, self.count_max)
 
 	def next(self):
+		#----------------------------------------------------------------------
+		# event is a dictionary of patterns. anything which is not a pattern
+		# (eg, constant values) are turned into PConsts.
+		#----------------------------------------------------------------------
 		event = Pattern.value(self.events)
+	
 		event.setdefault('note', 60)
 		event.setdefault('transpose', 0)
 		event.setdefault('dur', 1)
@@ -227,8 +238,7 @@ class Channel:
 			event['key'] = Key(0, Scale.major)
 
 		#----------------------------------------------------------------------
-		# might be nice to create a event subclass which automatically
-		# creates pconsts when integer values are requested
+		# this does the job of turning constant values into (PConst) patterns.
 		#----------------------------------------------------------------------
 		for key, value in event.items():
 			event[key] = Pattern.pattern(value)
@@ -270,6 +280,31 @@ class Channel:
 		self.next_note = 0
 
 	def play(self):
+		# XXX
+		if hasattr(self.device, "event") and callable(getattr(self.device, "event")):
+			d = dict()
+			for key, pattern in self.event.items():
+				value = pattern.next()
+
+				# turn non-builtin objects into their string representations.
+				# we don't want to call repr() on numbers as it turns them into strings,
+				# which we don't want to happen in our resultant JSON.
+				# TODO: there absolutely must be a way to do this for all objects which are
+				#       non-builtins... ie, who are "class" instances rather than "type".
+				#
+				#       we could check dir(__builtins__), but for some reason, __builtins__ is
+				#       different here than it is outside of a module!? 
+				#
+				#       instead, go with the lame option of listing "primitive" types.
+				if type(value) not in (int, float, bool, str, list, dict, tuple):
+					name = type(value).__name__
+					value = repr(value)
+
+				d[key] = value
+
+			self.device.event(d)
+			return
+
 		if self.event.has_key("print"):
 			value = Pattern.value(self.event["print"])
 			print value
@@ -325,7 +360,7 @@ class Channel:
 		if random.uniform(0, 1) < self.event['omit'].next():
 			return
 
-		# print "note %d (%d)" % (note, amp)
+		print "note %d (%d)" % (note, amp)
 		self.device.noteOn(note, amp, channel)
 
 		gate = self.event['gate'].next()

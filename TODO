@@ -1,9 +1,9 @@
 TODO
+* unit test suite
+* complete INSTALL doc
 * further oscillators: sine, saw, pulse
 * move from osc to OSC module
 * better support for debug output and propagation between classes
-* unit test suite
-* auto-generated docs from comments
 * Pkey (see SC)
 * improved OSC output 
 * more random distributions (levy, beta, gamma)
@@ -32,3 +32,4 @@ DONE
 * re-implement time warping 
 * time jitter/phase (to implement both in Clock and Timeline)
 * PNorm: normalization [0..1]
+* auto-generated docs from comments

@@ -23,6 +23,9 @@ class Key:
 	def __str__(self):
 		return "key: %s %s" % (miditopitch(self.tonic), self.scale.name)
 
+	def __repr__(self):
+		return 'Key(%s, "%s")' % (self.tonic, self.scale.name)
+
 	def get(self, degree):
 		""" Returns the <degree>th semitone within this key. """
 		if degree is None:

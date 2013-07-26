@@ -23,6 +23,7 @@ class PSeq(Pattern):
 		#------------------------------------------------------------------------
 		# take a copy of the list to avoid changing the original
 		#------------------------------------------------------------------------
+		assert hasattr(list, "__getitem__"), "PSeq must take a list argument"
 		self.list = copy.copy(list)
 		self.repeats = repeats
 
