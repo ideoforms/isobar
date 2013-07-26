@@ -280,12 +280,14 @@ class Channel:
 		self.next_note = 0
 
 	def play(self):
-		# XXX
-		if hasattr(self.device, "event") and callable(getattr(self.device, "event")):
-			d = dict()
-			for key, pattern in self.event.items():
-				value = pattern.next()
+		values = {}
+		for key, pattern in self.event.items():
+			value = pattern.next()
+			values[key] = value
 
+		if hasattr(self.device, "event") and callable(getattr(self.device, "event")):
+			d = copy.copy(values)
+			for key, value in d.items():
 				# turn non-builtin objects into their string representations.
 				# we don't want to call repr() on numbers as it turns them into strings,
 				# which we don't want to happen in our resultant JSON.
@@ -299,23 +301,20 @@ class Channel:
 				if type(value) not in (int, float, bool, str, list, dict, tuple):
 					name = type(value).__name__
 					value = repr(value)
-
-				d[key] = value
+					d[key] = value
 
 			self.device.event(d)
 			return
 
-		if self.event.has_key("print"):
-			value = Pattern.value(self.event["print"])
-			print value
+		if "print" in values:
+			print values["print"]
 			return
 
-		if self.event.has_key("action"):
+		if "action" in values:
 			# might have passed a function (auto-wrapped in a pattern)
-			value = Pattern.value(self.event["action"])
 			try:
 				# print "value is now %s" % value
-				value()
+				values["action"]()
 			except Exception, e:
 				print "ex: %s" % e
 				import traceback
@@ -324,46 +323,43 @@ class Channel:
 
 			return
 
-		if self.event.has_key("control"):
-			control = self.event["control"].next()
-			value = self.event["value"].next()
-			channel = self.event["channel"].next()
-			print "time line control: %d, %d [ch %d]" % (control, value, channel)
-			self.device.control(control, value, channel)
+		if "control" in values:
+			value = values["value"]
+			channel = values["channel"]
+			print "time line control: %d, %d [ch %d]" % (values["control"], values["value"], values["channel"])
+			self.device.control(values["control"], values["value"], values["channel"])
 			return 
 
-		if self.event.has_key("address"):
-			address = self.event["address"].next()
-			params = self.event["params"].next()
-			self.device.send(address, params)
+		if "address" in values:
+			self.device.send(values["address"], values["params"])
 			return
 
 		note = None
 
-		if self.event.has_key("degree"):
-			degree = self.event['degree'].next()
-			key = self.event['key'].next()
-			octave = self.event['octave'].next()
+		if "degree" in values:
+			degree = values["degree"]
+			key = values["key"]
+			octave = values["octave"]
 			if not degree is None:
 				note = key[degree] + (octave * 12)
 		else:
-			note = self.event['note'].next()
+			note = values["note"]
 
 		if note is None:
 			# print "(rest)"
 			return
 
-		note   += self.event['transpose'].next()
-		amp     = self.event['amp'].next()
-		channel = self.event['channel'].next()
+		note   += values["transpose"]
+		amp     = values["amp"]
+		channel = values["channel"]
 
-		if random.uniform(0, 1) < self.event['omit'].next():
+		if random.uniform(0, 1) < values['omit']:
 			return
 
 		print "note %d (%d)" % (note, amp)
 		self.device.noteOn(note, amp, channel)
 
-		gate = self.event['gate'].next()
+		gate = values["gate"]
 		note_dur = self.dur_now * gate
 		self.schedNoteOff(self.next_note + note_dur + self.phase_now, note, channel)
 
