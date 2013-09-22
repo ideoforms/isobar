@@ -618,6 +618,12 @@ class PEuclidean(Pattern):
 		return rv
 
 class PDecisionPoint(Pattern):
+	""" PDecisionPoint: Each time its pattern is exhausted, requests a new pattern by calling <fn>.
+
+		>>> p = PCounter(PImpulse(4))
+		>>> p.nextn(16)
+		[1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4]
+		"""
 	def __init__(self, fn):
 		self.fn = fn
 		self.pattern = self.fn()

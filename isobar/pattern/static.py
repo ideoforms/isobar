@@ -95,6 +95,7 @@ class PStaticGlobal(Pattern):
 
 class PStaticTimelineSine(PStaticTimeline):
 	def __init__(self, period):
+		PStaticTimeline.__init__(self)
 		self.period = period
 
 	def next(self):

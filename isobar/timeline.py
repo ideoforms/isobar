@@ -196,7 +196,9 @@ class Channel:
 		# 
 		# is this ever even necessary? 
 		#----------------------------------------------------------------------
-		self.events = Pattern.pattern(events)
+		# self.events = Pattern.pattern(events)
+		self.events = events
+		# print "events is %s" % self.events
 
 		self.next()
 
@@ -282,29 +284,14 @@ class Channel:
 	def play(self):
 		values = {}
 		for key, pattern in self.event.items():
-			value = pattern.next()
+			# TODO: HACK!! to prevent stepping through dur twice (see 'tick' above')
+			if key == "dur":
+				value = self.dur_now
+			elif key == "phase":
+				value = self.phase_now
+			else:
+				value = pattern.next()
 			values[key] = value
-
-		if hasattr(self.device, "event") and callable(getattr(self.device, "event")):
-			d = copy.copy(values)
-			for key, value in d.items():
-				# turn non-builtin objects into their string representations.
-				# we don't want to call repr() on numbers as it turns them into strings,
-				# which we don't want to happen in our resultant JSON.
-				# TODO: there absolutely must be a way to do this for all objects which are
-				#       non-builtins... ie, who are "class" instances rather than "type".
-				#
-				#       we could check dir(__builtins__), but for some reason, __builtins__ is
-				#       different here than it is outside of a module!? 
-				#
-				#       instead, go with the lame option of listing "primitive" types.
-				if type(value) not in (int, float, bool, str, list, dict, tuple):
-					name = type(value).__name__
-					value = repr(value)
-					d[key] = value
-
-			self.device.event(d)
-			return
 
 		if "print" in values:
 			print values["print"]
@@ -341,27 +328,58 @@ class Channel:
 			key = values["key"]
 			octave = values["octave"]
 			if not degree is None:
-				note = key[degree] + (octave * 12)
-		else:
-			note = values["note"]
+				values["note"] = key[degree] + (octave * 12)
 
-		if note is None:
-			# print "(rest)"
-			return
-
-		note   += values["transpose"]
-		amp     = values["amp"]
-		channel = values["channel"]
-
+		#----------------------------------------------------------------------
+		# For cases in which we want to introduce a rest, simply set our 'amp'
+		# value to zero. This means that we can still send rest events to
+		# devices which receive all generic events (useful to display rests
+		# when rendering a score).
+		#----------------------------------------------------------------------
 		if random.uniform(0, 1) < values['omit']:
+			values["note"] = None
+
+		if values["note"] is None:
+			# print "(rest)"
+			# return
+			values["note"] = 0
+			values["amp"] = 0
+		else:
+			print "note is %s" % values["note"]
+			values["note"] += values["transpose"]
+
+		#----------------------------------------------------------------------
+		# 
+		#----------------------------------------------------------------------
+		if hasattr(self.device, "event") and callable(getattr(self.device, "event")):
+			d = copy.copy(values)
+			for key, value in d.items():
+				# turn non-builtin objects into their string representations.
+				# we don't want to call repr() on numbers as it turns them into strings,
+				# which we don't want to happen in our resultant JSON.
+				# TODO: there absolutely must be a way to do this for all objects which are
+				#       non-builtins... ie, who are "class" instances rather than "type".
+				#
+				#       we could check dir(__builtins__), but for some reason, __builtins__ is
+				#       different here than it is outside of a module!? 
+				#
+				#       instead, go with the lame option of listing "primitive" types.
+				if type(value) not in (int, float, bool, str, list, dict, tuple):
+					name = type(value).__name__
+					value = repr(value)
+					d[key] = value
+
+			print "sending event - %s" % d
+			self.device.event(d)
 			return
 
-		print "note %d (%d)" % (note, amp)
-		self.device.noteOn(note, amp, channel)
+		if values["amp"] > 0:
+			print "note %d (%d)" % (values["note"], values["amp"])
+			self.device.noteOn(values["note"], values["amp"], values["channel"])
 
-		gate = values["gate"]
-		note_dur = self.dur_now * gate
-		self.schedNoteOff(self.next_note + note_dur + self.phase_now, note, channel)
+			gate = values["gate"]
+			note_dur = self.dur_now * values["gate"]
+			self.schedNoteOff(self.next_note + note_dur + self.phase_now, values["note"], values["channel"])
 
 	def schedNoteOff(self, time, note, channel):
 		self.noteOffs.append([ time, note, channel ])

@@ -16,13 +16,14 @@ class Markov:
 		for a in range(len(self.nodes)):
 			self.edges.append([])
 			for b in range(len(self.nodes)):
-				prob = random.randint(0, 2) / 2
+				# prob = random.randint(0, 2) / 2
+				prob = random.uniform(0, 1)
 				self.edges[a].append(prob)
 
 		self.normalize()
 		self.sanitize()
 
-		# print "new edges: %s" % self.edges
+		print "new edges: %s" % self.edges
 	def normalize(self):
 		self.edges = map(lambda n: normalize(n), self.edges)
 

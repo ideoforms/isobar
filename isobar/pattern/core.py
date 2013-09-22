@@ -30,7 +30,7 @@ class Pattern:
 		pass
 
 	def __str__(self):
-		return "pattern"
+		return "pattern(%s)" % self.__class__
 
 	def __len__(self):
 		# formerly defined as len(list(self)), but list(self) seeminly relies
@@ -298,8 +298,7 @@ class PDict(Pattern):
         Thanks to Dan Stowell <http://www.mcld.co.uk/>
 	    """
 	def __init__(self, value = {}):
-
-		from isobar.pattern.sequence import *
+		from isobar.pattern.sequence import PSeq
 
 		self.dict = {}
 
@@ -322,6 +321,16 @@ class PDict(Pattern):
 
 	def __contains__(self, key):
 		return key in self.dict
+
+	@classmethod
+	def load(self, filename):
+		from isobar.io.midifile import MidiFileIn
+		from isobar.pattern.sequence import PSeq
+
+		reader = MidiFileIn()
+		d = reader.read(filename)
+		d = dict([ (key, PSeq(value, 1)) for key, value in d.items() ])
+		return PDict(d)
 
 	def has_key(self, key):
 		return key in self.dict
@@ -360,9 +369,17 @@ class PIndex(Pattern):
 
 	def next(self):
 		index = Pattern.value(self.index)
-		index = int(index)
 		list = Pattern.value(self.list)
-		return list[index]
+
+		#------------------------------------------------------------------
+		# null indices denote a rest -- so return a null value.
+		# (same behaviour as PDegree: a degree of None returns a rest.)
+		#------------------------------------------------------------------
+		if index is None:
+			return None
+		else:
+			index = int(index)
+			return list[index]
 
 class PKey(Pattern):
 	""" PKey: Request a specified key from a dictionary.

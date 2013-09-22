@@ -10,6 +10,8 @@ from isobar.note import *
 
 MIDIIN_DEFAULT = "IAC Driver A"
 MIDIOUT_DEFAULT = "IAC Driver A"
+# MIDIOUT_DEFAULT = "Network Session"
+# MIDIOUT_DEFAULT = "FireWire 410"
 
 
 class MidiIn:

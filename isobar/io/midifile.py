@@ -1,10 +1,64 @@
+from __future__ import absolute_import 
+
 from isobar.note import *
 from isobar.pattern.core import *
 
-from midiutil.MidiFile import MIDIFile
+
+import midi
+
+class MidiFileIn:
+	def __init__(self):
+		pass
+
+	def read(self, filename):
+		reader = midi.FileReader()
+		data = reader.read(file(filename))
+
+		class Note:
+			def __init__(self, pitch, velocity, location, duration = None):
+				# pitch = MIDI 0..127
+				self.pitch = pitch
+				# velocity = MIDI 0..127
+				self.velocity = velocity
+				# location in time, beats
+				self.location = location
+				# duration in time, beats
+				self.duration = duration
+
+		notes = []
+		for track in data:
+			track.make_ticks_abs()
+			for event in filter(lambda event: isinstance(event, midi.events.NoteEvent), track):
+				location = event.tick / 96.0
+				if isinstance(event, midi.events.NoteOnEvent):
+					# print "(%.2f beats) %s. \t(note = %d, velocity = %d)" % (location, name, event.pitch, event.velocity)
+					note = Note(event.pitch, event.velocity, location)
+					notes.append(note)
+				if isinstance(event, midi.events.NoteOffEvent):
+					# print "(%.2f beats) %s off \t(note = %d, velocity = %d)" % (location, name, event.pitch, event.velocity)
+					found = False
+					for note in reversed(notes):
+						if note.pitch == event.pitch:
+							duration = location - note.location
+							# print " -> duration = %.2f beats" % duration
+							note.duration = duration
+							found = True
+							break
+					if not found:
+						print "*** NOTE-OFF FOUND WITHOUT NOTE-ON ***"
+	
+		d = {
+			"note" : [ note.pitch for note in notes ],
+			"amp" : [ note.velocity for note in notes ],
+			"dur" : [ note.duration for note in notes ],
+		}
+
+		return d
 
 class MidiFileOut:
 	def __init__(self, numtracks = 16):
+		from midiutil.MidiFile import MIDIFile
+
 		self.score = MIDIFile(numtracks)
 		self.track = 0
 		self.channel = 0
