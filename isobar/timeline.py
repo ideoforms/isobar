@@ -41,8 +41,8 @@ class Timeline:
 			self.clockmode = self.CLOCK_INTERNAL
 
 	def tick(self):
-		if round(self.beats, 5) % 8 == 0:
-			print "tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events))
+		# if round(self.beats, 5) % 8 == 0:
+		#	print "tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events))
 
 		#------------------------------------------------------------------------
 		# copy self.events because removing from it whilst using it = bad idea.
@@ -249,7 +249,7 @@ class Channel:
 
 	def tick(self, time):
 		#----------------------------------------------------------------------
-		# process noteOffs before we play the next note, else notes
+		# process noteOffs before we play the next note, else a repeated note
 		# with gate = 1.0 will immediately be cancelled.
 		#----------------------------------------------------------------------
 		self.processNoteOffs()
@@ -345,7 +345,6 @@ class Channel:
 			values["note"] = 0
 			values["amp"] = 0
 		else:
-			print "note is %s" % values["note"]
 			values["note"] += values["transpose"]
 
 		#----------------------------------------------------------------------
@@ -374,7 +373,7 @@ class Channel:
 			return
 
 		if values["amp"] > 0:
-			print "note %d (%d)" % (values["note"], values["amp"])
+			# print "note %d (%d)" % (values["note"], values["amp"])
 			self.device.noteOn(values["note"], values["amp"], values["channel"])
 
 			gate = values["gate"]
