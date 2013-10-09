@@ -31,11 +31,11 @@ class MidiFileIn:
 			for event in filter(lambda event: isinstance(event, midi.events.NoteEvent), track):
 				location = event.tick / 96.0
 				if isinstance(event, midi.events.NoteOnEvent):
-					# print "(%.2f beats) %s. \t(note = %d, velocity = %d)" % (location, name, event.pitch, event.velocity)
+					print "(%.2f beats) %s. \t(note = %d, velocity = %d)" % (location, miditoname(event.pitch), event.pitch, event.velocity)
 					note = Note(event.pitch, event.velocity, location)
 					notes.append(note)
 				if isinstance(event, midi.events.NoteOffEvent):
-					# print "(%.2f beats) %s off \t(note = %d, velocity = %d)" % (location, name, event.pitch, event.velocity)
+					print "(%.2f beats) %s off \t(note = %d, velocity = %d)" % (location, miditoname(event.pitch), event.pitch, event.velocity)
 					found = False
 					for note in reversed(notes):
 						if note.pitch == event.pitch:
