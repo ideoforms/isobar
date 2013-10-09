@@ -2,10 +2,13 @@ from isobar.pattern import *
 from isobar.util import *
 
 class Markov:
-	def __init__(self, nodes = [], edges = []):
-		self.nodes = nodes
-		self.edges = edges
-		self.node = 0
+	def __init__(self, nodes = None, edges = None):
+		#------------------------------------------------------------------------
+		# avoid using [] (mutable default arguments considered harmful)
+		# http://stackoverflow.com/questions/1132941/least-astonishment-in-python-the-mutable-default-argument
+		#------------------------------------------------------------------------
+		self.nodes = nodes if nodes else []
+		self.edges = edges if edges else []
 		if len(self.nodes) > 0:
 			self.node = random.randint(0, len(self.nodes) - 1)
 		if len(self.edges) == 0:
@@ -24,6 +27,7 @@ class Markov:
 		self.sanitize()
 
 		print "new edges: %s" % self.edges
+
 	def normalize(self):
 		self.edges = map(lambda n: normalize(n), self.edges)
 
@@ -55,8 +59,9 @@ class Markov:
 
 class PMarkov(Pattern):
 	""" PMarkov: Markov chain """
-	def __init__(self, param, edges = []):
+	def __init__(self, param, edges = None):
 		""" can take either a Markov object, or [ nodes, edges ] pair """
+		edges = edges or []
 		if isinstance(param, Markov):
 			self.markov = param
 		else:
@@ -68,10 +73,7 @@ class PMarkov(Pattern):
 
 class MarkovLearner:
 	def __init__(self):
-		# XXX! weeird bug - not passing an empty list here seems to share the same nodes ref between markov objects.
-		# why?
-		self.markov = Markov([])
-		print "new learner, markov is %s" % self.markov
+		self.markov = Markov()
 		self.last = None
 
 	def register(self, value):
