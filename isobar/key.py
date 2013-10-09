@@ -37,11 +37,28 @@ class Key:
 	def __getitem__(self, degree):
 		return self.get(degree)
 
+	def __contains__(self, semitone):
+		return (semitone % self.scale.octave_size) in self.semitones
+
 	@property
 	def semitones(self):
-		semitones = map(lambda n: (n + self.tonic) % 12, self.scale.semitones)
+		semitones = map(lambda n: (n + self.tonic) % self.scale.octave_size, self.scale.semitones)
 		semitones.sort()
 		return semitones
+
+	def nearest_note(self, note):
+		if note in self:
+			return note
+		else:
+			octave, pitch = divmod(note, self.scale.octave_size)
+			nearest_semi = None
+			nearest_dist = None
+			for semi in self.semitones:
+				dist = abs(semi - pitch)
+				if nearest_dist is None or dist < nearest_dist:
+					nearest_semi = semi
+					nearest_dist = dist
+			return (octave * self.scale.octave_size) + nearest_semi
 
 	def voiceleading(self, other):
 		""" Returns the most parsimonious voice leading between this key
@@ -49,12 +66,12 @@ class Key:
 			maximal length of (this, other), and semiA and semiB are members
 			of each. May not be bijective. """
 
-		if len(self.semitones()) > len(other.semitones()):
-			semisA = self.semitones()
-			semisB = other.semitones()
+		if len(self.semitones) > len(other.semitones):
+			semisA = self.semitones
+			semisB = other.semitones
 		else:
-			semisA = other.semitones()
-			semisB = self.semitones()
+			semisA = other.semitones
+			semisB = self.semitones
 		semisB = list(reversed(semisB))
 
 		leading = []
@@ -98,7 +115,7 @@ class Key:
 	def random():
 		t = random.randint(0, 11)
 		s = Scale.random()
-		return key(t, s)
+		return Key(t, s)
 
 	@staticmethod
 	def all():

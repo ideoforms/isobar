@@ -1,7 +1,6 @@
 import random
 
-
-class Scale:
+class Scale(object):
 	dict = { }
 
 	def __init__(self, semitones = [ 0, 2, 4, 5, 7, 9, 11 ], name = "unnamed scale"):
@@ -20,7 +19,11 @@ class Scale:
 	def __eq__(self, other):
 		return self.semitones == other.semitones and self.octave_size == other.octave_size
 
+	def __contains__(self, semitone):
+		return (semitone % self.scale.octave_size) in self.semitones
+
 	def get(self, n):
+		""" Retrieve the n'th degree of this scale. """
 		if n is None:
 			return None
 
@@ -34,6 +37,7 @@ class Scale:
 		return other
 
 	def change(self):
+		""" Exchange two random elements of this scale. """
 		i = random.randint(0, len(self.semitones) - 1)
 		j = random.randint(0, len(self.semitones) - 1)
 		if i <> j:
@@ -47,7 +51,7 @@ class Scale:
 		return self
 
 	def indexOf(self, note):
-		print "getting index of %d" % note
+		""" Return the index of the given note within this scale. """
 		octave = int(note / self.octave_size)
 		index = octave * len(self.semitones)
 		note -= octave * self.octave_size
@@ -93,4 +97,12 @@ Scale.mixolydian    = Scale([ 0, 2, 4, 5, 7, 9, 10 ], "mixolydian")
 Scale.aeolian       = Scale([ 0, 2, 3, 5, 7, 8, 10 ], "aeolian")
 Scale.locrian       = Scale([ 0, 1, 3, 5, 6, 8, 10 ], "locrian")
 Scale.fourths		= Scale([ 0, 2, 5, 7 ], "fourths")
+
+class WeightedScale(Scale):
+	def __init__(self, semitones = [ 0, 2, 4, 5, 7, 9, 11 ], weights = [ 1/7.0 ] * 7, name = "major"):
+		self.semitones = semitones
+		self.name = name
+		self.octave_size = 12
+		if not Scale.dict.has_key(name):
+		   Scale.dict[name] = self
 

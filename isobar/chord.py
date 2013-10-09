@@ -17,6 +17,7 @@ class Chord:
 	def __str__(self):
 		return "%s %s%s" % (self.name, self.semitones(), (" + %d" % self.root) if self.root > 0 else "")
 
+	@property
 	def semitones(self):
 		semitones = [0] + map(lambda n: sum(self.intervals[0:n+1]), range(len(self.intervals)))
 		return semitones
