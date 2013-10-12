@@ -94,6 +94,19 @@ class PCollapse(Pattern):
 			rv = Pattern.value(self.input)
 		return rv
 
+class PNoRepeats(Pattern):
+	""" PNoRepeats: Skip over repeated values in <input> """
+	def __init__(self, input):
+		self.input = input
+		self.value = sys.maxint
+
+	def next(self):
+		rv = sys.maxint
+		while rv == self.value or rv == sys.maxint:
+			rv = Pattern.value(self.input)
+		self.value = rv
+		return rv
+
 class PReverse(Pattern):
 	""" reverses a finite sequence """
 

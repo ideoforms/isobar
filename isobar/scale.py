@@ -1,12 +1,15 @@
 import random
+from util import *
 
 class Scale(object):
 	dict = { }
 
-	def __init__(self, semitones = [ 0, 2, 4, 5, 7, 9, 11 ], name = "unnamed scale"):
+	def __init__(self, semitones = [ 0, 2, 4, 5, 7, 9, 11 ], name = "unnamed scale", octave_size = 12):
 		self.semitones = semitones
+		""" For polymorphism with WeightedScale -- assume all notes equally weighted. """
+		self.weights = [ 1.0 / len(self.semitones) for _ in range(len(self.semitones)) ]
 		self.name = name
-		self.octave_size = 12
+		self.octave_size = octave_size
 		if not Scale.dict.has_key(name):
 		   Scale.dict[name] = self
 
@@ -64,6 +67,14 @@ class Scale(object):
 		return index
 
 	@staticmethod
+	def fromnotes(notes, name = "unnamed scale", octave_size = 12):
+		notes = [ note % octave_size for note in notes ]
+		notes = dict((k, k) for k in notes).keys()
+		notes = sorted(notes)
+		scale = Scale(notes, name = name, octave_size = octave_size)
+		return scale
+
+	@staticmethod
 	def all():
 		return Scale.dict.values()
 
@@ -99,10 +110,39 @@ Scale.locrian       = Scale([ 0, 1, 3, 5, 6, 8, 10 ], "locrian")
 Scale.fourths		= Scale([ 0, 2, 5, 7 ], "fourths")
 
 class WeightedScale(Scale):
-	def __init__(self, semitones = [ 0, 2, 4, 5, 7, 9, 11 ], weights = [ 1/7.0 ] * 7, name = "major"):
-		self.semitones = semitones
-		self.name = name
-		self.octave_size = 12
+	def __init__(self, semitones = [ 0, 2, 4, 5, 7, 9, 11 ], weights = [ 1/7.0 ] * 7, name = "major", octave_size = 12):
+		Scale.__init__(self, semitones, name = name, octave_size = octave_size)
+		self.weights = weights
 		if not Scale.dict.has_key(name):
 		   Scale.dict[name] = self
 
+	def __str__(self):
+		return "%s %s weights = %s" % (self.name, self.semitones, self.weights)
+
+	@staticmethod
+	def fromnotes(notes, name = "unnamed scale", octave_size = 12):
+		note_sequence = [ note % octave_size for note in notes ]
+		notes_dict = {}
+		for note in note_sequence:
+			if not note in notes_dict:
+				notes_dict[note] = 0
+			notes_dict[note] += 1.0 / len(note_sequence)
+
+		notes_unique = dict((k, k) for k in note_sequence).keys()
+		notes_unique = sorted(notes_unique)
+		weights = []
+		for note in notes_unique:
+			weights.append(notes_dict[note])
+		
+		scale = WeightedScale(notes_unique, weights, name = name, octave_size = octave_size)
+		return scale
+
+	@staticmethod
+	def fromorder(notes, name = "unnamed scale", octave_size = 12):
+		notes = [ note % octave_size for note in notes ]
+		weights = [ len(notes) - n for n in range(len(notes)) ]
+		weights = normalize(weights)
+
+		scale = WeightedScale(notes, weights, name = name, octave_size = octave_size)
+		return scale
+		

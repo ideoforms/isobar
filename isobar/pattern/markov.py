@@ -71,6 +71,12 @@ class PMarkov(Pattern):
 	def next(self, min = None, max = None):
 		return self.markov.next(min, max)
 
+	@classmethod
+	def fromscale(self, scale):
+		semitones = scale.semitones
+		weights = scale.weights
+		return PMarkov(semitones, [ weights[:] for _ in semitones ])
+
 class MarkovLearner:
 	def __init__(self):
 		self.markov = Markov()
