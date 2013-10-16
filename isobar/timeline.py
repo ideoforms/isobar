@@ -116,8 +116,17 @@ class Timeline:
 	def background(self):
 		self.thread = thread.start_new_thread(self.run, ())
 
-	def run(self):
-		# create clock with 64th-beat granularity
+	def run(self, high_priority = True):
+		""" Create clock with 64th-beat granularity.
+		By default, attempts to run as a high-priority thread
+		(though requires being run as root to re-nice the process) """
+		try:
+			import os
+			os.nice(-20)
+			print "Timeline: Running as high-priority thread"
+		except:
+			pass
+
 		try:
 			if self.clockmode == self.CLOCK_INTERNAL:
 				self.clock.run(self)
@@ -328,7 +337,15 @@ class Channel:
 			key = values["key"]
 			octave = values["octave"]
 			if not degree is None:
-				values["note"] = key[degree] + (octave * 12)
+				#----------------------------------------------------------------------
+				# handle lists of notes (eg chords).
+				# TODO: create a class which allows for scalars and arrays to handle
+				# addition transparently
+				#----------------------------------------------------------------------
+				try:
+					values["note"] = [ key[n] + (octave * 12) for n in degree ]
+				except:
+					values["note"] = key[degree] + (octave * 12)
 
 		#----------------------------------------------------------------------
 		# For cases in which we want to introduce a rest, simply set our 'amp'
@@ -345,7 +362,19 @@ class Channel:
 			values["note"] = 0
 			values["amp"] = 0
 		else:
-			values["note"] += values["transpose"]
+			#----------------------------------------------------------------------
+			# handle lists of notes (eg chords).
+			# TODO: create a class which allows for scalars and arrays to handle
+			# addition transparently.
+			# 
+			# the below does not allow for values["transpose"] to be an array,
+			# for example.
+			#----------------------------------------------------------------------
+			try:
+				values["note"] = [ note + values["transpose"] for note in values["note"] ]
+			except:
+				values["note"] += values["transpose"]
+
 
 		#----------------------------------------------------------------------
 		# 
@@ -353,6 +382,7 @@ class Channel:
 		if hasattr(self.device, "event") and callable(getattr(self.device, "event")):
 			d = copy.copy(values)
 			for key, value in d.items():
+				#------------------------------------------------------------------------
 				# turn non-builtin objects into their string representations.
 				# we don't want to call repr() on numbers as it turns them into strings,
 				# which we don't want to happen in our resultant JSON.
@@ -363,6 +393,7 @@ class Channel:
 				#       different here than it is outside of a module!? 
 				#
 				#       instead, go with the lame option of listing "primitive" types.
+				#------------------------------------------------------------------------
 				if type(value) not in (int, float, bool, str, list, dict, tuple):
 					name = type(value).__name__
 					value = repr(value)
@@ -374,11 +405,16 @@ class Channel:
 
 		if values["amp"] > 0:
 			# print "note %d (%d)" % (values["note"], values["amp"])
-			self.device.noteOn(values["note"], values["amp"], values["channel"])
+			# TODO: pythonic duck-typing approach might be better
+			# TODO: doesn't handle arrays of amp, channel values, etc
+			notes = values["note"] if hasattr(values["note"], '__iter__') else [ values["note"] ]
 
-			gate = values["gate"]
-			note_dur = self.dur_now * values["gate"]
-			self.schedNoteOff(self.next_note + note_dur + self.phase_now, values["note"], values["channel"])
+			for note in notes:
+				self.device.noteOn(note, values["amp"], values["channel"])
+
+				gate = values["gate"]
+				note_dur = self.dur_now * values["gate"]
+				self.schedNoteOff(self.next_note + note_dur + self.phase_now, note, values["channel"])
 
 	def schedNoteOff(self, time, note, channel):
 		self.noteOffs.append([ time, note, channel ])
