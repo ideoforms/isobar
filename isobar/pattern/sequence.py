@@ -76,10 +76,38 @@ class PSeries(Pattern):
 			raise StopIteration
 		step = Pattern.value(self.step)
 		n = self.value
-		step = self.step.next() if isinstance(self.step, Pattern) else self.step
 		self.value += step
 		self.count += 1
 		return n
+
+class PRange(Pattern):
+	""" PRange: Similar to PSeries, but specify a max/step value. 
+
+		>>> p = PRange(0, 20, 2)
+		>>> p.nextn(16)
+		[0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+		"""
+
+	def __init__(self, start = 0, end = 128, step = 1):
+		self.start = start
+		self.end = end
+		self.step = step
+		self.reset()
+
+	def reset(self):
+		self.value = self.start 
+
+		Pattern.reset(self)
+
+	def next(self):
+		step = Pattern.value(self.step)
+		if step > 0 and self.value >= self.end:
+			raise StopIteration
+		elif step < 0 and self.value <= self.end:
+			raise StopIteration
+		rv = self.value
+		self.value += step
+		return rv
 
 class PGeom(Pattern):
 	""" PGeom: Geometric series, beginning at <start>, multiplied by <step>
