@@ -8,13 +8,15 @@ from isobar.pattern import *
 
 import isobar.io
 
+TICKS_PER_BEAT = 24
+
 class Timeline:
 	CLOCK_INTERNAL = 0
 	CLOCK_EXTERNAL = 1
 
 	def __init__(self, bpm = 120, device = None):
 		"""expect to receive one tick per beat, generate events at 120bpm"""
-		self.ticklen = 1/24.0
+		self.ticklen = 1.0 / TICKS_PER_BEAT
 		self.beats = 0
 		self.devices = [ device ] if device else [] 
 		self.channels = []
@@ -37,7 +39,10 @@ class Timeline:
 			self.clockmode = self.CLOCK_EXTERNAL
 		else:
 			self.bpm = bpm
-			self.clock = Clock(60.0 / self.bpm / 24.0)
+			#------------------------------------------------------------------------
+			# Create clock with a tick-size of 1/24th of a beat.
+			#------------------------------------------------------------------------
+			self.clock = Clock(60.0 / (self.bpm * TICKS_PER_BEAT))
 			self.clockmode = self.CLOCK_INTERNAL
 
 	def tick(self):
@@ -296,7 +301,7 @@ class Channel:
 		self.pos += time
 
 	def reset_to_beat(self):
-		self.pos = round(self.pos) # + 1/24.0
+		self.pos = round(self.pos)
 
 	def reset(self):
 		self.pos = 0
@@ -467,7 +472,7 @@ class Channel:
 #----------------------------------------------------------------------
 
 class Clock:
-	def __init__(self, ticksize = 1/24.0):
+	def __init__(self, ticksize = 1.0/24):
 		self.ticksize_orig = ticksize
 		self.ticksize = ticksize
 		self.warpers = []
@@ -485,10 +490,12 @@ class Clock:
 					self.ticksize = self.ticksize_orig
 					for warper in self.warpers:
 						warp = warper.next()
-						if warp > 0:
-							self.ticksize *= (1.0 + warp)
-						elif warp < 0:
-							self.ticksize /= (1.0 - warp)
+						#------------------------------------------------------------------------
+						# map [-1..1] to [0.5, 2]
+						#  - so -1 doubles our tempo, +1 halves it
+						#------------------------------------------------------------------------
+						warp = pow(2, warp)
+						self.ticksize *= warp
 
 				time.sleep(0.002)
 				clock1 = time.time() * self.accelerate
