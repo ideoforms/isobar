@@ -75,22 +75,25 @@ class PStaticGlobal(Pattern):
 	@classmethod
 	def listen(self, prefix = "/global", port = 9900):
 		if not PStaticGlobal.listening:
-			import osc
+			import threading
+			import OSC
 
-			osc.init()
-			osc.listen(port = port)
+			server = OSC.OSCServer(("localhost", port))
+			server.addMsgHandler(prefix, self.recv)
+			self.thread = threading.Thread(target = server.serve_forever)
+			self.thread.setDaemon(True)
+			self.thread.start()
+
 			PStaticGlobal.listening = True
 
 		self.prefix = prefix
-		osc.bind(self.recv, prefix)
 
 	@classmethod
-	def recv(self, msg, source = None):
-		address = msg[0]
-		signature = msg[1][1:]
-		print "(%s) %s" % (address, signature)
-		key = msg[2]
-		value = msg[3]
+	def recv(self, addr, tags, data, client_address):
+		# print "GOT MSG"
+		key = data[0]
+		value = data[1]
+		print "(%s) %s = %.1f" % (addr, key, value)
 		PStaticGlobal.set(key, value)
 
 class PStaticTimelineSine(PStaticTimeline):
