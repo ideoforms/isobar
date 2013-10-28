@@ -91,6 +91,8 @@ class Timeline:
 		self.beats += self.ticklen
 
 	def dump(self):
+		""" Output a summary of this Timeline object
+		    """
 		print "Timeline (clock: %s)" % ("external" if self.clockmode == self.CLOCK_EXTERNAL else "%sbpm" % self.bpm)
 
 		print " - %d devices" % len(self.devices)
@@ -102,7 +104,7 @@ class Timeline:
 			print"   - %s" % channel
 
 	def reset_to_beat(self):
-		self.beats = round(self.beats) # + 1/24.0
+		self.beats = round(self.beats)
 		for channel in self.channels:
 			channel.reset_to_beat()
 
@@ -114,6 +116,7 @@ class Timeline:
 			channel.reset()
 
 	def background(self):
+		""" Run this Timeline in a background thread. """
 		self.thread = thread.start_new_thread(self.run, ())
 
 	def run(self, high_priority = True):
@@ -128,12 +131,21 @@ class Timeline:
 			pass
 
 		try:
+			#------------------------------------------------------------------------
+			# Start the clock. This might internal (eg a Clock object, running on
+			# an independent thread), or external (eg a MIDI clock).
+			#------------------------------------------------------------------------
 			if self.clockmode == self.CLOCK_INTERNAL:
 				self.clock.run(self)
 			else:
 				self.clocksource.run()
+
 		except StopIteration:
-			print "timeline finished"
+			#------------------------------------------------------------------------
+			# This will be hit if every Pattern in a timeline is exhausted.
+			#------------------------------------------------------------------------
+			print "Timeline finished"
+
 		except Exception, e:
 			print " *** Exception in background Timeline thread: %s" % e
 			traceback.print_exc(file = sys.stdout)
@@ -170,6 +182,7 @@ class Timeline:
 				pass
 			else:
 				c = Channel(event, count)
+				c.timeline = self
 				c.device = device
 				self.channels.append(c)
 
@@ -207,10 +220,10 @@ class Channel:
 		#----------------------------------------------------------------------
 		# self.events = Pattern.pattern(events)
 		self.events = events
-		# print "events is %s" % self.events
 
 		self.next()
 
+		self.timeline = None
 		self.pos = 0
 		self.dur_now = 0
 		self.phase_now = self.event["phase"].next()
@@ -246,7 +259,7 @@ class Channel:
 		elif event.has_key('scale'):
 			event['key'] = Key(0, event['scale'])
 		else:
-			event['key'] = Key(0, Scale.major)
+			event['key'] = Key(0, Scale.default)
 
 		#----------------------------------------------------------------------
 		# this does the job of turning constant values into (PConst) patterns.
@@ -302,14 +315,18 @@ class Channel:
 				value = pattern.next()
 			values[key] = value
 
+		#------------------------------------------------------------------------
+		# print: Prints a value each time this event is triggered.
+		#------------------------------------------------------------------------
 		if "print" in values:
 			print values["print"]
 			return
 
+		#------------------------------------------------------------------------
+		# action: Carry out an action each time this event is triggered
+		#------------------------------------------------------------------------
 		if "action" in values:
-			# might have passed a function (auto-wrapped in a pattern)
 			try:
-				# print "value is now %s" % value
 				values["action"]()
 			except Exception, e:
 				print "ex: %s" % e
@@ -319,17 +336,25 @@ class Channel:
 
 			return
 
+		#------------------------------------------------------------------------
+		# control: Send a control value
+		#------------------------------------------------------------------------
 		if "control" in values:
 			value = values["value"]
 			channel = values["channel"]
-			print "time line control: %d, %d [ch %d]" % (values["control"], values["value"], values["channel"])
 			self.device.control(values["control"], values["value"], values["channel"])
 			return 
 
+		#------------------------------------------------------------------------
+		# address: Send a value to an OSC endpoint
+		#------------------------------------------------------------------------
 		if "address" in values:
 			self.device.send(values["address"], values["params"])
 			return
 
+		#------------------------------------------------------------------------
+		# note/degree/etc: Send a MIDI note
+		#------------------------------------------------------------------------
 		note = None
 
 		if "degree" in values:
@@ -377,7 +402,9 @@ class Channel:
 
 
 		#----------------------------------------------------------------------
-		# 
+		# event: Certain devices (eg Socket IO) handle generic events,
+		#        rather than noteOn/noteOff. (Should probably have to 
+		#        register for this behaviour rather than happening magically...)
 		#----------------------------------------------------------------------
 		if hasattr(self.device, "event") and callable(getattr(self.device, "event")):
 			d = copy.copy(values)
@@ -399,15 +426,20 @@ class Channel:
 					value = repr(value)
 					d[key] = value
 
-			print "sending event - %s" % d
 			self.device.event(d)
 			return
 
+		#----------------------------------------------------------------------
+		# noteOn: Standard (MIDI) type of device
+		#----------------------------------------------------------------------
 		if values["amp"] > 0:
-			# print "note %d (%d)" % (values["note"], values["amp"])
+			if self.timeline.debug:
+				print "note %s (%s)" % (values["note"], values["amp"])
 			# TODO: pythonic duck-typing approach might be better
 			# TODO: doesn't handle arrays of amp, channel values, etc
 			notes = values["note"] if hasattr(values["note"], '__iter__') else [ values["note"] ]
+		#        rather than noteOn/noteOff. (Should probably have to 
+		#        register for this behaviour rather than happening magically...)
 
 			for note in notes:
 				self.device.noteOn(note, values["amp"], values["channel"])
