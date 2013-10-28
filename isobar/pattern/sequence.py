@@ -219,7 +219,7 @@ class PConcat(Pattern):
 class PPingPong(Pattern):
 	""" PPingPong: Ping-pong input pattern back and forth N times.
 
-		>>> p = PPingPong(PSeq([ 1, 4, 9 ], 1))
+		>>> p = PPingPong(PSeq([ 1, 4, 9 ], 1), 10)
 		>>> p.nextn(16)
 		[1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4]
 		"""
@@ -231,33 +231,23 @@ class PPingPong(Pattern):
 
 	def reset(self):
 		self.pattern.reset()
-		self.values = []
+		self.values = self.pattern.all()
 		self.pos = 0
 		self.dir = 1
-		self.rpos = 1
-		self.read_all = False
+		self.rpos = 0
 
 	def next(self):
-		if not self.read_all:
-			try:
-				rv = self.pattern.next()
-				self.values.append(rv)
-			except StopIteration:
-				self.read_all = True
-
-		if self.read_all:
-			if self.pos >= len(self.values):
-				if self.rpos >= self.count:
-					return None
-				else:
-					self.pos -= 2
-					self.dir = -1
-			elif self.pos == 0:
-				self.rpos += 1
-				self.dir = 1
+		if self.pos == 0 and self.rpos >= self.count:
+			raise StopIteration
 
 		rv = self.values[self.pos]
 		self.pos += self.dir
+		if self.pos == len(self.values) - 1:
+			self.dir = -1
+		elif self.pos == 0:
+			self.dir = 1
+			self.rpos += 1
+
 		return rv
 
 class PCreep(Pattern):

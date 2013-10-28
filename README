@@ -27,7 +27,7 @@ seqA = seqA + PSeq([ 0, 12 ])
 
 # create a geometric chromatic series, repeated back and forth
 seqB = PSeries(0, 1, 12) + 72
-seqB = PPingPong(seqB)
+seqB = PLoop(PPingPong(seqB))
 
 # create an velocity series, with emphasis every 4th note,
 # plus a random walk to create gradual dynamic changes
@@ -37,7 +37,7 @@ amp = PSeq([ 60, 40, 30, 40 ]) + PBrown(0, 1, -20, 20)
 timeline = Timeline(120)
 
 midiout = MidiOut()
-timeline.output(midiout)
+timeline.add_output(midiout)
 
 # assign each of our Patterns to particular properties
 timeline.sched({ 'note': seqA, 'dur': 1 })
