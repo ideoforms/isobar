@@ -109,6 +109,11 @@ Scale.aeolian       = Scale([ 0, 2, 3, 5, 7, 8, 10 ], "aeolian")
 Scale.locrian       = Scale([ 0, 1, 3, 5, 6, 8, 10 ], "locrian")
 Scale.fourths		= Scale([ 0, 2, 5, 7 ], "fourths")
 
+#------------------------------------------------------------------------
+# Use major scale as a global default. This can be overriden by user.
+#------------------------------------------------------------------------
+Scale.default		= Scale.major
+
 class WeightedScale(Scale):
 	def __init__(self, semitones = [ 0, 2, 4, 5, 7, 9, 11 ], weights = [ 1/7.0 ] * 7, name = "major", octave_size = 12):
 		Scale.__init__(self, semitones, name = name, octave_size = octave_size)
