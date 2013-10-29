@@ -559,8 +559,18 @@ class PArp(Pattern):
 		self.chord = chord
 		self.type = type
 		self.pos = 0
-		self.notes = self.chord.semitones
 		self.offsets = []
+
+		try:
+			#------------------------------------------------------------------------
+			# prefer to specify a chord (or Key)
+			#------------------------------------------------------------------------
+			self.notes = self.chord.semitones
+		except:
+			#------------------------------------------------------------------------
+			# can alternatively specify a list of notes
+			#------------------------------------------------------------------------
+			self.notes = self.chord
 
 		if type == PArp.UP:
 			self.offsets = range(len(self.notes))
