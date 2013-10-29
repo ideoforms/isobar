@@ -46,8 +46,8 @@ class Timeline:
 			self.clockmode = self.CLOCK_INTERNAL
 
 	def tick(self):
-		# if round(self.beats, 5) % 8 == 0:
-		#	print "tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events))
+		# if round(self.beats, 5) % 1 == 0:
+		# 	print "tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events))
 
 		#------------------------------------------------------------------------
 		# copy self.events because removing from it whilst using it = bad idea.
@@ -481,7 +481,10 @@ class Clock:
 	def run(self, timeline):
 		clock0 = clock1 = time.time() * self.accelerate
 		try:
-			timeline.tick()
+			#------------------------------------------------------------------------
+			# allow a tick to elapse before we call tick() for the first time
+			# to keep Warp patterns in sync  
+			#------------------------------------------------------------------------
 			while True:
 				if clock1 - clock0 >= self.ticksize:
 					# time for a tick

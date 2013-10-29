@@ -60,3 +60,39 @@ class PWSine(PWarp):
 
 		return warp
 
+class PWRallantando(PWarp):
+	def __init__(self, length = 1, amp = 0.5):
+		self.length = length
+		self.amp = amp
+		self.pos = 0.0
+		self.value = 1.0
+		self.length_cur = -1.0
+		self.dv = None
+
+	def next(self):
+		rv = self.value
+
+		#------------------------------------------------------------------------
+		# need to round or we might succumb to the dreaded python rounding
+		# error (eg 0.99999 < 0 when multiplying 1/24.0 by 24)
+		#------------------------------------------------------------------------
+		if round(self.pos, 8) >= round(self.length_cur, 8):
+			self.value = 1.0
+			rv = 1.0
+			self.pos = 0
+			self.length_cur = Pattern.value(self.length)
+			amp_cur = Pattern.value(self.amp)
+			rate_start = 1.0
+			rate_end = 1.0 + amp_cur
+			steps = TICKS_PER_BEAT * self.length_cur
+			self.dv = math.exp(math.log(rate_end / rate_start) / steps)
+
+		self.pos += 1.0 / TICKS_PER_BEAT
+		self.value = self.value * self.dv
+		#------------------------------------------------------------------------
+		# subtract 
+		#------------------------------------------------------------------------
+		rv = math.log(rv, 2)
+		print "warp: %f" % rv
+		return rv
+
