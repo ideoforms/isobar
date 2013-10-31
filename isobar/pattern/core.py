@@ -10,6 +10,8 @@ import itertools
 
 import isobar
 
+import vecops
+
 
 class Pattern:
 	""" Pattern: Abstract superclass of all pattern generators.

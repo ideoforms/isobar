@@ -5,6 +5,14 @@ import socketIO_client
 from isobar.note import *
 
 class SocketIOOut:
+	""" SocketIOOut: Support for sending note on/off events via websockets.
+	Two types of event are sent at the moment:
+
+	note [ index, velocity, channel ] : The MIDI note number depressed.
+	                                    For note-off, velocity is zero.
+	control [ index, value, channel ] : A MIDI control value 
+	"""
+
 	def __init__(self, host = "localhost", port = 9000):
 		self.socket = socketIO_client.SocketIO(host, port)
 		self.debug = False

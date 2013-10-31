@@ -9,6 +9,10 @@ MIDIIN_DEFAULT = "IAC Driver A"
 MIDIOUT_DEFAULT = "IAC Driver A"
 
 class OSCOut:
+	""" OSCOut: Wraps MIDI messages in OSC.
+	/note [ note, velocity, channel ]
+	/control [ control, value, channel ] """
+
 	def __init__(self, host = "localhost", port = 7000):
 		self.osc = OSCClient()
 		self.osc.connect((host, port))

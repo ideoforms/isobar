@@ -1,8 +1,8 @@
 TODO
+* 2+ order markov chains
 * unit test suite
 * complete INSTALL doc
 * further oscillators: sine, saw, pulse
-* move from osc to OSC module
 * better support for debug output and propagation between classes
 * Pkey (see SC)
 * improved OSC output 
@@ -17,7 +17,6 @@ TODO
    -> generic midpoint
 * support for reverse-direction timelines
   (though may be tricky: how to handle nondeterministic patterns?)
-* support for MIDI file reading
 
 DONE
 * phasing example (with fractional durations)
@@ -33,3 +32,5 @@ DONE
 * time jitter/phase (to implement both in Clock and Timeline)
 * PNorm: normalization [0..1]
 * auto-generated docs from comments
+* move from osc to OSC module
+* support for MIDI file reading

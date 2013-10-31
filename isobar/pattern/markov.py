@@ -2,6 +2,10 @@ from isobar.pattern import *
 from isobar.util import *
 
 class Markov:
+	""" First-order Markov chain.
+	http://pastebin.com/rNu2CSFs
+	TODO: Implement n-order. """
+
 	def __init__(self, nodes = None, edges = None):
 		#------------------------------------------------------------------------
 		# avoid using [] (mutable default arguments considered harmful)
@@ -9,8 +13,8 @@ class Markov:
 		#------------------------------------------------------------------------
 		self.nodes = nodes if nodes else []
 		self.edges = edges if edges else []
-		if len(self.nodes) > 0:
-			self.node = random.randint(0, len(self.nodes) - 1)
+		self.node = None
+
 		if len(self.edges) == 0:
 			self.randomize()
 
@@ -41,9 +45,11 @@ class Markov:
 				edge[target] = 1
 
 	def next(self, min = None, max = None):
+		if self.node is None and len(self.nodes) > 0:
+			self.node = random.randint(0, len(self.nodes) - 1)
+
 		if min is not None:
 			edges = self.edges[self.node][:]
-			# print "selecting from some - %s" % edges
 			for n, edge in enumerate(edges):
 				if not min <= self.nodes[n] <= max:
 					edges[n] = 0
@@ -55,6 +61,9 @@ class Markov:
 		if index is not None:
 			# print "moving from %d -> %d (prob %.2f)" % (self.node, index, self.edges[self.node][index])
 			self.node = index
+		else:
+			print "PMarkov: got no next node :-("
+
 		return self.nodes[self.node]
 
 class PMarkov(Pattern):
@@ -70,6 +79,13 @@ class PMarkov(Pattern):
 
 	def next(self, min = None, max = None):
 		return self.markov.next(min, max)
+
+	@classmethod
+	def fromsequence(self, sequence):
+		learner = MarkovLearner()
+		for value in sequence:
+			learner.register(value)
+		return PMarkov(learner.markov)
 
 	@classmethod
 	def fromscale(self, scale):

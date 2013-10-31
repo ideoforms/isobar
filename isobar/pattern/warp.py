@@ -61,6 +61,10 @@ class PWSine(PWarp):
 		return warp
 
 class PWRallantando(PWarp):
+	""" PWRallantando: Exponential deceleration to <amp> times the current tempo over <length> beats.
+
+		>>> p = PWRallantando(8, 0.5)
+		"""
 	def __init__(self, length = 1, amp = 0.5):
 		self.length = length
 		self.amp = amp
