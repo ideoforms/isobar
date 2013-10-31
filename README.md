@@ -77,7 +77,7 @@ Current class list:
 Pattern classes:
 
 
-    **CORE** (core.py)
+    CORE (core.py)
     Pattern          - Abstract superclass of all pattern generators.
     PConst           - Pattern returning a fixed value
     PRef             - Pattern containing a reference to another pattern
@@ -94,7 +94,7 @@ Pattern classes:
     PLShift          - Binary left-shift (shorthand: patternA << patternB)
     PRShift          - Binary right-shift (shorthand: patternA << patternB)
 
-    **SEQUENCE** (sequence.py)
+    SEQUENCE (sequence.py)
     PSeq             - Sequence of values based on an array
     PSeries          - Arithmetic series, beginning at <start>, increment by <step>
     PRange           - Similar to PSeries, but specify a max/step value.
@@ -114,7 +114,7 @@ Pattern classes:
     PArp             - Arpeggiator.
     PDecisionPoint   - Each time its pattern is exhausted, requests a new pattern by calling <fn>.
 
-    **CHANCE** (chance.py)
+    CHANCE (chance.py)
     PWhite           - White noise between <min> and <max>.
     PBrown           - Brownian noise, beginning at <value>, step +/-<step>.
     PWalk            - Random walk around list.
@@ -126,7 +126,7 @@ Pattern classes:
     PFlipFlop        - flip a binary bit with some probability.
     PSwitchOne       - Capture <length> input values; repeat, switching two adjacent values <n> times.
 
-    **OPERATOR** (operator.py)
+    OPERATOR (operator.py)
     PChanged         - Outputs a 1 if the value of a pattern has changed.
     PDiff            - Outputs the difference between the current and previous values of an input pattern
     PAbs             - Absolute value of <input>
@@ -142,21 +142,21 @@ Pattern classes:
     PPad             - Pad <pattern> with rests until it reaches length <length>.
     PPadToMultiple   - Pad <pattern> with rests until its length is divisible by <multiple>.
 
-    **STATIC** (static.py)
+    STATIC (static.py)
     PStaticTimeline  - Returns the position (in beats) of the current timeline.
     PStaticGlobal    - Static global value identified by a string, with OSC listener
 
-    **FADE** (fade.py)
+    FADE (fade.py)
     PFadeNotewise    - Fade a pattern in/out by introducing notes at a gradual rate.
     PFadeNotewise    - Fade a pattern in/out by gradually introducing random notes.
 
-    **MARKOV** (markov.py)
+    MARKOV (markov.py)
     PMarkov          - Markov chain
 
-    **LSYSTEM** (lsystem.py)
+    LSYSTEM (lsystem.py)
     PLSys            - integer sequence derived from Lindenmayer systems
 
-    **WARP** (warp.py)
+    WARP (warp.py)
     PWInterpolate    - Requests a new target warp value from <pattern> every <length>
     PWRallantando    - Exponential deceleration to <amp> times the current tempo over <length> beats.
 
