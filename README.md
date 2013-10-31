@@ -4,11 +4,11 @@ isobar is a Python library for expressing and constructing musical patterns, des
 
 Output can be sent via MIDI, OSC or SocketIO, or written to a .mid file. Input (for interactive systems) can be taken via MIDI, and patterns can be read from a .mid file.
 
-Timing can be synchronised with an external MIDI clock, or generated internally. For fluid control over timings, the internal clock can also be warped by patterns subclassing the PWarp class; for example, a PWRallantando can be used to generate a gradual, exponential decrease in tempo.
+Timing can be synchronised with an external MIDI clock, or generated internally. For fluid control over timings, the internal clock can also be warped by patterns subclassing the `PWarp` class; for example, a `PWRallantando` can be used to generate a gradual, exponential decrease in tempo.
 
 Classes are included for some fairly sophisticated operations. `PLSys` can be used to generate patterns based on the formal grammars of [Lindenmayer Systems](http://en.wikipedia.org/wiki/L-system); `PMarkov` generates first-order Markov chains, accompanied by `MarkovLearner` to build a statistical model from an input pattern (or MIDI input). Numerous pattern generators for chance operations are defined in [patterns/chance.py](patterns/chance.py).
 
-Most of the major parts of isobar are subclasses of Pattern, which implement's Python's iterator protocol. The next() method is called to generate the subsequent item in a pattern, with the StopIterator exception raised when a pattern is exhausted. Builtins such as list() and sorted() can thus be used to process the output of a Pattern.
+Most of the major parts of isobar are subclasses of `Pattern`, which implement's Python's iterator protocol. The next() method is called to generate the subsequent item in a pattern, with the StopIterator exception raised when a pattern is exhausted. Builtins such as `list()`, `sorted()` and `itertools` can thus be used to process the output of a `Pattern`.
 
 # Usage
 
@@ -168,13 +168,7 @@ Pattern classes:
 
 ## Background
 
-isobar was first designed for the generative sound installation Variable 4:
+isobar was first designed for the generative sound installation [Variable 4](http://www.variable4.org.uk), in which it was used to generate musical structures in response to changing weather conditions. It was more recently used as the backbone of [The Listening Machine](http://www.thelisteningmachine.org/), taking live input from Twitter and generating musical output from language patterns, streamed live over the internet.
 
-    http://www.variable4.org.uk/
-
-Many of the concepts behind Pattern and its subclasses are inspired by the
-excellent pattern library of the SuperCollider synthesis language:
-
-    http://supercollider.sf.net
-
+Many of the concepts behind Pattern and its subclasses are inspired by the excellent pattern library of the [SuperCollider](http://supercollider.sf.net) synthesis language.
 
