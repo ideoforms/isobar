@@ -1,15 +1,12 @@
 # Introduction
 
-isobar is a Python library for expressing and constructing musical patterns,
-designed for use in algorithmic composition. It allows for concise construction,
-manipulation and transposition of sequences, supporting scalar operations on
-lazy patterns.
+isobar is a Python library for expressing and constructing musical patterns, designed for use in algorithmic composition. It allows for concise construction, manipulation and transposition of sequences, supporting scalar operations on lazy patterns.
 
-Most of the major parts of isobar are subclasses of Pattern, which implement's
-Python's iterator protocol. The next() method is called to generate the
-subsequent item in a pattern, with the StopIterator exception raised when a
-pattern is exhausted. Builtins such as list() and sorted() can thus be used to
-process the output of a Pattern.
+Output can be sent via MIDI, OSC or SocketIO, or written to a .mid file. Input (for interactive systems) can be taken via MIDI, and patterns can be read from a .mid file.
+
+Timing can be synchronised with an external MIDI clock, or generated internally. For fluid control over timings, the internal clock can also be warped by patterns subclassing the PWarp class; for example, a PWRallantando can be used to generate a gradual, exponential decrease in tempo.
+
+Most of the major parts of isobar are subclasses of Pattern, which implement's Python's iterator protocol. The next() method is called to generate the subsequent item in a pattern, with the StopIterator exception raised when a pattern is exhausted. Builtins such as list() and sorted() can thus be used to process the output of a Pattern.
 
 # Usage
 
