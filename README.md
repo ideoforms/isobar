@@ -63,16 +63,22 @@ distribution:
 * [ex-subsequence.py](examples/ex-subsequence.py)
 * [ex-walk.py](examples/ex-walk.py)
 
-## CLASSES
+## Classes
 
-Current class list:
+Top-level classes:
 
-    Chord
-    Key
-    Note
-    Scale
-    Timeline
-    Clock
+* [Chord](isobar/chord.py)
+* [Key](isobar/chord.py)
+* [Scale](isobar/chord.py)
+* [Timeline](isobar/timeline.py)
+* [Clock](isobar/timeline.py)
+
+I/O classes:
+
+* [MIDIOut](isobar/io/midi.py)
+* [MIDIFile](isobar/io/midifile.py)
+* [OSCOut](isobar/io/osc.py)
+* [SocketIOOut](isobar/io/socketio.py)
 
 Pattern classes:
 
@@ -161,7 +167,7 @@ Pattern classes:
     PWRallantando    - Exponential deceleration to <amp> times the current tempo over <length> beats.
 
 
-## BACKGROUND
+## Background
 
 isobar was first designed for the generative sound installation Variable 4:
 
