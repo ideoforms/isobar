@@ -1,5 +1,7 @@
-INTRODUCTION
--------------------------------------------------------------------------------
+# PyLive
+
+## Introduction
+
 isobar is a Python library for expressing and constructing musical patterns,
 designed for use in algorithmic composition. It allows for concise construction,
 manipulation and transposition of sequences, supporting scalar operations on
@@ -11,9 +13,9 @@ subsequent item in a pattern, with the StopIterator exception raised when a
 pattern is exhausted. Builtins such as list() and sorted() can thus be used to
 process the output of a Pattern.
 
-USAGE
--------------------------------------------------------------------------------
+## Usage
 
+```python
 from isobar import *
 from isobar.io.midi import *
 
@@ -27,7 +29,7 @@ seqA = seqA + PSeq([ 0, 12 ])
 
 # create a geometric chromatic series, repeated back and forth
 seqB = PSeries(0, 1, 12) + 72
-seqB = PLoop(PPingPong(seqB))
+seqB = PPingPong(seqB)
 
 # create an velocity series, with emphasis every 4th note,
 # plus a random walk to create gradual dynamic changes
@@ -37,22 +39,21 @@ amp = PSeq([ 60, 40, 30, 40 ]) + PBrown(0, 1, -20, 20)
 timeline = Timeline(120)
 
 midiout = MidiOut()
-timeline.add_output(midiout)
+timeline.output(midiout)
 
 # assign each of our Patterns to particular properties
 timeline.sched({ 'note': seqA, 'dur': 1 })
 timeline.sched({ 'note': seqB, 'dur': 0.25, 'amp': amp })
 
 timeline.run()
+```
 
+## Examples
 
-EXAMPLES
--------------------------------------------------------------------------------
 More examples are available in the 'examples' directory with this
 distribution.
 
-CLASSES
--------------------------------------------------------------------------------
+## Classes
 
 Current class list:
 
@@ -64,6 +65,7 @@ Current class list:
     Clock
 
 Pattern classes:
+
 
     CORE (core.py)
     Pattern          - Abstract superclass of all pattern generators.
@@ -85,6 +87,7 @@ Pattern classes:
     SEQUENCE (sequence.py)
     PSeq             - Sequence of values based on an array
     PSeries          - Arithmetic series, beginning at <start>, increment by <step>
+    PRange           - Similar to PSeries, but specify a max/step value.
     PGeom            - Geometric series, beginning at <start>, multiplied by <step>
     PLoop            - Repeats a finite <pattern> for <n> repeats.
     PConcat          - Concatenate the output of multiple finite sequences
@@ -99,6 +102,7 @@ Pattern classes:
     PReset           - Resets <pattern> each time it receives a zero-crossing from
     PCounter         - Increments a counter by 1 for each zero-crossing in <trigger>.
     PArp             - Arpeggiator.
+    PDecisionPoint   - Each time its pattern is exhausted, requests a new pattern by calling <fn>.
 
     CHANCE (chance.py)
     PWhite           - White noise between <min> and <max>.
@@ -110,6 +114,7 @@ Pattern classes:
     PShuffleEvery    - Every <n> steps, take <n> values from <pattern> and reorder.
     PSkip            - Skip events with some probability, 1 - <play>.
     PFlipFlop        - flip a binary bit with some probability.
+    PSwitchOne       - Capture <length> input values; repeat, switching two adjacent values <n> times.
 
     OPERATOR (operator.py)
     PChanged         - Outputs a 1 if the value of a pattern has changed.
@@ -117,6 +122,7 @@ Pattern classes:
     PAbs             - Absolute value of <input>
     PNorm            - Normalise <input> to [0..1].
     PCollapse        - Skip over any rests in <input>
+    PNoRepeats       - Skip over repeated values in <input>
     PMap             - Apply an arbitrary function to an input pattern.
     PMapEnumerated   - Apply arbitrary function to input, passing a counter.
     PLinLin          - Map <input> from linear range [a,b] to linear range [c,d].
@@ -140,10 +146,13 @@ Pattern classes:
     LSYSTEM (lsystem.py)
     PLSys            - integer sequence derived from Lindenmayer systems
 
+    WARP (warp.py)
+    PWInterpolate    - Requests a new target warp value from <pattern> every <length>
+    PWRallantando    - Exponential deceleration to <amp> times the current tempo over <length> beats.
 
--------------------------------------------------------------------------------
-BACKGROUND
--------------------------------------------------------------------------------
+
+## BACKGROUND
+
 isobar was first designed for the generative sound installation Variable 4:
 
     http://www.variable4.org.uk/
