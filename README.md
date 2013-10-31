@@ -51,7 +51,10 @@ timeline.run()
 ## Examples
 
 More examples are available in the 'examples' directory with this
-distribution.
+distribution:
+
+* (ex-basics.py)[examples/ex-basics.py]
+* (ex-lsystem-grapher.py)[examples/ex-lsystem-grapher.py]
 
 ## Classes
 
