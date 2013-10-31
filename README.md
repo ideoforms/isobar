@@ -1,5 +1,3 @@
-# PyLive
-
 ## Introduction
 
 isobar is a Python library for expressing and constructing musical patterns,
@@ -53,8 +51,8 @@ timeline.run()
 More examples are available in the 'examples' directory with this
 distribution:
 
-* (ex-basics.py)[examples/ex-basics.py]
-* (ex-lsystem-grapher.py)[examples/ex-lsystem-grapher.py]
+* [ex-basics.py](examples/ex-basics.py)
+* [ex-lsystem-grapher.py](examples/ex-lsystem-grapher.py)
 
 ## Classes
 
