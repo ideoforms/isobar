@@ -6,6 +6,8 @@ Output can be sent via MIDI, OSC or SocketIO, or written to a .mid file. Input (
 
 Timing can be synchronised with an external MIDI clock, or generated internally. For fluid control over timings, the internal clock can also be warped by patterns subclassing the PWarp class; for example, a PWRallantando can be used to generate a gradual, exponential decrease in tempo.
 
+Classes are included for some fairly sophisticated operations. `PLSys` can be used to generate patterns based on the formal grammars of [Lindenmayer Systems](http://en.wikipedia.org/wiki/L-system); `PMarkov` generates first-order Markov chains, accompanied by `MarkovLearner` to build a statistical model from an input pattern (or MIDI input). Numerous pattern generators for chance operations are defined in [patterns/chance.py](patterns/chance.py).
+
 Most of the major parts of isobar are subclasses of Pattern, which implement's Python's iterator protocol. The next() method is called to generate the subsequent item in a pattern, with the StopIterator exception raised when a pattern is exhausted. Builtins such as list() and sorted() can thus be used to process the output of a Pattern.
 
 # Usage
