@@ -400,6 +400,7 @@ class Channel:
 			# the below does not allow for values["transpose"] to be an array,
 			# for example.
 			#----------------------------------------------------------------------
+			# print "playing note %s" % values["note"]
 			try:
 				values["note"] = [ note + values["transpose"] for note in values["note"] ]
 			except:
@@ -446,12 +447,20 @@ class Channel:
 		#        rather than noteOn/noteOff. (Should probably have to 
 		#        register for this behaviour rather than happening magically...)
 
-			for note in notes:
-				self.device.noteOn(note, values["amp"], values["channel"])
+			#----------------------------------------------------------------------
+			# Allow for arrays of amp, gate etc, to handle chords properly.
+			# Caveat: Things will go horribly wrong for an array of amp/gate values
+			# shorter than the number of notes.
+			#----------------------------------------------------------------------
+			for index, note in enumerate(notes):
+				amp     = values["amp"][index] if isinstance(values["amp"], list) else values["amp"]
+				channel = values["channel"][index] if isinstance(values["channel"], list) else values["channel"]
+				gate    = values["gate"][index] if isinstance(values["gate"], list) else values["gate"]
 
-				gate = values["gate"]
-				note_dur = self.dur_now * values["gate"]
-				self.schedNoteOff(self.next_note + note_dur + self.phase_now, note, values["channel"])
+				self.device.noteOn(note, amp, channel)
+
+				note_dur = self.dur_now * gate
+				self.schedNoteOff(self.next_note + note_dur + self.phase_now, note, channel)
 
 	def schedNoteOff(self, time, note, channel):
 		self.noteOffs.append([ time, note, channel ])
