@@ -18,7 +18,9 @@ class Markov:
 				learner.register(value)
 			self.nodes = learner.markov.nodes
 		elif isinstance(nodes, dict):
-			# take a dictionary argument to set our nodes, edges model
+			#------------------------------------------------------------------------
+			# take a dictionary argument to initialise our nodes, edges model
+			#------------------------------------------------------------------------
 			self.nodes = nodes
 		else:
 			self.nodes = {}
@@ -26,30 +28,14 @@ class Markov:
 		self.node = None
 
 	def randomize(self):
-		""" Takes a list of nodes and randomises over them. """
-		self.edges = []
-		for a in range(len(self.nodes)):
-			self.edges.append([])
-			for b in range(len(self.nodes)):
-				# prob = random.randint(0, 2) / 2
-				prob = random.uniform(0, 1)
-				self.edges[a].append(prob)
+		""" Uses the existing set of nodes but randomizes their connections. """
+		for node in self.nodes.keys():
+			self.nodes[node] = []
+			for other in self.nodes.keys():
+				prob = random.randint(0, 10)
+				self.nodes[node] += [ other ] * prob
 
-		self.sanitize()
-
-		print "new edges: %s" % self.edges
-
-	def sanitize(self):
-		# TODO: FIX
-		for n, edge in enumerate(self.edges):
-			if sum(edge) == 0:
-				a = range(len(self.edges))
-				a.remove(n)
-				target = random.choice(a)
-				# print "sanitizing edge %d (%s) with link to %d" % (n, self.nodes[n], target)
-				edge[target] = 1
-
-	def next(self, min = None, max = None):
+	def next(self):
 		if self.node is None and len(self.nodes) > 0:
 			self.node = random.choice(self.nodes.keys())
 		else:
@@ -57,6 +43,8 @@ class Markov:
 				self.node = random.choice(self.nodes[self.node])
 			except IndexError:
 				self.node = random.choice(self.nodes.keys())
+			except KeyError:
+				print "no such node: %s" % self.node
 
 		if self.node is None:
 			print "PMarkov: got no next node :-("
@@ -72,8 +60,8 @@ class PMarkov(Pattern):
 		else:
 			self.markov = Markov(param)
 
-	def next(self, min = None, max = None):
-		return self.markov.next(min, max)
+	def next(self):
+		return self.markov.next()
 
 	@classmethod
 	def fromsequence(self, sequence):
