@@ -1,7 +1,7 @@
 from isobar.pattern import *
 from isobar.util import *
 
-class Markov:
+class PMarkov(Pattern):
 	""" First-order Markov chain.
 	http://pastebin.com/rNu2CSFs
 	TODO: Implement n-order. """
@@ -51,18 +51,6 @@ class Markov:
 
 		return self.node
 
-class PMarkov(Pattern):
-	""" PMarkov: Markov chain """
-	def __init__(self, param):
-		""" can take either a Markov object, or a dict of nodes """
-		if isinstance(param, Markov):
-			self.markov = param
-		else:
-			self.markov = Markov(param)
-
-	def next(self):
-		return self.markov.next()
-
 	@classmethod
 	def fromsequence(self, sequence):
 		learner = MarkovLearner()
@@ -79,7 +67,7 @@ class PMarkov(Pattern):
 
 class MarkovLearner:
 	def __init__(self):
-		self.markov = Markov()
+		self.markov = PMarkov()
 		self.last = None
 
 	def register(self, value):
