@@ -6,19 +6,27 @@ class Markov:
 	http://pastebin.com/rNu2CSFs
 	TODO: Implement n-order. """
 
-	def __init__(self, nodes = None, edges = None):
+	def __init__(self, nodes = None):
 		#------------------------------------------------------------------------
 		# avoid using [] (mutable default arguments considered harmful)
 		# http://stackoverflow.com/questions/1132941/least-astonishment-in-python-the-mutable-default-argument
 		#------------------------------------------------------------------------
-		self.nodes = nodes if nodes else []
-		self.edges = edges if edges else []
+		if isinstance(nodes, list):
+			# learn a sequence of values
+			learner = MarkovLearner()
+			for value in nodes:
+				learner.register(value)
+			self.nodes = learner.markov.nodes
+		elif isinstance(nodes, dict):
+			# take a dictionary argument to set our nodes, edges model
+			self.nodes = nodes
+		else:
+			self.nodes = {}
+
 		self.node = None
 
-		if len(self.edges) == 0:
-			self.randomize()
-
 	def randomize(self):
+		""" Takes a list of nodes and randomises over them. """
 		self.edges = []
 		for a in range(len(self.nodes)):
 			self.edges.append([])
@@ -27,15 +35,12 @@ class Markov:
 				prob = random.uniform(0, 1)
 				self.edges[a].append(prob)
 
-		self.normalize()
 		self.sanitize()
 
 		print "new edges: %s" % self.edges
 
-	def normalize(self):
-		self.edges = map(lambda n: normalize(n), self.edges)
-
 	def sanitize(self):
+		# TODO: FIX
 		for n, edge in enumerate(self.edges):
 			if sum(edge) == 0:
 				a = range(len(self.edges))
@@ -46,36 +51,26 @@ class Markov:
 
 	def next(self, min = None, max = None):
 		if self.node is None and len(self.nodes) > 0:
-			self.node = random.randint(0, len(self.nodes) - 1)
-
-		if min is not None:
-			edges = self.edges[self.node][:]
-			for n, edge in enumerate(edges):
-				if not min <= self.nodes[n] <= max:
-					edges[n] = 0
-			index = wnindex(edges)
+			self.node = random.choice(self.nodes.keys())
 		else:
-			# print "selecting from all - %s" % self.edges[self.node]
-			index = windex(self.edges[self.node])
+			try:
+				self.node = random.choice(self.nodes[self.node])
+			except IndexError:
+				self.node = random.choice(self.nodes.keys())
 
-		if index is not None:
-			# print "moving from %d -> %d (prob %.2f)" % (self.node, index, self.edges[self.node][index])
-			self.node = index
-		else:
+		if self.node is None:
 			print "PMarkov: got no next node :-("
 
-		return self.nodes[self.node]
+		return self.node
 
 class PMarkov(Pattern):
 	""" PMarkov: Markov chain """
-	def __init__(self, param, edges = None):
-		""" can take either a Markov object, or [ nodes, edges ] pair """
-		edges = edges or []
+	def __init__(self, param):
+		""" can take either a Markov object, or a dict of nodes """
 		if isinstance(param, Markov):
 			self.markov = param
 		else:
-			self.markov = Markov(param, edges)
-		self.markov.normalize()
+			self.markov = Markov(param)
 
 	def next(self, min = None, max = None):
 		return self.markov.next(min, max)
@@ -89,6 +84,7 @@ class PMarkov(Pattern):
 
 	@classmethod
 	def fromscale(self, scale):
+		# TODO: BROKEN
 		semitones = scale.semitones
 		weights = scale.weights
 		return PMarkov(semitones, [ weights[:] for _ in semitones ])
@@ -101,17 +97,10 @@ class MarkovLearner:
 	def register(self, value):
 		# print "registering %s in %s (%s)" % (value, self.markov, self.markov.nodes)
 		if value not in self.markov.nodes:
-			self.markov.edges.append(map(lambda n: 0, range(len(self.markov.nodes))))
-			self.markov.nodes.append(value)
-			for edge in self.markov.edges:
-				edge.append(0)
+			self.markov.nodes[value] = []
 		if self.last is not None:
-			i_last = self.markov.nodes.index(self.last)
-			i_cur  = self.markov.nodes.index(value)
-			self.markov.edges[i_last][i_cur] += 1
+			self.markov.nodes[self.last].append(value)
 		self.last = value
-
-		# print "markof nodes now %s, edges %s" % (self.markov.nodes, self.markov.edges)
 
 class MarkovLParallel:
 	def __init__(self, count):
