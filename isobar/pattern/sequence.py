@@ -598,6 +598,30 @@ class PArp(Pattern):
 			raise StopIteration
 
 class PEuclidean(Pattern):
+	""" PEuclidean: Generate Euclidean rhythms.
+		Effectively tries to space <mod> events out evenly over <length> beats.
+		Events returned are either 1 or None (rest)
+
+		>>> p = PEuclidean(8, 5)
+		>>> p.nextn(8)
+		[1, None, 1, 1, None, 1, 1, None]
+		"""
+	def __init__(self, length, mod, phase = 0):
+		self.length = length
+		self.mod = mod
+		self.sequence = []
+		self.pos = phase
+	
+	def next(self):
+		length = self.value(self.length)
+		mod = self.value(self.mod)
+		sequence = self.euclidean(length, mod)
+		if self.pos >= len(sequence):
+			self.pos = 0
+		rv = sequence[self.pos]
+		self.pos += 1
+		return rv
+
 	def split_remainder(self, seq):
 		last = None
 		a = []
@@ -619,7 +643,7 @@ class PEuclidean(Pattern):
 			return [ a[n] + b[n] for n in range(len(b)) ]
 
 	def euclidean(self, length, mod):
-		seqs = [ (1,) ] * mod + [ (0,) ] * (length - mod)
+		seqs = [ (1,) ] * mod + [ (None,) ] * (length - mod)
 		seqs, remainder = self.split_remainder(seqs)
 		while True:
 			if len(remainder) <= 1:
@@ -628,22 +652,6 @@ class PEuclidean(Pattern):
 			seqs, remainder = self.split_remainder(seqs)
 
 		return reduce(lambda a, b: a + b, seqs + remainder)
-
-	def __init__(self, length, mod, phase = 0):
-		self.length = length
-		self.mod = mod
-		self.sequence = []
-		self.pos = phase
-	
-	def next(self):
-		length = self.value(self.length)
-		mod = self.value(self.mod)
-		sequence = self.euclidean(length, mod)
-		if self.pos >= len(sequence):
-			self.pos = 0
-		rv = sequence[self.pos]
-		self.pos += 1
-		return rv
 
 class PDecisionPoint(Pattern):
 	""" PDecisionPoint: Each time its pattern is exhausted, requests a new pattern by calling <fn>.

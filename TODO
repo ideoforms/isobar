@@ -2,7 +2,6 @@ TODO
 * 2+ order markov chains
 * unit test suite
 * complete INSTALL doc
-* further oscillators: sine, saw, pulse
 * better support for debug output and propagation between classes
 * Pkey (see SC)
 * improved OSC output 

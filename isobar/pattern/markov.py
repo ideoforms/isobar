@@ -12,14 +12,17 @@ class PMarkov(Pattern):
 		# http://stackoverflow.com/questions/1132941/least-astonishment-in-python-the-mutable-default-argument
 		#------------------------------------------------------------------------
 		if isinstance(nodes, list):
-			# learn a sequence of values
+			#------------------------------------------------------------------------
+			# Learn a sequence of values by inferring probabilities
+			#------------------------------------------------------------------------
 			learner = MarkovLearner()
 			for value in nodes:
 				learner.register(value)
 			self.nodes = learner.markov.nodes
 		elif isinstance(nodes, dict):
 			#------------------------------------------------------------------------
-			# take a dictionary argument to initialise our nodes, edges model
+			# Take a dictionary argument with the same format as our internal nodes
+			# model : eg { 1 : [ 2, 3 ], 2 : [ 3 ], 3 : [ 1, 2 ] }
 			#------------------------------------------------------------------------
 			self.nodes = nodes
 		else:
@@ -36,10 +39,16 @@ class PMarkov(Pattern):
 				self.nodes[node] += [ other ] * prob
 
 	def next(self):
+		#------------------------------------------------------------------------
+		# Returns the next value according to our internal statistical model.
+		#------------------------------------------------------------------------
 		if self.node is None and len(self.nodes) > 0:
 			self.node = random.choice(self.nodes.keys())
 		else:
 			try:
+				#------------------------------------------------------------------------
+				# 
+				#------------------------------------------------------------------------
 				self.node = random.choice(self.nodes[self.node])
 			except IndexError:
 				self.node = random.choice(self.nodes.keys())
