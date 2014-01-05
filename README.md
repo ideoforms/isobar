@@ -27,6 +27,7 @@ seqA = seqA + PSeq([ 0, 12 ])
 # create a geometric chromatic series, repeated back and forth
 seqB = PSeries(0, 1, 12) + 72
 seqB = PPingPong(seqB)
+seqB = PSeq(list(seqB))
 
 # create an velocity series, with emphasis every 4th note,
 # plus a random walk to create gradual dynamic changes
