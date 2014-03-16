@@ -1,7 +1,8 @@
 TODO
+* setuptools setup.py
+* complete INSTALL doc
 * 2+ order markov chains
 * unit test suite
-* complete INSTALL doc
 * better support for debug output and propagation between classes
 * Pkey (see SC)
 * improved OSC output 
