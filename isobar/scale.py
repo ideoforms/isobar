@@ -99,6 +99,7 @@ Scale.ritusen       = Scale([ 0, 2, 5, 7, 9 ], "ritusen")
 Scale.pelog         = Scale([ 0, 1, 3, 7, 8 ], "pelog")
 Scale.augmented     = Scale([ 0, 3, 4, 7, 8, 11 ], "augmented")
 Scale.augmented2    = Scale([ 0, 1, 4, 5, 8, 9 ], "augmented 2")
+Scale.wholetone     = Scale([ 0, 2, 4, 6, 8, 10 ], "wholetone")
 
 Scale.ionian        = Scale([ 0, 2, 4, 5, 7, 9, 11 ], "ionian")
 Scale.dorian        = Scale([ 0, 2, 3, 5, 7, 9, 10 ], "dorian")

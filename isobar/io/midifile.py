@@ -124,6 +124,10 @@ class MidiFileIn:
 		return note_dict
 
 class MidiFileOut:
+	""" Write events to a MIDI file.
+	    Requires the MIDIUtil package:
+		https://code.google.com/p/midiutil/ """
+
 	def __init__(self, numtracks = 16):
 		from midiutil.MidiFile import MIDIFile
 
@@ -152,7 +156,13 @@ class MidiFileOut:
 		fd.close()
 
 class PatternWriterMIDI:
+	""" Writes a pattern to a MIDI file.
+	    Requires the MIDIUtil package:
+		https://code.google.com/p/midiutil/ """
+
 	def __init__(self, numtracks = 1):
+		from midiutil.MidiFile import MIDIFile
+
 		self.score = MIDIFile(numtracks)
 		self.track = 0
 		self.channel = 0
