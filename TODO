@@ -1,4 +1,5 @@
 TODO
+* Switch to rtmidi for setuptools-supported dependency chain
 * 2+ order markov chains
 * unit test suite
 * complete INSTALL doc
