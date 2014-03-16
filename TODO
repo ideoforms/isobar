@@ -1,6 +1,7 @@
 TODO
 * setuptools setup.py
 * complete INSTALL doc
+* Switch to rtmidi for setuptools-supported dependency chain
 * 2+ order markov chains
 * unit test suite
 * better support for debug output and propagation between classes
