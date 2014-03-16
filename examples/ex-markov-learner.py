@@ -8,8 +8,7 @@
 # after francois pachet's "continuator".
 
 from isobar import *
-from isobar.io.midiin import *
-from isobar.io.midiout import *
+from isobar.io.midi import *
 
 import time
 
