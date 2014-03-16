@@ -161,6 +161,10 @@ class Timeline:
 	def unwarp(self, warper):
 		self.clock.warp(warper)
 
+	def set_output(self, device):
+		self.devices.clear()
+		self.add_output(device)
+
 	def add_output(self, device):
 		self.devices.append(device)
 
