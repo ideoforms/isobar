@@ -12,6 +12,11 @@ MIDIOUT_DEFAULT = "IAC Driver A"
 class MidiIn:
 	def __init__(self, target = MIDIOUT_DEFAULT):
 		self.midi = rtmidi.MidiIn()
+
+		#------------------------------------------------------------------------
+		# don't ignore MIDI clock messages (is on by default)
+		#------------------------------------------------------------------------
+		self.midi.ignore_types(timing = False)
 		self.debug = False
 		self.clocktarget = None
 
@@ -29,20 +34,18 @@ class MidiIn:
 			self.midi.open_port(0)
 
 	def callback(self, message, timestamp):
-		print "message %s" % message
-		data_type, data_note, data_vel = tuple(message)
+		message = message[0]
+		data_type = message[0]
+
 		if data_type == 248:
 			if self.clocktarget is not None:
 				self.clocktarget.tick()
+
 		elif data_type == 250:
 			# TODO: is this the right midi code?
-			print "RESET"
 			if self.clocktarget is not None:
 				self.clocktarget.reset_to_beat()
-		elif data_type & 0x90:
-			# note on
-			# print "%d (%d)" % (data_note, data_vel)
-			pass 
+
 		# print "%d %d (%d)" % (data_type, data_note, data_vel)
 
 
