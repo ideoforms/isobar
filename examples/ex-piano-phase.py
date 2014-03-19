@@ -19,7 +19,7 @@ timeline = Timeline(160)
 # schedule two identical melodies.
 # we must copy the note sequence or else the position will be stepped
 # by two every note... try removing the .copy() and see what happens!
-timeline.sched({ 'note': seq.copy() + 60, 'dur': dur.copy() })
-timeline.sched({ 'note': seq.copy() + 72, 'dur': dur.copy() * 1.01 })
+timeline.sched({ 'note': seq.copy() + 60, 'dur': dur })
+timeline.sched({ 'note': seq.copy() + 72, 'dur': dur * 1.01 })
 
 timeline.run()
