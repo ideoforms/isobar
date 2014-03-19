@@ -1,5 +1,7 @@
+import isobar
 import random
 import math
+import sys
 
 note_names = [
 	[ "C" ],
@@ -15,6 +17,14 @@ note_names = [
 	[ "A#", "Bb" ],
 	[ "B" ]
 ]
+
+
+isobar.debug = False
+
+def log(message, *args):
+	if isobar.debug:
+		message = message % args
+		sys.stderr.write("[isobar] %s\n" % message)
 
 def normalize(array):
 	""" Normalise an array to sum to 1.0. """

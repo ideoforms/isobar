@@ -3,6 +3,7 @@ import rtmidi
 import random
 import time
 
+import isobar
 from isobar.note import *
 
 MIDIIN_DEFAULT = "IAC Driver A"
@@ -17,7 +18,6 @@ class MidiIn:
 		# don't ignore MIDI clock messages (is on by default)
 		#------------------------------------------------------------------------
 		self.midi.ignore_types(timing = False)
-		self.debug = False
 		self.clocktarget = None
 
 		ports = self.midi.get_ports()
@@ -26,11 +26,11 @@ class MidiIn:
 
 		for index, name in enumerate(ports):
 			if name == target:
-				print "Found MIDI input (%s)" % name
+				isobar.log("Found MIDI input (%s)", name)
 				self.midi.open_port(index)
 
 		if self.midi is None:
-			print "Could not find MIDI source %s, using default" % target
+			isobar.log("Could not find MIDI source %s, using default", target)
 			self.midi.open_port(0)
 
 	def callback(self, message, timestamp):
@@ -72,7 +72,6 @@ class MidiIn:
 class MidiOut:
 	def __init__(self, target = MIDIOUT_DEFAULT):
 		self.midi = rtmidi.MidiOut()
-		self.debug = False
 
 		ports = self.midi.get_ports()
 		if len(ports) == 0:
@@ -80,7 +79,7 @@ class MidiOut:
 
 		for index, name in enumerate(ports):
 			if name == target:
-				print "Found MIDI output (%s)" % name
+				isobar.log("Found MIDI output (%s)" % name)
 				self.midi.open_port(index)
 
 		if self.midi is None:
@@ -91,25 +90,16 @@ class MidiOut:
 		pass
 
 	def noteOn(self, note = 60, velocity = 64, channel = 0):
-		if self.debug:
-			print "channel %d, noteOn: %d" % (channel, note)
 		self.midi.send_message([ 0x90 + channel, int(note), int(velocity) ])
 
 	def noteOff(self, note = 60, channel = 0):
-		if self.debug:
-			print "channel %d, noteOff: %d" % (channel, note)
 		self.midi.send_message([ 0x80 + channel, int(note), 0 ])
 
 	def allNotesOff(self, channel = 0):
-		if self.debug:
-			print "channel %d, allNotesOff"
 		for n in range(128):
 			self.noteOff(n, channel)
 
 	def control(self, control = 0, value = 0, channel = 0):
-		# print "*** [CTRL] channel %d, control %d: %d" % (channel, control, value)
-		if self.debug:
-			print "channel %d, control %d: %d" % (channel, control, value)
 		self.midi.send_message([ 0xB0 + channel, int(control), int(value) ])
 
 	def __destroy__(self):
