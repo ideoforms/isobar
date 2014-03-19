@@ -2,7 +2,7 @@ from isobar.pattern import *
 from isobar.util import *
 
 class PMarkov(Pattern):
-	""" First-order Markov chain.
+	""" PMarkov: First-order Markov chain.
 	http://pastebin.com/rNu2CSFs
 	TODO: Implement n-order. """
 
