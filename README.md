@@ -16,11 +16,11 @@ Most of the major parts of isobar are subclasses of `Pattern`, which implement's
 from isobar import *
 
 # create a repeating sequence with scalar transposition:
-# [ 48, 50, 57, 60 ] ...
+# [ 36, 38, 43, 39, ... ]
 a = PSeq([ 0, 2, 7, 3 ]) + 36
 
 # apply pattern-wise transposition
-# [ 48, 62, 57, 72 ] ...
+# [ 36, 50, 43, 51, ... ]
 a = a + PSeq([ 0, 12 ])
 
 # create a geometric chromatic series, repeated back and forth
