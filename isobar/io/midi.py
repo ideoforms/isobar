@@ -93,24 +93,23 @@ class MidiOut:
 		pass
 
 	def noteOn(self, note = 60, velocity = 64, channel = 0):
-		if self.debug:
+		if isobar.debug:
 			print "[midi] channel %d, noteOn: (%d, %d)" % (channel, note, velocity)
 		self.midi.send_message([ 0x90 + channel, int(note), int(velocity) ])
 
 	def noteOff(self, note = 60, channel = 0):
-		if self.debug:
+		if isobar.debug:
 			print "[midi] channel %d, noteOff: %d" % (channel, note)
 		self.midi.send_message([ 0x80 + channel, int(note), 0 ])
 
 	def allNotesOff(self, channel = 0):
-		if self.debug:
+		if isobar.debug:
 			print "[midi] channel %d, allNotesOff"
 		for n in range(128):
 			self.noteOff(n, channel)
 
 	def control(self, control = 0, value = 0, channel = 0):
-		print "*** [CTRL] channel %d, control %d: %d" % (channel, control, value)
-		if self.debug:
+		if isobar.debug:
 			print "[midi] channel %d, control %d: %d" % (channel, control, value)
 		self.midi.send_message([ 0xB0 + channel, int(control), int(value) ])
 
