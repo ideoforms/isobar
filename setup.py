@@ -20,7 +20,7 @@ setup(
 	author_email = 'dan-isobar@erase.net',
 	url = 'https://github.com/ideoforms/isobar',
 	packages = ['isobar'],
-	install_requires = ['pyOSC >= 0.3b0'],
+	install_requires = ['pyOSC >= 0.3b0', 'python-rtmidi'],
 	keywords = ('sound', 'music', 'composition'),
 	classifiers = [
 		'Topic :: Multimedia :: Sound/Audio',

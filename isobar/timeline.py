@@ -1,3 +1,4 @@
+import sys
 import time
 import math
 import copy
@@ -10,11 +11,11 @@ import isobar.io
 
 TICKS_PER_BEAT = 24
 
-class Timeline:
+class Timeline(object):
 	CLOCK_INTERNAL = 0
 	CLOCK_EXTERNAL = 1
 
-	def __init__(self, bpm = 120, device = None):
+	def __init__(self, bpm = 120, device = None, debug = None):
 		"""expect to receive one tick per beat, generate events at 120bpm"""
 		self.ticklen = 1.0 / TICKS_PER_BEAT
 		self.beats = 0
@@ -23,13 +24,15 @@ class Timeline:
 		self.automators = []
 		self.max_channels = 0
 
-		self.debug = False
 		self.bpm = None
 		self.clock = None
 		self.clocksource = None
 		self.thread = None
 
 		self.stop_when_done = False
+
+		if debug is not None:
+			isobar.debug = debug
 
 		self.events = []
 
@@ -171,7 +174,7 @@ class Timeline:
 	def sched(self, event, quantize = 0, delay = 0, count = 0, device = None):
 		if not device:
 			if not self.devices:
-				print "timeline: adding default MIDI output"
+				isobar.log("Adding default MIDI output")
 				self.add_output(isobar.io.MidiOut())
 			device = self.devices[0]
 
@@ -355,6 +358,7 @@ class Channel:
 		if "control" in values:
 			value = values["value"]
 			channel = values["channel"]
+			isobar.log("control (channel %d, control %d, value %d)", values["channel"], values["control"], values["value"]) 
 			self.device.control(values["control"], values["value"], values["channel"])
 			return 
 
@@ -408,7 +412,6 @@ class Channel:
 			# the below does not allow for values["transpose"] to be an array,
 			# for example.
 			#----------------------------------------------------------------------
-			# print "playing note %s" % values["note"]
 			try:
 				values["note"] = [ note + values["transpose"] for note in values["note"] ]
 			except:
@@ -447,13 +450,9 @@ class Channel:
 		# noteOn: Standard (MIDI) type of device
 		#----------------------------------------------------------------------
 		if values["amp"] > 0:
-			if self.timeline.debug:
-				print "note %s (%s)" % (values["note"], values["amp"])
 			# TODO: pythonic duck-typing approach might be better
 			# TODO: doesn't handle arrays of amp, channel values, etc
 			notes = values["note"] if hasattr(values["note"], '__iter__') else [ values["note"] ]
-		#        rather than noteOn/noteOff. (Should probably have to 
-		#        register for this behaviour rather than happening magically...)
 
 			#----------------------------------------------------------------------
 			# Allow for arrays of amp, gate etc, to handle chords properly.
@@ -465,6 +464,7 @@ class Channel:
 				channel = values["channel"][index] if isinstance(values["channel"], list) else values["channel"]
 				gate    = values["gate"][index] if isinstance(values["gate"], list) else values["gate"]
 
+				isobar.log("note on  (channel %d, note %d, velocity %d)", channel, note, amp);
 				self.device.noteOn(note, amp, channel)
 
 				note_dur = self.dur_now * gate
@@ -475,8 +475,12 @@ class Channel:
 
 	def processNoteOffs(self):
 		for n, note in enumerate(self.noteOffs):
+			# TODO: create a Note object to represent these noteOff events
 			if note[0] <= self.pos:
-				self.device.noteOff(note[1], note[2])
+				index = note[1]
+				channel = note[2]
+				isobar.log("note off (channel %d, note %d)", channel, index);
+				self.device.noteOff(index, channel)
 				self.noteOffs.pop(n)
 
 #----------------------------------------------------------------------

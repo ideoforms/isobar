@@ -6,6 +6,7 @@ except:
 import random
 import time
 
+import isobar
 from isobar.note import *
 
 MIDIIN_DEFAULT = "IAC Driver A"
@@ -20,7 +21,6 @@ class MidiIn:
 		# don't ignore MIDI clock messages (is on by default)
 		#------------------------------------------------------------------------
 		self.midi.ignore_types(timing = False)
-		self.debug = False
 		self.clocktarget = None
 
 		ports = self.midi.get_ports()
@@ -29,11 +29,11 @@ class MidiIn:
 
 		for index, name in enumerate(ports):
 			if name == target:
-				print "Found MIDI input (%s)" % name
+				isobar.log("Found MIDI input (%s)", name)
 				self.midi.open_port(index)
 
 		if self.midi is None:
-			print "Could not find MIDI source %s, using default" % target
+			isobar.log("Could not find MIDI source %s, using default", target)
 			self.midi.open_port(0)
 
 	def callback(self, message, timestamp):
@@ -75,7 +75,6 @@ class MidiIn:
 class MidiOut:
 	def __init__(self, target = MIDIOUT_DEFAULT):
 		self.midi = rtmidi.MidiOut()
-		self.debug = False
 
 		ports = self.midi.get_ports()
 		if len(ports) == 0:
@@ -83,7 +82,7 @@ class MidiOut:
 
 		for index, name in enumerate(ports):
 			if name == target:
-				print "Found MIDI output (%s)" % name
+				isobar.log("Found MIDI output (%s)" % name)
 				self.midi.open_port(index)
 
 		if self.midi is None:
