@@ -1,4 +1,7 @@
-import rtmidi
+try:
+	import rtmidi
+except:
+	print "rtmidi not found, no MIDI support available."
 
 import random
 import time
@@ -92,24 +95,24 @@ class MidiOut:
 
 	def noteOn(self, note = 60, velocity = 64, channel = 0):
 		if self.debug:
-			print "channel %d, noteOn: %d" % (channel, note)
+			print "[midi] channel %d, noteOn: (%d, %d)" % (channel, note, velocity)
 		self.midi.send_message([ 0x90 + channel, int(note), int(velocity) ])
 
 	def noteOff(self, note = 60, channel = 0):
 		if self.debug:
-			print "channel %d, noteOff: %d" % (channel, note)
+			print "[midi] channel %d, noteOff: %d" % (channel, note)
 		self.midi.send_message([ 0x80 + channel, int(note), 0 ])
 
 	def allNotesOff(self, channel = 0):
 		if self.debug:
-			print "channel %d, allNotesOff"
+			print "[midi] channel %d, allNotesOff"
 		for n in range(128):
 			self.noteOff(n, channel)
 
 	def control(self, control = 0, value = 0, channel = 0):
-		# print "*** [CTRL] channel %d, control %d: %d" % (channel, control, value)
+		print "*** [CTRL] channel %d, control %d: %d" % (channel, control, value)
 		if self.debug:
-			print "channel %d, control %d: %d" % (channel, control, value)
+			print "[midi] channel %d, control %d: %d" % (channel, control, value)
 		self.midi.send_message([ 0xB0 + channel, int(control), int(value) ])
 
 	def __destroy__(self):

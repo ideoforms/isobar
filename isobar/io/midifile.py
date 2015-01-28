@@ -148,7 +148,8 @@ class MidiFileOut:
 		self.score.addNote(channel, channel, note, time, duration, velocity)
 
 	def noteOff(self, note = 60, channel = 0):
-		pass
+		time = round(self.time, 5)
+		self.score.addNote(channel, channel, note, time, duration, 0)
 
 	def writeFile(self, filename = "score.mid"):
 		fd = open(filename, 'wb')

@@ -51,10 +51,9 @@ class OSCOut:
 	def __destroy__(self):
 		self.osc.close()
 
-#	def send(self, address, params = None):
-#		msg = OSCMessage(address)
-#		msg.extend(params)
-#		print "osc: %s (%s)" % (address, params)
-#		self.osc.send(msg)
-
+	def send(self, address, params = None):
+		msg = OSCMessage(address)
+		msg.extend(params)
+		print "osc: %s (%s)" % (address, params)
+		self.osc.send(msg)
 
