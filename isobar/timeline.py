@@ -336,9 +336,13 @@ class Channel:
 		#------------------------------------------------------------------------
 		if "action" in values:
 			try:
-				values["action"]()
+				if "object" in values:
+					object = values["object"]
+					values["action"](object)
+				else:
+					values["action"]()
 			except Exception, e:
-				print "ex: %s" % e
+				print "Exception when handling scheduled action: %s" % e
 				import traceback
 				traceback.print_exc()
 				pass
