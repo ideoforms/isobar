@@ -57,8 +57,11 @@ def nametomidi(name):
 	else:
 		octave = 0
 
-	index = note_names.index(filter(lambda nameset: name in nameset, note_names)[0])
-	return octave * 12 + index
+	try:
+		index = note_names.index(filter(lambda nameset: name in nameset, note_names)[0])
+		return octave * 12 + index
+	except:
+		return None
 
 def miditopitch(note):
 	""" Maps a MIDI note index to a note name (independent of octave)
@@ -77,4 +80,19 @@ def miditoname(note):
 		str = (str + " + %2f" % frac)
 
 	return str
-	
+
+def bipolar_diverge(maximum):
+	""" returns [0, 1, -1, ...., maximum, -maximum ] """
+	sequence = list(sum(zip(range(maximum + 1), range(0, -maximum - 1, -1)), ()))
+	sequence.pop(0)
+	return sequence
+
+def filter_tone_row(source, target, bend_limit = 7):
+	""" filters the notes in <source> by the permitted notes in <target>.
+	returns a tuple (<bool> acceptable, <int> pitch_bend) """
+	bends = bipolar_diverge(bend_limit)
+	for bend in bends:
+		if all(((note + bend) % 12) in target for note in source):
+			return (True, bend)
+	return (False, 0)
+
