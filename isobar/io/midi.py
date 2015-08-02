@@ -12,6 +12,8 @@ from isobar.note import *
 MIDIIN_DEFAULT = "IAC Driver A"
 MIDIOUT_DEFAULT = "IAC Driver A"
 
+import logging
+log = logging.getLogger(__name__)
 
 class MidiIn:
 	def __init__(self, target = MIDIOUT_DEFAULT):
@@ -29,11 +31,11 @@ class MidiIn:
 
 		for index, name in enumerate(ports):
 			if name == target:
-				isobar.log("Found MIDI input (%s)", name)
+				log.info("Found MIDI input (%s)", name)
 				self.midi.open_port(index)
 
 		if self.midi is None:
-			isobar.log("Could not find MIDI source %s, using default", target)
+			log.warn("Could not find MIDI source %s, using default", target)
 			self.midi.open_port(0)
 
 	def callback(self, message, timestamp):
@@ -45,12 +47,8 @@ class MidiIn:
 				self.clocktarget.tick()
 
 		elif data_type == 250:
-			# TODO: is this the right midi code?
 			if self.clocktarget is not None:
 				self.clocktarget.reset_to_beat()
-
-		# print "%d %d (%d)" % (data_type, data_note, data_vel)
-
 
 	def run(self):
 		self.midi.set_callback(self.callback)
@@ -82,36 +80,31 @@ class MidiOut:
 
 		for index, name in enumerate(ports):
 			if name == target:
-				isobar.log("Found MIDI output (%s)" % name)
+				log.info("Found MIDI output (%s)" % name)
 				self.midi.open_port(index)
 
 		if self.midi is None:
-			print "Could not find MIDI target %s, using default" % target
+			log.warn("Could not find MIDI target %s, using default" % target)
 			self.midi.open_port(0)
 
 	def tick(self, ticklen):
 		pass
 
 	def noteOn(self, note = 60, velocity = 64, channel = 0):
-		if self.debug:
-			print "[midi] channel %d, noteOn: (%d, %d)" % (channel, note, velocity)
+		log.debug("[midi] channel %d, noteOn: (%d, %d)" % (channel, note, velocity))
 		self.midi.send_message([ 0x90 + channel, int(note), int(velocity) ])
 
 	def noteOff(self, note = 60, channel = 0):
-		if self.debug:
-			print "[midi] channel %d, noteOff: %d" % (channel, note)
+		log.debug("[midi] channel %d, noteOff: %d" % (channel, note))
 		self.midi.send_message([ 0x80 + channel, int(note), 0 ])
 
 	def allNotesOff(self, channel = 0):
-		if self.debug:
-			print "[midi] channel %d, allNotesOff"
+		log.debug("[midi] channel %d, allNotesOff")
 		for n in range(128):
 			self.noteOff(n, channel)
 
 	def control(self, control = 0, value = 0, channel = 0):
-		print "*** [CTRL] channel %d, control %d: %d" % (channel, control, value)
-		if self.debug:
-			print "[midi] channel %d, control %d: %d" % (channel, control, value)
+		log.debug("[midi] channel %d, control %d: %d" % (channel, control, value))
 		self.midi.send_message([ 0xB0 + channel, int(control), int(value) ])
 
 	def __destroy__(self):
