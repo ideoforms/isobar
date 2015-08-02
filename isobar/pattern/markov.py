@@ -1,6 +1,7 @@
 from isobar.pattern import *
 from isobar.util import *
 
+import os
 import sys
 
 class PMarkov(Pattern):
@@ -115,35 +116,60 @@ class MarkovParallelLearners:
 
 class MarkovGrapher:
 	""" Helper class to graph the structure of a Markov object.
-	Requires gven. """
-	def graph(self, markov):
-		from gvgen import GvGen
+	Requires graphviz (pip install graphviz). """
 
-		gv = GvGen()
+	def __init__(self):
+		self.pen_width_max = 3.0
+
+	def render(self, markov, filename = "markov.pdf", name_map = None):
+		""" Graphs the network described by 'markov'.
+		If name_map is specified, apply this function to each node value
+		to obtain its name.
+
+		To graph a chain with integer node values mapped onto their 
+		pitch names:
+
+		    MarkovGrapher.graph(markov, name_map = miditopitch)
+		"""
+		from graphviz import Digraph
+
+		graph = Digraph()
 		items = []
 
-		gv.styleAppend("edge", "fontname", "gotham")
-		gv.styleAppend("edge", "fontcolor", "#999999")
-		gv.styleAppend("edge", "color", "#999999")
-
-		gv.styleAppend("node", "fontname", "gotham")
-		gv.styleAppend("node", "fontname", "gotham")
-		gv.styleAppend("node", "shape", "circle")
-
+		#------------------------------------------------------------------------
 		# first pass: add nodes
-		for n, node in enumerate(markov.nodes):
-			if type(node) == int:
-				node = miditopitch(node)
-			item = gv.newItem(str(node))
-			items.append(item)
-			gv.styleApply("node", item)
+		#------------------------------------------------------------------------
+		if name_map:
+			_name_map = lambda value: str(name_map(value))
+		else:
+			_name_map = str
 
+		for index, node_value in enumerate(markov.nodes):
+			graph.node(_name_map(node_value))
+
+		#------------------------------------------------------------------------
 		# second pass: add edges
-		for n, node in enumerate(markov.nodes):
-			edges = markov.edges[n]
-			for e in filter(lambda e: edges[e] > 0, range(len(edges))):
-				link = gv.newLink(items[n], items[e], "%.1f" % edges[e])
-				gv.styleApply("edge", link)
-				# gv.propertyAppend(link, "weight", edges[e])
+		#------------------------------------------------------------------------
+		for index, node_value in enumerate(markov.nodes):
+			#------------------------------------------------------------------------
+			# calculate a dictionary of normalised edge counts, such that an
+			# isolated outgoing edge will always have a weight of 1.0, and a pair
+			# of equally-weighted outgoing edges will have weights of 0.5 each.
+			#------------------------------------------------------------------------
+			edges = markov.nodes[node_value]
+			edge_counts = dict((v, edges.count(v) / float(len(edges))) for v in edges)
 
-		gv.dot(sys.stderr)
+			for edge, edge_weight in edge_counts.items():
+				#------------------------------------------------------------------------
+				# in graphviz, attributes must always be strings.
+				#------------------------------------------------------------------------
+				pen_width = self.pen_width_max * edge_weight
+				graph.edge(_name_map(node_value), _name_map(edge), penwidth = str(pen_width))
+
+		#------------------------------------------------------------------------
+		# render the graph using graphviz, deleting the intermediary source
+		# file.
+		#------------------------------------------------------------------------
+		prefix, suffix = os.path.splitext(filename)
+		graph.render(prefix, cleanup = True)
+
