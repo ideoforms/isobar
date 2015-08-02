@@ -602,27 +602,27 @@ class PEuclidean(Pattern):
 		Effectively tries to space <mod> events out evenly over <length> beats.
 		Events returned are either 1 or None (rest)
 
-		>>> p = PEuclidean(8, 5)
+		>>> p = PEuclidean(5, 8)
 		>>> p.nextn(8)
 		[1, None, 1, 1, None, 1, 1, None]
 		"""
-	def __init__(self, length, mod, phase = 0):
-		self.length = length
+	def __init__(self, mod, length, phase = 0):
 		self.mod = mod
+		self.length = length
 		self.sequence = []
 		self.pos = phase
 	
 	def next(self):
 		length = self.value(self.length)
 		mod = self.value(self.mod)
-		sequence = self.euclidean(length, mod)
+		sequence = self._euclidean(length, mod)
 		if self.pos >= len(sequence):
 			self.pos = 0
 		rv = sequence[self.pos]
 		self.pos += 1
 		return rv
 
-	def split_remainder(self, seq):
+	def _split_remainder(self, seq):
 		last = None
 		a = []
 		b = []
@@ -634,7 +634,7 @@ class PEuclidean(Pattern):
 				b.append(value)
 		return (a, b)
 
-	def interleave(self, a, b):
+	def _interleave(self, a, b):
 		if len(a) < len(b):
 			return [ a[n] + b[n] for n in range(len(a)) ] + b[len(a) - len(b):]
 		elif len(b) < len(a):
@@ -642,14 +642,18 @@ class PEuclidean(Pattern):
 		else:
 			return [ a[n] + b[n] for n in range(len(b)) ]
 
-	def euclidean(self, length, mod):
+	def _euclidean(self, length, mod):
+		""" Implements Bjorklund's algorithm, described in Toussaint (2005):
+		http://cgm.cs.mcgill.ca/~godfried/publications/banff.pdf
+		"""
+
 		seqs = [ (1,) ] * mod + [ (None,) ] * (length - mod)
-		seqs, remainder = self.split_remainder(seqs)
+		seqs, remainder = self._split_remainder(seqs)
 		while True:
 			if len(remainder) <= 1:
 				break
-			seqs = self.interleave(seqs, remainder)
-			seqs, remainder = self.split_remainder(seqs)
+			seqs = self._interleave(seqs, remainder)
+			seqs, remainder = self._split_remainder(seqs)
 
 		return reduce(lambda a, b: a + b, seqs + remainder)
 
