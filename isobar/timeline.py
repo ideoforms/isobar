@@ -9,6 +9,9 @@ from isobar.pattern import *
 
 import isobar.io
 
+import logging
+log = logging.getLogger(__name__)
+
 TICKS_PER_BEAT = 24
 
 class Timeline(object):
@@ -117,7 +120,6 @@ class Timeline(object):
 			channel.reset_to_beat()
 
 	def reset(self):
-		# print "tl reset!"
 		self.beats = -.0001
 		# XXX probably shouldn't have to do this - should channels read the tl ticks value?
 		for channel in self.channels:
@@ -134,7 +136,7 @@ class Timeline(object):
 		try:
 			import os
 			os.nice(-20)
-			print "Timeline: Running as high-priority thread"
+			log.warn("Timeline: Running as high-priority thread")
 		except:
 			pass
 
@@ -152,7 +154,7 @@ class Timeline(object):
 			#------------------------------------------------------------------------
 			# This will be hit if every Pattern in a timeline is exhausted.
 			#------------------------------------------------------------------------
-			print "Timeline finished"
+			log.warn("Timeline finished")
 
 		except Exception, e:
 			print " *** Exception in background Timeline thread: %s" % e
@@ -174,7 +176,7 @@ class Timeline(object):
 	def sched(self, event, quantize = 0, delay = 0, count = 0, device = None):
 		if not device:
 			if not self.devices:
-				isobar.log("Adding default MIDI output")
+				log.info("Adding default MIDI output")
 				self.add_output(isobar.io.MidiOut())
 			device = self.devices[0]
 
@@ -358,7 +360,7 @@ class Channel:
 		if "control" in values:
 			value = values["value"]
 			channel = values["channel"]
-			isobar.log("control (channel %d, control %d, value %d)", values["channel"], values["control"], values["value"]) 
+			log.debug("control (channel %d, control %d, value %d)", values["channel"], values["control"], values["value"]) 
 			self.device.control(values["control"], values["value"], values["channel"])
 			return 
 
@@ -464,7 +466,7 @@ class Channel:
 				channel = values["channel"][index] if isinstance(values["channel"], list) else values["channel"]
 				gate    = values["gate"][index] if isinstance(values["gate"], list) else values["gate"]
 
-				isobar.log("note on  (channel %d, note %d, velocity %d)", channel, note, amp);
+				log.debug("note on  (channel %d, note %d, velocity %d)", channel, note, amp);
 				self.device.noteOn(note, amp, channel)
 
 				note_dur = self.dur_now * gate
@@ -479,7 +481,7 @@ class Channel:
 			if note[0] <= self.pos:
 				index = note[1]
 				channel = note[2]
-				isobar.log("note off (channel %d, note %d)", channel, index);
+				log.debug("note off (channel %d, note %d)", channel, index);
 				self.device.noteOff(index, channel)
 				self.noteOffs.pop(n)
 
