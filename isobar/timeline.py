@@ -35,8 +35,7 @@ class Timeline(object):
 		self.clock = None
 		self.clock_source = None
 		self.thread = None
-
-		self.stop_when_done = False
+		self.stop_when_done = True
 
 		if debug is not None:
 			isobar.debug = debug
@@ -164,11 +163,17 @@ class Timeline(object):
 		""" Run this Timeline in a background thread. """
 		self.thread = thread.start_new_thread(self.run, ())
 
-	def run(self, high_priority = True):
+	def run(self, high_priority = True, stop_when_done = True):
 		""" Run this Timeline in the foreground.
 		By default, attempts to run as a high-priority thread for more
 		accurate timing (though requires being run as root to re-nice the
-		process.) """
+		process.)
+		
+		If stop_when_done is set, returns when no channels are currently
+		scheduled; otherwise, keeps running indefinitely. """
+
+		if stop_when_done is not None:
+			self.stop_when_done = stop_when_done
 
 		try:
 			import os
@@ -191,7 +196,7 @@ class Timeline(object):
 			#------------------------------------------------------------------------
 			# This will be hit if every Pattern in a timeline is exhausted.
 			#------------------------------------------------------------------------
-			log.warn("Timeline finished")
+			log.info("Timeline finished")
 
 		except Exception, e:
 			print " *** Exception in background Timeline thread: %s" % e
@@ -207,7 +212,7 @@ class Timeline(object):
 
 	def set_output(self, device):
 		""" Set a new device to send events to, removing any existing outputs. """
-		self.devices.clear()
+		self.devices = []
 		self.add_output(device)
 
 	def add_output(self, device):
