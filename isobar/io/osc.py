@@ -20,19 +20,19 @@ class OSCOut:
 	def tick(self, tick_length):
 		pass
 
-	def noteOn(self, note = 60, velocity = 64, channel = 0):
+	def note_on(self, note = 60, velocity = 64, channel = 0):
 		msg = OSCMessage("/note")
 		msg.extend([ note, velocity, channel ])
 		self.osc.send(msg)
 
-	def noteOff(self, note = 60, channel = 0):
+	def note_off(self, note = 60, channel = 0):
 		msg = OSCMessage("/note")
 		msg.extend([ note, 0, channel ])
 		self.osc.send(msg)
 
-	def allNotesOff(self, channel = 0):
+	def all_notes_off(self, channel = 0):
 		for n in range(128):
-			self.noteOff(n, channel)
+			self.note_off(n, channel)
 
 	def control(self, control, value, channel = 0):
 		msg = OSCMessage("/control")

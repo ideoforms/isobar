@@ -24,15 +24,15 @@ class SocketIOOut:
 		# pprint.pprint(event)
 		self.socket.emit("event", event)
 
-	def noteOn(self, note = 60, velocity = 64, channel = 0):
+	def note_on(self, note = 60, velocity = 64, channel = 0):
 		self.socket.emit("note", note, velocity, channel)
 
-	def noteOff(self, note = 60, channel = 0):
+	def note_off(self, note = 60, channel = 0):
 		self.socket.emit("note", note, 0, channel)
 
-	def allNotesOff(self, channel = 0):
+	def all_notes_off(self, channel = 0):
 		for n in range(128):
-			self.noteOff(n, channel)
+			self.note_off(n, channel)
 
 	def control(self, control, value, channel = 0):
 		self.socket.emit("control", control, value, channel)

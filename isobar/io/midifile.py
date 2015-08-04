@@ -146,14 +146,14 @@ class MidiFileOut:
 	def tick(self, tick_length):
 		self.time += tick_length
 
-	def noteOn(self, note = 60, velocity = 64, channel = 0, duration = 1):
+	def note_on(self, note = 60, velocity = 64, channel = 0, duration = 1):
 		#------------------------------------------------------------------------
 		# avoid rounding errors
 		#------------------------------------------------------------------------
 		time = round(self.time, 5)
 		self.score.addNote(channel, channel, note, time, duration, velocity)
 
-	def noteOff(self, note = 60, channel = 0):
+	def note_off(self, note = 60, channel = 0):
 		time = round(self.time, 5)
 		self.score.addNote(channel, channel, note, time, duration, 0)
 

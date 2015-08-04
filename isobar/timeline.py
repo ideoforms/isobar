@@ -271,7 +271,7 @@ class Channel:
 		self.phase_now = self.event["phase"].next()
 		self.next_note = 0
 
-		self.noteOffs = []
+		self.note_offs = []
 		self.finished = False
 		self.count_max = count
 		self.count_now = 0
@@ -313,10 +313,10 @@ class Channel:
 
 	def tick(self, time):
 		#----------------------------------------------------------------------
-		# process noteOffs before we play the next note, else a repeated note
+		# process note_offs before we play the next note, else a repeated note
 		# with gate = 1.0 will immediately be cancelled.
 		#----------------------------------------------------------------------
-		self.processNoteOffs()
+		self.process_note_offs()
 
 		try:
 			if round(self.pos, 8) >= round(self.next_note + self.phase_now, 8):
@@ -450,7 +450,7 @@ class Channel:
 
 		#----------------------------------------------------------------------
 		# event: Certain devices (eg Socket IO) handle generic events,
-		#        rather than noteOn/noteOff. (Should probably have to 
+		#        rather than note_on/note_off. (Should probably have to 
 		#        register for this behaviour rather than happening magically...)
 		#----------------------------------------------------------------------
 		if hasattr(self.device, "event") and callable(getattr(self.device, "event")):
@@ -477,7 +477,7 @@ class Channel:
 			return
 
 		#----------------------------------------------------------------------
-		# noteOn: Standard (MIDI) type of device
+		# note_on: Standard (MIDI) type of device
 		#----------------------------------------------------------------------
 		if values["amp"] > 0:
 			# TODO: pythonic duck-typing approach might be better
@@ -495,23 +495,23 @@ class Channel:
 				gate    = values["gate"][index] if isinstance(values["gate"], list) else values["gate"]
 
 				log.debug("note on  (channel %d, note %d, velocity %d)", channel, note, amp);
-				self.device.noteOn(note, amp, channel)
+				self.device.note_on(note, amp, channel)
 
 				note_dur = self.dur_now * gate
-				self.schedNoteOff(self.next_note + note_dur + self.phase_now, note, channel)
+				self.sched_note_off(self.next_note + note_dur + self.phase_now, note, channel)
 
-	def schedNoteOff(self, time, note, channel):
-		self.noteOffs.append([ time, note, channel ])
+	def sched_note_off(self, time, note, channel):
+		self.note_offs.append([ time, note, channel ])
 
-	def processNoteOffs(self):
-		for n, note in enumerate(self.noteOffs):
-			# TODO: create a Note object to represent these noteOff events
+	def process_note_offs(self):
+		for n, note in enumerate(self.note_offs):
+			# TODO: create a Note object to represent these note_off events
 			if note[0] <= self.pos:
 				index = note[1]
 				channel = note[2]
 				log.debug("note off (channel %d, note %d)", channel, index);
-				self.device.noteOff(index, channel)
-				self.noteOffs.pop(n)
+				self.device.note_off(index, channel)
+				self.note_offs.pop(n)
 
 #----------------------------------------------------------------------
 # a clock is relied upon to generate accurate tick() events every

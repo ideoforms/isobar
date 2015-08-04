@@ -92,18 +92,18 @@ class MidiOut:
 	def tick(self, tick_length):
 		pass
 
-	def noteOn(self, note = 60, velocity = 64, channel = 0):
-		log.debug("[midi] channel %d, noteOn: (%d, %d)" % (channel, note, velocity))
+	def note_on(self, note = 60, velocity = 64, channel = 0):
+		log.debug("[midi] channel %d, note_on: (%d, %d)" % (channel, note, velocity))
 		self.midi.send_message([ 0x90 + channel, int(note), int(velocity) ])
 
-	def noteOff(self, note = 60, channel = 0):
-		log.debug("[midi] channel %d, noteOff: %d" % (channel, note))
+	def note_off(self, note = 60, channel = 0):
+		log.debug("[midi] channel %d, note_off: %d" % (channel, note))
 		self.midi.send_message([ 0x80 + channel, int(note), 0 ])
 
-	def allNotesOff(self, channel = 0):
-		log.debug("[midi] channel %d, allNotesOff")
+	def all_notes_off(self, channel = 0):
+		log.debug("[midi] channel %d, all_notes_off")
 		for n in range(128):
-			self.noteOff(n, channel)
+			self.note_off(n, channel)
 
 	def control(self, control = 0, value = 0, channel = 0):
 		log.debug("[midi] channel %d, control %d: %d" % (channel, control, value))
