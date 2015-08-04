@@ -20,9 +20,12 @@ log = logging.getLogger(__name__)
 TICKS_PER_BEAT = 24
 
 class Timeline(object):
+	""" A Timeline object represents a number of Channels, each of which
+	represents a sequence of note or control events. """
+
 	def __init__(self, clock = 120, device = None, debug = None):
-		"""expect to receive one tick per beat, generate events at 120bpm"""
-		self.ticklen = 1.0 / TICKS_PER_BEAT
+		""" Expect to receive one tick per beat, generate events at 120bpm """
+		self.tick_length = 1.0 / TICKS_PER_BEAT
 		self.beats = 0
 		self.devices = [ device ] if device else [] 
 		self.channels = []
@@ -54,6 +57,8 @@ class Timeline(object):
 	
 	@property
 	def bpm(self):
+		""" Returns the tempo of this timeline's clock (which may be internal
+		or external). """
 		if self.has_external.clock:
 			return self.clock_source.bpm
 		else:
@@ -65,21 +70,29 @@ class Timeline(object):
 		return bool(self.clock_source)
 
 	def tick(self):
-		# if round(self.beats, 5) % 1 == 0:
-		# 	print "tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events))
+		""" Called once every TICKS_PER_BEAT seconds (default 1/24s)
+		to trigger new events. """
 
 		#------------------------------------------------------------------------
-		# copy self.events because removing from it whilst using it = bad idea.
-		# perform events before channels are executed because an event might
+		# Each time we arrive at precisely a new beat, generate a debug msg.
+		# Round to several decimal places to avoid 7.999999999 syndrome.
+		# http://docs.python.org/tutorial/floatingpoint.html
+		#------------------------------------------------------------------------
+		if round(self.beats, 8) % 1 == 0:
+		 	log.debug("tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events)))
+
+		#------------------------------------------------------------------------
+		# Copy self.events because removing from it whilst using it = bad idea.
+		# Perform events before channels are executed because an event might
 		# include scheduling a quantized channel, which should then be
 		# immediately evaluated.
 		#------------------------------------------------------------------------
 		for event in self.events[:]:
 			#------------------------------------------------------------------------
-			# the only event we currently get in a Timeline are add_channel events
-			#  -- which have a raw function associated with them.
+			# The only event we currently get in a Timeline are add_channel events
+			#  -- which have a function object associated with them.
 			# 
-			# round needed because we can sometimes end up with beats = 3.99999999...
+			# Round to work around rounding errors.
 			# http://docs.python.org/tutorial/floatingpoint.html
 			#------------------------------------------------------------------------
 			if round(event["time"], 8) <= round(self.beats, 8):
@@ -87,32 +100,38 @@ class Timeline(object):
 				self.events.remove(event)
 
 		#------------------------------------------------------------------------
-		# some devices (ie, MidiFileOut) require being told to tick
+		# Tell our devices (ie, MidiFileOut) to move forward a step.
 		#------------------------------------------------------------------------
 		for device in self.devices:
-			device.tick(self.ticklen)
+			device.tick(self.tick_length)
 
 		#------------------------------------------------------------------------
-		# copy self.channels because removing from it whilst using it = bad idea
+		# Copy self.channels because removing from it whilst using it = bad idea
 		#------------------------------------------------------------------------
 		for channel in self.channels[:]:
-			channel.tick(self.ticklen)
+			channel.tick(self.tick_length)
 			if channel.finished:
 				self.channels.remove(channel)
 
+		#------------------------------------------------------------------------
+		# If we've run out of notes, throw a StopIteration.
+		#------------------------------------------------------------------------
 		if self.stop_when_done and len(self.channels) == 0:
 			raise StopIteration
 
 		#------------------------------------------------------------------------
 		# TODO: should automator and channel inherit from a common superclass?
-		#       one is continuous, one is discrete.
+		#       One is continuous, one is discrete.
 		#------------------------------------------------------------------------
 		for automator in self.automators[:]:
-			automator.tick(self.ticklen)
+			automator.tick(self.tick_length)
 			if automator.finished:
 				self.automators.remove(automator)
 
-		self.beats += self.ticklen
+		#------------------------------------------------------------------------
+		# Increment beats according to our current tick_length.
+		#------------------------------------------------------------------------
+		self.beats += self.tick_length
 
 	def dump(self):
 		""" Output a summary of this Timeline object
@@ -128,13 +147,16 @@ class Timeline(object):
 			print"   - %s" % channel
 
 	def reset_to_beat(self):
+		""" Reset our timer to the last beat.
+		Useful when a MIDI Stop/Reset message is received. """
+
 		self.beats = round(self.beats)
 		for channel in self.channels:
 			channel.reset_to_beat()
 
 	def reset(self):
-		self.beats = -.0001
-		# XXX probably shouldn't have to do this - should channels read the tl ticks value?
+		""" Reset our timeline to t = 0. """
+		self.beats = 0.0
 		for channel in self.channels:
 			channel.reset()
 
@@ -143,9 +165,11 @@ class Timeline(object):
 		self.thread = thread.start_new_thread(self.run, ())
 
 	def run(self, high_priority = True):
-		""" Create clock with 64th-beat granularity.
-		By default, attempts to run as a high-priority thread
-		(though requires being run as root to re-nice the process) """
+		""" Run this Timeline in the foreground.
+		By default, attempts to run as a high-priority thread for more
+		accurate timing (though requires being run as root to re-nice the
+		process.) """
+
 		try:
 			import os
 			os.nice(-20)
@@ -174,16 +198,20 @@ class Timeline(object):
 			traceback.print_exc(file = sys.stdout)
 
 	def warp(self, warper):
+		""" Apply a PWarp object to warp our clock's timing. """
 		self.clock.warp(warper)
 
 	def unwarp(self, warper):
+		""" Remove a PWarp object from our clock. """
 		self.clock.warp(warper)
 
 	def set_output(self, device):
+		""" Set a new device to send events to, removing any existing outputs. """
 		self.devices.clear()
 		self.add_output(device)
 
 	def add_output(self, device):
+		""" Append a new output device to our output list. """
 		self.devices.append(device)
 
 	def sched(self, event, quantize = 0, delay = 0, count = 0, device = None):
@@ -236,7 +264,7 @@ class AutomatorChannel:
 
 		self.dick = dict
 
-	def tick(self, ticklen):
+	def tick(self, tick_length):
 		pass	
 
 class Channel:
