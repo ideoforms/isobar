@@ -24,7 +24,7 @@ timeline.sched({ 'note': ppitch + 24, 'dur': pdur * 4, 'channel': 1, 'gate': 2, 
 timeline.sched({ 'note': ppitch + 72, 'dur': pdur / 2, 'channel': 1, 'gate': 1, 'amp': pamp / 2 })
 
 # add some continuous warping
-warp = PWRamp(2, PBrown(-0.1, 0.01, -0.15, -0.05))
+warp = PWInterpolate(PBrown(-0.1, 0.01, -0.15, -0.05), 2)
 timeline.warp(warp)
 
 # go!

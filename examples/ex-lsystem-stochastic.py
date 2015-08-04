@@ -17,7 +17,7 @@ notes = notes % 36 + 52
 midi = MidiOut()
 
 timeline = Timeline(120)
-timeline.output(midi)
+timeline.add_output(midi)
 
 timeline.sched({ 'note': notes, 'dur': 0.25 })
 timeline.run()
