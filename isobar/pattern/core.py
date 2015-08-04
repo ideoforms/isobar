@@ -253,8 +253,21 @@ class Pattern:
 
 	@staticmethod
 	def pattern(v):
-		""" Patternify a value by wrapping it in PConst if necessary. """
-		return v if isinstance(v, Pattern) else PConst(v)
+		""" Patternify a value, turning it into an object with a next() method
+		to obtain its next value.
+		
+		Pattern subclasses remain untouched.
+		Lists are turned into PSeq sequences.
+		Scalars and other objects are turned into PConst objects. """
+
+		from isobar.pattern.sequence import PSeq
+
+		if isinstance(v, Pattern):
+			return v
+		elif isinstance(v, list):
+			return PSeq(v, 1)
+		else:
+			return PConst(v)
 
 class PConst(Pattern):
 	""" PConst: Pattern returning a fixed value
@@ -420,7 +433,7 @@ class PConcat(Pattern):
 
 
 #------------------------------------------------------------------
-# binary operators
+# Binary operators
 #------------------------------------------------------------------
 
 class PBinOp(Pattern):
