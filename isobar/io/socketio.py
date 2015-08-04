@@ -16,7 +16,7 @@ class SocketIOOut:
 	def __init__(self, host = "localhost", port = 9000):
 		self.socket = socketIO_client.SocketIO(host, port)
 
-	def tick(self, ticklen):
+	def tick(self, tick_length):
 		pass
 
 	def event(self, event):

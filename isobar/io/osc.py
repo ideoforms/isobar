@@ -17,7 +17,7 @@ class OSCOut:
 		self.osc = OSCClient()
 		self.osc.connect((host, port))
 
-	def tick(self, ticklen):
+	def tick(self, tick_length):
 		pass
 
 	def noteOn(self, note = 60, velocity = 64, channel = 0):

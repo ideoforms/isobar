@@ -143,8 +143,8 @@ class MidiFileOut:
 		self.volume = 64
 		self.time = 0
 
-	def tick(self, ticklen):
-		self.time += ticklen
+	def tick(self, tick_length):
+		self.time += tick_length
 
 	def noteOn(self, note = 60, velocity = 64, channel = 0, duration = 1):
 		#------------------------------------------------------------------------

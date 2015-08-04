@@ -89,7 +89,7 @@ class MidiOut:
 			log.warn("Could not find MIDI target %s, using default" % target)
 			self.midi.open_port(0)
 
-	def tick(self, ticklen):
+	def tick(self, tick_length):
 		pass
 
 	def noteOn(self, note = 60, velocity = 64, channel = 0):

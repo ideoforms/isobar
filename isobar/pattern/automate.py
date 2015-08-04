@@ -11,7 +11,7 @@ class PASine(PAutomate):
 		self.amp = amp
 		self.pos = 0.0
 
-	def tick(self, ticklen):
+	def tick(self, tick_length):
 		pos_norm = self.pos / self.length
 		rv = math.sin(2.0 * math.pi * pos_norm) * self.amp
 		#------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class PASine(PAutomate):
 		#------------------------------------------------------------------------
 		rv = 0.5 * rv + 0.5
 
-		self.pos += ticklen
+		self.pos += tick_length
 		if self.pos > self.length:
 			self.pos -= self.length
 
