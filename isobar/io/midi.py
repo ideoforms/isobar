@@ -23,7 +23,7 @@ class MidiIn:
 		# don't ignore MIDI clock messages (is on by default)
 		#------------------------------------------------------------------------
 		self.midi.ignore_types(timing = False)
-		self.clocktarget = None
+		self.clock_target = None
 
 		ports = self.midi.get_ports()
 		if len(ports) == 0:
@@ -43,15 +43,17 @@ class MidiIn:
 		data_type = message[0]
 
 		if data_type == 248:
-			if self.clocktarget is not None:
-				self.clocktarget.tick()
+			if self.clock_target is not None:
+				self.clock_target.tick()
 
 		elif data_type == 250:
-			if self.clocktarget is not None:
-				self.clocktarget.reset_to_beat()
+			if self.clock_target is not None:
+				self.clock_target.reset_to_beat()
 
 	def run(self):
 		self.midi.set_callback(self.callback)
+		while True:
+			time.sleep(0.1)
 
 	def poll(self):
 		""" used in markov-learner -- can we refactor? """

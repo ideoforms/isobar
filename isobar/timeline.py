@@ -12,13 +12,15 @@ import isobar.io
 import logging
 log = logging.getLogger(__name__)
 
+#------------------------------------------------------------------------
+# Determines how fine-grained our clocking is -- events can't be
+# scheduled any faster than this. 24 ticks per beat is identical
+# to MIDI clocking.
+#------------------------------------------------------------------------
 TICKS_PER_BEAT = 24
 
 class Timeline(object):
-	CLOCK_INTERNAL = 0
-	CLOCK_EXTERNAL = 1
-
-	def __init__(self, bpm = 120, device = None, debug = None):
+	def __init__(self, clock = 120, device = None, debug = None):
 		"""expect to receive one tick per beat, generate events at 120bpm"""
 		self.ticklen = 1.0 / TICKS_PER_BEAT
 		self.beats = 0
@@ -27,9 +29,8 @@ class Timeline(object):
 		self.automators = []
 		self.max_channels = 0
 
-		self.bpm = None
 		self.clock = None
-		self.clocksource = None
+		self.clock_source = None
 		self.thread = None
 
 		self.stop_when_done = False
@@ -39,17 +40,29 @@ class Timeline(object):
 
 		self.events = []
 
-		if hasattr(bpm, "clocktarget"):
-			bpm.clocktarget = self
-			self.clocksource = bpm
-			self.clockmode = self.CLOCK_EXTERNAL
+		if hasattr(clock, "clock_target"):
+			#------------------------------------------------------------------------
+			# Follow external clock.
+			#------------------------------------------------------------------------
+			clock.clock_target = self
+			self.clock_source = clock
 		else:
-			self.bpm = bpm
 			#------------------------------------------------------------------------
-			# Create clock with a tick-size of 1/24th of a beat.
+			# Create internal clock for native timekeeping.
 			#------------------------------------------------------------------------
-			self.clock = Clock(60.0 / (self.bpm * TICKS_PER_BEAT))
-			self.clockmode = self.CLOCK_INTERNAL
+			self.clock = Clock(60.0 / (clock * TICKS_PER_BEAT))
+	
+	@property
+	def bpm(self):
+		if self.has_external.clock:
+			return self.clock_source.bpm
+		else:
+			return self.clock.bpm
+
+	@property
+	def has_external_clock(self):
+		""" Return True if we're using an external clock source. """
+		return bool(self.clock_source)
 
 	def tick(self):
 		# if round(self.beats, 5) % 1 == 0:
@@ -104,7 +117,7 @@ class Timeline(object):
 	def dump(self):
 		""" Output a summary of this Timeline object
 		    """
-		print "Timeline (clock: %s)" % ("external" if self.clockmode == self.CLOCK_EXTERNAL else "%sbpm" % self.bpm)
+		print "Timeline (clock: %s)" % ("external" if self.has_external_clock else "%sbpm" % self.bpm)
 
 		print " - %d devices" % len(self.devices)
 		for device in self.devices:
@@ -145,10 +158,10 @@ class Timeline(object):
 			# Start the clock. This might internal (eg a Clock object, running on
 			# an independent thread), or external (eg a MIDI clock).
 			#------------------------------------------------------------------------
-			if self.clockmode == self.CLOCK_INTERNAL:
-				self.clock.run(self)
+			if self.has_external_clock:
+				self.clock_source.run()
 			else:
-				self.clocksource.run()
+				self.clock.run(self)
 
 		except StopIteration:
 			#------------------------------------------------------------------------
@@ -174,6 +187,7 @@ class Timeline(object):
 		self.devices.append(device)
 
 	def sched(self, event, quantize = 0, delay = 0, count = 0, device = None):
+		""" Schedule a new track within this Timeline. """
 		if not device:
 			if not self.devices:
 				log.info("Adding default MIDI output")
@@ -184,30 +198,31 @@ class Timeline(object):
 			print "*** timeline: refusing to schedule channel (hit limit of %d)" % self.max_channels
 			return
 
-		# hmm - why do we need to copy this?
-		# c = channel(copy.deepcopy(dict))
-		# c = Channel(copy.copy(dict))
-		def addchan():
+		def _add_channel():
 			#----------------------------------------------------------------------
-			# this isn't exactly the best way to determine whether a device is
-			# an automator or event generator. should we have separate calls?
+			# This isn't the best way to determine whether a device is an
+			# automator or event generator. Should we have separate calls?
 			#----------------------------------------------------------------------
-			if type(event) == dict and event.has_key("control") and False:
-				pass
-			else:
-				c = Channel(event, count)
-				c.timeline = self
-				c.device = device
-				self.channels.append(c)
+			c = Channel(event, count)
+			c.timeline = self
+			c.device = device
+			self.channels.append(c)
 
 		if quantize or delay:
+			#----------------------------------------------------------------------
+			# We don't want to begin events right away -- either wait till
+			# the next beat boundary (quantize), or delay a number of beats.
+			#----------------------------------------------------------------------
 			if quantize:
 				schedtime = quantize * math.ceil(float(self.beats + delay) / quantize)
 			else:
 				schedtime = self.beats + delay
-			self.events.append({ 'time' : schedtime, 'fn' : addchan })
+			self.events.append({ 'time' : schedtime, 'fn' : _add_channel })
 		else:
-			addchan()
+			#----------------------------------------------------------------------
+			# Begin events on this channel right away.
+			#----------------------------------------------------------------------
+			_add_channel()
 
 class AutomatorChannel:
 	def __init__(self, dict = {}):
@@ -495,9 +510,9 @@ class Channel:
 #----------------------------------------------------------------------
 
 class Clock:
-	def __init__(self, ticksize = 1.0/24):
-		self.ticksize_orig = ticksize
-		self.ticksize = ticksize
+	def __init__(self, tick_size = 1.0/24):
+		self.tick_size_orig = tick_size
+		self.tick_size = tick_size
 		self.warpers = []
 		self.accelerate = 1.0
 
@@ -509,11 +524,11 @@ class Clock:
 			# to keep Warp patterns in sync  
 			#------------------------------------------------------------------------
 			while True:
-				if clock1 - clock0 >= self.ticksize:
+				if clock1 - clock0 >= self.tick_size:
 					# time for a tick
 					timeline.tick()
-					clock0 += self.ticksize
-					self.ticksize = self.ticksize_orig
+					clock0 += self.tick_size
+					self.tick_size = self.tick_size_orig
 					for warper in self.warpers:
 						warp = warper.next()
 						#------------------------------------------------------------------------
@@ -521,7 +536,7 @@ class Clock:
 						#  - so -1 doubles our tempo, +1 halves it
 						#------------------------------------------------------------------------
 						warp = pow(2, warp)
-						self.ticksize *= warp
+						self.tick_size *= warp
 
 				time.sleep(0.002)
 				clock1 = time.time() * self.accelerate
