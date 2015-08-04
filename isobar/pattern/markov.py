@@ -95,6 +95,11 @@ class MarkovLearner:
 		process. """
 		return self.markov
 
+	def learn_pattern(self, pattern):
+		""" Learns the sequence described in this pattern. """
+		for value in pattern:
+			self.register(value)
+
 	def register(self, value):
 		if value not in self.markov.nodes:
 			self.markov.nodes[value] = []
