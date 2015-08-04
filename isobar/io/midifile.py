@@ -13,12 +13,12 @@ log = logging.getLogger(__name__)
 import midi
 
 class MidiFileIn:
-	def __init__(self):
-		pass
+	def __init__(self, filename):
+		self.filename = filename
 
-	def read(self, filename, quantize = 0.25):
+	def read(self, quantize = 0.25):
 		reader = midi.FileReader()
-		data = reader.read(file(filename))
+		data = reader.read(file(self.filename))
 
 		class Note:
 			def __init__(self, pitch, velocity, location, duration = None):
