@@ -1,8 +1,14 @@
+#------------------------------------------------------------------------
+# absolute_import is needed so we can import MidiUtil without
+# filename clash with isobar/io/midi.py.
+#------------------------------------------------------------------------
 from __future__ import absolute_import 
 
 from isobar.note import *
 from isobar.pattern.core import *
 
+import logging
+log = logging.getLogger(__name__)
 
 import midi
 
@@ -31,7 +37,7 @@ class MidiFileIn:
 			for event in filter(lambda event: isinstance(event, midi.events.NoteEvent), track):
 				location = event.tick / 96.0
 				if isinstance(event, midi.events.NoteOnEvent) and event.velocity > 0:
-					print "(%.2f beats) %s. \t(note = %d, velocity = %d)" % (location, miditoname(event.pitch), event.pitch, event.velocity)
+					log.info("(%.2f beats) %s. \t(note = %d, velocity = %d)" % (location, miditoname(event.pitch), event.pitch, event.velocity))
 
 					#------------------------------------------------------------------------
 					# anomaly: sometimes a midi file might have a note on when the previous
@@ -40,11 +46,11 @@ class MidiFileIn:
 					for note in reversed(notes):
 						if note.pitch == event.pitch:
 							if not note.duration:
-								print "note-on found without note-off; cancelling previous note"
+								log.warn("note-on found without note-off; cancelling previous note")
 								duration = location - note.location
 								note.duration = duration
 								if duration == 0:
-									print "*** DURATION OF ZERO??"
+									log.warn("*** DURATION OF ZERO??")
 							break
 
 					note = Note(event.pitch, event.velocity, location)
@@ -54,7 +60,7 @@ class MidiFileIn:
 				# A NoteOn event with velocity == 0 also acts as a NoteOff.
 				#------------------------------------------------------------------------
 				if isinstance(event, midi.events.NoteOffEvent) or (isinstance(event, midi.events.NoteOnEvent) and event.velocity == 0):
-					print "(%.2f beats) %s off \t(note = %d, velocity = %d)" % (location, miditoname(event.pitch), event.pitch, event.velocity)
+					log.debug("(%.2f beats) %s off \t(note = %d, velocity = %d)" % (location, miditoname(event.pitch), event.pitch, event.velocity))
 					found = False
 					for note in reversed(notes):
 						if note.pitch == event.pitch:
@@ -64,7 +70,7 @@ class MidiFileIn:
 							found = True
 							break
 					if not found:
-						print "*** NOTE-OFF FOUND WITHOUT NOTE-ON ***"
+						log.warn("*** NOTE-OFF FOUND WITHOUT NOTE-ON ***")
 
 		#------------------------------------------------------------------------
 		# Construct a sequence which honours chords and relative lengths.
@@ -72,7 +78,7 @@ class MidiFileIn:
 		#------------------------------------------------------------------------
 		notes_by_time = {}
 		for note in notes:
-			print "(%.2f) %d/%d, %s" % (note.location, note.pitch, note.velocity, note.duration)
+			log.debug("(%.2f) %d/%d, %s" % (note.location, note.pitch, note.velocity, note.duration))
 			location = note.location
 			if quantize is not None:
 				location = round(location / quantize) * quantize
