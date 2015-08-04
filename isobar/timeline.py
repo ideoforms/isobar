@@ -252,21 +252,6 @@ class Timeline(object):
 			#----------------------------------------------------------------------
 			_add_channel()
 
-class AutomatorChannel:
-	def __init__(self, dict = {}):
-		dict.setdefault('value', 0.5)
-		dict.setdefault('control', 0)
-		dict.setdefault('channel', 0)
-
-		for k, value in dict.iteritems():
-			if not isinstance(value, Pattern):
-				dict[k] = PAConst(value)
-
-		self.dick = dict
-
-	def tick(self, tick_length):
-		pass	
-
 class Channel:
 	def __init__(self, events = {}, count = 0):
 		#----------------------------------------------------------------------
