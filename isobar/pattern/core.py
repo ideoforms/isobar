@@ -17,7 +17,7 @@ class Pattern:
 		Patterns are at the core of isoar. A Pattern implements the iterator
 		protocol, representing a sequence of values which are iteratively
 		returned by the next() method. A pattern may be finite, after which
-		point it raises an EndOfPattern exception. Call reset() to return
+		point it raises a StopIteration exception. Call reset() to return
 		a pattern to its initial state.
 
 		Patterns can be subject to standard arithmetic operators as expected.
@@ -151,11 +151,12 @@ class Pattern:
 		""" reset a finite sequence back to position 0 """
 		fields = vars(self)
 		for name, field in fields.items():
-			# print "reset: %s" % name
 			if isinstance(field, Pattern):
 				field.reset()
+			#------------------------------------------------------------------------
 			# look through list items and reset anything in here too
 			# (needed to reset items in PConcat)
+			#------------------------------------------------------------------------
 			elif isinstance(field, list):
 				for item in field:
 					if isinstance(item, Pattern):
@@ -297,7 +298,7 @@ class PDict(Pattern):
 	""" PDict: Dict of patterns
         Thanks to Dan Stowell <http://www.mcld.co.uk/>
 	    """
-	def __init__(self, value = {}):
+	def __init__(self, value = None):
 		from isobar.pattern.sequence import PSeq
 
 		self.dict = {}
