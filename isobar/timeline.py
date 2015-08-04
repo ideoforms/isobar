@@ -231,10 +231,8 @@ class Timeline(object):
 			# This isn't the best way to determine whether a device is an
 			# automator or event generator. Should we have separate calls?
 			#----------------------------------------------------------------------
-			c = Channel(event, count)
-			c.timeline = self
-			c.device = device
-			self.channels.append(c)
+			channel = Channel(event, count, self, device)
+			self.channels.append(channel)
 
 		if quantize or delay:
 			#----------------------------------------------------------------------
@@ -242,10 +240,10 @@ class Timeline(object):
 			# the next beat boundary (quantize), or delay a number of beats.
 			#----------------------------------------------------------------------
 			if quantize:
-				schedtime = quantize * math.ceil(float(self.beats + delay) / quantize)
+				scheduled_time = quantize * math.ceil(float(self.beats + delay) / quantize)
 			else:
-				schedtime = self.beats + delay
-			self.events.append({ 'time' : schedtime, 'fn' : _add_channel })
+				scheduled_time = self.beats + delay
+			self.events.append({ 'time' : scheduled_time, 'fn' : _add_channel })
 		else:
 			#----------------------------------------------------------------------
 			# Begin events on this channel right away.
@@ -253,7 +251,7 @@ class Timeline(object):
 			_add_channel()
 
 class Channel:
-	def __init__(self, events = {}, count = 0):
+	def __init__(self, events = {}, count = 0, timeline = None, device = None):
 		#----------------------------------------------------------------------
 		# evaluate in case we have a pattern which gives us an event
 		# eg: PSeq([ { "note" : 20, "dur" : 0.5 }, { "note" : 50, "dur" : PWhite(0, 2) } ])
@@ -265,11 +263,14 @@ class Channel:
 
 		self.next()
 
-		self.timeline = None
-		self.pos = 0
-		self.dur_now = 0
+		self.timeline = timeline
+		self.device = device
 		self.phase_now = self.event["phase"].next()
-		self.next_note = 0
+
+		#------------------------------------------------------------------------
+		# Reset our play position.
+		#------------------------------------------------------------------------
+		self.reset()
 
 		self.note_offs = []
 		self.finished = False
@@ -429,8 +430,9 @@ class Channel:
 			values["note"] = None
 
 		if values["note"] is None:
-			# print "(rest)"
-			# return
+			#----------------------------------------------------------------------
+			# Rest.
+			#----------------------------------------------------------------------
 			values["note"] = 0
 			values["amp"] = 0
 		else:
@@ -490,9 +492,9 @@ class Channel:
 			# shorter than the number of notes.
 			#----------------------------------------------------------------------
 			for index, note in enumerate(notes):
-				amp     = values["amp"][index] if isinstance(values["amp"], list) else values["amp"]
-				channel = values["channel"][index] if isinstance(values["channel"], list) else values["channel"]
-				gate    = values["gate"][index] if isinstance(values["gate"], list) else values["gate"]
+				amp     = values["amp"][index] if isinstance(values["amp"], tuple) else values["amp"]
+				channel = values["channel"][index] if isinstance(values["channel"], tuple) else values["channel"]
+				gate    = values["gate"][index] if isinstance(values["gate"], tuple) else values["gate"]
 
 				log.debug("note on  (channel %d, note %d, velocity %d)", channel, note, amp);
 				self.device.note_on(note, amp, channel)
