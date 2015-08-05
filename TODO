@@ -1,7 +1,7 @@
 TODO
+* use of yield in for generator patterns
 * setuptools setup.py
 * complete INSTALL doc
-* Switch to rtmidi for setuptools-supported dependency chain
 * 2+ order markov chains
 * unit test suite
 * better support for debug output and propagation between classes
@@ -35,3 +35,4 @@ DONE
 * auto-generated docs from comments
 * move from osc to OSC module
 * support for MIDI file reading
+* Switch to rtmidi for setuptools-supported dependency chain
