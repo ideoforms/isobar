@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # import vital classes from isobar namespace
 from isobar import *
@@ -15,7 +15,7 @@ pdur = PShuffle([ 1, 1, 2, 2, 4 ], 1)
 pdur  = PPermut(pdur) * 0.25
 
 pamp = PShuffle([ 10, 15, 20, 35 ], 2)
-pamp = PPermut(pamp) 
+pamp = PPermut(pamp)
 
 # schedule on a 60bpm timeline and send to MIDI output
 timeline = Timeline(60)

@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # parallel markov chain learner:
 # 1. takes MIDI input, and constructs three markov chains for pitch, duration
-#    and amplitude. 
+#    and amplitude.
 # 2. after receiving a low "C", plays back melodies which are statistically
 #    similar to the input.
 # after francois pachet's "continuator".

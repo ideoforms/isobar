@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # implementation of steve reich's "piano phase" (1967):
 # two identical piano lines, one with a slightly longer duration,

@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 
 # ex-midifile-write:
 # Simple example of writing to a MIDI file in real time.
