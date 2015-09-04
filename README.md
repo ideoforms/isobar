@@ -1,5 +1,8 @@
 # Introduction
 
+[![Build Status](https://img.shields.io/circleci/project/ideoforms/isobar/master.svg)](https://circleci.com/gh/ideoforms/isobar)
+
+
 isobar is a Python library for expressing and constructing musical patterns, designed for use in algorithmic composition. It allows for concise construction, manipulation and transposition of sequences, supporting scalar operations on lazy patterns.
 
 Output can be sent via MIDI, OSC or SocketIO, or written to a .mid file. Input (for interactive systems) can be taken via MIDI, and patterns can be read from a .mid file.
