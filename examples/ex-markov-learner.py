@@ -15,7 +15,7 @@ import time
 m_in  = MidiIn()
 m_out = MidiOut()
 
-learner = MarkovLParallel(3)
+learner = MarkovParallelLearners(3)
 clock0 = 0
 
 while True:
