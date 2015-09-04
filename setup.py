@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 #------------------------------------------------------------------------
 # Generate a PyPI-friendly RST file from our markdown README.
@@ -19,7 +19,7 @@ setup(
 	author = 'Daniel Jones',
 	author_email = 'dan-isobar@erase.net',
 	url = 'https://github.com/ideoforms/isobar',
-	packages = ['isobar'],
+	packages = find_packages(exclude=['examples']),
 	install_requires = ['pyOSC >= 0.3b0', 'python-rtmidi'],
 	keywords = ('sound', 'music', 'composition'),
 	classifiers = [
