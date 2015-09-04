@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # test-plsys-rhythm:
 # generates a rhythm line based on an l-system sprouting structure,

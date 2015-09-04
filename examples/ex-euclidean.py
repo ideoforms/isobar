@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 #------------------------------------------------------------------------
 # Simple example of three parallel voices based on the Euclidean

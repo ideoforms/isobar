@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # example-lsystem-stochastic:
 # generates a stochastic l-system arpeggio
@@ -10,7 +10,7 @@ from isobar.io.midi import *
 import random
 import time
 
-notes = PLSys("N[+N--?N]+N[+?N]", depth = 4) 
+notes = PLSys("N[+N--?N]+N[+?N]", depth = 4)
 notes = PDegree(notes, Scale.majorPenta)
 notes = notes % 36 + 52
 

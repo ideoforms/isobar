@@ -1,0 +1,10 @@
+## Customize dependencies
+dependencies:
+  pre:
+    - sudo apt-get update; sudo apt-get install libjack0; sudo apt-get install libjack-dev 
+
+## Customize test commands
+test:
+  override:
+    - python setup.py install 
+

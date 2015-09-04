@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # example-lsystem-grapher:
 # generates an l-system and its ASCII representation
