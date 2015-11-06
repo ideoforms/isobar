@@ -425,6 +425,16 @@ class PDegree(Pattern):
 
 		return scale[degree]
 
+class PMidiToFrequency(Pattern):
+	""" PMidiToFrequency: Map MIDI note to frequency value.
+		"""
+	def __init__(self, note):
+		self.note = note
+
+	def next(self):
+		note = Pattern.value(self.note)
+		return miditofreq(note)
+
 class PSubsequence(Pattern):
 	""" PSubsequence: Returns a finite subsequence of an input pattern.
 

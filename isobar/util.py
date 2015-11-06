@@ -91,6 +91,9 @@ def miditoname(note):
 
 	return str
 
+def miditofreq(note):
+	return 440.0 * pow(2, (note - 69.0) / 12)
+
 def bipolar_diverge(maximum):
 	""" returns [0, 1, -1, ...., maximum, -maximum ] """
 	sequence = list(sum(zip(range(maximum + 1), range(0, -maximum - 1, -1)), ()))
