@@ -1,4 +1,6 @@
 TODO
+* MIDI listener for control inputs
+* MIDI feedback
 * setuptools setup.py
 * complete INSTALL doc
 * Switch to rtmidi for setuptools-supported dependency chain
