@@ -1,17 +1,27 @@
 from isobar.pattern.core import *
 
+import threading
 import inspect
 import math
 
+import OSC
+
 class PStaticViaOSC (Pattern):
-	initialised = False
+	listening = False
 	
 	def __init__(self, default = 0, address = "/value", port = 9900):
 		if not PStaticViaOSC.initialised:
-			import osc
+			server = OSC.OSCServer(("localhost", port))
+			server.addMsgHandler(prefix, self.recv)
+			self.thread = threading.Thread(target = server.serve_forever)
+			self.thread.setDaemon(True)
+			self.thread.start()
 
-			osc.init()
-			osc.listen(port = port)
+			PStaticGlobal.listening = True
+
+			osc_server = OSC.OSCServer(("0.0.0.0", port))
+
+			osc_server.serve_forever()
 
 		self.value = default
 		self.address = address
@@ -75,9 +85,6 @@ class PStaticGlobal(Pattern):
 	@classmethod
 	def listen(self, prefix = "/global", port = 9900):
 		if not PStaticGlobal.listening:
-			import threading
-			import OSC
-
 			server = OSC.OSCServer(("localhost", port))
 			server.addMsgHandler(prefix, self.recv)
 			self.thread = threading.Thread(target = server.serve_forever)
