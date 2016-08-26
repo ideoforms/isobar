@@ -9,61 +9,89 @@ from isobar.pattern import *
 
 import isobar.io
 
+import logging
+log = logging.getLogger(__name__)
+
+#------------------------------------------------------------------------
+# Determines how fine-grained our clocking is -- events can't be
+# scheduled any faster than this. 24 ticks per beat is identical
+# to MIDI clocking.
+#------------------------------------------------------------------------
 TICKS_PER_BEAT = 24
 
 class Timeline(object):
-	CLOCK_INTERNAL = 0
-	CLOCK_EXTERNAL = 1
+	""" A Timeline object represents a number of Channels, each of which
+	represents a sequence of note or control events. """
 
-	def __init__(self, bpm = 120, device = None, debug = None):
-		"""expect to receive one tick per beat, generate events at 120bpm"""
-		self.ticklen = 1.0 / TICKS_PER_BEAT
+	def __init__(self, clock = 120, device = None, debug = None):
+		""" Expect to receive one tick per beat, generate events at 120bpm """
+		self.tick_length = 1.0 / TICKS_PER_BEAT
 		self.beats = 0
 		self.devices = [ device ] if device else [] 
 		self.channels = []
 		self.automators = []
 		self.max_channels = 0
 
-		self.bpm = None
 		self.clock = None
-		self.clocksource = None
+		self.clock_source = None
 		self.thread = None
-
-		self.stop_when_done = False
+		self.stop_when_done = True
 
 		if debug is not None:
 			isobar.debug = debug
 
 		self.events = []
 
-		if hasattr(bpm, "clocktarget"):
-			bpm.clocktarget = self
-			self.clocksource = bpm
-			self.clockmode = self.CLOCK_EXTERNAL
+		if hasattr(clock, "clock_target"):
+			#------------------------------------------------------------------------
+			# Follow external clock.
+			#------------------------------------------------------------------------
+			clock.clock_target = self
+			self.clock_source = clock
 		else:
-			self.bpm = bpm
 			#------------------------------------------------------------------------
-			# Create clock with a tick-size of 1/24th of a beat.
+			# Create internal clock for native timekeeping.
 			#------------------------------------------------------------------------
-			self.clock = Clock(60.0 / (self.bpm * TICKS_PER_BEAT))
-			self.clockmode = self.CLOCK_INTERNAL
+			self.clock = Clock(60.0 / (clock * TICKS_PER_BEAT))
+	
+	@property
+	def bpm(self):
+		""" Returns the tempo of this timeline's clock (which may be internal
+		or external). """
+		if self.has_external.clock:
+			return self.clock_source.bpm
+		else:
+			return self.clock.bpm
+
+	@property
+	def has_external_clock(self):
+		""" Return True if we're using an external clock source. """
+		return bool(self.clock_source)
 
 	def tick(self):
-		# if round(self.beats, 5) % 1 == 0:
-		# 	print "tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events))
+		""" Called once every TICKS_PER_BEAT seconds (default 1/24s)
+		to trigger new events. """
 
 		#------------------------------------------------------------------------
-		# copy self.events because removing from it whilst using it = bad idea.
-		# perform events before channels are executed because an event might
+		# Each time we arrive at precisely a new beat, generate a debug msg.
+		# Round to several decimal places to avoid 7.999999999 syndrome.
+		# http://docs.python.org/tutorial/floatingpoint.html
+		#------------------------------------------------------------------------
+		if round(self.beats, 8) % 1 == 0:
+		 	log.debug("tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events)))
+
+		#------------------------------------------------------------------------
+		# Copy self.events because removing from it whilst using it = bad idea.
+		# Perform events before channels are executed because an event might
 		# include scheduling a quantized channel, which should then be
 		# immediately evaluated.
 		#------------------------------------------------------------------------
 		for event in self.events[:]:
 			#------------------------------------------------------------------------
-			# the only event we currently get in a Timeline are add_channel events
-			#  -- which have a raw function associated with them.
+			# The only event we currently get in a Timeline are add_channel events
+			#  -- which have a function object associated with them.
 			# 
-			# round needed because we can sometimes end up with beats = 3.99999999...
+			# Round to work around rounding errors.
 			# http://docs.python.org/tutorial/floatingpoint.html
 			#------------------------------------------------------------------------
 			if round(event["time"], 8) <= round(self.beats, 8):
@@ -71,37 +99,43 @@ class Timeline(object):
 				self.events.remove(event)
 
 		#------------------------------------------------------------------------
-		# some devices (ie, MidiFileOut) require being told to tick
+		# Tell our devices (ie, MidiFileOut) to move forward a step.
 		#------------------------------------------------------------------------
 		for device in self.devices:
-			device.tick(self.ticklen)
+			device.tick(self.tick_length)
 
 		#------------------------------------------------------------------------
-		# copy self.channels because removing from it whilst using it = bad idea
+		# Copy self.channels because removing from it whilst using it = bad idea
 		#------------------------------------------------------------------------
 		for channel in self.channels[:]:
-			channel.tick(self.ticklen)
+			channel.tick(self.tick_length)
 			if channel.finished:
 				self.channels.remove(channel)
 
+		#------------------------------------------------------------------------
+		# If we've run out of notes, throw a StopIteration.
+		#------------------------------------------------------------------------
 		if self.stop_when_done and len(self.channels) == 0:
 			raise StopIteration
 
 		#------------------------------------------------------------------------
 		# TODO: should automator and channel inherit from a common superclass?
-		#       one is continuous, one is discrete.
+		#       One is continuous, one is discrete.
 		#------------------------------------------------------------------------
 		for automator in self.automators[:]:
-			automator.tick(self.ticklen)
+			automator.tick(self.tick_length)
 			if automator.finished:
 				self.automators.remove(automator)
 
-		self.beats += self.ticklen
+		#------------------------------------------------------------------------
+		# Increment beats according to our current tick_length.
+		#------------------------------------------------------------------------
+		self.beats += self.tick_length
 
 	def dump(self):
 		""" Output a summary of this Timeline object
 		    """
-		print "Timeline (clock: %s)" % ("external" if self.clockmode == self.CLOCK_EXTERNAL else "%sbpm" % self.bpm)
+		print "Timeline (clock: %s)" % ("external" if self.has_external_clock else "%sbpm" % self.bpm)
 
 		print " - %d devices" % len(self.devices)
 		for device in self.devices:
@@ -112,14 +146,16 @@ class Timeline(object):
 			print"   - %s" % channel
 
 	def reset_to_beat(self):
+		""" Reset our timer to the last beat.
+		Useful when a MIDI Stop/Reset message is received. """
+
 		self.beats = round(self.beats)
 		for channel in self.channels:
 			channel.reset_to_beat()
 
 	def reset(self):
-		# print "tl reset!"
-		self.beats = -.0001
-		# XXX probably shouldn't have to do this - should channels read the tl ticks value?
+		""" Reset our timeline to t = 0. """
+		self.beats = 0.0
 		for channel in self.channels:
 			channel.reset()
 
@@ -127,14 +163,22 @@ class Timeline(object):
 		""" Run this Timeline in a background thread. """
 		self.thread = thread.start_new_thread(self.run, ())
 
-	def run(self, high_priority = True):
-		""" Create clock with 64th-beat granularity.
-		By default, attempts to run as a high-priority thread
-		(though requires being run as root to re-nice the process) """
+	def run(self, high_priority = True, stop_when_done = True):
+		""" Run this Timeline in the foreground.
+		By default, attempts to run as a high-priority thread for more
+		accurate timing (though requires being run as root to re-nice the
+		process.)
+		
+		If stop_when_done is set, returns when no channels are currently
+		scheduled; otherwise, keeps running indefinitely. """
+
+		if stop_when_done is not None:
+			self.stop_when_done = stop_when_done
+
 		try:
 			import os
 			os.nice(-20)
-			print "Timeline: Running as high-priority thread"
+			log.warn("Timeline: Running as high-priority thread")
 		except:
 			pass
 
@@ -143,41 +187,44 @@ class Timeline(object):
 			# Start the clock. This might internal (eg a Clock object, running on
 			# an independent thread), or external (eg a MIDI clock).
 			#------------------------------------------------------------------------
-			if self.clockmode == self.CLOCK_INTERNAL:
-				self.clock.run(self)
+			if self.has_external_clock:
+				self.clock_source.run()
 			else:
-				self.clocksource.run()
-				while True:
-					time.sleep(0.1)
+				self.clock.run(self)
 
 		except StopIteration:
 			#------------------------------------------------------------------------
 			# This will be hit if every Pattern in a timeline is exhausted.
 			#------------------------------------------------------------------------
-			print "Timeline finished"
+			log.info("Timeline finished")
 
 		except Exception, e:
 			print " *** Exception in background Timeline thread: %s" % e
 			traceback.print_exc(file = sys.stdout)
 
 	def warp(self, warper):
+		""" Apply a PWarp object to warp our clock's timing. """
 		self.clock.warp(warper)
 
 	def unwarp(self, warper):
+		""" Remove a PWarp object from our clock. """
 		self.clock.warp(warper)
 
 	def set_output(self, device):
-		self.devices.clear()
+		""" Set a new device to send events to, removing any existing outputs. """
+		self.devices = []
 		self.add_output(device)
 
 	def add_output(self, device):
+		""" Append a new output device to our output list. """
 		self.devices.append(device)
 
 	def sched(self, event, quantize = 0, delay = 0, count = 0, device = None):
 		# TODO: should delay be part of the event?
+		""" Schedule a new track within this Timeline. """
 		if not device:
 			if not self.devices:
-				isobar.log("Adding default MIDI output")
+				log.info("Adding default MIDI output")
 				self.add_output(isobar.io.MidiOut())
 			device = self.devices[0]
 
@@ -185,48 +232,32 @@ class Timeline(object):
 			print "*** timeline: refusing to schedule channel (hit limit of %d)" % self.max_channels
 			return
 
-		# hmm - why do we need to copy this?
-		# c = channel(copy.deepcopy(dict))
-		# c = Channel(copy.copy(dict))
-		def addchan():
+		def _add_channel():
 			#----------------------------------------------------------------------
-			# this isn't exactly the best way to determine whether a device is
-			# an automator or event generator. should we have separate calls?
+			# This isn't the best way to determine whether a device is an
+			# automator or event generator. Should we have separate calls?
 			#----------------------------------------------------------------------
-			if type(event) == dict and event.has_key("control") and False:
-				pass
-			else:
-				c = Channel(event, count)
-				c.timeline = self
-				c.device = device
-				self.channels.append(c)
+			channel = Channel(event, count, self, device)
+			self.channels.append(channel)
 
 		if quantize or delay:
+			#----------------------------------------------------------------------
+			# We don't want to begin events right away -- either wait till
+			# the next beat boundary (quantize), or delay a number of beats.
+			#----------------------------------------------------------------------
 			if quantize:
-				schedtime = quantize * math.ceil(float(self.beats + delay) / quantize)
+				scheduled_time = quantize * math.ceil(float(self.beats + delay) / quantize)
 			else:
-				schedtime = self.beats + delay
-			self.events.append({ 'time' : schedtime, 'fn' : addchan })
+				scheduled_time = self.beats + delay
+			self.events.append({ 'time' : scheduled_time, 'fn' : _add_channel })
 		else:
-			addchan()
-
-class AutomatorChannel:
-	def __init__(self, dict = {}):
-		dict.setdefault('value', 0.5)
-		dict.setdefault('control', 0)
-		dict.setdefault('channel', 0)
-
-		for k, value in dict.iteritems():
-			if not isinstance(value, Pattern):
-				dict[k] = PAConst(value)
-
-		self.dick = dict
-
-	def tick(self, ticklen):
-		pass	
+			#----------------------------------------------------------------------
+			# Begin events on this channel right away.
+			#----------------------------------------------------------------------
+			_add_channel()
 
 class Channel:
-	def __init__(self, events = {}, count = 0):
+	def __init__(self, events = {}, count = 0, timeline = None, device = None):
 		#----------------------------------------------------------------------
 		# evaluate in case we have a pattern which gives us an event
 		# eg: PSeq([ { "note" : 20, "dur" : 0.5 }, { "note" : 50, "dur" : PWhite(0, 2) } ])
@@ -238,13 +269,16 @@ class Channel:
 
 		self.next()
 
-		self.timeline = None
-		self.pos = 0
-		self.dur_now = 0
+		self.timeline = timeline
+		self.device = device
 		self.phase_now = self.event["phase"].next()
-		self.next_note = 0
 
-		self.noteOffs = []
+		#------------------------------------------------------------------------
+		# Reset our play position.
+		#------------------------------------------------------------------------
+		self.reset()
+
+		self.note_offs = []
 		self.finished = False
 		self.count_max = count
 		self.count_now = 0
@@ -286,10 +320,10 @@ class Channel:
 
 	def tick(self, time):
 		#----------------------------------------------------------------------
-		# process noteOffs before we play the next note, else a repeated note
+		# process note_offs before we play the next note, else a repeated note
 		# with gate = 1.0 will immediately be cancelled.
 		#----------------------------------------------------------------------
-		self.processNoteOffs()
+		self.process_note_offs()
 
 		try:
 			if round(self.pos, 8) >= round(self.next_note + self.phase_now, 8):
@@ -361,7 +395,7 @@ class Channel:
 		if "control" in values:
 			value = values["value"]
 			channel = values["channel"]
-			isobar.log("control (channel %d, control %d, value %d)", values["channel"], values["control"], values["value"]) 
+			log.debug("control (channel %d, control %d, value %d)", values["channel"], values["control"], values["value"]) 
 			self.device.control(values["control"], values["value"], values["channel"])
 			return 
 
@@ -402,8 +436,9 @@ class Channel:
 			values["note"] = None
 
 		if values["note"] is None:
-			# print "(rest)"
-			# return
+			#----------------------------------------------------------------------
+			# Rest.
+			#----------------------------------------------------------------------
 			values["note"] = 0
 			values["amp"] = 0
 		else:
@@ -423,7 +458,7 @@ class Channel:
 
 		#----------------------------------------------------------------------
 		# event: Certain devices (eg Socket IO) handle generic events,
-		#        rather than noteOn/noteOff. (Should probably have to 
+		#        rather than note_on/note_off. (Should probably have to 
 		#        register for this behaviour rather than happening magically...)
 		#----------------------------------------------------------------------
 		if hasattr(self.device, "event") and callable(getattr(self.device, "event")):
@@ -450,7 +485,7 @@ class Channel:
 			return
 
 		#----------------------------------------------------------------------
-		# noteOn: Standard (MIDI) type of device
+		# note_on: Standard (MIDI) type of device
 		#----------------------------------------------------------------------
 		if values["amp"] > 0:
 			# TODO: pythonic duck-typing approach might be better
@@ -463,28 +498,28 @@ class Channel:
 			# shorter than the number of notes.
 			#----------------------------------------------------------------------
 			for index, note in enumerate(notes):
-				amp     = values["amp"][index] if isinstance(values["amp"], list) else values["amp"]
-				channel = values["channel"][index] if isinstance(values["channel"], list) else values["channel"]
-				gate    = values["gate"][index] if isinstance(values["gate"], list) else values["gate"]
+				amp     = values["amp"][index] if isinstance(values["amp"], tuple) else values["amp"]
+				channel = values["channel"][index] if isinstance(values["channel"], tuple) else values["channel"]
+				gate    = values["gate"][index] if isinstance(values["gate"], tuple) else values["gate"]
 
-				isobar.log("note on  (channel %d, note %d, velocity %d)", channel, note, amp);
-				self.device.noteOn(note, amp, channel)
+				log.debug("note on  (channel %d, note %d, velocity %d)", channel, note, amp);
+				self.device.note_on(note, amp, channel)
 
 				note_dur = self.dur_now * gate
-				self.schedNoteOff(self.next_note + note_dur + self.phase_now, note, channel)
+				self.sched_note_off(self.next_note + note_dur + self.phase_now, note, channel)
 
-	def schedNoteOff(self, time, note, channel):
-		self.noteOffs.append([ time, note, channel ])
+	def sched_note_off(self, time, note, channel):
+		self.note_offs.append([ time, note, channel ])
 
-	def processNoteOffs(self):
-		for n, note in enumerate(self.noteOffs):
-			# TODO: create a Note object to represent these noteOff events
+	def process_note_offs(self):
+		for n, note in enumerate(self.note_offs):
+			# TODO: create a Note object to represent these note_off events
 			if note[0] <= self.pos:
 				index = note[1]
 				channel = note[2]
-				isobar.log("note off (channel %d, note %d)", channel, index);
-				self.device.noteOff(index, channel)
-				self.noteOffs.pop(n)
+				log.debug("note off (channel %d, note %d)", channel, index);
+				self.device.note_off(index, channel)
+				self.note_offs.pop(n)
 
 #----------------------------------------------------------------------
 # a clock is relied upon to generate accurate tick() events every
@@ -496,9 +531,9 @@ class Channel:
 #----------------------------------------------------------------------
 
 class Clock:
-	def __init__(self, ticksize = 1.0/24):
-		self.ticksize_orig = ticksize
-		self.ticksize = ticksize
+	def __init__(self, tick_size = 1.0/24):
+		self.tick_size_orig = tick_size
+		self.tick_size = tick_size
 		self.warpers = []
 		self.accelerate = 1.0
 
@@ -510,11 +545,11 @@ class Clock:
 			# to keep Warp patterns in sync  
 			#------------------------------------------------------------------------
 			while True:
-				if clock1 - clock0 >= self.ticksize:
+				if clock1 - clock0 >= self.tick_size:
 					# time for a tick
 					timeline.tick()
-					clock0 += self.ticksize
-					self.ticksize = self.ticksize_orig
+					clock0 += self.tick_size
+					self.tick_size = self.tick_size_orig
 					for warper in self.warpers:
 						warp = warper.next()
 						#------------------------------------------------------------------------
@@ -522,7 +557,7 @@ class Clock:
 						#  - so -1 doubles our tempo, +1 halves it
 						#------------------------------------------------------------------------
 						warp = pow(2, warp)
-						self.ticksize *= warp
+						self.tick_size *= warp
 
 				time.sleep(0.002)
 				clock1 = time.time() * self.accelerate

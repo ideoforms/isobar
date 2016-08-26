@@ -21,7 +21,8 @@ amp = PSeq([ 50, 35, 25, 35 ]) + PBrown(0, 1, -20, 20)
 
 # a Timeline schedules events at a given BPM.
 # by default, send these over the first MIDI output.
-timeline = Timeline(120, debug = True)
+from isobar.io.midi import *
+timeline = Timeline(MidiIn())
 
 # assign each of our Patterns to particular properties
 timeline.sched({ 'note': a, 'dur': 1, 'gate': 2 })

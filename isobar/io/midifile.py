@@ -1,3 +1,7 @@
+#------------------------------------------------------------------------
+# absolute_import is needed so we can import MidiUtil without
+# filename clash with isobar/io/midi.py.
+#------------------------------------------------------------------------
 from __future__ import absolute_import 
 
 from isobar.note import *
@@ -5,6 +9,9 @@ from isobar.pattern.core import *
 
 # requires python-midi
 import midi
+
+import logging
+log = logging.getLogger(__name__)
 
 class Note:
 	def __init__(self, pitch, velocity, location, duration = None):
@@ -21,12 +28,12 @@ class MidiFileIn:
 	""" Read events from a MIDI file.
 	    Requires ... """
 
-	def __init__(self):
-		pass
+	def __init__(self, filename):
+		self.filename = filename
 
 	def read_note_list(self, filename, quantize = 0.25):
 		reader = midi.FileReader()
-		data = reader.read(file(filename))
+		data = reader.read(file(self.filename))
 
 
 		notes = []
@@ -35,7 +42,7 @@ class MidiFileIn:
 			for event in filter(lambda event: isinstance(event, midi.events.NoteEvent), track):
 				location = event.tick / 96.0
 				if isinstance(event, midi.events.NoteOnEvent) and event.velocity > 0:
-					print "(%.2f beats) %s. \t(note = %d, velocity = %d)" % (location, miditoname(event.pitch), event.pitch, event.velocity)
+					log.info("(%.2f beats) %s. \t(note = %d, velocity = %d)" % (location, miditoname(event.pitch), event.pitch, event.velocity))
 
 					#------------------------------------------------------------------------
 					# anomaly: sometimes a midi file might have a note on when the previous
@@ -44,11 +51,11 @@ class MidiFileIn:
 					for note in reversed(notes):
 						if note.pitch == event.pitch:
 							if not note.duration:
-								print "note-on found without note-off; cancelling previous note"
+								log.warn("note-on found without note-off; cancelling previous note")
 								duration = location - note.location
 								note.duration = duration
 								if duration == 0:
-									print "*** DURATION OF ZERO??"
+									log.warn("*** DURATION OF ZERO??")
 							break
 
 					note = Note(event.pitch, event.velocity, location)
@@ -58,7 +65,7 @@ class MidiFileIn:
 				# A NoteOn event with velocity == 0 also acts as a NoteOff.
 				#------------------------------------------------------------------------
 				if isinstance(event, midi.events.NoteOffEvent) or (isinstance(event, midi.events.NoteOnEvent) and event.velocity == 0):
-					print "(%.2f beats) %s off \t(note = %d, velocity = %d)" % (location, miditoname(event.pitch), event.pitch, event.velocity)
+					log.debug("(%.2f beats) %s off \t(note = %d, velocity = %d)" % (location, miditoname(event.pitch), event.pitch, event.velocity))
 					found = False
 					for note in reversed(notes):
 						if note.pitch == event.pitch:
@@ -68,7 +75,7 @@ class MidiFileIn:
 							found = True
 							break
 					if not found:
-						print "*** NOTE-OFF FOUND WITHOUT NOTE-ON ***"
+						log.warn("*** NOTE-OFF FOUND WITHOUT NOTE-ON ***")
 
 		if quantize is not None:
 			for note in notes:
@@ -86,7 +93,7 @@ class MidiFileIn:
 		#------------------------------------------------------------------------
 		notes_by_time = {}
 		for note in notes:
-			print "(%.2f) %d/%d, %s" % (note.location, note.pitch, note.velocity, note.duration)
+			log.debug("(%.2f) %d/%d, %s" % (note.location, note.pitch, note.velocity, note.duration))
 			location = note.location
 			# done in read_note_list
 			# if quantize is not None:
@@ -143,31 +150,29 @@ class MidiFileOut:
 	    Requires the MIDIUtil package:
 		https://code.google.com/p/midiutil/ """
 
-	def __init__(self, numtracks = 16):
+	def __init__(self, filename = "score.mid", num_tracks = 16):
 		from midiutil.MidiFile import MIDIFile
 
-		self.score = MIDIFile(numtracks)
-		self.track = 0
-		self.channel = 0
-		self.volume = 64
+		self.filename = filename
+		self.score = MIDIFile(num_tracks)
 		self.time = 0
 
-	def tick(self, ticklen):
-		self.time += ticklen
+	def tick(self, tick_length):
+		self.time += tick_length
 
-	def noteOn(self, note = 60, velocity = 64, channel = 0, duration = 1):
+	def note_on(self, note = 60, velocity = 64, channel = 0, duration = 1):
 		#------------------------------------------------------------------------
 		# avoid rounding errors
 		#------------------------------------------------------------------------
 		time = round(self.time, 5)
 		self.score.addNote(channel, channel, note, time, duration, velocity)
 
-	def noteOff(self, note = 60, channel = 0):
+	def note_off(self, note = 60, channel = 0):
 		time = round(self.time, 5)
-		self.score.addNote(channel, channel, note, time, duration, 0)
+		self.score.addNote(channel, channel, note, time, 0, 0)
 
-	def writeFile(self, filename = "score.mid"):
-		fd = open(filename, 'wb')
+	def write(self):
+		fd = open(self.filename, 'wb')
 		self.score.writeFile(fd)
 		fd.close()
 
@@ -176,7 +181,7 @@ class PatternWriterMIDI:
 	    Requires the MIDIUtil package:
 		https://code.google.com/p/midiutil/ """
 
-	def __init__(self, numtracks = 1):
+	def __init__(self, filename = "score.mid", numtracks = 1):
 		from midiutil.MidiFile import MIDIFile
 
 		self.score = MIDIFile(numtracks)
@@ -184,30 +189,35 @@ class PatternWriterMIDI:
 		self.channel = 0
 		self.volume = 64
 
-	def addTrack(self, pattern, tracknumber = 0, trackname = "track", dur = 1.0):
+	def add_track(self, pattern, track_number = 0, track_name = "track", dur = 1.0):
 		time = 0
+
 		# naive approach: assume every duration is 1
 		# TODO: accept dicts or PDicts
 		try:
 			for note in pattern:
 				vdur = Pattern.value(dur)
 				if note is not None and vdur is not None:
-					self.score.addNote(tracknumber, self.channel, note, time, vdur, self.volume)
+					self.score.addNote(track_number, self.channel, note, time, vdur, self.volume)
 					time += vdur
 				else:
 					time += vdur
 		except StopIteration:
-			# a StopIteration exception means that an input pattern has been exhausted.
-			# catch it and treat the track as completed.
+			#------------------------------------------------------------------------
+			# a StopIteration exception means that an input pattern has been
+			# exhausted. catch it and treat the track as completed.
+			#------------------------------------------------------------------------
 			pass
 
-	def addTimeline(self, timeline):
+	def add_timeline(self, timeline):
+		#------------------------------------------------------------------------
 		# TODO: translate entire timeline into MIDI
 		# difficulties: need to handle degree/transpose params
 		#			   need to handle channels properly, and reset numtracks
+		#------------------------------------------------------------------------
 		pass
 
-	def writeFile(self, filename = "score.mid"):
+	def write(self, filename = "score.mid"):
 		fd = open(filename, 'wb')
 		self.score.writeFile(fd)
 		fd.close()

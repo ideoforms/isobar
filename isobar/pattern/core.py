@@ -17,7 +17,7 @@ class Pattern:
 		Patterns are at the core of isoar. A Pattern implements the iterator
 		protocol, representing a sequence of values which are iteratively
 		returned by the next() method. A pattern may be finite, after which
-		point it raises an EndOfPattern exception. Call reset() to return
+		point it raises a StopIteration exception. Call reset() to return
 		a pattern to its initial state.
 
 		Patterns can be subject to standard arithmetic operators as expected.
@@ -151,11 +151,12 @@ class Pattern:
 		""" reset a finite sequence back to position 0 """
 		fields = vars(self)
 		for name, field in fields.items():
-			# print "reset: %s" % name
 			if isinstance(field, Pattern):
 				field.reset()
+			#------------------------------------------------------------------------
 			# look through list items and reset anything in here too
 			# (needed to reset items in PConcat)
+			#------------------------------------------------------------------------
 			elif isinstance(field, list):
 				for item in field:
 					if isinstance(item, Pattern):
@@ -252,8 +253,21 @@ class Pattern:
 
 	@staticmethod
 	def pattern(v):
-		""" Patternify a value by wrapping it in PConst if necessary. """
-		return v if isinstance(v, Pattern) else PConst(v)
+		""" Patternify a value, turning it into an object with a next() method
+		to obtain its next value.
+		
+		Pattern subclasses remain untouched.
+		Lists are turned into PSeq sequences.
+		Scalars and other objects are turned into PConst objects. """
+
+		from isobar.pattern.sequence import PSeq
+
+		if isinstance(v, Pattern):
+			return v
+		elif isinstance(v, list):
+			return PSeq(v, 1)
+		else:
+			return PConst(v)
 
 class PConst(Pattern):
 	""" PConst: Pattern returning a fixed value
@@ -297,7 +311,7 @@ class PDict(Pattern):
 	""" PDict: Dict of patterns
         Thanks to Dan Stowell <http://www.mcld.co.uk/>
 	    """
-	def __init__(self, value = {}):
+	def __init__(self, value = None):
 		from isobar.pattern.sequence import PSeq
 
 		self.dict = {}
@@ -419,7 +433,7 @@ class PConcat(Pattern):
 
 
 #------------------------------------------------------------------
-# binary operators
+# Binary operators
 #------------------------------------------------------------------
 
 class PBinOp(Pattern):

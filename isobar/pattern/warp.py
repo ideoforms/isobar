@@ -19,6 +19,7 @@ class PWInterpolate(PWarp):
 		self.pattern = pattern
 		self.pos = self.length
 		self.value = 0.0
+		self.dv = 0.0
 
 	def next(self):
 		rv = self.value
