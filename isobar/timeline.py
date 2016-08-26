@@ -147,6 +147,8 @@ class Timeline(object):
 				self.clock.run(self)
 			else:
 				self.clocksource.run()
+				while True:
+					time.sleep(0.1)
 
 		except StopIteration:
 			#------------------------------------------------------------------------
@@ -172,6 +174,7 @@ class Timeline(object):
 		self.devices.append(device)
 
 	def sched(self, event, quantize = 0, delay = 0, count = 0, device = None):
+		# TODO: should delay be part of the event?
 		if not device:
 			if not self.devices:
 				isobar.log("Adding default MIDI output")
