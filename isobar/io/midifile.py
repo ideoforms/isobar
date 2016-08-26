@@ -3,27 +3,31 @@ from __future__ import absolute_import
 from isobar.note import *
 from isobar.pattern.core import *
 
-
+# requires python-midi
 import midi
 
+class Note:
+	def __init__(self, pitch, velocity, location, duration = None):
+		# pitch = MIDI 0..127
+		self.pitch = pitch
+		# velocity = MIDI 0..127
+		self.velocity = velocity
+		# location in time, beats
+		self.location = location
+		# duration in time, beats
+		self.duration = duration
+
 class MidiFileIn:
+	""" Read events from a MIDI file.
+	    Requires ... """
+
 	def __init__(self):
 		pass
 
-	def read(self, filename, quantize = 0.25):
+	def read_note_list(self, filename, quantize = 0.25):
 		reader = midi.FileReader()
 		data = reader.read(file(filename))
 
-		class Note:
-			def __init__(self, pitch, velocity, location, duration = None):
-				# pitch = MIDI 0..127
-				self.pitch = pitch
-				# velocity = MIDI 0..127
-				self.velocity = velocity
-				# location in time, beats
-				self.location = location
-				# duration in time, beats
-				self.duration = duration
 
 		notes = []
 		for track in data:
@@ -66,6 +70,16 @@ class MidiFileIn:
 					if not found:
 						print "*** NOTE-OFF FOUND WITHOUT NOTE-ON ***"
 
+		if quantize is not None:
+			for note in notes:
+				note.location = round(note.location / quantize) * quantize
+				note.duration = round(note.duration / quantize) * quantize
+
+		return notes
+
+	def read(self, filename, quantize = 0.25):
+		notes = self.read_note_list(filename, quantize)
+
 		#------------------------------------------------------------------------
 		# Construct a sequence which honours chords and relative lengths.
 		# First, group all notes by their starting time.
@@ -74,8 +88,9 @@ class MidiFileIn:
 		for note in notes:
 			print "(%.2f) %d/%d, %s" % (note.location, note.pitch, note.velocity, note.duration)
 			location = note.location
-			if quantize is not None:
-				location = round(location / quantize) * quantize
+			# done in read_note_list
+			# if quantize is not None:
+			#	location = round(location / quantize) * quantize
 			if location in notes_by_time:
 				notes_by_time[location].append(note)
 			else:
