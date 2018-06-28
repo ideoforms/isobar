@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # import vital classes from isobar namespace
 from isobar import *

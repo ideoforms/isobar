@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # parallel markov chain learner:
 # 1. takes MIDI input, and constructs three markov chains for pitch, duration

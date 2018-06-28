@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # example-lsystem-stochastic:
 # generates a stochastic l-system arpeggio
