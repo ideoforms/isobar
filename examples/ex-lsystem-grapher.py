@@ -15,5 +15,5 @@ note_min = min(notes)
 note_max = max(notes)
 
 for note in seq:
-	note = note - note_min
-	print "#" * note
+    note = note - note_min
+    print "#" * note
