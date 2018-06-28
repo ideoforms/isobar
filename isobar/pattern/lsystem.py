@@ -13,7 +13,7 @@ class LSystem:
 
     def iterate(self, count = 3):
         if self.rule.count("[") != self.rule.count("]"):
-            raise ValueError, "Imbalanced brackets in rule string: %s" % self.rule
+            raise ValueError("Imbalanced brackets in rule string: %s" % self.rule)
 
         for n in range(count):
             string_new = ""
@@ -23,7 +23,7 @@ class LSystem:
             self.string = string_new
             # print "(iter %d) string now %s" % (n, self.string)
 
-    def next(self):
+    def __next__(self):
         while self.pos < len(self.string):
             token = self.string[self.pos]
             self.pos = self.pos + 1
@@ -67,11 +67,11 @@ class PLSys(Pattern):
         self.lsys = LSystem(self.rule, "N")
         self.lsys.iterate(self.depth)
 
-    def next(self):
-        n = self.lsys.next()
+    def __next__(self):
+        n = next(self.lsys)
         if self.loop and n is None:
             self.lsys.reset()
-            n = self.lsys.next()
+            n = next(self.lsys)
 
         return None if n is None else n
 

@@ -2,7 +2,7 @@ import sys
 import time
 import math
 import copy
-import thread
+import _thread
 import traceback
 from isobar import *
 from isobar.pattern import *
@@ -135,15 +135,15 @@ class Timeline(object):
     def dump(self):
         """ Output a summary of this Timeline object
             """
-        print "Timeline (clock: %s)" % ("external" if self.has_external_clock else "%sbpm" % self.bpm)
+        print(("Timeline (clock: %s)" % ("external" if self.has_external_clock else "%sbpm" % self.bpm)))
 
-        print " - %d devices" % len(self.devices)
+        print((" - %d devices" % len(self.devices)))
         for device in self.devices:
-            print "   - %s" % device
+            print(("   - %s" % device))
 
-        print " - %d channels" % len(self.channels)
+        print((" - %d channels" % len(self.channels)))
         for channel in self.channels:
-            print"   - %s" % channel
+            print(("   - %s" % channel))
 
     def reset_to_beat(self):
         """ Reset our timer to the last beat.
@@ -161,7 +161,7 @@ class Timeline(object):
 
     def background(self):
         """ Run this Timeline in a background thread. """
-        self.thread = thread.start_new_thread(self.run, ())
+        self.thread = _thread.start_new_thread(self.run, ())
 
     def run(self, high_priority = True, stop_when_done = True):
         """ Run this Timeline in the foreground.
@@ -198,8 +198,8 @@ class Timeline(object):
             #------------------------------------------------------------------------
             log.info("Timeline finished")
 
-        except Exception, e:
-            print " *** Exception in background Timeline thread: %s" % e
+        except Exception as e:
+            print((" *** Exception in background Timeline thread: %s" % e))
             traceback.print_exc(file = sys.stdout)
 
     def warp(self, warper):
@@ -229,7 +229,7 @@ class Timeline(object):
             device = self.devices[0]
 
         if self.max_channels and len(self.channels) >= self.max_channels:
-            print "*** timeline: refusing to schedule channel (hit limit of %d)" % self.max_channels
+            print(("*** timeline: refusing to schedule channel (hit limit of %d)" % self.max_channels))
             return
 
         def _add_channel():
@@ -267,11 +267,11 @@ class Channel:
         # self.events = Pattern.pattern(events)
         self.events = events
 
-        self.next()
+        next(self)
 
         self.timeline = timeline
         self.device = device
-        self.phase_now = self.event["phase"].next()
+        self.phase_now = next(self.event["phase"])
 
         #------------------------------------------------------------------------
         # Reset our play position.
@@ -286,7 +286,7 @@ class Channel:
     def __str__(self):
         return "Channel(pos = %d, note = %s, dur = %s, dur_now = %d, channel = %s, control = %s)[count = %d/%d])" % (self.pos, self.event["note"], self.event["dur"], self.dur_now, self.event["channel"], self.event["control"] if "control" in self.event else "-", self.count_now, self.count_max)
 
-    def next(self):
+    def __next__(self):
         #----------------------------------------------------------------------
         # event is a dictionary of patterns. anything which is not a pattern
         # (eg, constant values) are turned into PConsts.
@@ -303,9 +303,9 @@ class Channel:
         event.setdefault('phase', 0.0)
         event.setdefault('octave', 0)
 
-        if event.has_key('key'):
+        if 'key' in event:
             pass
-        elif event.has_key('scale'):
+        elif 'scale' in event:
             event['key'] = Key(0, event['scale'])
         else:
             event['key'] = Key(0, Scale.default)
@@ -313,7 +313,7 @@ class Channel:
         #----------------------------------------------------------------------
         # this does the job of turning constant values into (PConst) patterns.
         #----------------------------------------------------------------------
-        for key, value in event.items():
+        for key, value in list(event.items()):
             event[key] = Pattern.pattern(value)
 
         self.event = event
@@ -327,14 +327,14 @@ class Channel:
 
         try:
             if round(self.pos, 8) >= round(self.next_note + self.phase_now, 8):
-                self.dur_now = self.event['dur'].next()
-                self.phase_now = self.event['phase'].next()
+                self.dur_now = next(self.event['dur'])
+                self.phase_now = next(self.event['phase'])
 
                 self.play()
 
                 self.next_note += self.dur_now
 
-                self.next()
+                next(self)
 
                 self.count_now += 1
                 if self.count_max and self.count_now >= self.count_max:
@@ -354,21 +354,21 @@ class Channel:
 
     def play(self):
         values = {}
-        for key, pattern in self.event.items():
+        for key, pattern in list(self.event.items()):
             # TODO: HACK!! to prevent stepping through dur twice (see 'tick' above')
             if key == "dur":
                 value = self.dur_now
             elif key == "phase":
                 value = self.phase_now
             else:
-                value = pattern.next()
+                value = next(pattern)
             values[key] = value
 
         #------------------------------------------------------------------------
         # print: Prints a value each time this event is triggered.
         #------------------------------------------------------------------------
         if "print" in values:
-            print values["print"]
+            print((values["print"]))
             return
 
         #------------------------------------------------------------------------
@@ -381,8 +381,8 @@ class Channel:
                     values["action"](object)
                 else:
                     values["action"]()
-            except Exception, e:
-                print "Exception when handling scheduled action: %s" % e
+            except Exception as e:
+                print(("Exception when handling scheduled action: %s" % e))
                 import traceback
                 traceback.print_exc()
                 pass
@@ -463,7 +463,7 @@ class Channel:
         #----------------------------------------------------------------------
         if hasattr(self.device, "event") and callable(getattr(self.device, "event")):
             d = copy.copy(values)
-            for key, value in d.items():
+            for key, value in list(d.items()):
                 #------------------------------------------------------------------------
                 # turn non-builtin objects into their string representations.
                 # we don't want to call repr() on numbers as it turns them into strings,
@@ -551,7 +551,7 @@ class Clock:
                     clock0 += self.tick_size
                     self.tick_size = self.tick_size_orig
                     for warper in self.warpers:
-                        warp = warper.next()
+                        warp = next(warper)
                         #------------------------------------------------------------------------
                         # map [-1..1] to [0.5, 2]
                         #  - so -1 doubles our tempo, +1 halves it
@@ -562,7 +562,7 @@ class Clock:
                 time.sleep(0.002)
                 clock1 = time.time() * self.accelerate
         except KeyboardInterrupt:
-            print "interrupt caught, exiting"
+            print("interrupt caught, exiting")
             return
 
     def warp(self, warper):

@@ -21,7 +21,7 @@ class PWInterpolate(PWarp):
         self.value = 0.0
         self.dv = 0.0
 
-    def next(self):
+    def __next__(self):
         rv = self.value
 
         #------------------------------------------------------------------------
@@ -30,7 +30,7 @@ class PWInterpolate(PWarp):
         self.pos += 1.0 / TICKS_PER_BEAT
         if self.pos >= self.length:
             self.pos = 0
-            self.target = self.pattern.next()
+            self.target = next(self.pattern)
 
             #------------------------------------------------------------------------
             # in case our length parameter is also a pattern: obtain a scalar value.
@@ -53,7 +53,7 @@ class PWSine(PWarp):
         self.amp = amp
         self.pos = 0.0
 
-    def next(self):
+    def __next__(self):
         self.pos += 1.0 / TICKS_PER_BEAT
         if self.pos > self.length:
             self.pos -= self.length
@@ -78,7 +78,7 @@ class PWRallantando(PWarp):
         self.length_cur = -1.0
         self.dv = None
 
-    def next(self):
+    def __next__(self):
         rv = self.value
 
         #------------------------------------------------------------------------
@@ -102,6 +102,6 @@ class PWRallantando(PWarp):
         # subtract 
         #------------------------------------------------------------------------
         rv = math.log(rv, 2)
-        print "warp: %f" % rv
+        print("warp: %f" % rv)
         return rv
 

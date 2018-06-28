@@ -1,7 +1,7 @@
 try:
     import rtmidi
 except:
-    print "rtmidi not found, no MIDI support available."
+    print("rtmidi not found, no MIDI support available.")
 
 import random
 import time
@@ -27,7 +27,7 @@ class MidiIn:
 
         ports = self.midi.get_ports()
         if len(ports) == 0:
-            raise Exception, "No MIDI output ports found"
+            raise Exception("No MIDI output ports found")
 
         for index, name in enumerate(ports):
             if name == target:
@@ -61,7 +61,7 @@ class MidiIn:
         if not message:
             return
 
-        print message
+        print(message)
         data_type, data_note, data_vel = message[0]
 
         if (data_type & 0x90) > 0 and data_vel > 0:
@@ -78,7 +78,7 @@ class MidiOut:
 
         ports = self.midi.get_ports()
         if len(ports) == 0:
-            raise Exception, "No MIDI output ports found"
+            raise Exception("No MIDI output ports found")
 
         for index, name in enumerate(ports):
             if name == target:

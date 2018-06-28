@@ -2,7 +2,7 @@
 # absolute_import is needed so we can import MidiUtil without
 # filename clash with isobar/io/midi.py.
 #------------------------------------------------------------------------
-from __future__ import absolute_import 
+ 
 
 from isobar.note import *
 from isobar.pattern.core import *
@@ -39,7 +39,7 @@ class MidiFileIn:
         notes = []
         for track in data:
             track.make_ticks_abs()
-            for event in filter(lambda event: isinstance(event, midi.events.NoteEvent), track):
+            for event in [event for event in track if isinstance(event, midi.events.NoteEvent)]:
                 location = event.tick / 96.0
                 if isinstance(event, midi.events.NoteOnEvent) and event.velocity > 0:
                     log.info("(%.2f beats) %s. \t(note = %d, velocity = %d)" % (location, miditoname(event.pitch), event.pitch, event.velocity))

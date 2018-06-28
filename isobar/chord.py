@@ -11,7 +11,7 @@ class Chord:
         self.intervals = intervals
         self.name = name
         self.root = root
-        if not Chord.dict.has_key(name):
+        if name not in Chord.dict:
            Chord.dict[name] = self
 
     def __str__(self):
@@ -19,7 +19,7 @@ class Chord:
 
     @property
     def semitones(self):
-        semitones = [0] + map(lambda n: sum(self.intervals[0:n+1]), range(len(self.intervals)))
+        semitones = [0] + [sum(self.intervals[0:n+1]) for n in range(len(self.intervals))]
         return semitones
 
     @staticmethod
@@ -28,7 +28,7 @@ class Chord:
 
     @staticmethod
     def random():
-        key = random.choice(Chord.dict.keys())
+        key = random.choice(list(Chord.dict.keys()))
         c = copy.deepcopy(Chord.dict[key])
         c.root = random.randint(0, 12)
         return c

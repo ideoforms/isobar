@@ -4,7 +4,7 @@ import threading
 import inspect
 import math
 
-import OSC
+import pythonosc
 
 class PStaticViaOSC (Pattern):
     listening = False
@@ -30,10 +30,10 @@ class PStaticViaOSC (Pattern):
     def recv(self, msg, source = None):
         address = msg[0]
         signature = msg[1][1:]
-        print "(%s) %s" % (address, signature)
+        print("(%s) %s" % (address, signature))
         self.value = msg[2]
 
-    def next(self):
+    def __next__(self):
         return self.value
 
 class PStaticTimeline (Pattern):
@@ -42,7 +42,7 @@ class PStaticTimeline (Pattern):
     def __init__(self, timeline = None):
         self.given_timeline = timeline
 
-    def next(self):
+    def __next__(self):
         beats = self.get_beats()
         return round(beats, 5)
 
@@ -67,7 +67,7 @@ class PStaticGlobal(Pattern):
         if value is not None:
             PStaticGlobal.set(name, value)
 
-    def next(self):
+    def __next__(self):
         name = Pattern.value(self.name)
         value = PStaticGlobal.dict[name]
         return Pattern.value(value)
@@ -100,7 +100,7 @@ class PStaticGlobal(Pattern):
         # print "GOT MSG"
         key = data[0]
         value = data[1]
-        print "(%s) %s = %.1f" % (addr, key, value)
+        print("(%s) %s = %.1f" % (addr, key, value))
         PStaticGlobal.set(key, value)
 
 class PStaticTimelineSine(PStaticTimeline):
@@ -108,7 +108,7 @@ class PStaticTimelineSine(PStaticTimeline):
         PStaticTimeline.__init__(self)
         self.period = period
 
-    def next(self):
+    def __next__(self):
         period = Pattern.value(self.period)
         # self.phase += math.pi * 2.0 / period
 
@@ -126,7 +126,7 @@ class PStaticSeq(Pattern):
         self.duration = duration
         self.start = None
     
-    def next(self):
+    def __next__(self):
         timeline = self.timeline
         if self.start is None:
             self.start = round(timeline.beats, 5)

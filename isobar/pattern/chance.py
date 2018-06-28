@@ -25,7 +25,7 @@ class PWhite(Pattern):
             self.max = min
             self.min = -self.max
 
-    def next(self):
+    def __next__(self):
         min = self.value(self.min)
         max = self.value(self.max)
 
@@ -38,7 +38,7 @@ class PBrown(Pattern):
     """ PBrown: Brownian noise, beginning at <value>, step +/-<step>.
                 Set <repeats> to False to prevent consecutive repeats.
         """
-    def __init__(self, value = 0, step = 0.1, min = -sys.maxint, max = sys.maxint, repeats = True, length = sys.maxint):
+    def __init__(self, value = 0, step = 0.1, min = -sys.maxsize, max = sys.maxsize, repeats = True, length = sys.maxsize):
         self.init = value
         self.value = value
         self.step = step
@@ -54,7 +54,7 @@ class PBrown(Pattern):
 
         Pattern.reset(self)
 
-    def next(self):
+    def __next__(self):
         # pull out modulatable values
         vstep    = Pattern.value(self.step)
         vmin     = Pattern.value(self.min)
@@ -69,7 +69,7 @@ class PBrown(Pattern):
             self.value += random.uniform(-vstep, vstep)
         else:
             # select new offset without repeats
-            steps = range(-vstep, vstep + 1)
+            steps = list(range(-vstep, vstep + 1))
             if not vrepeats:
                 steps.remove(0)
             self.value += random.choice(steps)
@@ -91,7 +91,7 @@ class PWalk(Pattern):
         self.max = max
         self.pos = 0
 
-    def next(self):
+    def __next__(self):
         vvalues = Pattern.value(self.values)
         vmin    = Pattern.value(self.min)
         vmax    = Pattern.value(self.max)
@@ -118,7 +118,7 @@ class PChoice(Pattern):
     def __init__(self, values = []):
         self.values = values
 
-    def next(self):
+    def __next__(self):
         return self.values[random.randint(0, len(self.values) - 1)]
 
 class PWChoice(Pattern):
@@ -134,7 +134,7 @@ class PWChoice(Pattern):
         self.values = values
         self.weights = weights
 
-    def next(self):
+    def __next__(self):
         return wnchoice(self.values, self.weights)
 
 class PShuffle(Pattern):
@@ -144,7 +144,7 @@ class PShuffle(Pattern):
         >>> p.nextn(16)
         [1, 3, 2, 3, 2, 1, 2, 3, 1, 2, 3, 1, 1, 2, 3, 1]
         """
-    def __init__(self, values = [], repeats = sys.maxint):
+    def __init__(self, values = [], repeats = sys.maxsize):
         self.values = copy.copy(values)
         self.repeats = repeats
 
@@ -159,7 +159,7 @@ class PShuffle(Pattern):
 
         Pattern.reset(self)
 
-    def next(self):
+    def __next__(self):
         values = self.value(self.values)
         repeats = self.value(self.repeats)
 
@@ -199,7 +199,7 @@ class PShuffleEvery(Pattern):
         self.begin()
         Pattern.reset(self)
 
-    def next(self):
+    def __next__(self):
         if self.pos >= len(self.values):
             self.begin()
 
@@ -210,11 +210,11 @@ class PShuffleEvery(Pattern):
 class PSelfIndex(Pattern):
     def __init__(self, count = 6):
         self.pos = 0
-        self.values = range(count)
+        self.values = list(range(count))
         random.shuffle(self.values)
-        print "init values: %s" % self.values
+        print("init values: %s" % self.values)
 
-    def next(self):
+    def __next__(self):
         if self.pos >= len(self.values):
             # re-index values
             self.pos = 0
@@ -229,7 +229,7 @@ class PSelfIndex(Pattern):
         values_new = []
         for n in range(len(self.values)):
             values_new.append(self.values[self.values[n]])
-        print "new ordering: %s" % values_new
+        print("new ordering: %s" % values_new)
         self.values = values_new
 
 class PSkip(Pattern):
@@ -242,16 +242,16 @@ class PSkip(Pattern):
         self.random = random
         self.pos = 0.0
 
-    def next(self):
+    def __next__(self):
         play = self.value(self.play)
         if self.random:
             if random.uniform(0, 1) < self.play:
-                return self.pattern.next()
+                return next(self.pattern)
         else:
             self.pos += play
             if self.pos >= 1:
                 self.pos -= 1
-                return self.pattern.next()
+                return next(self.pattern)
         return None
 
 class PFlipFlop(Pattern):
@@ -269,7 +269,7 @@ class PFlipFlop(Pattern):
         self.p_on = p_on
         self.p_off = p_off
 
-    def next(self):
+    def __next__(self):
         self.value = Pattern.value(self.value)
         self.p_on = Pattern.value(self.p_on)
         self.p_off = Pattern.value(self.p_off)
@@ -300,12 +300,12 @@ class PSwitchOne(Pattern):
         # recursively reset my pattern fields
         Pattern.reset(self)
 
-    def next(self):
+    def __next__(self):
         length = self.value(self.length)
         switches = self.value(self.switches)
 
         if len(self.values) < self.length:
-            value = self.pattern.next()
+            value = next(self.pattern)
             self.values.append(value)
             self.pos += 1
             return value

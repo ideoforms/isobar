@@ -1,5 +1,5 @@
 import random
-from util import *
+from .util import *
 
 class Scale(object):
     dict = { }
@@ -10,7 +10,7 @@ class Scale(object):
         self.weights = [ 1.0 / len(self.semitones) for _ in range(len(self.semitones)) ]
         self.name = name
         self.octave_size = octave_size
-        if not Scale.dict.has_key(name):
+        if name not in Scale.dict:
            Scale.dict[name] = self
 
     def __str__(self):
@@ -43,7 +43,7 @@ class Scale(object):
         """ Exchange two random elements of this scale. """
         i = random.randint(0, len(self.semitones) - 1)
         j = random.randint(0, len(self.semitones) - 1)
-        if i <> j:
+        if i != j:
             tmp = self.semitones[i]
             self.semitones[i] = self.semitones[j]
             self.semitones[j] = tmp
@@ -69,14 +69,14 @@ class Scale(object):
     @staticmethod
     def fromnotes(notes, name = "unnamed scale", octave_size = 12):
         notes = [ note % octave_size for note in notes ]
-        notes = dict((k, k) for k in notes).keys()
+        notes = list(dict((k, k) for k in notes).keys())
         notes = sorted(notes)
         scale = Scale(notes, name = name, octave_size = octave_size)
         return scale
 
     @staticmethod
     def all():
-        return Scale.dict.values()
+        return list(Scale.dict.values())
 
     @staticmethod
     def byname(name):
@@ -84,7 +84,7 @@ class Scale(object):
 
     @staticmethod
     def random():
-        key = random.choice(Scale.dict.keys())
+        key = random.choice(list(Scale.dict.keys()))
         return Scale.dict[key]
 
 Scale.chromatic     = Scale([ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ], "chromatic")
@@ -119,7 +119,7 @@ class WeightedScale(Scale):
     def __init__(self, semitones = [ 0, 2, 4, 5, 7, 9, 11 ], weights = [ 1/7.0 ] * 7, name = "major", octave_size = 12):
         Scale.__init__(self, semitones, name = name, octave_size = octave_size)
         self.weights = weights
-        if not Scale.dict.has_key(name):
+        if name not in Scale.dict:
            Scale.dict[name] = self
 
     def __str__(self):
@@ -134,7 +134,7 @@ class WeightedScale(Scale):
                 notes_dict[note] = 0
             notes_dict[note] += 1.0 / len(note_sequence)
 
-        notes_unique = dict((k, k) for k in note_sequence).keys()
+        notes_unique = list(dict((k, k) for k in note_sequence).keys())
         notes_unique = sorted(notes_unique)
         weights = []
         for note in notes_unique:

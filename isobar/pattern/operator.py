@@ -15,7 +15,7 @@ class PChanged(Pattern):
         self.source = source
         self.current = Pattern.value(self.source)
 
-    def next(self):
+    def __next__(self):
         next = Pattern.value(self.source)
         rv = 0 if next == self.current else 1
         self.current = next
@@ -28,7 +28,7 @@ class PDiff(Pattern):
         self.source = source
         self.current = Pattern.value(self.source)
 
-    def next(self):
+    def __next__(self):
         next = Pattern.value(self.source)
         rv = next - self.current
         self.current = next
@@ -40,7 +40,7 @@ class PAbs(Pattern):
     def __init__(self, input):
         self.input = input
 
-    def next(self):
+    def __next__(self):
         next = Pattern.value(self.input)
         if next is not None:
             return abs(next)
@@ -59,7 +59,7 @@ class PNorm(Pattern):
         self.upper = None
         self.history = []
 
-    def next(self):
+    def __next__(self):
         value = Pattern.value(self.input)
         window_size = Pattern.value(self.window_size)
 
@@ -88,7 +88,7 @@ class PCollapse(Pattern):
     def __init__(self, input):
         self.input = input
 
-    def next(self):
+    def __next__(self):
         rv = None
         while rv == None:
             rv = Pattern.value(self.input)
@@ -98,11 +98,11 @@ class PNoRepeats(Pattern):
     """ PNoRepeats: Skip over repeated values in <input> """
     def __init__(self, input):
         self.input = input
-        self.value = sys.maxint
+        self.value = sys.maxsize
 
-    def next(self):
-        rv = sys.maxint
-        while rv == self.value or rv == sys.maxint:
+    def __next__(self):
+        rv = sys.maxsize
+        while rv == self.value or rv == sys.maxsize:
             rv = Pattern.value(self.input)
         self.value = rv
         return rv
@@ -114,8 +114,8 @@ class PReverse(Pattern):
         self.input = input
         self.values = reversed(list(input))
 
-    def next(self):
-        return self.values.next()
+    def __next__(self):
+        return next(self.values)
 
 class PDelay(Pattern):
     """ outputs the next value of patternA after patternB ticks """
@@ -125,7 +125,7 @@ class PDelay(Pattern):
         self.delay = delay
         self.counter = Pattern.value(self.delay)
 
-    def next(self):
+    def __next__(self):
         self.counter -= 1
         if self.counter < 0:
             self.counter = Pattern.value(self.delay)
@@ -148,10 +148,10 @@ class PMap(Pattern):
         self.args = args
         self.kwargs = kwargs
 
-    def next(self):
+    def __next__(self):
         args = [ Pattern.value(value) for value in self.args ]
-        kwargs = dict((key, Pattern.value(value)) for key, value in self.kwargs.items())
-        value = self.input.next()
+        kwargs = dict((key, Pattern.value(value)) for key, value in list(self.kwargs.items()))
+        value = next(self.input)
         rv = self.operator(value, *args, **kwargs)
         return rv
 
@@ -166,10 +166,10 @@ class PMapEnumerated(PMap):
         PMap.__init__(self, *args)
         self.counter = 0
 
-    def next(self):
+    def __next__(self):
         args = [ Pattern.value(value) for value in self.args ]
-        kwargs = dict((key, Pattern.value(value)) for key, value in self.kwargs.items())
-        value = self.input.next()
+        kwargs = dict((key, Pattern.value(value)) for key, value in list(self.kwargs.items()))
+        value = next(self.input)
         rv = self.operator(self.counter, value, *args, **kwargs)
         self.counter += 1
         return rv
@@ -224,7 +224,7 @@ class PIndexOf(Pattern):
         self.list = list
         self.item = item
 
-    def next(self):
+    def __next__(self):
         list = Pattern.value(self.list)
         item = Pattern.value(self.item)
         if list is None or item is None or item not in list:
@@ -240,9 +240,9 @@ class PPad(Pattern):
         self.length = length
         self.count = 0
 
-    def next(self):
+    def __next__(self):
         try:
-            rv = self.pattern.next()
+            rv = next(self.pattern)
         except:
             if self.count >= self.length:
                 raise StopIteration
@@ -266,9 +266,9 @@ class PPadToMultiple(Pattern):
         self.padcount = 0
         self.terminated = False
 
-    def next(self):
+    def __next__(self):
         try:
-            rv = self.pattern.next()
+            rv = next(self.pattern)
         except:
             if self.padcount >= self.minimum_pad and (self.count % self.multiple == 0):
                 raise StopIteration

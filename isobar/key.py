@@ -1,6 +1,6 @@
-from scale import *
-from note import *
-from util import *
+from .scale import *
+from .note import *
+from .util import *
 
 import random
 
@@ -42,7 +42,7 @@ class Key:
 
     @property
     def semitones(self):
-        semitones = map(lambda n: (n + self.tonic) % self.scale.octave_size, self.scale.semitones)
+        semitones = [(n + self.tonic) % self.scale.octave_size for n in self.scale.semitones]
         semitones.sort()
         return semitones
 
@@ -89,16 +89,16 @@ class Key:
 
     def distance(self, other):
         leading = self.voiceleading(other)
-        distance = sum(map(lambda (a, b): abs(a - b), leading))
+        distance = sum([abs(a_b[0] - a_b[1]) for a_b in leading])
         return distance
 
     def fadeto(self, other, level):
         """ level between 0..1 """
         semitones_a = self.semitones()
         semitones_b = other.semitones()
-        semitones_shared = filter(lambda n: n in semitones_a, semitones_b)
-        semitones_a_only = filter(lambda n: n not in semitones_b, semitones_a)
-        semitones_b_only = filter(lambda n: n not in semitones_a, semitones_b)
+        semitones_shared = [n for n in semitones_b if n in semitones_a]
+        semitones_a_only = [n for n in semitones_a if n not in semitones_b]
+        semitones_b_only = [n for n in semitones_b if n not in semitones_a]
 
         if level < 0.5:
             # scale from 1..0

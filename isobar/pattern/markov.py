@@ -43,18 +43,18 @@ class PMarkov(Pattern):
 
     def randomize(self):
         """ Uses the existing set of nodes but randomizes their connections. """
-        for node in self.nodes.keys():
+        for node in list(self.nodes.keys()):
             self.nodes[node] = []
-            for other in self.nodes.keys():
+            for other in list(self.nodes.keys()):
                 prob = random.randint(0, 10)
                 self.nodes[node] += [ other ] * prob
 
-    def next(self):
+    def __next__(self):
         #------------------------------------------------------------------------
         # Returns the next value according to our internal statistical model.
         #------------------------------------------------------------------------
         if self.node is None and len(self.nodes) > 0:
-            self.node = random.choice(self.nodes.keys())
+            self.node = random.choice(list(self.nodes.keys()))
         else:
             try:
                 #------------------------------------------------------------------------
@@ -62,9 +62,9 @@ class PMarkov(Pattern):
                 #------------------------------------------------------------------------
                 self.node = random.choice(self.nodes[self.node])
             except IndexError:
-                self.node = random.choice(self.nodes.keys())
+                self.node = random.choice(list(self.nodes.keys()))
             except KeyError:
-                print "no such node: %s" % self.node
+                print("no such node: %s" % self.node)
 
         if self.node is None:
             #--------------------------------------------------------------------------------
@@ -117,7 +117,7 @@ class MarkovParallelLearners:
             self.learners[n].register(list[n])
 
     def chains(self):
-        return map(lambda learner: learner.markov, self.learners)
+        return [learner.markov for learner in self.learners]
 
 class MarkovGrapher:
     """ Helper class to graph the structure of a Markov object.
@@ -164,7 +164,7 @@ class MarkovGrapher:
             edges = markov.nodes[node_value]
             edge_counts = dict((v, edges.count(v) / float(len(edges))) for v in edges)
 
-            for edge, edge_weight in edge_counts.items():
+            for edge, edge_weight in list(edge_counts.items()):
                 #------------------------------------------------------------------------
                 # in graphviz, attributes must always be strings.
                 #------------------------------------------------------------------------

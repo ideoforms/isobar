@@ -23,7 +23,7 @@ def normalize(array):
     """ Normalise an array to sum to 1.0. """
     if sum(array) == 0:
         return array
-    return map(lambda n: float(n) / sum(array), array)
+    return [float(n) / sum(array) for n in array]
 
 def windex(weights):
     """ Return a random index based on a list of weights, from 0..(len(weights) - 1).
@@ -61,7 +61,7 @@ def nametomidi(name):
         octave = 0
 
     try:
-        index = note_names.index(filter(lambda nameset: name in nameset, note_names)[0])
+        index = note_names.index([nameset for nameset in note_names if name in nameset][0])
         return octave * 12 + index
     except:
         return None
@@ -89,7 +89,7 @@ def miditofreq(note):
 
 def bipolar_diverge(maximum):
     """ returns [0, 1, -1, ...., maximum, -maximum ] """
-    sequence = list(sum(zip(range(maximum + 1), range(0, -maximum - 1, -1)), ()))
+    sequence = list(sum(list(zip(list(range(maximum + 1)), list(range(0, -maximum - 1, -1)))), ()))
     sequence.pop(0)
     return sequence
 

@@ -122,13 +122,13 @@ class Pattern:
         # as we want to catch StopIterations.
         try:
             for n in range(count):
-                rv.append(self.next())
+                rv.append(next(self))
         except StopIteration:
             pass
 
         return rv
 
-    def next(self):
+    def __next__(self):
         # default pattern should be void
         raise StopIteration
 
@@ -138,8 +138,8 @@ class Pattern:
             # do we even need a LENGTH_MAX?
             # if we omit it, .all() will become an alias for list(pattern)
             #  - maybe not such a bad thing.
-            for n in xrange(Pattern.LENGTH_MAX):
-                value = self.next()
+            for n in range(Pattern.LENGTH_MAX):
+                value = next(self)
                 values.append(value)
         except StopIteration:
             pass
@@ -150,7 +150,7 @@ class Pattern:
     def reset(self):
         """ reset a finite sequence back to position 0 """
         fields = vars(self)
-        for name, field in fields.items():
+        for name, field in list(fields.items()):
             if isinstance(field, Pattern):
                 field.reset()
             #------------------------------------------------------------------------
@@ -162,7 +162,7 @@ class Pattern:
                     if isinstance(item, Pattern):
                         item.reset()
             elif isinstance(field, dict):
-                for item in field.values():
+                for item in list(field.values()):
                     if isinstance(item, Pattern):
                         item.reset()
 
@@ -185,7 +185,6 @@ class Pattern:
     @staticmethod
     def fromgenotype(genotype):
         """ create a new object based on this genotype """
-        print "genotype: %s" % genotype
         parts = genotype.split(Pattern.GENO_SEPARATOR)
         classname = parts[0]
         arguments = parts[1:]
@@ -195,12 +194,11 @@ class Pattern:
             instance = classobj()
             fields = vars(instance)
             counter = 0
-            for name, field in fields.items():
+            for name, field in list(fields.items()):
                 instance.__dict__[name] = eval(arguments[counter])
-                print "%s - %s" % (name, arguments[counter])
                 counter += 1
-        except Exception, e:
-            print "fail: %s" % e
+        except Exception as e:
+            print(("fail: %s" % e))
             pass
 
         return instance
@@ -219,7 +217,7 @@ class Pattern:
             else:
                 genotype.append(genesB[n])
         genotypeC = Pattern.GENO_SEPARATOR.join(genotype)
-        print "A %s\nB %s\n> %s" % (genotypeA, genotypeB, genotypeC)
+        print("A %s\nB %s\n> %s" % (genotypeA, genotypeB, genotypeC))
         return Pattern.fromgenotype(genotypeC)
 
     def genotype(self):
@@ -229,7 +227,7 @@ class Pattern:
 
         import base64
 
-        for name, field in fields.items():
+        for name, field in list(fields.items()):
             genotype += Pattern.GENO_SEPARATOR
 
             if isinstance(field, Pattern):
@@ -249,7 +247,7 @@ class Pattern:
         """ Resolve a pattern to its value (that is, the next item in this
             pattern, recursively).
             """
-        return Pattern.value(v.next()) if isinstance(v, Pattern) else v
+        return Pattern.value(next(v)) if isinstance(v, Pattern) else v
 
     @staticmethod
     def pattern(v):
@@ -282,7 +280,7 @@ class PConst(Pattern):
     def __str__(self):
         return "constant"
 
-    def next(self):
+    def __next__(self):
         return self.constant
 
 class PRef(Pattern):
@@ -296,14 +294,14 @@ class PRef(Pattern):
     def change(self, pattern):
         self.pattern = pattern
 
-    def next(self):
-        return self.pattern.next()
+    def __next__(self):
+        return next(self.pattern)
 
 class PFunc(Pattern):
     def __init__(self, fn):
         self.fn = fn
 
-    def next(self):
+    def __next__(self):
         fn = Pattern.value(self.fn)
         return fn()
 
@@ -321,7 +319,7 @@ class PDict(Pattern):
         elif type(value) == list:
             self.dict = {}
             try:
-                keys = value[0].keys()
+                keys = list(value[0].keys())
                 for key in keys:
                     self.dict[key] = PSeq([ item[key] for item in value ], 1)
             except IndexError:
@@ -343,7 +341,7 @@ class PDict(Pattern):
 
         reader = MidiFileIn()
         d = reader.read(filename)
-        d = dict([ (key, PSeq(value, 1)) for key, value in d.items() ])
+        d = dict([ (key, PSeq(value, 1)) for key, value in list(d.items()) ])
         return PDict(d)
 
     def has_key(self, key):
@@ -354,15 +352,15 @@ class PDict(Pattern):
             self.dict[key] = value
 
     def keys(self):
-        return self.dict.keys()
+        return list(self.dict.keys())
 
     def values(self):
-        return self.dict.values()
+        return list(self.dict.values())
 
     def items(self):
-        return self.dict.items()
+        return list(self.dict.items())
 
-    def next(self):
+    def __next__(self):
         vdict = Pattern.value(self.dict)
         if not vdict:
             raise StopIteration
@@ -381,7 +379,7 @@ class PIndex(Pattern):
         self.index = index
         self.list = list
 
-    def next(self):
+    def __next__(self):
         index = Pattern.value(self.index)
         list = Pattern.value(self.list)
 
@@ -402,7 +400,7 @@ class PKey(Pattern):
         self.key = key
         self.dict = dict
 
-    def next(self):
+    def __next__(self):
         vkey = Pattern.value(self.key)
         vdict = Pattern.value(self.dict)
         return vdict[vkey]
@@ -418,15 +416,15 @@ class PConcat(Pattern):
         self.inputs = inputs
         self.current = self.inputs.pop(0)
 
-    def next(self):
+    def __next__(self):
         try:
-            return self.current.next()
+            return next(self.current)
         except StopIteration:
             if len(self.inputs) > 0:
                 self.current = self.inputs.pop(0)
                 # can't just blindly return the first value of current
                 # -- what if it is empty? 
-                return self.next()
+                return next(self)
             else:
                 # no more sequences left, so just return.
                 raise StopIteration
@@ -446,9 +444,9 @@ class PAdd(PBinOp):
     def __str__(self):
         return "%s + %s" % (self.a, self.b)
 
-    def next(self):
-        a = self.a.next()
-        b = self.b.next()
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
         return None if a is None or b is None else a + b
         
 
@@ -457,9 +455,9 @@ class PSub(PBinOp):
     def __str__(self):
         return "%s - %s" % (self.a, self.b)
 
-    def next(self):
-        a = self.a.next()
-        b = self.b.next()
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
         return None if a is None or b is None else a - b
 
 class PMul(PBinOp):
@@ -467,9 +465,9 @@ class PMul(PBinOp):
     def __str__(self):
         return "(%s) * (%s)" % (self.a, self.b)
 
-    def next(self):
-        a = self.a.next()
-        b = self.b.next()
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
         return None if a is None or b is None else a * b
 
 class PDiv(PBinOp):
@@ -477,9 +475,9 @@ class PDiv(PBinOp):
     def __str__(self):
         return "(%s) / (%s)" % (self.a, self.b)
 
-    def next(self):
-        a = self.a.next()
-        b = self.b.next()
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
         return None if a is None or b is None else a / b
 
 class PMod(PBinOp):
@@ -487,9 +485,9 @@ class PMod(PBinOp):
     def __str__(self):
         return "(%s) %% (%s)" % (self.a, self.b)
 
-    def next(self):
-        a = self.a.next()
-        b = self.b.next()
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
         return None if a is None or b is None else a % b
 
 class PPow(PBinOp):
@@ -497,9 +495,9 @@ class PPow(PBinOp):
     def __str__(self):
         return "pow(%s, %s)" % (self.a, self.b)
 
-    def next(self):
-        a = self.a.next()
-        b = self.b.next()
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
         return None if a is None or b is None else pow(a, b)
 
 class PLShift(PBinOp):
@@ -507,9 +505,9 @@ class PLShift(PBinOp):
     def __str__(self):
         return "(%s << %s)" % (self.a, self.b)
 
-    def next(self):
-        a = self.a.next()
-        b = self.b.next()
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
         return None if a is None or b is None else a << b
 
 class PRShift(PBinOp):
@@ -517,7 +515,7 @@ class PRShift(PBinOp):
     def __str__(self):
         return "(%s >> %s)" % (self.a, self.b)
 
-    def next(self):
-        a = self.a.next()
-        b = self.b.next()
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
         return None if a is None or b is None else a >> b

@@ -5,8 +5,8 @@ class PFilterByKey(Pattern):
         self.input = input
         self.key = key
 
-    def next(self):
-        note = self.input.next()
+    def __next__(self):
+        note = next(self.input)
         key = Pattern.value(self.key)
         if note in key:
             return note
@@ -18,7 +18,7 @@ class PNearest(Pattern):
         self.input = input
         self.key = key
 
-    def next(self):
-        note = self.input.next()
+    def __next__(self):
+        note = next(self.input)
         key = Pattern.value(self.key)
         return key.nearest_note(note)

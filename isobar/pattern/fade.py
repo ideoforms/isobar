@@ -59,7 +59,7 @@ class PFadeNotewise(PFade):
             self.fadeindex += 1
             self.fadestep -= 1
 
-    def next(self):
+    def __next__(self):
         if self.counter >= len(self.notes):
             #----------------------------------------------------------------------
             # we've reached the end of the sequence.
@@ -109,7 +109,7 @@ class PFadeNotewiseRandom(PFadeNotewise):
     """ PFadeNotewise: Fade a pattern in/out by gradually introducing random notes. """
     def __init__(self, *args, **kwargs):
         PFadeNotewise.__init__(self, *args, **kwargs)
-        self.ordering = range(len(self.notes))
+        self.ordering = list(range(len(self.notes)))
         random.shuffle(self.ordering)
 
     def fade_in(self):

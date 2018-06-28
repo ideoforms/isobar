@@ -21,7 +21,7 @@ class PTri(Pattern):
     def reset(self):
         self.phase = 0.0
 
-    def next(self):
+    def __next__(self):
         length = Pattern.value(self.length)
 
         norm_phase = float(self.phase) / length
