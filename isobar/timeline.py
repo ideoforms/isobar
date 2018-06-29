@@ -223,7 +223,6 @@ class Timeline(object):
     @property
     def default_output(self):
         if not self.devices:
-            log.info("Adding default MIDI output")
             self.add_output(isobar.io.MidiOut())
         return self.devices[0]
 
