@@ -12,6 +12,3 @@ from isobar.timeline import *
 import sys
 
 FOREVER = sys.maxsize
-
-# REST = -sys.maxint - 1
-# END = -sys.maxint + 1
