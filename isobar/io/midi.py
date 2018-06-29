@@ -9,14 +9,11 @@ import time
 import isobar
 from isobar.note import *
 
-MIDIIN_DEFAULT = "IAC Driver A"
-MIDIOUT_DEFAULT = "IAC Driver A"
-
 import logging
 log = logging.getLogger(__name__)
 
 class MidiIn:
-    def __init__(self, target = MIDIOUT_DEFAULT):
+    def __init__(self, target = None):
         self.midi = rtmidi.MidiIn()
 
         #------------------------------------------------------------------------
@@ -27,16 +24,19 @@ class MidiIn:
 
         ports = self.midi.get_ports()
         if len(ports) == 0:
-            raise Exception("No MIDI output ports found")
+            raise Exception("No MIDI ports found")
 
-        for index, name in enumerate(ports):
-            if name == target:
-                log.info("Found MIDI input (%s)", name)
-                self.midi.open_port(index)
+        port_index = 0
+        if target is not None:
+            for index, name in enumerate(ports):
+                if name == target:
+                    log.info("Found MIDI source (%s)" % name)
+                    port_index = index
 
-        if self.midi is None:
-            log.warn("Could not find MIDI source %s, using default", target)
-            self.midi.open_port(0)
+            if self.midi is None:
+                log.warn("Could not find MIDI source %s, using default" % target)
+
+        self.midi.open_port(port_index)
 
     def callback(self, message, timestamp):
         message = message[0]
@@ -73,21 +73,26 @@ class MidiIn:
 
 
 class MidiOut:
-    def __init__(self, target = MIDIOUT_DEFAULT):
+    def __init__(self, target = None):
         self.midi = rtmidi.MidiOut()
 
         ports = self.midi.get_ports()
         if len(ports) == 0:
             raise Exception("No MIDI output ports found")
 
-        for index, name in enumerate(ports):
-            if name == target:
-                log.info("Found MIDI output (%s)" % name)
-                self.midi.open_port(index)
+        port_index = 0
+        if target is not None:
+            for index, name in enumerate(ports):
+                if name == target:
+                    log.info("Found MIDI output (%s)" % name)
+                    port_index = index
 
-        if self.midi is None:
-            log.warn("Could not find MIDI target %s, using default" % target)
-            self.midi.open_port(0)
+            if self.midi is None:
+                log.warn("Could not find MIDI target %s, using default" % target)
+
+        self.midi.open_port(port_index)
+        port_name = self.midi.get_port_name(port_index)
+        log.info("Opened MIDI output: %s" % port_name)
 
     def tick(self, tick_length):
         pass
