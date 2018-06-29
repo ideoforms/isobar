@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-# implementation of steve reich's "piano phase" (1967):
-# two identical piano lines, one with a slightly longer duration,
-# going in and out of phase with one another.
+#------------------------------------------------------------------------
+# Implementation of Steve Reich's "Piano Phase" (1967):
+# Two identical piano lines, one with a slightly longer duration,
+# moving in and out of phase with one another.
+#------------------------------------------------------------------------
 
 # by default, writes to the current MIDI output.
-
 from isobar import *
 
 # melody line

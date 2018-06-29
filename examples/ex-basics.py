@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from isobar import *
+from isobar.io.midi import MidiOut
 
 # create a repeating sequence with scalar transposition:
 # [ 36, 38, 43, 39, ... ]
@@ -21,8 +22,8 @@ amp = PSeq([ 50, 35, 25, 35 ]) + PBrown(0, 1, -20, 20)
 
 # a Timeline schedules events at a given BPM.
 # by default, send these over the first MIDI output.
-from isobar.io.midi import *
-timeline = Timeline(MidiIn())
+output = MidiOut()
+timeline = Timeline(120, output)
 
 # assign each of our Patterns to particular properties
 timeline.sched({ 'note': a, 'dur': 1, 'gate': 2 })
