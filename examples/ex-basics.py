@@ -3,6 +3,9 @@
 from isobar import *
 from isobar.io.midi import MidiOut
 
+import logging
+logging.basicConfig(level = logging.INFO, format = "[%(asctime)s] %(message)s")
+
 # create a repeating sequence with scalar transposition:
 # [ 36, 38, 43, 39, ... ]
 a = PSeq([ 0, 2, 7, 3 ]) + 36

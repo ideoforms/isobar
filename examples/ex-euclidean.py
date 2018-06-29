@@ -6,6 +6,8 @@
 #------------------------------------------------------------------------
 
 from isobar import *
+import logging
+logging.basicConfig(level = logging.INFO, format = "[%(asctime)s] %(message)s")
 
 timeline = Timeline(120, debug = True)
 
