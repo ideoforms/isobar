@@ -171,6 +171,7 @@ class Timeline(object):
         
         If stop_when_done is set, returns when no channels are currently
         scheduled; otherwise, keeps running indefinitely. """
+        log.info("Timeline: Running")
 
         if stop_when_done is not None:
             self.stop_when_done = stop_when_done
@@ -219,17 +220,20 @@ class Timeline(object):
         """ Append a new output device to our output list. """
         self.devices.append(device)
 
+    @property
+    def default_output(self):
+        if not self.devices:
+            log.info("Adding default MIDI output")
+            self.add_output(isobar.io.MidiOut())
+        return self.devices[0]
+
     def sched(self, event, quantize = 0, delay = 0, count = 0, device = None):
-        # TODO: should delay be part of the event?
         """ Schedule a new track within this Timeline. """
         if not device:
-            if not self.devices:
-                log.info("Adding default MIDI output")
-                self.add_output(isobar.io.MidiOut())
-            device = self.devices[0]
+            device = self.default_output
 
         if self.max_channels and len(self.channels) >= self.max_channels:
-            print(("*** timeline: refusing to schedule channel (hit limit of %d)" % self.max_channels))
+            print("Timeline: refusing to schedule channel (hit limit of %d)" % self.max_channels)
             return
 
         def _add_channel():
