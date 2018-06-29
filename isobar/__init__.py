@@ -1,13 +1,14 @@
 __version__ = "0"
 __author__ = "Daniel Jones <http://www.erase.net/>"
 
-from isobar.pattern import *
-from isobar.note import *
-from isobar.scale import *
-from isobar.chord import *
-from isobar.key import *
-from isobar.util import *
-from isobar.timeline import *
+from .pattern import *
+from .note import *
+from .scale import *
+from .chord import *
+from .key import *
+from .util import *
+from .timeline import *
+from .exceptions import *
 
 import sys
 
