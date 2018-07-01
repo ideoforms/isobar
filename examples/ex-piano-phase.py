@@ -9,6 +9,9 @@
 # by default, writes to the current MIDI output.
 from isobar import *
 
+import logging
+logging.basicConfig(level = logging.INFO, format = "[%(asctime)s] %(message)s")
+
 # melody line
 seq = PSeq([ -7, -5, 0, 2, 3, -5, -7, 2, 0, -5, 3, 2 ])
 

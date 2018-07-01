@@ -505,7 +505,7 @@ class Channel:
                 channel = values["channel"][index] if isinstance(values["channel"], tuple) else values["channel"]
                 gate    = values["gate"][index] if isinstance(values["gate"], tuple) else values["gate"]
 
-                log.debug("note on  (channel %d, note %d, velocity %d)", channel, note, amp);
+                log.debug("Note on  (channel %d, note %d, velocity %d)", channel, note, amp);
                 self.device.note_on(note, amp, channel)
 
                 note_dur = self.dur_now * gate
@@ -520,7 +520,7 @@ class Channel:
             if note[0] <= self.pos:
                 index = note[1]
                 channel = note[2]
-                log.debug("note off (channel %d, note %d)", channel, index);
+                log.debug("Note off (channel %d, note %d)", channel, index);
                 self.device.note_off(index, channel)
                 self.note_offs.pop(n)
 

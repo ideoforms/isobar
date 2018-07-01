@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 
+#------------------------------------------------------------------------
+# ex-subsequence
+#------------------------------------------------------------------------
+
 from isobar import *
+
+import logging
+logging.basicConfig(level = logging.INFO, format = "[%(asctime)s] %(message)s")
 
 scale = Scale([ 0, 2, 3, 6, 7 ])
 scale = Scale.pelog
