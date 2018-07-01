@@ -66,17 +66,17 @@ distribution:
 Top-level classes:
 
 * [Chord](isobar/chord.py)
-* [Key](isobar/chord.py)
-* [Scale](isobar/chord.py)
+* [Key](isobar/key.py)
+* [Scale](isobar/scale.py)
 * [Timeline](isobar/timeline.py)
-* [Clock](isobar/timeline.py)
+* [Clock](isobar/clock.py)
 
 I/O classes:
 
-* [MIDIOut](isobar/io/midi.py)
+* [MIDI](isobar/io/midi.py)
 * [MIDIFile](isobar/io/midifile.py)
-* [OSCOut](isobar/io/osc.py)
-* [SocketIOOut](isobar/io/socketio.py)
+* [OSC](isobar/io/osc.py)
+* [SocketIO](isobar/io/socketio.py)
 
 Pattern classes:
 
@@ -92,6 +92,7 @@ Pattern classes:
     PSub             - Subtract elements of two patterns (shorthand: patternA - patternB)
     PMul             - Multiply elements of two patterns (shorthand: patternA * patternB)
     PDiv             - Divide elements of two patterns (shorthand: patternA / patternB)
+    PFloorDiv        - Integer division of two patterns (shorthand: patternA // patternB)
     PMod             - Modulo elements of two patterns (shorthand: patternA % patternB)
     PPow             - One pattern to the power of another (shorthand: patternA ** patternB)
     PLShift          - Binary left-shift (shorthand: patternA << patternB)
@@ -164,7 +165,6 @@ Pattern classes:
     PWInterpolate    - Requests a new target warp value from <pattern> every <length> beats
     PWSine           - Sinosoidal warp, period <length> beats, amplitude +/-<amp>.
     PWRallantando    - Exponential deceleration to <amp> times the current tempo over <length> beats.
-
 
 
 ## Background
