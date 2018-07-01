@@ -74,10 +74,15 @@ class Pattern:
         """Binary op: multiply two patterns"""
         return self.__mul__(operand)
 
-    def __div__(self, operand):
+    def __truediv__(self, operand):
         """Binary op: divide two patterns"""
         operand = Pattern.pattern(operand)
         return PDiv(self, operand)
+
+    def __floordiv__(self, operand):
+        """Binary op: divide two patterns"""
+        operand = Pattern.pattern(operand)
+        return PFloorDiv(self, operand)
 
     def __rdiv__(self, operand):
         """Binary op: divide two patterns"""
@@ -479,6 +484,16 @@ class PDiv(PBinOp):
         a = next(self.a)
         b = next(self.b)
         return None if a is None or b is None else a / b
+
+class PFloorDiv(PBinOp):
+    """ PFloorDiv: Integer division (shorthand: patternA // patternB) """
+    def __str__(self):
+        return "(%s) // (%s)" % (self.a, self.b)
+
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
+        return None if a is None or b is None else a // b
 
 class PMod(PBinOp):
     """ PMod: Modulo elements of two patterns (shorthand: patternA % patternB) """
