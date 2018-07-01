@@ -5,6 +5,9 @@
 
 from isobar import *
 
+import logging
+logging.basicConfig(level = logging.INFO, format = "[%(asctime)s] %(message)s")
+
 import random
 import time
 
