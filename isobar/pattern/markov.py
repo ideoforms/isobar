@@ -36,6 +36,8 @@ class PMarkov(Pattern):
             # model : eg { 1 : [ 2, 2, 3 ], 2 : [ 3 ], 3 : [ 1, 2 ] }
             #------------------------------------------------------------------------
             self.nodes = nodes
+        elif nodes:
+            raise ValueError("Invalid value for nodes")
         else:
             self.nodes = {}
 

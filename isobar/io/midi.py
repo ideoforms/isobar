@@ -61,12 +61,14 @@ class MidiIn:
         if not message:
             return
 
-        print(message)
-        data_type, data_note, data_vel = message[0]
+        try:
+            data_type, data_note, data_vel = message[0]
 
-        if (data_type & 0x90) > 0 and data_vel > 0:
-            # note on
-            return Note(data_note, data_vel)
+            if (data_type & 0x90) > 0 and data_vel > 0:
+                # note on
+                return Note(data_note, data_vel)
+        except:
+            pass
 
     def close(self):
         del self.midi
