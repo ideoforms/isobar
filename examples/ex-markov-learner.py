@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #------------------------------------------------------------------------
-# parallel markov chain learner:
+# Parallel markov chain learner:
 # 1. takes MIDI input, and constructs three markov chains for pitch, duration
 #    and amplitude. 
 # 2. after receiving a keyboard interrupt (ctrl-c), plays back melodies which are

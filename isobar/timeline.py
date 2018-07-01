@@ -197,7 +197,7 @@ class Timeline(object):
             #------------------------------------------------------------------------
             # This will be hit if every Pattern in a timeline is exhausted.
             #------------------------------------------------------------------------
-            log.info("Timeline finished")
+            log.info("Timeline: Finished")
 
         except Exception as e:
             print((" *** Exception in background Timeline thread: %s" % e))
