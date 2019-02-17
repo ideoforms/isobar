@@ -8,7 +8,6 @@ from .chord import *
 from .key import *
 from .util import *
 from .timeline import *
-from .exceptions import *
 
 import sys
 
