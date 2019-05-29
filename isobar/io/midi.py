@@ -100,20 +100,20 @@ class MidiOut:
         pass
 
     def note_on(self, note = 60, velocity = 64, channel = 0):
-        log.debug("[midi] channel %d, note_on: (%d, %d)" % (channel, note, velocity))
+        log.debug("[midi] Note on  (channel = %d, note = %d, velocity = %d)" % (channel, note, velocity))
         self.midi.send_message([ 0x90 + channel, int(note), int(velocity) ])
 
     def note_off(self, note = 60, channel = 0):
-        log.debug("[midi] channel %d, note_off: %d" % (channel, note))
+        log.debug("[midi] Note off (channel = %d, note = %d)" % (channel, note))
         self.midi.send_message([ 0x80 + channel, int(note), 0 ])
 
     def all_notes_off(self, channel = 0):
-        log.debug("[midi] channel %d, all_notes_off")
+        log.debug("[midi] All notes off (channel = %d)" % (channel))
         for n in range(128):
             self.note_off(n, channel)
 
     def control(self, control = 0, value = 0, channel = 0):
-        log.debug("[midi] channel %d, control %d: %d" % (channel, control, value))
+        log.debug("[midi] Control (channel %d, control %d, value %d)" % (channel, control, value))
         self.midi.send_message([ 0xB0 + channel, int(control), int(value) ])
 
     def __destroy__(self):

@@ -2,13 +2,9 @@
 # absolute_import is needed so we can import MidiUtil without
 # filename clash with isobar/io/midi.py.
 #------------------------------------------------------------------------
- 
 
 from isobar.note import *
 from isobar.pattern.core import *
-
-# requires python-midi
-import midi
 
 import logging
 log = logging.getLogger(__name__)
@@ -31,10 +27,12 @@ class MidiFileIn:
     def __init__(self, filename):
         self.filename = filename
 
+        # requires python-midi
+        import midi
+
     def read_note_list(self, filename, quantize = 0.25):
         reader = midi.FileReader()
         data = reader.read(file(self.filename))
-
 
         notes = []
         for track in data:
@@ -151,6 +149,7 @@ class MidiFileOut:
         https://code.google.com/p/midiutil/ """
 
     def __init__(self, filename = "score.mid", num_tracks = 16):
+        # requires midiutil
         from midiutil.MidiFile import MIDIFile
 
         self.filename = filename
