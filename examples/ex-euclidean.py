@@ -6,10 +6,11 @@
 #------------------------------------------------------------------------
 
 from isobar import *
-import logging
-logging.basicConfig(level = logging.INFO, format = "[%(asctime)s] %(message)s")
 
-timeline = Timeline(120, debug = True)
+import logging
+logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
+
+timeline = Timeline(120)
 
 timeline.sched({ 'note' : 60 * PEuclidean(5, 8), 'dur' : 0.5 })
 timeline.sched({ 'note' : 62 * PEuclidean(5, 13), 'dur' : 0.25 })

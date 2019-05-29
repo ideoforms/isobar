@@ -11,7 +11,7 @@ from isobar import *
 from isobar.io.midi import MidiOut
 
 import logging
-logging.basicConfig(level = logging.INFO, format = "[%(asctime)s] %(message)s")
+logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
 #------------------------------------------------------------------------
 # Create a repeating sequence with scalar transposition:

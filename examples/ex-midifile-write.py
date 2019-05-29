@@ -2,6 +2,7 @@
 
 #------------------------------------------------------------------------
 # ex-midifile-write:
+#
 # Simple example of writing to a MIDI file in real time.
 #------------------------------------------------------------------------
 
@@ -9,7 +10,7 @@ from isobar import *
 from isobar.io.midifile import MidiFileOut
 
 import logging
-logging.basicConfig(level = logging.INFO, format = "[%(asctime)s] %(message)s")
+logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
 filename = "output.mid"
 output = MidiFileOut(filename)
