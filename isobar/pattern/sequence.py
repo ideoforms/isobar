@@ -401,7 +401,7 @@ class PPermut(Pattern):
             self.pos = 0
 
         if self.permindex >= len(self.permutations):
-            return None
+            raise StopIteration
             
         rv = self.permutations[self.permindex][self.pos]
         self.pos += 1
