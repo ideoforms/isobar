@@ -27,5 +27,7 @@ setup(
         'Topic :: Artistic Software',
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers'
-    ]
+    ],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest', 'pytest-timeout']
 )
