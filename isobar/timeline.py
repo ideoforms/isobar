@@ -23,7 +23,7 @@ class Timeline(object):
     """ A Timeline object represents a number of Channels, each of which
     represents a sequence of note or control events. """
 
-    def __init__(self, clock = 120, device = None, debug = None):
+    def __init__(self, clock=120, device=None):
         """ Expect to receive one tick per beat, generate events at 120bpm """
         self.tick_length = 1.0 / TICKS_PER_BEAT
         self.beats = 0
@@ -36,9 +36,6 @@ class Timeline(object):
         self.clock_source = None
         self.thread = None
         self.stop_when_done = True
-
-        if debug is not None:
-            isobar.debug = debug
 
         self.events = []
 
@@ -78,7 +75,8 @@ class Timeline(object):
         # http://docs.python.org/tutorial/floatingpoint.html
         #------------------------------------------------------------------------
         if round(self.beats, 8) % 1 == 0:
-             log.debug("tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events)))
+             log.debug("----------------------------------------------------------------")
+             log.debug("Tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events)))
 
         #------------------------------------------------------------------------
         # Copy self.events because removing from it whilst using it = bad idea.
@@ -163,7 +161,7 @@ class Timeline(object):
         """ Run this Timeline in a background thread. """
         self.thread = _thread.start_new_thread(self.run, ())
 
-    def run(self, high_priority = True, stop_when_done = True):
+    def run(self, high_priority=True, stop_when_done=True):
         """ Run this Timeline in the foreground.
         By default, attempts to run as a high-priority thread for more
         accurate timing (though requires being run as root to re-nice the
@@ -505,7 +503,6 @@ class Channel:
                 channel = values["channel"][index] if isinstance(values["channel"], tuple) else values["channel"]
                 gate    = values["gate"][index] if isinstance(values["gate"], tuple) else values["gate"]
 
-                log.debug("Note on  (channel %d, note %d, velocity %d)", channel, note, amp);
                 self.device.note_on(note, amp, channel)
 
                 note_dur = self.dur_now * gate
@@ -520,7 +517,6 @@ class Channel:
             if note[0] <= self.pos:
                 index = note[1]
                 channel = note[2]
-                log.debug("Note off (channel %d, note %d)", channel, index);
                 self.device.note_off(index, channel)
                 self.note_offs.pop(n)
 
