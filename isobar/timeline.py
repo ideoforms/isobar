@@ -53,10 +53,11 @@ class Timeline(object):
     
     @property
     def bpm(self):
-        """ Returns the tempo of this timeline's clock (which may be internal
-        or external). """
-        if self.has_external.clock:
-            return self.clock_source.bpm
+        """ Returns the tempo of this timeline's clock, or None if an external
+        clock source is used (in which case the bpm is unknown).
+        """
+        if self.has_external_clock:
+            return None
         else:
             return self.clock.bpm
 
@@ -530,11 +531,15 @@ class Channel:
 #----------------------------------------------------------------------
 
 class Clock:
-    def __init__(self, tick_size = 1.0/24):
+    def __init__(self, tick_size=(1.0 / TICKS_PER_BEAT)):
         self.tick_size_orig = tick_size
         self.tick_size = tick_size
         self.warpers = []
         self.accelerate = 1.0
+
+    @property
+    def bpm(self):
+        return 60.0 / (self.tick_size * TICKS_PER_BEAT)
 
     def run(self, timeline):
         clock0 = clock1 = time.time() * self.accelerate
