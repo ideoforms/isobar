@@ -3,16 +3,14 @@ TODO
 * MIDI feedback
 * use of yield in generator patterns
 * setuptools setup.py
-* complete INSTALL doc
 * 2+ order markov chains
 * unit test suite
-* better support for debug output and propagation between classes
 * Pkey (see SC)
 * improved OSC output 
 * more random distributions (levy, beta, gamma)
 * add parameter to MidiIn/MidiOut for device name
 * exceptions when a finite operation is performed on an infinite series
-* PRotate: move items from start to end of finite series (Spiegel 1981, #3)
+* PRotate: move items from start to end of finite series (Spiegel 1981, #3) - http://retiary.org/ls/writings/musical_manip.html
 * implement reset() for all finite sequences, and ensure it percolates through ops
   (to test: ensure that values() can be called twice in a row)
 * introduce generic Pattern representation as chromosome (for EvoWorkshops?)
