@@ -1,3 +1,6 @@
 .svn
 .DS_Store
 *.pyc
+.eggs
+*.egg-info
+dist/
