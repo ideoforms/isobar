@@ -311,7 +311,12 @@ class PFunc(Pattern):
         return fn()
 
 class PDict(Pattern):
-    """ PDict: Dict of patterns
+    """ PDict: Construct a pattern from a dict of arrays, or an array of dicts.
+        The below are equivalent:
+
+            PDict([ { "note" : 60, "velocity" : 64 }, { "note" : 67, "velocity" : 32 }, ... ])
+            PDict({ "note" : [ 60, 67 ], "velocity" : [ 64, 32 ]})
+
         Thanks to Dan Stowell <http://www.mcld.co.uk/>
         """
     def __init__(self, value = None):
@@ -320,8 +325,14 @@ class PDict(Pattern):
         self.dict = {}
 
         if type(value) == dict:
+            #------------------------------------------------------------------------
+            # Value is a dict of arrays.
+            #------------------------------------------------------------------------
             self.dict = value
         elif type(value) == list:
+            #------------------------------------------------------------------------
+            # Value is an array of dicts.
+            #------------------------------------------------------------------------
             self.dict = {}
             try:
                 keys = list(value[0].keys())
