@@ -241,7 +241,7 @@ class Track:
         #----------------------------------------------------------------------
         # note_on: Standard (MIDI) type of device
         #----------------------------------------------------------------------
-        if values[EVENT_AMPLITUDE] > 0:
+        if type(values[EVENT_AMPLITUDE]) is tuple or values[EVENT_AMPLITUDE] > 0:
             # TODO: pythonic duck-typing approach might be better
             # TODO: doesn't handle arrays of amp, channel values, etc
             notes = values[EVENT_NOTE] if hasattr(values[EVENT_NOTE], '__iter__') else [values[EVENT_NOTE]]

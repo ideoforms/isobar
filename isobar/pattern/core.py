@@ -287,7 +287,7 @@ class PDict(Pattern):
         """
 
     def __init__(self, value=None):
-        from isobar.pattern.sequence import PSeq
+        from .sequence import PSequence
 
         self.dict = {}
 
@@ -295,7 +295,7 @@ class PDict(Pattern):
             #------------------------------------------------------------------------
             # Value is a dict of arrays.
             #------------------------------------------------------------------------
-            self.dict = value
+            self.dict = dict([ (k, Pattern.pattern(v)) for k, v in value.items() ])
         elif type(value) == list:
             #------------------------------------------------------------------------
             # Value is an array of dicts.
@@ -304,7 +304,7 @@ class PDict(Pattern):
             try:
                 keys = list(value[0].keys())
                 for key in keys:
-                    self.dict[key] = PSeq([item[key] for item in value], 1)
+                    self.dict[key] = PSequence([item[key] for item in value], 1)
             except IndexError:
                 pass
 
@@ -320,11 +320,10 @@ class PDict(Pattern):
     @classmethod
     def load(self, filename):
         from isobar.io.midifile import MidiFileIn
-        from isobar.pattern.sequence import PSeq
+        from isobar.pattern.sequence import PSequence
 
         reader = MidiFileIn()
         d = reader.read(filename)
-        d = dict([(key, PSeq(value, 1)) for key, value in list(d.items())])
         return PDict(d)
 
     def has_key(self, key):
