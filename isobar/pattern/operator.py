@@ -1,12 +1,6 @@
-"""Testing pydoc"""
-
 import sys
-import random
-import itertools
 
-from isobar.pattern.core import *
-from isobar.key import *
-from isobar.util import *
+from .core import Pattern
 
 class PChanged(Pattern):
     """ PChanged: Outputs a 1 if the value of a pattern has changed. """
@@ -51,7 +45,7 @@ class PNorm(Pattern):
         Use maximum and minimum values found in history of size <window_size>.
         """
 
-    def __init__(self, input, window_size = None):
+    def __init__(self, input, window_size=None):
         self.input = input
         self.window_size = window_size
 
@@ -79,12 +73,13 @@ class PNorm(Pattern):
         if self.upper == self.lower:
             rv = 0.0
         else:
-            rv = (value - self.lower) / (self.upper - self.lower) 
+            rv = (value - self.lower) / (self.upper - self.lower)
 
         return rv;
 
 class PCollapse(Pattern):
     """ PCollapse: Skip over any rests in <input> """
+
     def __init__(self, input):
         self.input = input
 
@@ -96,6 +91,7 @@ class PCollapse(Pattern):
 
 class PNoRepeats(Pattern):
     """ PNoRepeats: Skip over repeated values in <input> """
+
     def __init__(self, input):
         self.input = input
         self.value = sys.maxsize
@@ -149,7 +145,7 @@ class PMap(Pattern):
         self.kwargs = kwargs
 
     def __next__(self):
-        args = [ Pattern.value(value) for value in self.args ]
+        args = [Pattern.value(value) for value in self.args]
         kwargs = dict((key, Pattern.value(value)) for key, value in list(self.kwargs.items()))
         value = next(self.input)
         rv = self.operator(value, *args, **kwargs)
@@ -167,13 +163,13 @@ class PMapEnumerated(PMap):
         self.counter = 0
 
     def __next__(self):
-        args = [ Pattern.value(value) for value in self.args ]
+        args = [Pattern.value(value) for value in self.args]
         kwargs = dict((key, Pattern.value(value)) for key, value in list(self.kwargs.items()))
         value = next(self.input)
         rv = self.operator(self.counter, value, *args, **kwargs)
         self.counter += 1
         return rv
-        
+
 class PLinLin(PMap):
     """ PLinLin: Map <input> from linear range [a,b] to linear range [c,d].
 
@@ -182,7 +178,7 @@ class PLinLin(PMap):
         [-34.434991496625955, -33.38823791706497, 42.153457333940267, 16.692545937573783, ... -48.850511242044604 ]
         """
 
-    def linlin(self, value, from_min = 0, from_max = 1, to_min = 0, to_max = 1):
+    def linlin(self, value, from_min=0, from_max=1, to_min=0, to_max=1):
         norm = float(value - from_min) / (from_max - from_min)
         return norm * float(to_max - to_min) + to_min
 
@@ -196,7 +192,7 @@ class PLinExp(PMap):
         >>> p.nextn(16)
         """
 
-    def linexp(self, value, from_min = 0, from_max = 1, to_min = 1, to_max = 10):
+    def linexp(self, value, from_min=0, from_max=1, to_min=1, to_max=10):
         if value < from_min: return to_min
         if value > from_max: return to_max
         return ((to_max / to_min) ** ((value - from_min) / (from_max - from_min))) * to_min;
@@ -210,6 +206,7 @@ class PRound(PMap):
         >>> p = PLinExp(PWhite(), 0, 1, 40, 20000)
         >>> p.nextn(16)
         """
+
     def __init__(self, input, *args):
         PMap.__init__(self, input, round, *args)
 
@@ -220,6 +217,7 @@ class PIndexOf(Pattern):
         >>> p.nextn(16)
         >>> [8, 18, 14, 1, 0, 17, 8, 18, 14, 1, 0, 17, 8, 18, 14, 1]
         """
+
     def __init__(self, list, item):
         self.list = list
         self.item = item
@@ -258,7 +256,7 @@ class PPadToMultiple(Pattern):
         Useful to create patterns which occupy a whole number of bars.
         """
 
-    def __init__(self, pattern, multiple, minimum_pad = 0):
+    def __init__(self, pattern, multiple, minimum_pad=0):
         self.pattern = pattern
         self.multiple = multiple
         self.minimum_pad = minimum_pad

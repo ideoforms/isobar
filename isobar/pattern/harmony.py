@@ -1,4 +1,4 @@
-from isobar.pattern.core import *
+from .core import Pattern
 
 class PFilterByKey(Pattern):
     def __init__(self, input, key):

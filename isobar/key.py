@@ -1,6 +1,6 @@
-from .scale import *
-from .note import *
-from .util import *
+from .scale import Scale
+from .note import Note
+from .util import midi_pitch_to_note_name, note_name_to_midi_pitch
 
 import random
 
@@ -10,7 +10,7 @@ class Key:
 
     def __init__(self, tonic = 0, scale = Scale.major):
         if type(tonic) == str:
-            tonic = nametomidi(tonic)
+            tonic = note_name_to_midi_pitch(tonic)
         if type(scale) == str:
             scale = Scale.byname(scale)
             
@@ -21,7 +21,7 @@ class Key:
         return self.tonic == other.tonic and self.scale == other.scale
 
     def __str__(self):
-        return "key: %s %s" % (miditopitch(self.tonic), self.scale.name)
+        return "key: %s %s" % (midi_pitch_to_note_name(self.tonic)[:-1], self.scale.name)
 
     def __repr__(self):
         return 'Key(%s, "%s")' % (self.tonic, self.scale.name)
@@ -94,8 +94,8 @@ class Key:
 
     def fadeto(self, other, level):
         """ level between 0..1 """
-        semitones_a = self.semitones()
-        semitones_b = other.semitones()
+        semitones_a = self.semitones
+        semitones_b = other.semitones
         semitones_shared = [n for n in semitones_b if n in semitones_a]
         semitones_a_only = [n for n in semitones_a if n not in semitones_b]
         semitones_b_only = [n for n in semitones_b if n not in semitones_a]

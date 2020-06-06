@@ -2,11 +2,8 @@
 # isobar: a python library for expressing and manipulating musical patterns.
 #-------------------------------------------------------------------------------
 
-import sys
 import copy
-import random
 import inspect
-import itertools
 
 import isobar
 
@@ -23,10 +20,6 @@ class Pattern:
         """
 
     LENGTH_MAX = 65536
-    GENO_SEPARATOR = "/"
-
-    def __init__(self):
-        pass
 
     def __str__(self):
         return "Pattern (%s)" % self.__class__
@@ -189,7 +182,7 @@ class Pattern:
         """
         Returns a new pattern with the contents of `other` appended to the contents of `self`.
         """
-        return PConcatenate([ self, other ])
+        return PConcatenate([self, other])
 
     @property
     def timeline(self):
@@ -239,6 +232,7 @@ class Pattern:
         else:
             return isobar.PConstant(v)
 
+
 class PConstant(Pattern):
     """ PConstant: Pattern returning a fixed value
 
@@ -246,6 +240,7 @@ class PConstant(Pattern):
         >>> p.nextn(16)
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
         """
+
     def __init__(self, constant):
         self.constant = constant
 
@@ -255,11 +250,13 @@ class PConstant(Pattern):
     def __next__(self):
         return self.constant
 
+
 class PRef(Pattern):
     """ PRef: Pattern containing a reference to another pattern
         Returns the next value of the pattern contained.
         Useful to change an inner pattern in real time.
         """
+
     def __init__(self, pattern):
         self.pattern = pattern
 
@@ -269,6 +266,7 @@ class PRef(Pattern):
     def __next__(self):
         return next(self.pattern)
 
+
 class PFunc(Pattern):
     def __init__(self, fn):
         self.fn = fn
@@ -276,6 +274,7 @@ class PFunc(Pattern):
     def __next__(self):
         fn = Pattern.value(self.fn)
         return fn()
+
 
 class PDict(Pattern):
     """ PDict: Construct a pattern from a dict of arrays, or an array of dicts.
@@ -286,7 +285,8 @@ class PDict(Pattern):
 
         Thanks to Dan Stowell <http://www.mcld.co.uk/>
         """
-    def __init__(self, value = None):
+
+    def __init__(self, value=None):
         from isobar.pattern.sequence import PSeq
 
         self.dict = {}
@@ -304,7 +304,7 @@ class PDict(Pattern):
             try:
                 keys = list(value[0].keys())
                 for key in keys:
-                    self.dict[key] = PSeq([ item[key] for item in value ], 1)
+                    self.dict[key] = PSeq([item[key] for item in value], 1)
             except IndexError:
                 pass
 
@@ -324,7 +324,7 @@ class PDict(Pattern):
 
         reader = MidiFileIn()
         d = reader.read(filename)
-        d = dict([ (key, PSeq(value, 1)) for key, value in list(d.items()) ])
+        d = dict([(key, PSeq(value, 1)) for key, value in list(d.items())])
         return PDict(d)
 
     def has_key(self, key):
@@ -351,13 +351,15 @@ class PDict(Pattern):
         # for some reason, doing a list comprehension without the surrounding square
         # brackets causes an inner StopIteration to be suppressed -- we want to
         # explicitly raise it.
-        rv = dict([ (k, Pattern.value(vdict[k])) for k in vdict ])
+        rv = dict([(k, Pattern.value(vdict[k])) for k in vdict])
 
         return rv
+
 
 class PIndex(Pattern):
     """ PIndex: Request a specified index from an array.
         """
+
     def __init__(self, index, list):
         self.index = index
         self.list = list
@@ -376,9 +378,11 @@ class PIndex(Pattern):
             index = int(index)
             return list[index]
 
+
 class PDictKey(Pattern):
     """ PDictKey: Request a specified key from a dictionary.
         """
+
     def __init__(self, key, dict):
         self.key = key
         self.dict = dict
@@ -387,6 +391,7 @@ class PDictKey(Pattern):
         vkey = Pattern.value(self.key)
         vdict = Pattern.value(self.dict)
         return vdict[vkey]
+
 
 class PConcatenate(Pattern):
     """ PConcatenate: Concatenate the output of multiple sequences. 
@@ -420,8 +425,10 @@ class PBinOp(Pattern):
         self.a = a
         self.b = b
 
+
 class PAdd(PBinOp):
     """ PAdd: Add elements of two patterns (shorthand: patternA + patternB) """
+
     def __str__(self):
         return "%s + %s" % (self.a, self.b)
 
@@ -429,10 +436,11 @@ class PAdd(PBinOp):
         a = next(self.a)
         b = next(self.b)
         return None if a is None or b is None else a + b
-        
+
 
 class PSub(PBinOp):
     """ PSub: Subtract elements of two patterns (shorthand: patternA - patternB) """
+
     def __str__(self):
         return "%s - %s" % (self.a, self.b)
 
@@ -441,8 +449,10 @@ class PSub(PBinOp):
         b = next(self.b)
         return None if a is None or b is None else a - b
 
+
 class PMul(PBinOp):
     """ PMul: Multiply elements of two patterns (shorthand: patternA * patternB) """
+
     def __str__(self):
         return "(%s) * (%s)" % (self.a, self.b)
 
@@ -451,8 +461,10 @@ class PMul(PBinOp):
         b = next(self.b)
         return None if a is None or b is None else a * b
 
+
 class PDiv(PBinOp):
     """ PDiv: Divide elements of two patterns (shorthand: patternA / patternB) """
+
     def __str__(self):
         return "(%s) / (%s)" % (self.a, self.b)
 
@@ -461,8 +473,10 @@ class PDiv(PBinOp):
         b = next(self.b)
         return None if a is None or b is None else a / b
 
+
 class PFloorDiv(PBinOp):
     """ PFloorDiv: Integer division (shorthand: patternA // patternB) """
+
     def __str__(self):
         return "(%s) // (%s)" % (self.a, self.b)
 
@@ -471,8 +485,10 @@ class PFloorDiv(PBinOp):
         b = next(self.b)
         return None if a is None or b is None else a // b
 
+
 class PMod(PBinOp):
     """ PMod: Modulo elements of two patterns (shorthand: patternA % patternB) """
+
     def __str__(self):
         return "(%s) %% (%s)" % (self.a, self.b)
 
@@ -481,8 +497,10 @@ class PMod(PBinOp):
         b = next(self.b)
         return None if a is None or b is None else a % b
 
+
 class PPow(PBinOp):
     """ PPow: One pattern to the power of another (shorthand: patternA ** patternB) """
+
     def __str__(self):
         return "pow(%s, %s)" % (self.a, self.b)
 
@@ -491,8 +509,10 @@ class PPow(PBinOp):
         b = next(self.b)
         return None if a is None or b is None else pow(a, b)
 
+
 class PLShift(PBinOp):
     """ PLShift: Binary left-shift (shorthand: patternA << patternB) """
+
     def __str__(self):
         return "(%s << %s)" % (self.a, self.b)
 
@@ -501,8 +521,10 @@ class PLShift(PBinOp):
         b = next(self.b)
         return None if a is None or b is None else a << b
 
+
 class PRShift(PBinOp):
     """ PRShift: Binary right-shift (shorthand: patternA << patternB) """
+
     def __str__(self):
         return "(%s >> %s)" % (self.a, self.b)
 

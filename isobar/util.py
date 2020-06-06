@@ -1,23 +1,20 @@
-import isobar
 import random
 import math
-import sys
 
 note_names = [
-    [ "C" ],
-    [ "C#", "Db" ],
-    [ "D" ],
-    [ "D#", "Eb" ],
-    [ "E" ],
-    [ "F" ],
-    [ "F#", "Gb" ],
-    [ "G" ],
-    [ "G#", "Ab" ],
-    [ "A" ],
-    [ "A#", "Bb" ],
-    [ "B" ]
+    ["C"],
+    ["C#", "Db"],
+    ["D"],
+    ["D#", "Eb"],
+    ["E"],
+    ["F"],
+    ["F#", "Gb"],
+    ["G"],
+    ["G#", "Ab"],
+    ["A"],
+    ["A#", "Bb"],
+    ["B"]
 ]
-
 
 def normalize(array):
     """ Normalise an array to sum to 1.0. """
@@ -51,7 +48,7 @@ def wnchoice(array, weights):
     index = wnindex(weights)
     return array[index]
 
-def nametomidi(name):
+def note_name_to_midi_pitch(name):
     """ Maps a MIDI note name (D3, C#6) to a value.
     Assumes that middle C is C4. """
     if name[-1].isdigit():
@@ -66,14 +63,7 @@ def nametomidi(name):
     except:
         return None
 
-def miditopitch(note):
-    """ Maps a MIDI note index to a note name (independent of octave)
-    miditopitch(0) -> "C"
-    miditopitch(1) -> "C#" """
-    degree = int(note) % len(note_names)
-    return note_names[degree][0]
-
-def miditoname(note):
+def midi_pitch_to_note_name(note):
     """ Maps a MIDI note index to a note name. """
     degree = int(note) % len(note_names)
     octave = int(note / len(note_names)) - 1
@@ -84,21 +74,21 @@ def miditoname(note):
 
     return str
 
-def miditofreq(note):
+def midi_pitch_to_frequency(note):
+    """ Maps a MIDI note index to a frequency. """
     return 440.0 * pow(2, (note - 69.0) / 12)
 
 def bipolar_diverge(maximum):
-    """ returns [0, 1, -1, ...., maximum, -maximum ] """
+    """ Returns [0, 1, -1, ...., maximum, -maximum ] """
     sequence = list(sum(list(zip(list(range(maximum + 1)), list(range(0, -maximum - 1, -1)))), ()))
     sequence.pop(0)
     return sequence
 
-def filter_tone_row(source, target, bend_limit = 7):
-    """ filters the notes in <source> by the permitted notes in <target>.
+def filter_tone_row(source, target, bend_limit=7):
+    """ Filters the notes in <source> by the permitted notes in <target>.
     returns a tuple (<bool> acceptable, <int> pitch_bend) """
     bends = bipolar_diverge(bend_limit)
     for bend in bends:
         if all(((note + bend) % 12) in target for note in source):
             return (True, bend)
     return (False, 0)
-

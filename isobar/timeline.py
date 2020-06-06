@@ -12,11 +12,12 @@ from .pattern import Pattern
 from .key import Key
 from .scale import Scale
 from .constants import TICKS_PER_BEAT
-from .constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION,  EVENT_GATE, EVENT_TRANSPOSE, \
+from .constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_GATE, EVENT_TRANSPOSE, \
     EVENT_CHANNEL, EVENT_OMIT, EVENT_GATE, EVENT_PHASE, EVENT_OCTAVE, EVENT_EVENT, EVENT_DEGREE, \
     EVENT_OCTAVE, EVENT_KEY, EVENT_SCALE, EVENT_VALUE, EVENT_OBJECT, EVENT_CONTROL, EVENT_TIME, \
     EVENT_FUNCTION, EVENT_PRINT, EVENT_ACTION, EVENT_ADDRESS
 import logging
+
 log = logging.getLogger(__name__)
 
 class Timeline(object):
@@ -27,7 +28,7 @@ class Timeline(object):
         """ Expect to receive one tick per beat, generate events at 120bpm """
         self.tick_length = 1.0 / TICKS_PER_BEAT
         self.beats = 0
-        self.devices = [ device ] if device else []
+        self.devices = [device] if device else []
         self.channels = []
         self.automators = []
         self.max_channels = 0
@@ -76,8 +77,8 @@ class Timeline(object):
         # http://docs.python.org/tutorial/floatingpoint.html
         #------------------------------------------------------------------------
         if round(self.beats, 8) % 1 == 0:
-             log.debug("----------------------------------------------------------------")
-             log.debug("Tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events)))
+            log.debug("----------------------------------------------------------------")
+            log.debug("Tick (%d active channels, %d pending events)" % (len(self.channels), len(self.events)))
 
         #------------------------------------------------------------------------
         # Copy self.events because removing from it whilst using it = bad idea.
@@ -175,12 +176,13 @@ class Timeline(object):
         if stop_when_done is not None:
             self.stop_when_done = stop_when_done
 
-        try:
-            import os
-            os.nice(-20)
-            log.warn("Timeline: Running as high-priority thread")
-        except:
-            pass
+        if high_priority:
+            try:
+                import os
+                os.nice(-20)
+                log.warn("Timeline: Running as high-priority thread")
+            except:
+                log.warn("Timeline: Standard thread priority (run with sudo for high-priority)")
 
         try:
             #------------------------------------------------------------------------
@@ -200,7 +202,7 @@ class Timeline(object):
 
         except Exception as e:
             print((" *** Exception in background Timeline thread: %s" % e))
-            traceback.print_exc(file = sys.stdout)
+            traceback.print_exc(file=sys.stdout)
 
     def warp(self, warper):
         """ Apply a PWarp object to warp our clock's timing. """
@@ -225,7 +227,7 @@ class Timeline(object):
             self.add_output(isobar.io.MidiOut())
         return self.devices[0]
 
-    def schedule(self, event, quantize = 0, delay = 0, count = 0, device = None):
+    def schedule(self, event, quantize=0, delay=0, count=0, device=None):
         """ Schedule a new track within this Timeline. """
         if not device:
             device = self.default_output
@@ -251,19 +253,20 @@ class Timeline(object):
                 scheduled_time = quantize * math.ceil(float(self.beats + delay) / quantize)
             else:
                 scheduled_time = self.beats + delay
-            self.events.append({ EVENT_TIME : scheduled_time, EVENT_FUNCTION : _add_channel })
+            self.events.append({EVENT_TIME: scheduled_time, EVENT_FUNCTION: _add_channel})
         else:
             #----------------------------------------------------------------------
             # Begin events on this channel right away.
             #----------------------------------------------------------------------
             _add_channel()
+
     #--------------------------------------------------------------------------------
     # Backwards-compatibility
     #--------------------------------------------------------------------------------
     sched = schedule
 
 class Channel:
-    def __init__(self, events = {}, count = 0, timeline = None, device = None):
+    def __init__(self, events={}, count=0, timeline=None, device=None):
         #----------------------------------------------------------------------
         # evaluate in case we have a pattern which gives us an event
         # eg: PSeq([ { EVENT_NOTE : 20, EVENT_DURATION : 0.5 }, { EVENT_NOTE : 50, EVENT_DURATION : PWhite(0, 2) } ])
@@ -290,7 +293,8 @@ class Channel:
         self.count_now = 0
 
     def __str__(self):
-        return "Channel(pos = %d, note = %s, dur = %s, dur_now = %d, channel = %s, control = %s)[count = %d/%d])" % (self.pos, self.event[EVENT_NOTE], self.event[EVENT_DURATION], self.dur_now, self.event[EVENT_CHANNEL], self.event[EVENT_CONTROL] if EVENT_CONTROL in self.event else "-", self.count_now, self.count_max)
+        return "Channel(pos = %d, note = %s, dur = %s, dur_now = %d, channel = %s, control = %s)[count = %d/%d])" % (
+        self.pos, self.event[EVENT_NOTE], self.event[EVENT_DURATION], self.dur_now, self.event[EVENT_CHANNEL], self.event[EVENT_CONTROL] if EVENT_CONTROL in self.event else "-", self.count_now, self.count_max)
 
     def __next__(self):
         #----------------------------------------------------------------------
@@ -428,7 +432,7 @@ class Channel:
                 # addition transparently
                 #----------------------------------------------------------------------
                 try:
-                    values[EVENT_NOTE] = [ key[n] + (octave * 12) for n in degree ]
+                    values[EVENT_NOTE] = [key[n] + (octave * 12) for n in degree]
                 except:
                     values[EVENT_NOTE] = key[degree] + (octave * 12)
 
@@ -458,7 +462,7 @@ class Channel:
             # for example.
             #----------------------------------------------------------------------
             try:
-                values[EVENT_NOTE] = [ note + values[EVENT_TRANSPOSE] for note in values[EVENT_NOTE] ]
+                values[EVENT_NOTE] = [note + values[EVENT_TRANSPOSE] for note in values[EVENT_NOTE]]
             except:
                 values[EVENT_NOTE] += values[EVENT_TRANSPOSE]
 
@@ -496,7 +500,7 @@ class Channel:
         if values[EVENT_AMPLITUDE] > 0:
             # TODO: pythonic duck-typing approach might be better
             # TODO: doesn't handle arrays of amp, channel values, etc
-            notes = values[EVENT_NOTE] if hasattr(values[EVENT_NOTE], '__iter__') else [ values[EVENT_NOTE] ]
+            notes = values[EVENT_NOTE] if hasattr(values[EVENT_NOTE], '__iter__') else [values[EVENT_NOTE]]
 
             #----------------------------------------------------------------------
             # Allow for arrays of amp, gate etc, to handle chords properly.
@@ -504,9 +508,9 @@ class Channel:
             # shorter than the number of notes.
             #----------------------------------------------------------------------
             for index, note in enumerate(notes):
-                amp     = values[EVENT_AMPLITUDE][index] if isinstance(values[EVENT_AMPLITUDE], tuple) else values[EVENT_AMPLITUDE]
+                amp = values[EVENT_AMPLITUDE][index] if isinstance(values[EVENT_AMPLITUDE], tuple) else values[EVENT_AMPLITUDE]
                 channel = values[EVENT_CHANNEL][index] if isinstance(values[EVENT_CHANNEL], tuple) else values[EVENT_CHANNEL]
-                gate    = values[EVENT_GATE][index] if isinstance(values[EVENT_GATE], tuple) else values[EVENT_GATE]
+                gate = values[EVENT_GATE][index] if isinstance(values[EVENT_GATE], tuple) else values[EVENT_GATE]
 
                 if (amp is not None and amp > 0) and (gate is not None and gate > 0):
                     self.device.note_on(note, amp, channel)
@@ -515,7 +519,7 @@ class Channel:
                     self.sched_note_off(self.next_note + note_dur + self.phase_now, note, channel)
 
     def sched_note_off(self, time, note, channel):
-        self.note_offs.append([ time, note, channel ])
+        self.note_offs.append([time, note, channel])
 
     def process_note_offs(self):
         for n, note in enumerate(self.note_offs):
@@ -567,7 +571,7 @@ class Clock:
                     warp = pow(2, warp)
                     self.tick_size *= warp
 
-            time.sleep(0.002)
+            time.sleep(0.001)
             clock1 = time.time() * self.accelerate
 
     def warp(self, warper):
@@ -575,4 +579,3 @@ class Clock:
 
     def unwarp(self, warper):
         self.warpers.remove(warper)
-

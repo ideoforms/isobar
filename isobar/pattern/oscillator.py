@@ -1,10 +1,6 @@
 """ oscillator.py: Regular waveforms as pattern generators. """
 
-import sys
-import copy
-import itertools
-
-from isobar.pattern.core import *
+from .core import Pattern
 
 class PTri(Pattern):
     """ PTri: Generates a triangle waveform of period <length>.
@@ -14,7 +10,7 @@ class PTri(Pattern):
         [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 0.8, 0.6, 0.4, 0.2]
         """
 
-    def __init__(self, length = 10):
+    def __init__(self, length=10):
         self.length = length
         self.reset()
 
@@ -35,4 +31,3 @@ class PTri(Pattern):
             self.phase -= length
 
         return rv
-

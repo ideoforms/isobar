@@ -1,4 +1,4 @@
-from . import Pattern
+from .core import Pattern
 from ..constants import TICKS_PER_BEAT
 
 import math
@@ -102,6 +102,4 @@ class PWRallantando(PWarp):
         # subtract 
         #------------------------------------------------------------------------
         rv = math.log(rv, 2)
-        print("warp: %f" % rv)
         return rv
-

@@ -1,33 +1,30 @@
-from isobar.pattern.core import *
+from . import Pattern
 
 import threading
-import inspect
 import math
+import copy
 
-import pythonosc
-
-class PStaticViaOSC (Pattern):
+class PStaticViaOSC(Pattern):
     listening = False
-    
-    def __init__(self, default = 0, address = "/value", port = 9900):
+
+    def __init__(self, default=0, address="/value", port=9900):
         if not PStaticViaOSC.initialised:
             server = OSC.OSCServer(("localhost", port))
             server.addMsgHandler(prefix, self.recv)
-            self.thread = threading.Thread(target = server.serve_forever)
+            self.thread = threading.Thread(target=server.serve_forever)
             self.thread.setDaemon(True)
             self.thread.start()
 
             PStaticGlobal.listening = True
 
             osc_server = OSC.OSCServer(("0.0.0.0", port))
-
             osc_server.serve_forever()
 
         self.value = default
         self.address = address
         osc.bind(self.recv, address)
 
-    def recv(self, msg, source = None):
+    def recv(self, msg, source=None):
         address = msg[0]
         signature = msg[1][1:]
         print("(%s) %s" % (address, signature))
@@ -36,10 +33,10 @@ class PStaticViaOSC (Pattern):
     def __next__(self):
         return self.value
 
-class PStaticTimeline (Pattern):
+class PStaticTimeline(Pattern):
     """ PStaticTimeline: Returns the position (in beats) of the current timeline. """
 
-    def __init__(self, timeline = None):
+    def __init__(self, timeline=None):
         self.given_timeline = timeline
 
     def __next__(self):
@@ -62,7 +59,7 @@ class PStaticGlobal(Pattern):
     dict = {}
     listening = False
 
-    def __init__(self, name, value = None):
+    def __init__(self, name, value=None):
         self.name = name
         if value is not None:
             PStaticGlobal.set(name, value)
@@ -83,11 +80,12 @@ class PStaticGlobal(Pattern):
         PStaticGlobal.dict[key] = value
 
     @classmethod
-    def listen(self, prefix = "/global", port = 9900):
+    def listen(self, prefix="/global", port=9900):
         if not PStaticGlobal.listening:
+            # TODO: Fix
             server = OSC.OSCServer(("localhost", port))
             server.addMsgHandler(prefix, self.recv)
-            self.thread = threading.Thread(target = server.serve_forever)
+            self.thread = threading.Thread(target=server.serve_forever)
             self.thread.setDaemon(True)
             self.thread.start()
 
@@ -116,7 +114,6 @@ class PStaticTimelineSine(PStaticTimeline):
         rv = math.sin(2 * math.pi * beats / self.period)
         return rv
 
-
 class PStaticSeq(Pattern):
     def __init__(self, sequence, duration):
         #------------------------------------------------------------------------
@@ -125,7 +122,7 @@ class PStaticSeq(Pattern):
         self.sequence = copy.copy(sequence)
         self.duration = duration
         self.start = None
-    
+
     def __next__(self):
         timeline = self.timeline
         if self.start is None:
@@ -138,4 +135,3 @@ class PStaticSeq(Pattern):
             if len(self.sequence) == 0:
                 raise StopIteration
         return self.sequence[0]
-

@@ -4,15 +4,13 @@
     single note, introducing the rest gradually.
     """
 
-import sys
 import random
-
-from isobar.pattern.core import *
+from .core import Pattern
 
 class PFade(Pattern):
-    IN    = 1
-    PEAK  = 0
-    OUT   = -1
+    IN = 1
+    PEAK = 0
+    OUT = -1
 
     def __init__(self):
         self.direction = 1
@@ -29,11 +27,11 @@ class PFade(Pattern):
 class PFadeNotewise(PFade):
     """ PFadeNotewise: Fade a pattern in/out by introducing notes at a gradual rate. """
 
-    def __init__(self, pattern, rate_min = 1, rate_max = 1, repeats = 1, repeats_postfade = 1):
+    def __init__(self, pattern, rate_min=1, rate_max=1, repeats=1, repeats_postfade=1):
         PFade.__init__(self)
 
         self.notes = pattern.all()
-        self.on = [ False ] * len(self.notes)
+        self.on = [False] * len(self.notes)
         self.rate_min = rate_min
         self.rate_max = rate_max
         self.repeats = repeats
@@ -100,13 +98,14 @@ class PFadeNotewise(PFade):
                 rv = note
         else:
             rv = self.notes[self.counter] if self.on[self.counter] else None
-        
+
         self.counter += 1
-            
+
         return rv
 
 class PFadeNotewiseRandom(PFadeNotewise):
     """ PFadeNotewise: Fade a pattern in/out by gradually introducing random notes. """
+
     def __init__(self, *args, **kwargs):
         PFadeNotewise.__init__(self, *args, **kwargs)
         self.ordering = list(range(len(self.notes)))

@@ -1,5 +1,4 @@
-from isobar.pattern import *
-
+from .core import Pattern
 import math
 
 class PAutomate(Pattern):

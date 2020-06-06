@@ -1,16 +1,13 @@
-from isobar.pattern import *
-from isobar.util import *
+from .core import Pattern
 
 import os
-import sys
+import random
 
 class PMarkov(Pattern):
     """ PMarkov: First-order Markov chain generator.
-    
     """
-    # TODO: Implement n-order.
 
-    def __init__(self, nodes = None):
+    def __init__(self, nodes=None):
         """ Create a new Markov chain. 'nodes' can be either be:
          * an ordered sequence of notes (which will be used to infer the
            probabilities of transitioning between notes), or
@@ -49,7 +46,7 @@ class PMarkov(Pattern):
             self.nodes[node] = []
             for other in list(self.nodes.keys()):
                 prob = random.randint(0, 10)
-                self.nodes[node] += [ other ] * prob
+                self.nodes[node] += [other] * prob
 
     def __next__(self):
         #------------------------------------------------------------------------
@@ -91,7 +88,7 @@ class MarkovLearner:
     def __init__(self):
         self.markov = PMarkov()
         self.last = None
-    
+
     def get_markov(self):
         """ Returns the PMarkov pattern generator produced by the learning
         process. """
@@ -112,7 +109,7 @@ class MarkovLearner:
 class MarkovParallelLearners:
     def __init__(self, count):
         self.count = count
-        self.learners = [ MarkovLearner() for _ in range(count) ]
+        self.learners = [MarkovLearner() for _ in range(count)]
 
     def register(self, list):
         for n in range(self.count):
@@ -128,7 +125,7 @@ class MarkovGrapher:
     def __init__(self):
         self.pen_width_max = 3.0
 
-    def render(self, markov, filename = "markov.pdf", name_map = None):
+    def render(self, markov, filename="markov.pdf", name_map=None):
         """ Graphs the network described by 'markov'.
         If name_map is specified, apply this function to each node value
         to obtain its name.
@@ -141,7 +138,6 @@ class MarkovGrapher:
         from graphviz import Digraph
 
         graph = Digraph()
-        items = []
 
         #------------------------------------------------------------------------
         # first pass: add nodes
@@ -171,12 +167,11 @@ class MarkovGrapher:
                 # in graphviz, attributes must always be strings.
                 #------------------------------------------------------------------------
                 pen_width = self.pen_width_max * edge_weight
-                graph.edge(_name_map(node_value), _name_map(edge), penwidth = str(pen_width))
+                graph.edge(_name_map(node_value), _name_map(edge), penwidth=str(pen_width))
 
         #------------------------------------------------------------------------
         # render the graph using graphviz, deleting the intermediary source
         # file.
         #------------------------------------------------------------------------
         prefix, suffix = os.path.splitext(filename)
-        graph.render(prefix, cleanup = True)
-
+        graph.render(prefix, cleanup=True)

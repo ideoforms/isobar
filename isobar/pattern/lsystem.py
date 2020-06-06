@@ -1,7 +1,5 @@
+from .core import Pattern
 import random
-
-from isobar.note import *
-from isobar.pattern import *
 
 class LSystem:
     def __init__(self, rule = "N[-N++N]-N", seed = "N"):
@@ -60,7 +58,7 @@ class PLSystem(Pattern):
         self.reset()
 
     def __str__(self):
-        return "lsystem (%s)" % rule
+        return "lsystem (%s)" % self.rule
 
     def reset(self):
         self.lsys = LSystem(self.rule, "N")
