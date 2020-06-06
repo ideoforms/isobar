@@ -32,7 +32,7 @@ class Pattern:
         return "Pattern (%s)" % self.__class__
 
     def __len__(self):
-        # formerly defined as len(list(self)), but list(self) seeminly relies
+        # formerly defined as len(list(self)), but list(self) seemingly relies
         # on a correct __len__ to function as expected.
         items = self.all()
         return len(items)
@@ -42,11 +42,6 @@ class Pattern:
 
     def __add__(self, operand):
         """Binary op: add two patterns"""
-        # operand = copy.deepcopy(operand) if isinstance(operand, pattern) else PConst(operand)
-        # return PAdd(copy.deepcopy(self), operand)
-
-        # we actually want to retain references to our constituent patterns
-        # in case the user later changes parameters of one
         operand = Pattern.pattern(operand)
         return PAdd(self, operand)
 
@@ -78,14 +73,20 @@ class Pattern:
         operand = Pattern.pattern(operand)
         return PDiv(self, operand)
 
-    def __floordiv__(self, operand):
+    def __rtruediv__(self, operand):
         """Binary op: divide two patterns"""
+        operand = Pattern.pattern(operand)
+        return PDiv(operand, self)
+
+    def __floordiv__(self, operand):
+        """Binary op: integer divide two patterns"""
         operand = Pattern.pattern(operand)
         return PFloorDiv(self, operand)
 
-    def __rdiv__(self, operand):
-        """Binary op: divide two patterns"""
-        return self.__div__(operand)
+    def __rfloordiv__(self, operand):
+        """Binary op: integer divide two patterns"""
+        operand = Pattern.pattern(operand)
+        return PFloorDiv(operand, self)
 
     def __mod__(self, operand):
         """Modulo"""
@@ -97,25 +98,35 @@ class Pattern:
         operand = Pattern.pattern(operand)
         return operand.__mod__(self)
 
-    def __rpow__(self, operand):
-        """Power (as operand)"""
-        operand = Pattern.pattern(operand)
-        return operand.__pow__(self)
-
     def __pow__(self, operand):
         """Power"""
         operand = Pattern.pattern(operand)
         return PPow(self, operand)
+
+    def __rpow__(self, operand):
+        """Power (as operand)"""
+        operand = Pattern.pattern(operand)
+        return operand.__pow__(self)
 
     def __lshift__(self, operand):
         """Left bitshift"""
         operand = Pattern.pattern(operand)
         return PLShift(self, operand)
 
+    def __rlshift__(self, operand):
+        """Left bitshift"""
+        operand = Pattern.pattern(operand)
+        return PLShift(operand, self)
+
     def __rshift__(self, operand):
         """Right bitshift"""
         operand = Pattern.pattern(operand)
         return PRShift(self, operand)
+
+    def __rrshift__(self, operand):
+        """Right bitshift"""
+        operand = Pattern.pattern(operand)
+        return PRShift(operand, self)
 
     def __iter__(self):
         return self
