@@ -13,53 +13,56 @@ Most of the major parts of isobar are subclasses of `Pattern`, which implement's
 # Usage
 
 ```python
-from isobar import *
+import isobar as iso
 
-# create a repeating sequence with scalar transposition:
-# [ 36, 38, 43, 39, ... ]
-a = PSeq([ 0, 2, 7, 3 ]) + 36
+#------------------------------------------------------------------------
+# Create a geometric series on a minor scale.
+# PingPong plays the series forward then backward. PLoop loops forever.
+#------------------------------------------------------------------------
+arpeggio = iso.PSeries(0, 2, 6)
+arpeggio = iso.PDegree(arpeggio, iso.Scale.minor) + 72
+arpeggio = iso.PPingPong(arpeggio)
+arpeggio = iso.PLoop(arpeggio)
 
-# apply pattern-wise transposition
-# [ 36, 50, 43, 51, ... ]
-a = a + PSeq([ 0, 12 ])
+#------------------------------------------------------------------------
+# Create a velocity sequence, with emphasis every 4th note,
+# plus a random walk to create gradual dynamic changes.
+# Amplitudes are in the MIDI velocity range (0..127).
+#------------------------------------------------------------------------
+amplitude = iso.PSequence([50, 35, 25, 35]) + iso.PBrown(0, 1, -20, 20)
 
-# create a geometric chromatic series, repeated back and forth
-b = PSeries(0, 1, 12) + 72
-b = PPingPong(b)
-b = PLoop(b)
+#------------------------------------------------------------------------
+# A Timeline schedules events at a given BPM.
+#------------------------------------------------------------------------
+timeline = iso.Timeline(120)
 
-# create an velocity series, with emphasis every 4th note,
-# plus a random walk to create gradual dynamic changes
-amp = PSeq([ 50, 35, 25, 35 ]) + PBrown(0, 1, -20, 20)
-
-# a Timeline schedules events at a given BPM.
-# by default, send these over the first MIDI output.
-timeline = Timeline(120)
-
-# assign each of our Patterns to particular properties
-timeline.sched({ 'note': a, 'dur': 1, 'gate': 2 })
-timeline.sched({ 'note': b, 'dur': 0.25, 'amp': amp })
-
-timeline.run()
-
+#------------------------------------------------------------------------
+# Schedule events, with properties mapped to the Pattern objects.
+#------------------------------------------------------------------------
+timeline.schedule({
+    iso.EVENT_NOTE: arpeggio,
+    iso.EVENT_DURATION: 0.25,
+    iso.EVENT_AMPLITUDE: amplitude
+})
 ```
 
 ## Examples
 
-More examples are available in the 'examples' directory with this
+More examples are available in the [examples](examples) directory with this
 distribution:
 
-* [ex-basics.py](examples/ex-basics.py)
-* [ex-lsystem-grapher.py](examples/ex-lsystem-grapher.py)
-* [ex-lsystem-rhythm.py](examples/ex-lsystem-rhythm.py)
-* [ex-lsystem-stochastic.py](examples/ex-lsystem-stochastic.py)
-* [ex-markov-learner.py](examples/ex-markov-learner.py)
-* [ex-permut-degree.py](examples/ex-permut-degree.py)
-* [ex-piano-phase.py](examples/ex-piano-phase.py)
-* [ex-prime-composition.py](examples/ex-prime-composition.py)
-* [ex-subsequence.py](examples/ex-subsequence.py)
-* [ex-walk.py](examples/ex-walk.py)
-
+* [00.ex-hello-world.py](examples/00.ex-hello-world.py)
+* [01.ex-basics.py](examples/01.ex-basics.py)
+* [02.ex-subsequence.py](examples/02.ex-subsequence.py)
+* [03.ex-euclidean.py](examples/03.ex-euclidean.py)
+* [04.ex-permutations.py](examples/04.ex-permutations.py)
+* [05.ex-piano-phase.py](examples/05.ex-piano-phase.py)
+* [06.ex-walk.py](examples/06.ex-walk.py)
+* [10.ex-lsystem-stochastic.py](examples/10.ex-lsystem-stochastic.py)
+* [11.ex-lsystem-rhythm.py](examples/11.ex-lsystem-rhythm.py)
+* [12.ex-lsystem-grapher.py](examples/12.ex-lsystem-grapher.py)
+* [20.ex-markov-learner.py](examples/20.ex-markov-learner.py)
+* [30.ex-midifile-write.py](examples/30.ex-midifile-write.py)
 
 ## Classes
 
@@ -82,11 +85,11 @@ Pattern classes:
 
     CORE (core.py)
     Pattern          - Abstract superclass of all pattern generators.
-    PConst           - Pattern returning a fixed value
+    PConstant        - Pattern returning a fixed value
     PRef             - Pattern containing a reference to another pattern
     PDict            - Dict of patterns
+    PDictKey         - Request a specified key from a dictionary.
     PIndex           - Request a specified index from an array.
-    PKey             - Request a specified key from a dictionary.
     PConcat          - Concatenate the output of multiple sequences.
     PAdd             - Add elements of two patterns (shorthand: patternA + patternB)
     PSub             - Subtract elements of two patterns (shorthand: patternA - patternB)
@@ -99,12 +102,12 @@ Pattern classes:
     PRShift          - Binary right-shift (shorthand: patternA << patternB)
 
     SEQUENCE (sequence.py)
-    PSeq             - Sequence of values based on an array
+    PSequence        - Sequence of values based on an array
     PSeries          - Arithmetic series, beginning at <start>, increment by <step>
     PRange           - Similar to PSeries, but specify a max/step value.
     PGeom            - Geometric series, beginning at <start>, multiplied by <step>
     PLoop            - Repeats a finite <pattern> for <n> repeats.
-    PConcat          - Concatenate the output of multiple finite sequences
+    PConcatenate     - Concatenate the output of multiple finite sequences
     PPingPong        - Ping-pong input pattern back and forth N times.
     PCreep           - Loop <length>-note segment, progressing <creep> notes after <count> repeats.
     PStutter         - Play each note of <pattern> <count> times.
@@ -159,7 +162,7 @@ Pattern classes:
     PMarkov          - First-order Markov chain.
 
     LSYSTEM (lsystem.py)
-    PLSys            - integer sequence derived from Lindenmayer systems
+    PLSystem         - integer sequence derived from Lindenmayer systems
 
     WARP (warp.py)
     PWInterpolate    - Requests a new target warp value from <pattern> every <length> beats

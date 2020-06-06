@@ -1,5 +1,5 @@
-from isobar.pattern import *
-from isobar.timeline import *
+from . import Pattern
+from ..constants import TICKS_PER_BEAT
 
 import math
 

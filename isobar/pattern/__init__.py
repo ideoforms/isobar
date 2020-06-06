@@ -12,5 +12,4 @@ from .warp import *
 from .automate import *
 from .static import *
 from .harmony import *
-
 from .fade import *

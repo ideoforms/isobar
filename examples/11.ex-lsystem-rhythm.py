@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #------------------------------------------------------------------------
 # isobar: ex-lsystem-rhythm
@@ -7,14 +7,10 @@
 # sending output over MIDI.
 #------------------------------------------------------------------------
 
-from isobar import *
-from isobar.io.midi import *
-
+import isobar as iso
 import logging
-logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
-import random
-import time
+logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
 #------------------------------------------------------------------------
 # Generate a set of pitches based on an l-system, with recursive depth 4.
@@ -25,22 +21,26 @@ import time
 #  [ = enter recursive branch
 #  ] = leave recursive branch
 #------------------------------------------------------------------------
-notes = PLSys("N+[+N+N--N+N]+N[++N]", depth = 4)
+notes = iso.PLSystem("N+[+N+N--N+N]+N[++N]", depth=4)
 notes = notes + 60
 
 #------------------------------------------------------------------------
 # use another l-system to generate time intervals.
 # take absolute values so that intervals are always positive.
 #------------------------------------------------------------------------
-times = PLSys("[N+[NN]-N+N]+N-N+N", depth = 3)
-times = PAbs(PDiff(times)) * 0.25
+times = iso.PLSystem("[N+[NN]-N+N]+N-N+N", depth=3)
+times = iso.PAbs(iso.PDiff(times)) * 0.25
 
 #------------------------------------------------------------------------
 # ...and another l-system for amplitudes.
 #------------------------------------------------------------------------
-velocity = (PLSys("N+N[++N+N--N]-N[--N+N]") + PWhite(-4, 4)) * 8
-velocity = PAbs(velocity)
+velocity = (iso.PLSystem("N+N[++N+N--N]-N[--N+N]") + iso.PWhite(-4, 4)) * 8
+velocity = iso.PAbs(velocity)
 
-timeline = Timeline(120)
-timeline.sched({ 'note' : notes, 'amp' : velocity, 'dur' : times })
+timeline = iso.Timeline(120)
+timeline.schedule({
+    iso.EVENT_NOTE: notes,
+    iso.EVENT_AMPLITUDE: velocity,
+    iso.EVENT_DURATION: times
+})
 timeline.run()

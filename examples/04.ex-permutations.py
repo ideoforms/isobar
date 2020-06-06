@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #------------------------------------------------------------------------
 # isobar: ex-permutations
@@ -9,38 +9,55 @@
 # Use simple permutations to generate intertwining musical structures.
 #------------------------------------------------------------------------
 
-from isobar import *
+import isobar as iso
 import random
 
 #------------------------------------------------------------------------
 # Create a pitch line comprised of multiple permutations on a pelog scale
 #------------------------------------------------------------------------
-ppitch = PShuffle([ random.randint(-6, 6) for n in range(6) ])
-ppitch = PPermut(ppitch)
-ppitch = PDegree(ppitch, Key("F#", "pelog"))
+ppitch = iso.PShuffle([random.randint(-6, 6) for n in range(6)])
+ppitch = iso.PPermut(ppitch)
+ppitch = iso.PDegree(ppitch, iso.Key("F#", "pelog"))
 
 #------------------------------------------------------------------------
 # Create permuted sets of durations and amplitudes.
 # Different lengths mean poly-combinations.
 #------------------------------------------------------------------------
-pdur = PShuffle([ 1, 1, 2, 2, 4 ], 1)
-pdur  = PPermut(pdur) * 0.25
+pdur = iso.PShuffle([1, 1, 2, 2, 4], 1)
+pdur = iso.PPermut(pdur) / 4
 
-pamp = PShuffle([ 10, 15, 20, 35 ], 2)
-pamp = PPermut(pamp) 
+pamp = iso.PShuffle([10, 15, 20, 35], 2)
+pamp = iso.PPermut(pamp)
 
 #------------------------------------------------------------------------
 # Schedule on a 60bpm timeline and send to MIDI output
 #------------------------------------------------------------------------
-timeline = Timeline(60)
-timeline.sched({ 'note': ppitch + 60, 'dur': pdur, 'channel': 0, 'gate': 1, 'amp': pamp })
-timeline.sched({ 'note': ppitch + 24, 'dur': pdur * 4, 'channel': 1, 'gate': 2, 'amp': pamp })
-timeline.sched({ 'note': ppitch + 72, 'dur': pdur / 2, 'channel': 1, 'gate': 1, 'amp': pamp / 2 })
+timeline = iso.Timeline(60)
+timeline.schedule({
+    iso.EVENT_NOTE: ppitch + 60,
+    iso.EVENT_DURATION: pdur,
+    iso.EVENT_AMPLITUDE: pamp,
+    iso.EVENT_CHANNEL: 0
+})
+timeline.schedule({
+    iso.EVENT_NOTE: ppitch + 24,
+    iso.EVENT_DURATION: pdur * 4,
+    iso.EVENT_AMPLITUDE: pamp,
+    iso.EVENT_CHANNEL: 1,
+    iso.EVENT_GATE: 2
+})
+timeline.schedule({
+    iso.EVENT_NOTE: ppitch + 72,
+    iso.EVENT_DURATION: pdur / 2,
+    iso.EVENT_CHANNEL: 1,
+    iso.EVENT_GATE: 1,
+    iso.EVENT_AMPLITUDE: pamp / 2
+})
 
 #------------------------------------------------------------------------
 # Apply continuous time-warping to the timeline
 #------------------------------------------------------------------------
-warp = PWInterpolate(PBrown(-0.1, 0.01, -0.15, -0.05), 2)
+warp = iso.PWInterpolate(iso.PBrown(-0.1, 0.01, -0.15, -0.05), 2)
 timeline.warp(warp)
 
 #------------------------------------------------------------------------

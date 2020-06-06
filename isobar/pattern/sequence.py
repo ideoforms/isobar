@@ -11,8 +11,8 @@ from isobar.util import *
 from isobar.chord import *
 from functools import reduce
 
-class PSeq(Pattern):
-    """ PSeq: Sequence of values based on an array
+class PSequence(Pattern):
+    """ Sequence: Sequence of values based on an array
         Takes an input list, and repeats the items in this list.
 
         >>> p = PSeq([ 1, 2, 3, 5 ])
@@ -24,7 +24,8 @@ class PSeq(Pattern):
         #------------------------------------------------------------------------
         # take a copy of the list to avoid changing the original
         #------------------------------------------------------------------------
-        assert hasattr(list, "__getitem__"), "PSeq must take a list argument"
+        if not hasattr(list, "__getitem__"):
+            raise ValueError("Sequence must take a list argument")
         self.list = copy.copy(list)
         self.repeats = repeats
 
@@ -49,6 +50,10 @@ class PSeq(Pattern):
             self.rcount += 1
 
         return rv
+
+# Backwards-compatbility
+class PSeq(PSequence):
+    pass
 
 class PSeries(Pattern):
     """ PSeries: Arithmetic series, beginning at <start>, increment by <step>

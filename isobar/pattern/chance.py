@@ -36,7 +36,8 @@ class PWhite(Pattern):
 
 class PBrown(Pattern):
     """ PBrown: Brownian noise, beginning at <value>, step +/-<step>.
-                Set <repeats> to False to prevent consecutive repeats.
+                Set <repeats> to False to prevent repeating the same note
+                consecutively.
         """
     def __init__(self, value = 0, step = 0.1, min = -sys.maxsize, max = sys.maxsize, repeats = True, length = sys.maxsize):
         self.init = value

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #------------------------------------------------------------------------
 # Parallel markov chain learner:
@@ -9,8 +9,8 @@
 #    statistically similar to the input.
 #------------------------------------------------------------------------
 
-from isobar import *
-from isobar.io.midi import *
+import isobar as iso
+from isobar.io.midi import MidiIn, MidiOut
 
 import logging
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
@@ -20,7 +20,7 @@ import time
 midi_in  = MidiIn()
 midi_out = MidiOut()
 
-learner = MarkovParallelLearners(3)
+learner = iso.MarkovParallelLearners(3)
 clock0 = 0
 
 print("Awaiting MIDI clock signal...")
@@ -55,7 +55,12 @@ dur   = chains[2]
 if len(pitch.nodes) == 0:
     print("No notes detected")
 else:
-    t = Timeline(120, midi_out)
-    t.sched({ 'note': pitch, 'dur': dur, 'amp': amp, 'channel': 0 })
+    t = iso.Timeline(120, midi_out)
+    t.sched({
+        iso.EVENT_NOTE: pitch,
+        iso.EVENT_DURATION: dur,
+        iso.EVENT_AMPLITUDE: amp,
+        iso.EVENT_CHANNEL: 0
+    })
     t.run()
 

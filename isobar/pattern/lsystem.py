@@ -21,7 +21,6 @@ class LSystem:
                 string_new = string_new + self.rule if char == "N" else string_new + char
 
             self.string = string_new
-            # print "(iter %d) string now %s" % (n, self.string)
 
     def __next__(self):
         while self.pos < len(self.string):
@@ -51,10 +50,10 @@ class LSystem:
         self.state = 0
 
 
-class PLSys(Pattern):
-    """ PLSys: integer sequence derived from Lindenmayer systems """
+class PLSystem(Pattern):
+    """ PLSystem: integer sequence derived from Lindenmayer systems """
 
-    def __init__(self, rule, depth = 3, loop = True):
+    def __init__(self, rule, depth=3, loop=True):
         self.rule = rule
         self.depth = depth
         self.loop = loop

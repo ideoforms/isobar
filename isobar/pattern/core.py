@@ -10,7 +10,6 @@ import itertools
 
 import isobar
 
-
 class Pattern:
     """ Pattern: Abstract superclass of all pattern generators.
 
@@ -30,7 +29,7 @@ class Pattern:
         pass
 
     def __str__(self):
-        return "pattern(%s)" % self.__class__
+        return "Pattern (%s)" % self.__class__
 
     def __len__(self):
         # formerly defined as len(list(self)), but list(self) seeminly relies
@@ -122,9 +121,11 @@ class Pattern:
         return self
 
     def nextn(self, count):
+        """
+        Returns the next `count` output values.
+        If fewer than `count` values are generated, return all output values.
+        """
         rv = []
-        # can't do a naive [ self.next() for n in range(count) ]
-        # as we want to catch StopIterations.
         try:
             for n in range(count):
                 rv.append(next(self))
@@ -134,16 +135,18 @@ class Pattern:
         return rv
 
     def __next__(self):
-        # default pattern should be void
         raise StopIteration
 
-    def all(self):
+    def all(self, maximum=LENGTH_MAX):
+        """
+        Returns all output values, up to a maximum length of `maximum`.
+        """
         values = []
         try:
             # do we even need a LENGTH_MAX?
             # if we omit it, .all() will become an alias for list(pattern)
             #  - maybe not such a bad thing.
-            for n in range(Pattern.LENGTH_MAX):
+            for n in range(maximum):
                 value = next(self)
                 values.append(value)
         except StopIteration:
@@ -153,7 +156,7 @@ class Pattern:
         return values
 
     def reset(self):
-        """ reset a finite sequence back to position 0 """
+        """ Reset a finite Pattern back to position 0. """
         fields = vars(self)
         for name, field in list(fields.items()):
             if isinstance(field, Pattern):
@@ -172,11 +175,16 @@ class Pattern:
                         item.reset()
 
     def append(self, other):
-        return PConcat([ self, other ])
+        """
+        Returns a new pattern with the contents of `other` appended to the contents of `self`.
+        """
+        return PConcatenate([ self, other ])
 
     @property
     def timeline(self):
-        """ returns the timeline that i am embedded in, if any """
+        """
+        Returns the timeline that this Pattern is embedded in, if any.
+        """
         stack = inspect.stack()
         for frame in stack:
             frameobj = frame[0]
@@ -187,76 +195,24 @@ class Pattern:
                 if classname == "Timeline":
                     return instance
 
-    @staticmethod
-    def fromgenotype(genotype):
-        """ create a new object based on this genotype """
-        parts = genotype.split(Pattern.GENO_SEPARATOR)
-        classname = parts[0]
-        arguments = parts[1:]
-        try:
-            classes = vars(isobar)
-            classobj = classes[classname]
-            instance = classobj()
-            fields = vars(instance)
-            counter = 0
-            for name, field in list(fields.items()):
-                instance.__dict__[name] = eval(arguments[counter])
-                counter += 1
-        except Exception as e:
-            print(("fail: %s" % e))
-            pass
-
-        return instance
-
-    def breedWith(self, other):
-        """ XXX: we should probably have a Genotype class that deals with all this """
-
-        genotypeA = self.genotype()
-        genotypeB = other.genotype()
-        genesA = genotypeA.split("/")[1:]
-        genesB = genotypeB.split("/")[1:]
-        genotype = [ genotypeA.split("/")[0] ]
-        for n in range(len(genesA)):
-            if random.uniform(0, 1) < 0.5:
-                genotype.append(genesA[n])
-            else:
-                genotype.append(genesB[n])
-        genotypeC = Pattern.GENO_SEPARATOR.join(genotype)
-        print("A %s\nB %s\n> %s" % (genotypeA, genotypeB, genotypeC))
-        return Pattern.fromgenotype(genotypeC)
-
-    def genotype(self):
-        """ return a string representation of this pattern, suitable for breeding """
-        genotype = "%s" % (self.__class__.__name__)
-        fields = vars(self)
-
-        import base64
-
-        for name, field in list(fields.items()):
-            genotype += Pattern.GENO_SEPARATOR
-
-            if isinstance(field, Pattern):
-                genotype += "(%s)" % field.genotype()
-            elif isinstance(field, str):
-                genotype += base64.b64encode(field)
-            else:
-                genotype += str(field)
-
-        return genotype
-
     def copy(self):
+        """
+        Returns a copy of this Pattern.
+        """
         return copy.deepcopy(self)
 
     @staticmethod
     def value(v):
-        """ Resolve a pattern to its value (that is, the next item in this
-            pattern, recursively).
-            """
+        """
+        Resolve a pattern to a scalar value (that is, the next item in this
+        pattern, recursively).
+        """
         return Pattern.value(next(v)) if isinstance(v, Pattern) else v
 
     @staticmethod
     def pattern(v):
-        """ Patternify a value, turning it into an object with a next() method
+        """
+        Patternify a value, turning it into an object with a next() method
         to obtain its next value.
         
         Pattern subclasses remain untouched.
@@ -268,14 +224,14 @@ class Pattern:
         if isinstance(v, Pattern):
             return v
         elif isinstance(v, list):
-            return PSeq(v, 1)
+            return isobar.PSequence(v, 1)
         else:
-            return PConst(v)
+            return isobar.PConstant(v)
 
-class PConst(Pattern):
-    """ PConst: Pattern returning a fixed value
+class PConstant(Pattern):
+    """ PConstant: Pattern returning a fixed value
 
-        >>> p = PConst(4)
+        >>> p = PConstant(4)
         >>> p.nextn(16)
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
         """
@@ -409,8 +365,8 @@ class PIndex(Pattern):
             index = int(index)
             return list[index]
 
-class PKey(Pattern):
-    """ PKey: Request a specified key from a dictionary.
+class PDictKey(Pattern):
+    """ PDictKey: Request a specified key from a dictionary.
         """
     def __init__(self, key, dict):
         self.key = key
@@ -421,10 +377,10 @@ class PKey(Pattern):
         vdict = Pattern.value(self.dict)
         return vdict[vkey]
 
-class PConcat(Pattern):
-    """ PConcat: Concatenate the output of multiple sequences. 
+class PConcatenate(Pattern):
+    """ PConcatenate: Concatenate the output of multiple sequences. 
 
-        >>> PConcat([ PSeq([ 1, 2, 3 ], 2), PSeq([ 9, 8, 7 ], 2) ]).nextn(16)
+        >>> PConcatenate([ PSequence([ 1, 2, 3 ], 2), PSequence([ 9, 8, 7 ], 2) ]).nextn(16)
         [1, 2, 3, 1, 2, 3, 9, 8, 7, 9, 8, 7]
         """
 
@@ -438,8 +394,6 @@ class PConcat(Pattern):
         except StopIteration:
             if len(self.inputs) > 0:
                 self.current = self.inputs.pop(0)
-                # can't just blindly return the first value of current
-                # -- what if it is empty? 
                 return next(self)
             else:
                 # no more sequences left, so just return.
