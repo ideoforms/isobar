@@ -13,3 +13,12 @@ from .automate import *
 from .static import *
 from .harmony import *
 from .fade import *
+
+__all__ = []
+key = value = None
+for key, value in vars().items():
+    try:
+        if issubclass(value, Pattern):
+            __all__.append(key)
+    except TypeError:
+        pass

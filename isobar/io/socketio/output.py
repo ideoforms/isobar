@@ -1,5 +1,3 @@
-import socketIO_client
-
 class SocketIOOut:
     """ SocketIOOut: Support for sending note on/off events via websockets.
     Two types of event are sent at the moment:
@@ -10,6 +8,7 @@ class SocketIOOut:
     """
 
     def __init__(self, host="localhost", port=9000):
+        import socketIO_client
         self.socket = socketIO_client.SocketIO(host, port)
 
     def tick(self, tick_length):

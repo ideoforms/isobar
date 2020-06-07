@@ -223,8 +223,6 @@ class Pattern:
         Lists are turned into PSeq sequences.
         Scalars and other objects are turned into PConst objects. """
 
-        from isobar.pattern.sequence import PSeq
-
         if isinstance(v, Pattern):
             return v
         elif isinstance(v, list):
@@ -319,8 +317,7 @@ class PDict(Pattern):
 
     @classmethod
     def load(self, filename):
-        from isobar.io.midifile import MidiFileIn
-        from isobar.pattern.sequence import PSequence
+        from isobar.io.midifile.input import MidiFileIn
 
         reader = MidiFileIn()
         d = reader.read(filename)

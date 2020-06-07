@@ -8,10 +8,7 @@ import isobar.io
 from .track import Track
 from .clock import Clock
 from ..constants import TICKS_PER_BEAT
-from ..constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_GATE, EVENT_TRANSPOSE, \
-    EVENT_CHANNEL, EVENT_OMIT, EVENT_GATE, EVENT_PHASE, EVENT_OCTAVE, EVENT_EVENT, EVENT_DEGREE, \
-    EVENT_OCTAVE, EVENT_KEY, EVENT_SCALE, EVENT_VALUE, EVENT_OBJECT, EVENT_CONTROL, EVENT_TIME, \
-    EVENT_FUNCTION, EVENT_PRINT, EVENT_ACTION, EVENT_ADDRESS
+from ..constants import EVENT_TIME, EVENT_FUNCTION
 import logging
 
 log = logging.getLogger(__name__)
@@ -22,7 +19,7 @@ class Timeline(object):
 
     def __init__(self, clock=120, output_device=None):
         """ Expect to receive one tick per beat, generate events at 120bpm """
-        self.tick_length = 1.0 / TICKS_PER_BEAT
+        self.tick_duration = 1.0 / TICKS_PER_BEAT
         self.beats = 0
         self.outputs = [output_device] if output_device else []
         self.tracks = []
@@ -64,8 +61,9 @@ class Timeline(object):
         return bool(self.clock_source)
 
     def tick(self):
-        """ Called once every TICKS_PER_BEAT seconds (default 1/24s)
-        to trigger new events. """
+        """
+        Called once every tick to trigger new events.
+        """
         #------------------------------------------------------------------------
         # Each time we arrive at precisely a new beat, generate a debug msg.
         # Round to several decimal places to avoid 7.999999999 syndrome.
@@ -97,7 +95,7 @@ class Timeline(object):
         # Copy self.tracks because removing from it whilst using it = bad idea
         #------------------------------------------------------------------------
         for track in self.tracks[:]:
-            track.tick(self.tick_length)
+            track.tick(self.tick_duration)
             if track.finished:
                 self.tracks.remove(track)
 
@@ -112,7 +110,7 @@ class Timeline(object):
         #       One is continuous, one is discrete.
         #------------------------------------------------------------------------
         for automator in self.automators[:]:
-            automator.tick(self.tick_length)
+            automator.tick(self.tick_duration)
             if automator.finished:
                 self.automators.remove(automator)
 
@@ -120,12 +118,12 @@ class Timeline(object):
         # Tell our devices (ie, MidiFileOut) to move forward a step.
         #------------------------------------------------------------------------
         for device in self.outputs:
-            device.tick(self.tick_length)
+            device.tick(self.tick_duration)
 
         #------------------------------------------------------------------------
         # Increment beat count according to our current tick_length.
         #------------------------------------------------------------------------
-        self.beats += self.tick_length
+        self.beats += self.tick_duration
 
     def dump(self):
         """ Output a summary of this Timeline object

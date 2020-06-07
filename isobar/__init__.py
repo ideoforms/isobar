@@ -1,3 +1,19 @@
+"""
+isobar
+~~~~~~
+
+A Python library for algorithmic composition by expressing and constructing musical patterns.
+
+For documentation, please see:
+
+    https://github.com/ideoforms/isobar
+
+For a full list of all Pattern classes:
+
+    pydoc3 isobar.pattern
+
+"""
+
 __version__ = "0"
 __author__ = "Daniel Jones <http://www.erase.net/>"
 
@@ -9,3 +25,5 @@ from .util import *
 from .timeline import *
 from .pattern import *
 from .constants import *
+from .exceptions import *
+
