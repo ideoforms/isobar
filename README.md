@@ -79,10 +79,10 @@ Top-level classes:
 
 I/O classes:
 
-* [MIDI](isobar/io/midi.py)
-* [MIDIFile](isobar/io/midifile.py)
-* [OSC](isobar/io/osc.py)
-* [SocketIO](isobar/io/socketio.py)
+* [MIDI](isobar/io/midi)
+* [MIDIFile](isobar/io/midifile)
+* [OSC](isobar/io/osc)
+* [SocketIO](isobar/io/socketio)
 
 Pattern classes:
 
