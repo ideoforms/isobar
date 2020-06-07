@@ -1,13 +1,13 @@
-from isobar.note import *
-from isobar.pattern.core import *
+from ..pattern import Pattern
 
 import mido
 
 import logging
+
 log = logging.getLogger(__name__)
 
 class MidiNote:
-    def __init__(self, pitch, velocity, location, duration = None):
+    def __init__(self, pitch, velocity, location, duration=None):
         # pitch = MIDI 0..127
         self.pitch = pitch
         # velocity = MIDI 0..127
@@ -24,7 +24,7 @@ class MidiFileIn:
     def __init__(self, filename):
         self.filename = filename
 
-    def read(self, quantize = 0.25):
+    def read(self, quantize=0.25):
         midi_reader = mido.MidiFile(self.filename)
         note_tracks = list(filter(lambda track: any(message.type == 'note_on' for message in track), midi_reader.tracks))
         if not note_tracks:
@@ -42,25 +42,30 @@ class MidiFileIn:
                 #------------------------------------------------------------------------
                 # Found a note_on event.
                 #------------------------------------------------------------------------
+                offset += event.time / 96.0
                 note = MidiNote(event.note, event.velocity, offset)
                 notes.append(note)
-                offset += event.time / 480.0
+                print("found note on for note %d - location %f, time %f" % (note.pitch, note.location, event.time))
+                print("offset now %f" % offset)
             elif event.type == 'note_off' or (event.type == 'note_on' and event.velocity == 0):
                 #------------------------------------------------------------------------
                 # Found a note_off event.
                 #------------------------------------------------------------------------
+                offset += event.time / 96.0
                 for note in reversed(notes):
                     if note.pitch == event.note:
                         note.duration = offset - note.location
+                        print("found note off for note %d - location %f, offset %f, duration %f" % (note.pitch, note.location, offset, note.duration))
                         break
-                offset += event.time / 480.0
+
+                print("offset now %f" % offset)
 
         for note in notes:
             if quantize:
                 # note.location = round(note.location / quantize) * quantize
                 # note.duration = round(note.duration / quantize) * quantize
                 pass
-            print("%d (%d, %f)" % (note.pitch, note.velocity, note.duration))
+            print("Note %d (vel = %d, dur = %f)" % (note.pitch, note.velocity, note.duration))
 
         #------------------------------------------------------------------------
         # Construct a sequence which honours chords and relative lengths.
@@ -73,13 +78,13 @@ class MidiFileIn:
             if location in notes_by_time:
                 notes_by_time[location].append(note)
             else:
-                notes_by_time[location] = [ note ]
+                notes_by_time[location] = [note]
 
         note_dict = {
-            "note" : [],
-            "amp" :  [],
-            "gate" : [],
-            "dur" :  []
+            "note": [],
+            "amp": [],
+            "gate": [],
+            "dur": []
         }
         for n in notes_by_time:
             print("%s - %s" % (n, notes_by_time[n]))
@@ -102,7 +107,7 @@ class MidiFileIn:
             if i < len(times) - 1:
                 next_time = times[i + 1]
             else:
-                next_time = time + max([ note.duration for note in notes ])
+                next_time = time + max([note.duration for note in notes])
 
             dur = next_time - time
             note_dict["dur"].append(dur)
@@ -124,7 +129,7 @@ class MidiFileOut:
         Requires the MIDIUtil package:
         https://code.google.com/p/midiutil/ """
 
-    def __init__(self, filename = "score.mid", num_tracks = 16):
+    def __init__(self, filename="score.mid", num_tracks=16):
         # requires midiutil
         from midiutil.MidiFile import MIDIFile
 
@@ -135,14 +140,14 @@ class MidiFileOut:
     def tick(self, tick_length):
         self.time += tick_length
 
-    def note_on(self, note = 60, velocity = 64, channel = 0, duration = 1):
+    def note_on(self, note=60, velocity=64, channel=0, duration=1):
         #------------------------------------------------------------------------
         # avoid rounding errors
         #------------------------------------------------------------------------
         time = round(self.time, 5)
         self.score.addNote(channel, channel, note, time, duration, velocity)
 
-    def note_off(self, note = 60, channel = 0):
+    def note_off(self, note=60, channel=0):
         time = round(self.time, 5)
         self.score.addNote(channel, channel, note, time, 0, 0)
 
@@ -156,7 +161,7 @@ class PatternWriterMIDI:
         Requires the MIDIUtil package:
         https://code.google.com/p/midiutil/ """
 
-    def __init__(self, filename = "score.mid", numtracks = 1):
+    def __init__(self, filename="score.mid", numtracks=1):
         from midiutil.MidiFile import MIDIFile
 
         self.score = MIDIFile(numtracks)
@@ -164,7 +169,7 @@ class PatternWriterMIDI:
         self.channel = 0
         self.volume = 64
 
-    def add_track(self, pattern, track_number = 0, track_name = "track", dur = 1.0):
+    def add_track(self, pattern, track_number=0, track_name="track", dur=1.0):
         time = 0
 
         # naive approach: assume every duration is 1
@@ -192,8 +197,7 @@ class PatternWriterMIDI:
         #------------------------------------------------------------------------
         pass
 
-    def write(self, filename = "score.mid"):
+    def write(self, filename="score.mid"):
         fd = open(filename, 'wb')
         self.score.writeFile(fd)
         fd.close()
-

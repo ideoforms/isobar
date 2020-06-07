@@ -3,23 +3,20 @@ try:
 except:
     print("rtmidi not found, no MIDI support available.")
 
-import random
 import time
-
-import isobar
-from isobar.note import *
-
 import logging
+from ..note import Note
+
 log = logging.getLogger(__name__)
 
 class MidiIn:
-    def __init__(self, target = None):
+    def __init__(self, target=None):
         self.midi = rtmidi.MidiIn()
 
         #------------------------------------------------------------------------
         # don't ignore MIDI clock messages (is on by default)
         #------------------------------------------------------------------------
-        self.midi.ignore_types(timing = False)
+        self.midi.ignore_types(timing=False)
         self.clock_target = None
 
         ports = self.midi.get_ports()
@@ -39,6 +36,12 @@ class MidiIn:
         self.midi.open_port(port_index)
 
     def callback(self, message, timestamp):
+        """
+        Callback for rtmidi
+        Args:
+            message: rtmidi message
+            timestamp: rtmidi timestamp
+        """
         message = message[0]
         data_type = message[0]
 
@@ -51,12 +54,19 @@ class MidiIn:
                 self.clock_target.reset_to_beat()
 
     def run(self):
+        """
+        Run indefinitely.
+        """
         self.midi.set_callback(self.callback)
         while True:
             time.sleep(0.1)
 
     def poll(self):
-        """ used in markov-learner -- can we refactor? """
+        """
+        Non-blocking poll for MIDI messages.
+        Returns:
+            Note: The note received, or None.
+        """
         message = self.midi.get_message()
         if not message:
             return
@@ -73,9 +83,8 @@ class MidiIn:
     def close(self):
         del self.midi
 
-
 class MidiOut:
-    def __init__(self, target = None):
+    def __init__(self, target=None):
         self.midi = rtmidi.MidiOut()
 
         ports = self.midi.get_ports()
@@ -99,22 +108,22 @@ class MidiOut:
     def tick(self, tick_length):
         pass
 
-    def note_on(self, note = 60, velocity = 64, channel = 0):
+    def note_on(self, note=60, velocity=64, channel=0):
         log.debug("[midi] Note on  (channel = %d, note = %d, velocity = %d)" % (channel, note, velocity))
-        self.midi.send_message([ 0x90 + channel, int(note), int(velocity) ])
+        self.midi.send_message([0x90 + channel, int(note), int(velocity)])
 
-    def note_off(self, note = 60, channel = 0):
+    def note_off(self, note=60, channel=0):
         log.debug("[midi] Note off (channel = %d, note = %d)" % (channel, note))
-        self.midi.send_message([ 0x80 + channel, int(note), 0 ])
+        self.midi.send_message([0x80 + channel, int(note), 0])
 
-    def all_notes_off(self, channel = 0):
+    def all_notes_off(self, channel=0):
         log.debug("[midi] All notes off (channel = %d)" % (channel))
         for n in range(128):
             self.note_off(n, channel)
 
-    def control(self, control = 0, value = 0, channel = 0):
+    def control(self, control=0, value=0, channel=0):
         log.debug("[midi] Control (channel %d, control %d, value %d)" % (channel, control, value))
-        self.midi.send_message([ 0xB0 + channel, int(control), int(value) ])
+        self.midi.send_message([0xB0 + channel, int(control), int(value)])
 
     def __destroy__(self):
         del self.midi

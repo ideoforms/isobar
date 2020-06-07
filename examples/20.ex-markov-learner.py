@@ -13,11 +13,12 @@ import isobar as iso
 from isobar.io.midi import MidiIn, MidiOut
 
 import logging
+
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
 import time
 
-midi_in  = MidiIn()
+midi_in = MidiIn()
 midi_out = MidiOut()
 
 learner = iso.MarkovParallelLearners(3)
@@ -36,7 +37,7 @@ try:
             dur = clock - clock0
             dur = round(dur, 2)
 
-            learner.register([ note.midinote, velocity, dur ])
+            learner.register([note.midinote, velocity, dur])
             clock0 = clock
 
 except KeyboardInterrupt:
@@ -49,8 +50,8 @@ print("----------------------------------------------------")
 chains = learner.chains()
 
 pitch = chains[0]
-amp   = chains[1]
-dur   = chains[2]
+amp = chains[1]
+dur = chains[2]
 
 if len(pitch.nodes) == 0:
     print("No notes detected")
@@ -63,4 +64,3 @@ else:
         iso.EVENT_CHANNEL: 0
     })
     t.run()
-
