@@ -12,7 +12,7 @@ import isobar as iso
 import logging
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
-series = iso.PRange(0, 73, 1)
+series = iso.PRange(60, 73, 1)
 timeline = iso.Timeline(120)
 
 timeline.schedule({
