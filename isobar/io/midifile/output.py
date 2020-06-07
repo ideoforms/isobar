@@ -1,10 +1,11 @@
 from ...pattern import Pattern
+from ..output import OutputDevice
 
 import logging
 
 log = logging.getLogger(__name__)
 
-class MidiFileOut:
+class MidiFileOut (OutputDevice):
     """ Write events to a MIDI file.
         Requires the MIDIUtil package:
         https://code.google.com/p/midiutil/ """

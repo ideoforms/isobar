@@ -33,8 +33,6 @@ class MidiFileIn:
                 offset += event.time / 96.0
                 note = MidiNote(event.note, event.velocity, offset)
                 notes.append(note)
-                print("found note on for note %d - location %f, time %f" % (note.pitch, note.location, event.time))
-                print("offset now %f" % offset)
             elif event.type == 'note_off' or (event.type == 'note_on' and event.velocity == 0):
                 #------------------------------------------------------------------------
                 # Found a note_off event.
@@ -43,17 +41,16 @@ class MidiFileIn:
                 for note in reversed(notes):
                     if note.pitch == event.note:
                         note.duration = offset - note.location
-                        print("found note off for note %d - location %f, offset %f, duration %f" % (note.pitch, note.location, offset, note.duration))
                         break
 
-                print("offset now %f" % offset)
-
+        #------------------------------------------------------------------------
+        # Quantize
+        #------------------------------------------------------------------------
         for note in notes:
             if quantize:
                 # note.location = round(note.location / quantize) * quantize
                 # note.duration = round(note.duration / quantize) * quantize
                 pass
-            print("Note %d (vel = %d, dur = %f)" % (note.pitch, note.velocity, note.duration))
 
         #------------------------------------------------------------------------
         # Construct a sequence which honours chords and relative lengths.
@@ -61,7 +58,7 @@ class MidiFileIn:
         #------------------------------------------------------------------------
         notes_by_time = {}
         for note in notes:
-            log.debug("(%.2f) %d/%d, %s" % (note.location, note.pitch, note.velocity, note.duration))
+            log.debug("(time %.2f) note %d, velocity %d, duration %f" % (note.location, note.pitch, note.velocity, note.duration))
             location = note.location
             if location in notes_by_time:
                 notes_by_time[location].append(note)
@@ -74,8 +71,8 @@ class MidiFileIn:
             "gate": [],
             "dur": []
         }
-        for n in notes_by_time:
-            print("%s - %s" % (n, notes_by_time[n]))
+        # for n in notes_by_time:
+        #     print("%s - %s" % (n, notes_by_time[n]))
 
         #------------------------------------------------------------------------
         # Next, iterate through groups of notes chronologically, figuring out

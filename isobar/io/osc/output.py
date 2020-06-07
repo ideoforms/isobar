@@ -1,4 +1,6 @@
-class OSCOut:
+from ..output import OutputDevice
+
+class OSCOut (OutputDevice):
     """ OSCOut: Wraps MIDI messages in OSC.
     /note [ note, velocity, channel ]
     /control [ control, value, channel ] """
@@ -16,10 +18,6 @@ class OSCOut:
 
     def note_off(self, note=60, channel=0):
         self.osc.send_message("/note", 0, channel)
-
-    def all_notes_off(self, channel=0):
-        for n in range(128):
-            self.note_off(n, channel)
 
     def control(self, control, value, channel=0):
         self.osc.send_message("/control", value, channel)

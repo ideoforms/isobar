@@ -4,11 +4,12 @@ except:
     print("rtmidi not found, no MIDI support available.")
 
 import logging
+from ..output import OutputDevice
 from ...exceptions import DeviceNotFoundException
 
 log = logging.getLogger(__name__)
 
-class MidiOut:
+class MidiOut (OutputDevice):
     def __init__(self, device_name=None):
         """
         Create a MIDI output device.
@@ -47,11 +48,6 @@ class MidiOut:
     def note_off(self, note=60, channel=0):
         log.debug("[midi] Note off (channel = %d, note = %d)" % (channel, note))
         self.midi.send_message([0x80 + channel, int(note), 0])
-
-    def all_notes_off(self, channel=0):
-        log.debug("[midi] All notes off (channel = %d)" % (channel))
-        for n in range(128):
-            self.note_off(n, channel)
 
     def control(self, control=0, value=0, channel=0):
         log.debug("[midi] Control (channel %d, control %d, value %d)" % (channel, control, value))
