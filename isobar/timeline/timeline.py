@@ -9,13 +9,16 @@ from .track import Track
 from .clock import Clock
 from ..constants import TICKS_PER_BEAT
 from ..constants import EVENT_TIME, EVENT_FUNCTION
+from ..exceptions import TrackLimitReachedException
 import logging
 
 log = logging.getLogger(__name__)
 
 class Timeline(object):
-    """ A Timeline object represents a number of Tracks, each of which
-    represents a sequence of note or control events. """
+    """
+    A Timeline object represents a number of Tracks, each of which
+    represents a sequence of note or control events.
+    """
 
     def __init__(self, clock=120, output_device=None):
         """ Expect to receive one tick per beat, generate events at 120bpm """
@@ -103,6 +106,7 @@ class Timeline(object):
         # If we've run out of notes, raise a StopIteration.
         #------------------------------------------------------------------------
         if len(self.tracks) == 0 and self.stop_when_done:
+            print("raising stop: %d" % self.stop_when_done)
             raise StopIteration
 
         #------------------------------------------------------------------------
@@ -156,7 +160,7 @@ class Timeline(object):
         """ Run this Timeline in a background thread. """
         self.thread = _thread.start_new_thread(self.run, ())
 
-    def run(self, high_priority=True, stop_when_done=True):
+    def run(self, high_priority=True, stop_when_done=None):
         """ Run this Timeline in the foreground.
         By default, attempts to run as a high-priority thread for more
         accurate timing (though requires being run as root to re-nice the
@@ -173,9 +177,9 @@ class Timeline(object):
             try:
                 import os
                 os.nice(-20)
-                log.warn("Timeline: Running as high-priority thread")
+                log.info("Timeline: Running as high-priority thread")
             except:
-                log.warn("Timeline: Standard thread priority (run with sudo for high-priority)")
+                log.info("Timeline: Standard thread priority (run with sudo for high-priority)")
 
         try:
             #------------------------------------------------------------------------
@@ -220,21 +224,33 @@ class Timeline(object):
             self.add_output(isobar.io.MidiOut())
         return self.outputs[0]
 
-    def schedule(self, event, quantize=0, delay=0, count=0, device=None):
-        """ Schedule a new track within this Timeline. """
-        if not device:
-            device = self.default_output
+    def schedule(self, params, quantize=0, delay=0, count=0, output_device=None):
+        """
+        Schedule a new track within this Timeline.
+
+        Args:
+            params (dict): Event dictionary. Keys are generally EVENT_* values, defined in constants.py
+            quantize (float): Quantize level, in beats. For example, 1.0 will begin executing the
+                              events on the next whole beats
+            delay (float): Delay time, in beats, before events should be executed
+            count (int): The maximum number of events to execute (deprecated)
+            output_device: Output device to send events to. Uses the Timeline default if not specified.
+
+        Raises:
+            TrackLimitReachedException: If `max_tracks` has been reached.
+        """
+        if not output_device:
+            output_device = self.default_output
 
         if self.max_tracks and len(self.tracks) >= self.max_tracks:
-            print("Timeline: refusing to schedule track (hit limit of %d)" % self.max_tracks)
-            return
+            raise TrackLimitReachedException("Timeline: refusing to schedule track (hit limit of %d)" % self.max_tracks)
 
         def _add_track():
             #----------------------------------------------------------------------
             # This isn't the best way to determine whether a device is an
             # automator or event generator. Should we have separate calls?
             #----------------------------------------------------------------------
-            track = Track(event, count, self, device)
+            track = Track(params, count, self, output_device)
             self.tracks.append(track)
 
         if quantize or delay:

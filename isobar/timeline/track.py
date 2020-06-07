@@ -13,7 +13,7 @@ import logging
 log = logging.getLogger(__name__)
 
 class Track:
-    def __init__(self, events={}, count=0, timeline=None, device=None):
+    def __init__(self, events={}, count=0, timeline=None, output_device=None):
         #----------------------------------------------------------------------
         # evaluate in case we have a pattern which gives us an event
         # eg: PSeq([ { EVENT_NOTE : 20, EVENT_DURATION : 0.5 }, { EVENT_NOTE : 50, EVENT_DURATION : PWhite(0, 2) } ])
@@ -26,7 +26,7 @@ class Track:
         next(self)
 
         self.timeline = timeline
-        self.device = device
+        self.output_device = output_device
         self.phase_now = next(self.event[EVENT_PHASE])
 
         #------------------------------------------------------------------------
@@ -41,7 +41,10 @@ class Track:
 
     def __str__(self):
         return "Track(pos = %d, note = %s, dur = %s, dur_now = %d, track = %s, control = %s)[count = %d/%d])" % (
-        self.pos, self.event[EVENT_NOTE], self.event[EVENT_DURATION], self.dur_now, self.event[EVENT_CHANNEL], self.event[EVENT_CONTROL] if EVENT_CONTROL in self.event else "-", self.count_now, self.count_max)
+        self.pos, self.event[EVENT_NOTE], self.event[EVENT_DURATION],
+        self.dur_now, self.event[EVENT_CHANNEL],
+        self.event[EVENT_CONTROL] if EVENT_CONTROL in self.event else "-",
+        self.count_now, self.count_max)
 
     def __next__(self):
         #----------------------------------------------------------------------
@@ -68,7 +71,9 @@ class Track:
             event[EVENT_KEY] = Key(0, Scale.default)
 
         #----------------------------------------------------------------------
-        # this does the job of turning constant values into (PConst) patterns.
+        # Turn constant values into patterns:
+        #  - scalars becomes PConstant
+        #  - array becomes PSequence
         #----------------------------------------------------------------------
         for key, value in list(event.items()):
             event[key] = Pattern.pattern(value)
@@ -97,7 +102,8 @@ class Track:
                 if self.count_max and self.count_now >= self.count_max:
                     raise StopIteration
         except StopIteration:
-            self.finished = True
+            if len(self.note_offs) == 0:
+                self.finished = True
 
         self.pos += time
 
@@ -152,14 +158,14 @@ class Track:
         if EVENT_CONTROL in values:
             log.debug("control (channel %d, control %d, value %d)",
                       values[EVENT_CHANNEL], values[EVENT_CONTROL], values[EVENT_VALUE])
-            self.device.control(values[EVENT_CONTROL], values[EVENT_VALUE], values[EVENT_CHANNEL])
+            self.output_device.control(values[EVENT_CONTROL], values[EVENT_VALUE], values[EVENT_CHANNEL])
             return
 
         #------------------------------------------------------------------------
         # address: Send a value to an OSC endpoint
         #------------------------------------------------------------------------
         if EVENT_ADDRESS in values:
-            self.device.send(values[EVENT_ADDRESS], values["params"])
+            self.output_device.send(values[EVENT_ADDRESS], values["params"])
             return
 
         #------------------------------------------------------------------------
@@ -215,7 +221,7 @@ class Track:
         #        rather than note_on/note_off. (Should probably have to
         #        register for this behaviour rather than happening magically...)
         #----------------------------------------------------------------------
-        if hasattr(self.device, EVENT_EVENT) and callable(getattr(self.device, EVENT_EVENT)):
+        if hasattr(self.output_device, "event") and callable(getattr(self.output_device, "event")):
             d = copy.copy(values)
             for key, value in list(d.items()):
                 #------------------------------------------------------------------------
@@ -235,7 +241,7 @@ class Track:
                     value = repr(value)
                     d[key] = value
 
-            self.device.event(d)
+            self.output_device.event(d)
             return
 
         #----------------------------------------------------------------------
@@ -257,19 +263,19 @@ class Track:
                 gate = values[EVENT_GATE][index] if isinstance(values[EVENT_GATE], tuple) else values[EVENT_GATE]
 
                 if (amp is not None and amp > 0) and (gate is not None and gate > 0):
-                    self.device.note_on(note, amp, channel)
+                    self.output_device.note_on(note, amp, channel)
 
                     note_dur = self.dur_now * gate
-                    self.sched_note_off(self.next_note + note_dur + self.phase_now, note, channel)
+                    self.schedule_note_off(self.next_note + note_dur + self.phase_now, note, channel)
 
-    def sched_note_off(self, time, note, channel):
+    def schedule_note_off(self, time, note, channel):
         self.note_offs.append([time, note, channel])
 
     def process_note_offs(self):
         for n, note in enumerate(self.note_offs):
             # TODO: create a Note object to represent these note_off events
-            if note[0] <= self.pos:
+            if round(note[0], 8) <= round(self.pos, 8):
                 index = note[1]
                 channel = note[2]
-                self.device.note_off(index, channel)
+                self.output_device.note_off(index, channel)
                 self.note_offs.pop(n)
