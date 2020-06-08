@@ -224,7 +224,7 @@ class Timeline(object):
             self.add_output(isobar.io.MidiOut())
         return self.outputs[0]
 
-    def schedule(self, params, quantize=0, delay=0, count=0, output_device=None):
+    def schedule(self, params, quantize=0, delay=0, output_device=None):
         """
         Schedule a new track within this Timeline.
 
@@ -233,7 +233,6 @@ class Timeline(object):
             quantize (float): Quantize level, in beats. For example, 1.0 will begin executing the
                               events on the next whole beats
             delay (float): Delay time, in beats, before events should be executed
-            count (int): The maximum number of events to execute (deprecated)
             output_device: Output device to send events to. Uses the Timeline default if not specified.
 
         Raises:
@@ -250,7 +249,7 @@ class Timeline(object):
             # This isn't the best way to determine whether a device is an
             # automator or event generator. Should we have separate calls?
             #----------------------------------------------------------------------
-            track = Track(params, count, self, output_device)
+            track = Track(params, self, output_device)
             self.tracks.append(track)
 
         if quantize or delay:

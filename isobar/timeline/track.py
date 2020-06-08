@@ -13,7 +13,7 @@ import logging
 log = logging.getLogger(__name__)
 
 class Track:
-    def __init__(self, events={}, count=0, timeline=None, output_device=None):
+    def __init__(self, events={}, timeline=None, output_device=None):
         #----------------------------------------------------------------------
         # evaluate in case we have a pattern which gives us an event
         # eg: PSeq([ { EVENT_NOTE : 20, EVENT_DURATION : 0.5 }, { EVENT_NOTE : 50, EVENT_DURATION : PWhite(0, 2) } ])
@@ -36,15 +36,12 @@ class Track:
 
         self.note_offs = []
         self.finished = False
-        self.count_max = count
-        self.count_now = 0
 
     def __str__(self):
-        return "Track(pos = %d, note = %s, dur = %s, dur_now = %d, track = %s, control = %s)[count = %d/%d])" % (
-        self.pos, self.event[EVENT_NOTE], self.event[EVENT_DURATION],
-        self.dur_now, self.event[EVENT_CHANNEL],
-        self.event[EVENT_CONTROL] if EVENT_CONTROL in self.event else "-",
-        self.count_now, self.count_max)
+        return "Track(pos = %d, note = %s, dur = %s, dur_now = %d, track = %s, control = %s))" % (
+               self.pos, self.event[EVENT_NOTE], self.event[EVENT_DURATION],
+               self.dur_now, self.event[EVENT_CHANNEL],
+               self.event[EVENT_CONTROL] if EVENT_CONTROL in self.event else "-")
 
     def __next__(self):
         #----------------------------------------------------------------------
@@ -98,9 +95,6 @@ class Track:
 
                 next(self)
 
-                self.count_now += 1
-                if self.count_max and self.count_now >= self.count_max:
-                    raise StopIteration
         except StopIteration:
             if len(self.note_offs) == 0:
                 self.finished = True
