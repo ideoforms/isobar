@@ -10,8 +10,21 @@ from ..constants import TICKS_PER_BEAT
 # as per MIDI
 #----------------------------------------------------------------------
 
+class DummyClock:
+    def __init__(self):
+        self.clock_target = None
+
+    @property
+    def bpm(self):
+        return 0.0
+
+    def run(self):
+        while True:
+            self.clock_target.tick()
+
 class Clock:
-    def __init__(self, tick_size=(1.0 / TICKS_PER_BEAT)):
+    def __init__(self, clock_target, tick_size=(1.0 / TICKS_PER_BEAT)):
+        self.clock_target = clock_target
         self.tick_size_orig = tick_size
         self.tick_size = tick_size
         self.warpers = []
@@ -21,7 +34,7 @@ class Clock:
     def bpm(self):
         return 60.0 / (self.tick_size * TICKS_PER_BEAT)
 
-    def run(self, timeline):
+    def run(self):
         clock0 = clock1 = time.time() * self.accelerate
         #------------------------------------------------------------------------
         # allow a tick to elapse before we call tick() for the first time
@@ -30,7 +43,7 @@ class Clock:
         while True:
             if clock1 - clock0 >= self.tick_size:
                 # time for a tick
-                timeline.tick()
+                self.clock_target.tick()
                 clock0 += self.tick_size
                 self.tick_size = self.tick_size_orig
                 for warper in self.warpers:

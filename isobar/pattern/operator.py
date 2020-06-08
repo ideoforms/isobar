@@ -188,8 +188,9 @@ class PLinLin(PMap):
 class PLinExp(PMap):
     """ PLinExp: Map <input> from linear range [a,b] to exponential range [c,d].
 
-        >>> p = PLinExp(PWhite(), 0, 1, 40, 20000)
+        >>> p = PLinExp(PWhite(0.0, 1.0), 0, 1, 40, 20000)
         >>> p.nextn(16)
+        [946.888, 282.944, 2343.145, 634.637, 218.844, 19687.330, 4457.627, 172.419, 934.666, ... 46.697 ]
         """
 
     def linexp(self, value, from_min=0, from_max=1, to_min=1, to_max=10):
@@ -203,8 +204,9 @@ class PLinExp(PMap):
 class PRound(PMap):
     """ PRound: Round <input> to N decimal places.
 
-        >>> p = PLinExp(PWhite(), 0, 1, 40, 20000)
+        >>> p = PRound(PWhite(0.0, 10.0))
         >>> p.nextn(16)
+        [6, 8, 6, 0, 7, 6, 6, 4, 7, 7, 8, 7, 6, 8, 8, 4]
         """
 
     def __init__(self, input, *args):
@@ -215,7 +217,7 @@ class PIndexOf(Pattern):
 
         >>> p = PIndexOf([ chr(ord("a") + n) for n in range(26) ], PSeq("isobar"))
         >>> p.nextn(16)
-        >>> [8, 18, 14, 1, 0, 17, 8, 18, 14, 1, 0, 17, 8, 18, 14, 1]
+        [8, 18, 14, 1, 0, 17, 8, 18, 14, 1, 0, 17, 8, 18, 14, 1]
         """
 
     def __init__(self, list, item):

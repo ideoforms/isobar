@@ -50,8 +50,7 @@ class PSequence(Pattern):
         return rv
 
 # Backwards-compatbility
-class PSeq(PSequence):
-    pass
+PSeq = PSequence
 
 class PSeries(Pattern):
     """ PSeries: Arithmetic series, beginning at <start>, increment by <step>

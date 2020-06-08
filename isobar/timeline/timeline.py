@@ -7,7 +7,7 @@ import isobar.io
 
 from .track import Track
 from .clock import Clock
-from ..constants import TICKS_PER_BEAT
+from ..constants import TICKS_PER_BEAT, DEFAULT_CLOCK_RATE
 from ..constants import EVENT_TIME, EVENT_FUNCTION
 from ..exceptions import TrackLimitReachedException
 import logging
@@ -20,122 +20,112 @@ class Timeline(object):
     represents a sequence of note or control events.
     """
 
-    def __init__(self, clock=120, output_device=None):
+    def __init__(self, bpm=DEFAULT_CLOCK_RATE, output_device=None, clock_source=None):
         """ Expect to receive one tick per beat, generate events at 120bpm """
         self.tick_duration = 1.0 / TICKS_PER_BEAT
         self.beats = 0
-        self.outputs = [output_device] if output_device else []
+        self.output_devices = [output_device] if output_device else []
         self.tracks = []
         self.automators = []
         self.max_tracks = 0
 
         self.clock = None
-        self.clock_source = None
         self.thread = None
         self.stop_when_done = True
 
         self.events = []
 
-        if hasattr(clock, "clock_target"):
-            #------------------------------------------------------------------------
+        if clock_source:
+            #--------------------------------------------------------------------------------
             # Follow external clock.
-            #------------------------------------------------------------------------
-            clock.clock_target = self
-            self.clock_source = clock
+            #--------------------------------------------------------------------------------
+            clock_source.clock_target = self
+            self.clock = clock_source
         else:
-            #------------------------------------------------------------------------
+            #--------------------------------------------------------------------------------
             # Create internal clock for native timekeeping.
-            #------------------------------------------------------------------------
-            self.clock = Clock(60.0 / (clock * TICKS_PER_BEAT))
+            #--------------------------------------------------------------------------------
+            self.clock = Clock(self, 60.0 / (bpm * TICKS_PER_BEAT))
 
     @property
     def bpm(self):
         """ Returns the tempo of this timeline's clock, or None if an external
         clock source is used (in which case the bpm is unknown).
         """
-        if self.has_external_clock:
-            return None
-        else:
-            return self.clock.bpm
-
-    @property
-    def has_external_clock(self):
-        """ Return True if we're using an external clock source. """
-        return bool(self.clock_source)
+        return self.clock.bpm
 
     def tick(self):
         """
         Called once every tick to trigger new events.
         """
-        #------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------
         # Each time we arrive at precisely a new beat, generate a debug msg.
         # Round to several decimal places to avoid 7.999999999 syndrome.
         # http://docs.python.org/tutorial/floatingpoint.html
-        #------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------
         if round(self.beats, 8) % 1 == 0:
-            log.debug("----------------------------------------------------------------")
+            log.debug("--------------------------------------------------------------------------------")
             log.debug("Tick (%d active tracks, %d pending events)" % (len(self.tracks), len(self.events)))
 
-        #------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------
         # Copy self.events because removing from it whilst using it = bad idea.
         # Perform events before tracks are executed because an event might
         # include scheduling a quantized track, which should then be
         # immediately evaluated.
-        #------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------
         for event in self.events[:]:
-            #------------------------------------------------------------------------
+            #--------------------------------------------------------------------------------
             # The only event we currently get in a Timeline are add_track events
             #  -- which have a function object associated with them.
             #
             # Round to work around rounding errors.
             # http://docs.python.org/tutorial/floatingpoint.html
-            #------------------------------------------------------------------------
+            #--------------------------------------------------------------------------------
             if round(event[EVENT_TIME], 8) <= round(self.beats, 8):
                 event[EVENT_FUNCTION]()
                 self.events.remove(event)
 
-        #------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------
         # Copy self.tracks because removing from it whilst using it = bad idea
-        #------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------
         for track in self.tracks[:]:
             track.tick(self.tick_duration)
             if track.finished:
                 self.tracks.remove(track)
 
-        #------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------
         # If we've run out of notes, raise a StopIteration.
-        #------------------------------------------------------------------------
-        if len(self.tracks) == 0 and self.stop_when_done:
-            print("raising stop: %d" % self.stop_when_done)
+        #--------------------------------------------------------------------------------
+        if len(self.tracks) == 0 and len(self.events) == 0 and self.stop_when_done:
             raise StopIteration
 
-        #------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------
         # TODO: should automator and track inherit from a common superclass?
         #       One is continuous, one is discrete.
-        #------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------
         for automator in self.automators[:]:
             automator.tick(self.tick_duration)
             if automator.finished:
                 self.automators.remove(automator)
 
-        #------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------
         # Tell our devices (ie, MidiFileOut) to move forward a step.
-        #------------------------------------------------------------------------
-        for device in self.outputs:
+        #--------------------------------------------------------------------------------
+        for device in self.output_devices:
             device.tick(self.tick_duration)
 
-        #------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------
         # Increment beat count according to our current tick_length.
-        #------------------------------------------------------------------------
+        #--------------------------------------------------------------------------------
         self.beats += self.tick_duration
 
     def dump(self):
         """ Output a summary of this Timeline object
             """
-        print(("Timeline (clock: %s)" % ("external" if self.has_external_clock else "%sbpm" % self.bpm)))
+        print("Timeline (clock: %s, tempo %s)" % (self.clock, self.clock.bpm if self.clock.bpm else "unknown"))
 
-        print((" - %d devices" % len(self.outputs)))
-        for device in self.outputs:
+        print((" - %d devices" % len(self.output_devices)))
+        for device in self.output_devices:
             print(("   - %s" % device))
 
         print((" - %d tracks" % len(self.tracks)))
@@ -182,19 +172,16 @@ class Timeline(object):
                 log.info("Timeline: Standard thread priority (run with sudo for high-priority)")
 
         try:
-            #------------------------------------------------------------------------
+            #--------------------------------------------------------------------------------
             # Start the clock. This might internal (eg a Clock object, running on
             # an independent thread), or external (eg a MIDI clock).
-            #------------------------------------------------------------------------
-            if self.has_external_clock:
-                self.clock_source.run()
-            else:
-                self.clock.run(self)
+            #--------------------------------------------------------------------------------
+            self.clock.run()
 
         except StopIteration:
-            #------------------------------------------------------------------------
+            #--------------------------------------------------------------------------------
             # This will be hit if every Pattern in a timeline is exhausted.
-            #------------------------------------------------------------------------
+            #--------------------------------------------------------------------------------
             log.info("Timeline: Finished")
 
         except Exception as e:
@@ -209,20 +196,20 @@ class Timeline(object):
         """ Remove a PWarp object from our clock. """
         self.clock.warp(warper)
 
-    def set_output(self, device):
-        """ Set a new device to send events to, removing any existing outputs. """
-        self.outputs = []
-        self.add_output(device)
-
-    def add_output(self, device):
-        """ Append a new output device to our output list. """
-        self.outputs.append(device)
-
     @property
-    def default_output(self):
-        if not self.outputs:
-            self.add_output(isobar.io.MidiOut())
-        return self.outputs[0]
+    def output_device(self):
+        if len(self.output_devices) != 1:
+            raise Exception("output_device is ambiguous for Timelines with multiple outputs")
+        return self.output_devices[0]
+
+    def set_output_device(self, output_device):
+        """ Set a new device to send events to, removing any existing outputs. """
+        self.output_devices = []
+        self.add_output_device(output_device)
+
+    def add_output_device(self, output_device):
+        """ Append a new output device to our output list. """
+        self.output_devices.append(output_device)
 
     def schedule(self, params, quantize=0, delay=0, output_device=None):
         """
@@ -231,42 +218,58 @@ class Timeline(object):
         Args:
             params (dict): Event dictionary. Keys are generally EVENT_* values, defined in constants.py
             quantize (float): Quantize level, in beats. For example, 1.0 will begin executing the
-                              events on the next whole beats
-            delay (float): Delay time, in beats, before events should be executed
+                              events on the next whole beats.
+            delay (float): Delay time, in beats, before events should be executed.
+                           If `quantize` and `delay` are both specified, quantization is applied first,
+                           and the event is scheduled `delay` beats after the quantization time.
             output_device: Output device to send events to. Uses the Timeline default if not specified.
+
+        Returns:
+            A new `Track` object if the track has been created immediately.
+            If `quantize` or `delay` have been used, return value is None as the track creation is deferred.
 
         Raises:
             TrackLimitReachedException: If `max_tracks` has been reached.
         """
         if not output_device:
-            output_device = self.default_output
+            #--------------------------------------------------------------------------------
+            # If no output device exists, send to the system default MIDI output.
+            #--------------------------------------------------------------------------------            
+            if not self.output_devices:
+                self.add_output_device(isobar.io.MidiOut())
+            output_device = self.output_devices[0]
 
         if self.max_tracks and len(self.tracks) >= self.max_tracks:
             raise TrackLimitReachedException("Timeline: refusing to schedule track (hit limit of %d)" % self.max_tracks)
 
         def _add_track():
-            #----------------------------------------------------------------------
+            #--------------------------------------------------------------------------------
             # This isn't the best way to determine whether a device is an
             # automator or event generator. Should we have separate calls?
-            #----------------------------------------------------------------------
+            #--------------------------------------------------------------------------------
             track = Track(params, self, output_device)
             self.tracks.append(track)
+            return track
 
         if quantize or delay:
-            #----------------------------------------------------------------------
+            #--------------------------------------------------------------------------------
             # We don't want to begin events right away -- either wait till
             # the next beat boundary (quantize), or delay a number of beats.
-            #----------------------------------------------------------------------
+            #--------------------------------------------------------------------------------
+            scheduled_time = self.beats
             if quantize:
-                scheduled_time = quantize * math.ceil(float(self.beats + delay) / quantize)
-            else:
-                scheduled_time = self.beats + delay
-            self.events.append({EVENT_TIME: scheduled_time, EVENT_FUNCTION: _add_track})
+                scheduled_time = quantize * math.ceil(float(self.beats) / quantize)
+            scheduled_time += delay
+
+            self.events.append({
+                EVENT_TIME: scheduled_time,
+                EVENT_FUNCTION: _add_track
+            })
         else:
-            #----------------------------------------------------------------------
+            #--------------------------------------------------------------------------------
             # Begin events on this track right away.
-            #----------------------------------------------------------------------
-            _add_track()
+            #--------------------------------------------------------------------------------
+            return _add_track()
 
     #--------------------------------------------------------------------------------
     # Backwards-compatibility

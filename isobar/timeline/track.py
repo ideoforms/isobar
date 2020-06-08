@@ -5,8 +5,8 @@ from ..pattern import Pattern
 from ..key import Key
 from ..scale import Scale
 from ..constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_TRANSPOSE, \
-    EVENT_CHANNEL, EVENT_OMIT, EVENT_GATE, EVENT_PHASE, EVENT_EVENT, EVENT_DEGREE, \
-    EVENT_OCTAVE, EVENT_KEY, EVENT_SCALE, EVENT_VALUE, EVENT_OBJECT, EVENT_CONTROL, \
+    EVENT_CHANNEL, EVENT_GATE, EVENT_PHASE, EVENT_EVENT, EVENT_DEGREE, \
+    EVENT_OCTAVE, EVENT_KEY, EVENT_SCALE, EVENT_VALUE, EVENT_ACTION_OBJECT, EVENT_CONTROL, \
     EVENT_PRINT, EVENT_ACTION, EVENT_ADDRESS
 import logging
 
@@ -55,7 +55,6 @@ class Track:
         event.setdefault(EVENT_DURATION, 1)
         event.setdefault(EVENT_AMPLITUDE, 64)
         event.setdefault(EVENT_CHANNEL, 0)
-        event.setdefault(EVENT_OMIT, 0)
         event.setdefault(EVENT_GATE, 1.0)
         event.setdefault(EVENT_PHASE, 0.0)
         event.setdefault(EVENT_OCTAVE, 0)
@@ -77,7 +76,7 @@ class Track:
 
         self.event = event
 
-    def tick(self, time):
+    def tick(self, tick_duration):
         #----------------------------------------------------------------------
         # process note_offs before we play the next note, else a repeated note
         # with gate = 1.0 will immediately be cancelled.
@@ -99,7 +98,7 @@ class Track:
             if len(self.note_offs) == 0:
                 self.finished = True
 
-        self.pos += time
+        self.pos += tick_duration
 
     def reset_to_beat(self):
         self.pos = round(self.pos)
@@ -133,8 +132,8 @@ class Track:
         #------------------------------------------------------------------------
         if EVENT_ACTION in values:
             try:
-                if EVENT_OBJECT in values:
-                    object = values[EVENT_OBJECT]
+                if EVENT_ACTION_OBJECT in values:
+                    object = values[EVENT_ACTION_OBJECT]
                     values[EVENT_ACTION](object)
                 else:
                     values[EVENT_ACTION]()
@@ -186,9 +185,6 @@ class Track:
         # devices which receive all generic events (useful to display rests
         # when rendering a score).
         #----------------------------------------------------------------------
-        if random.uniform(0, 1) < values[EVENT_OMIT]:
-            values[EVENT_NOTE] = None
-
         if values[EVENT_NOTE] is None:
             #----------------------------------------------------------------------
             # Rest.

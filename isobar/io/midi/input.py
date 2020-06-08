@@ -62,6 +62,10 @@ class MidiIn:
         while True:
             time.sleep(0.1)
 
+    @property
+    def bpm(self):
+        return None
+
     def poll(self):
         """
         Non-blocking poll for MIDI messages.
