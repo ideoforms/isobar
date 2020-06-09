@@ -26,7 +26,6 @@ class Timeline(object):
         self.beats = 0
         self.output_devices = [output_device] if output_device else []
         self.tracks = []
-        self.automators = []
         self.max_tracks = 0
 
         self.clock = None
@@ -90,7 +89,7 @@ class Timeline(object):
         #--------------------------------------------------------------------------------
         for track in self.tracks[:]:
             track.tick(self.tick_duration)
-            if track.finished:
+            if track.is_finished:
                 self.tracks.remove(track)
 
         #--------------------------------------------------------------------------------
@@ -98,15 +97,6 @@ class Timeline(object):
         #--------------------------------------------------------------------------------
         if len(self.tracks) == 0 and len(self.events) == 0 and self.stop_when_done:
             raise StopIteration
-
-        #--------------------------------------------------------------------------------
-        # TODO: should automator and track inherit from a common superclass?
-        #       One is continuous, one is discrete.
-        #--------------------------------------------------------------------------------
-        for automator in self.automators[:]:
-            automator.tick(self.tick_duration)
-            if automator.finished:
-                self.automators.remove(automator)
 
         #--------------------------------------------------------------------------------
         # Tell our devices (ie, MidiFileOut) to move forward a step.
@@ -244,8 +234,7 @@ class Timeline(object):
 
         def _add_track():
             #--------------------------------------------------------------------------------
-            # This isn't the best way to determine whether a device is an
-            # automator or event generator. Should we have separate calls?
+            # Add a new track.
             #--------------------------------------------------------------------------------
             track = Track(params, self, output_device)
             self.tracks.append(track)

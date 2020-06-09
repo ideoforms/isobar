@@ -401,7 +401,7 @@ class PDelay(Pattern):
         if self.counter < 0:
             self.counter = Pattern.value(self.delay)
             return Pattern.value(self.source)
-        
+
 class PReset(Pattern):
     """ PReset: Resets <pattern> each time it receives a zero-crossing from
                 <trigger>

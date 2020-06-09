@@ -7,7 +7,11 @@ from ..scale import Scale
 from ..constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_TRANSPOSE, \
     EVENT_CHANNEL, EVENT_GATE, EVENT_PHASE, EVENT_EVENT, EVENT_DEGREE, \
     EVENT_OCTAVE, EVENT_KEY, EVENT_SCALE, EVENT_VALUE, EVENT_ACTION_OBJECT, EVENT_CONTROL, \
-    EVENT_PRINT, EVENT_ACTION, EVENT_ADDRESS
+    EVENT_ACTION, EVENT_OSC_ADDRESS
+
+from ..constants import DEFAULT_EVENT_TRANSPOSE, DEFAULT_EVENT_AMPLITUDE, \
+    DEFAULT_EVENT_CHANNEL, DEFAULT_EVENT_DURATION, DEFAULT_EVENT_GATE, DEFAULT_EVENT_OCTAVE, \
+    DEFAULT_EVENT_PHASE
 import logging
 
 log = logging.getLogger(__name__)
@@ -23,41 +27,35 @@ class Track:
         # self.events = Pattern.pattern(events)
         self.events = events
 
-        next(self)
+        self.parse_next_event(events)
 
+        # TODO: Is this needed?
         self.timeline = timeline
         self.output_device = output_device
-        self.phase_now = next(self.event[EVENT_PHASE])
-
-        #------------------------------------------------------------------------
-        # Reset our play position.
-        #------------------------------------------------------------------------
-        self.reset()
-
+        self.next_event_phase = next(self.event[EVENT_PHASE])
+        self.current_time = 0
+        self.next_event_duration = 0
+        self.next_note = 0
         self.note_offs = []
-        self.finished = False
+        self.is_finished = False
 
     def __str__(self):
-        return "Track(pos = %d, note = %s, dur = %s, dur_now = %d, track = %s, control = %s))" % (
-               self.pos, self.event[EVENT_NOTE], self.event[EVENT_DURATION],
-               self.dur_now, self.event[EVENT_CHANNEL],
-               self.event[EVENT_CONTROL] if EVENT_CONTROL in self.event else "-")
+        return "Track (pos = %d)" % self.current_time
 
-    def __next__(self):
+    def parse_next_event(self, events):
         #----------------------------------------------------------------------
         # event is a dictionary of patterns. anything which is not a pattern
         # (eg, constant values) are turned into PConsts.
         #----------------------------------------------------------------------
-        event = Pattern.value(self.events)
+        event = Pattern.value(events)
 
-        event.setdefault(EVENT_NOTE, 60)
-        event.setdefault(EVENT_TRANSPOSE, 0)
-        event.setdefault(EVENT_DURATION, 1)
-        event.setdefault(EVENT_AMPLITUDE, 64)
-        event.setdefault(EVENT_CHANNEL, 0)
-        event.setdefault(EVENT_GATE, 1.0)
-        event.setdefault(EVENT_PHASE, 0.0)
-        event.setdefault(EVENT_OCTAVE, 0)
+        event.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
+        event.setdefault(EVENT_DURATION, DEFAULT_EVENT_DURATION)
+        event.setdefault(EVENT_GATE, DEFAULT_EVENT_GATE)
+        event.setdefault(EVENT_PHASE, DEFAULT_EVENT_PHASE)
+        event.setdefault(EVENT_AMPLITUDE, DEFAULT_EVENT_AMPLITUDE)
+        event.setdefault(EVENT_OCTAVE, DEFAULT_EVENT_OCTAVE)
+        event.setdefault(EVENT_TRANSPOSE, DEFAULT_EVENT_TRANSPOSE)
 
         if EVENT_KEY in event:
             pass
@@ -75,6 +73,7 @@ class Track:
             event[key] = Pattern.pattern(value)
 
         self.event = event
+        return event
 
     def tick(self, tick_duration):
         #----------------------------------------------------------------------
@@ -84,48 +83,39 @@ class Track:
         self.process_note_offs()
 
         try:
-            if round(self.pos, 8) >= round(self.next_note + self.phase_now, 8):
-                self.dur_now = next(self.event[EVENT_DURATION])
-                self.phase_now = next(self.event[EVENT_PHASE])
+            if round(self.current_time, 8) >= round(self.next_note + self.next_event_phase, 8):
+                self.next_event_duration = next(self.event[EVENT_DURATION])
+                self.next_event_phase = next(self.event[EVENT_PHASE])
+                self.perform_event()
 
-                self.play()
-
-                self.next_note += self.dur_now
-
-                next(self)
+                self.next_note += self.next_event_duration
+                self.parse_next_event(self.events)
 
         except StopIteration:
             if len(self.note_offs) == 0:
-                self.finished = True
+                self.is_finished = True
 
-        self.pos += tick_duration
+        self.current_time += tick_duration
 
     def reset_to_beat(self):
-        self.pos = round(self.pos)
+        self.current_time = round(self.current_time)
 
     def reset(self):
-        self.pos = 0
-        self.dur_now = 0
+        self.current_time = 0
+        self.next_event_duration = 0
         self.next_note = 0
 
-    def play(self):
+    def perform_event(self):
         values = {}
         for key, pattern in list(self.event.items()):
             # TODO: HACK!! to prevent stepping through dur twice (see 'tick' above')
             if key == EVENT_DURATION:
-                value = self.dur_now
+                value = self.next_event_duration
             elif key == EVENT_PHASE:
-                value = self.phase_now
+                value = self.next_event_phase
             else:
                 value = next(pattern)
             values[key] = value
-
-        #------------------------------------------------------------------------
-        # print: Prints a value each time this event is triggered.
-        #------------------------------------------------------------------------
-        if EVENT_PRINT in values:
-            print((values[EVENT_PRINT]))
-            return
 
         #------------------------------------------------------------------------
         # action: Carry out an action each time this event is triggered
@@ -142,14 +132,13 @@ class Track:
                 import traceback
                 traceback.print_exc()
                 pass
-
             return
 
         #------------------------------------------------------------------------
         # control: Send a control value
         #------------------------------------------------------------------------
         if EVENT_CONTROL in values:
-            log.debug("control (channel %d, control %d, value %d)",
+            log.debug("Control (channel %d, control %d, value %d)",
                       values[EVENT_CHANNEL], values[EVENT_CONTROL], values[EVENT_VALUE])
             self.output_device.control(values[EVENT_CONTROL], values[EVENT_VALUE], values[EVENT_CHANNEL])
             return
@@ -157,12 +146,12 @@ class Track:
         #------------------------------------------------------------------------
         # address: Send a value to an OSC endpoint
         #------------------------------------------------------------------------
-        if EVENT_ADDRESS in values:
-            self.output_device.send(values[EVENT_ADDRESS], values["params"])
+        if EVENT_OSC_ADDRESS in values:
+            self.output_device.send(values[EVENT_OSC_ADDRESS], values["params"])
             return
 
         #------------------------------------------------------------------------
-        # note/degree/etc: Send a MIDI note
+        # Note/degree/etc: Send a MIDI note
         #------------------------------------------------------------------------
         if EVENT_DEGREE in values:
             degree = values[EVENT_DEGREE]
@@ -251,12 +240,13 @@ class Track:
                 amp = values[EVENT_AMPLITUDE][index] if isinstance(values[EVENT_AMPLITUDE], tuple) else values[EVENT_AMPLITUDE]
                 channel = values[EVENT_CHANNEL][index] if isinstance(values[EVENT_CHANNEL], tuple) else values[EVENT_CHANNEL]
                 gate = values[EVENT_GATE][index] if isinstance(values[EVENT_GATE], tuple) else values[EVENT_GATE]
+                # TODO: Add an EVENT_SUSTAIN that allows absolute note lengths to be specified
 
                 if (amp is not None and amp > 0) and (gate is not None and gate > 0):
                     self.output_device.note_on(note, amp, channel)
 
-                    note_dur = self.dur_now * gate
-                    self.schedule_note_off(self.next_note + note_dur + self.phase_now, note, channel)
+                    note_dur = self.next_event_duration * gate
+                    self.schedule_note_off(self.next_note + note_dur + self.next_event_phase, note, channel)
 
     def schedule_note_off(self, time, note, channel):
         self.note_offs.append([time, note, channel])
@@ -264,7 +254,7 @@ class Track:
     def process_note_offs(self):
         for n, note in enumerate(self.note_offs):
             # TODO: create a Note object to represent these note_off events
-            if round(note[0], 8) <= round(self.pos, 8):
+            if round(note[0], 8) <= round(self.current_time, 8):
                 index = note[1]
                 channel = note[2]
                 self.output_device.note_off(index, channel)
