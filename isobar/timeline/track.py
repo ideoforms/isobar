@@ -5,13 +5,12 @@ from ..pattern import Pattern
 from ..key import Key
 from ..scale import Scale
 from ..constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_TRANSPOSE, \
-    EVENT_CHANNEL, EVENT_GATE, EVENT_PHASE, EVENT_EVENT, EVENT_DEGREE, \
+    EVENT_CHANNEL, EVENT_GATE, EVENT_EVENT, EVENT_DEGREE, \
     EVENT_OCTAVE, EVENT_KEY, EVENT_SCALE, EVENT_VALUE, EVENT_ACTION_OBJECT, EVENT_CONTROL, \
-    EVENT_ACTION, EVENT_OSC_ADDRESS
-
+    EVENT_ACTION, EVENT_OSC_ADDRESS, EVENT_TYPE
 from ..constants import DEFAULT_EVENT_TRANSPOSE, DEFAULT_EVENT_AMPLITUDE, \
-    DEFAULT_EVENT_CHANNEL, DEFAULT_EVENT_DURATION, DEFAULT_EVENT_GATE, DEFAULT_EVENT_OCTAVE, \
-    DEFAULT_EVENT_PHASE
+    DEFAULT_EVENT_CHANNEL, DEFAULT_EVENT_DURATION, DEFAULT_EVENT_GATE, DEFAULT_EVENT_OCTAVE
+from ..constants import EVENT_TYPE_UNKNOWN, EVENT_TYPE_NOTE, EVENT_TYPE_ACTION, EVENT_TYPE_OSC, EVENT_TYPE_CONTROL
 import logging
 
 log = logging.getLogger(__name__)
@@ -26,16 +25,17 @@ class Track:
         #----------------------------------------------------------------------
         # self.events = Pattern.pattern(events)
         self.events = events
+        self.event = None
 
         self.parse_next_event(events)
 
         # TODO: Is this needed?
         self.timeline = timeline
         self.output_device = output_device
-        self.next_event_phase = next(self.event[EVENT_PHASE])
+
         self.current_time = 0
         self.next_event_duration = 0
-        self.next_note = 0
+        self.next_event_time = 0
         self.note_offs = []
         self.is_finished = False
 
@@ -44,7 +44,7 @@ class Track:
 
     def parse_next_event(self, events):
         #----------------------------------------------------------------------
-        # event is a dictionary of patterns. anything which is not a pattern
+        # Event is a dictionary of patterns. Anything which is not a pattern
         # (eg, constant values) are turned into PConsts.
         #----------------------------------------------------------------------
         event = Pattern.value(events)
@@ -52,7 +52,6 @@ class Track:
         event.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
         event.setdefault(EVENT_DURATION, DEFAULT_EVENT_DURATION)
         event.setdefault(EVENT_GATE, DEFAULT_EVENT_GATE)
-        event.setdefault(EVENT_PHASE, DEFAULT_EVENT_PHASE)
         event.setdefault(EVENT_AMPLITUDE, DEFAULT_EVENT_AMPLITUDE)
         event.setdefault(EVENT_OCTAVE, DEFAULT_EVENT_OCTAVE)
         event.setdefault(EVENT_TRANSPOSE, DEFAULT_EVENT_TRANSPOSE)
@@ -83,12 +82,11 @@ class Track:
         self.process_note_offs()
 
         try:
-            if round(self.current_time, 8) >= round(self.next_note + self.next_event_phase, 8):
+            if round(self.current_time, 8) >= round(self.next_event_time, 8):
                 self.next_event_duration = next(self.event[EVENT_DURATION])
-                self.next_event_phase = next(self.event[EVENT_PHASE])
                 self.perform_event()
 
-                self.next_note += self.next_event_duration
+                self.next_event_time += self.next_event_duration
                 self.parse_next_event(self.events)
 
         except StopIteration:
@@ -103,7 +101,7 @@ class Track:
     def reset(self):
         self.current_time = 0
         self.next_event_duration = 0
-        self.next_note = 0
+        self.next_event_time = 0
 
     def perform_event(self):
         values = {}
@@ -111,11 +109,20 @@ class Track:
             # TODO: HACK!! to prevent stepping through dur twice (see 'tick' above')
             if key == EVENT_DURATION:
                 value = self.next_event_duration
-            elif key == EVENT_PHASE:
-                value = self.next_event_phase
             else:
                 value = next(pattern)
             values[key] = value
+
+        if EVENT_ACTION in values:
+            values[EVENT_TYPE] = EVENT_TYPE_ACTION
+        elif EVENT_CONTROL in values:
+            values[EVENT_TYPE] = EVENT_TYPE_CONTROL
+        elif EVENT_OSC_ADDRESS in values:
+            values[EVENT_TYPE] = EVENT_TYPE_OSC
+        elif EVENT_NOTE in values or EVENT_DEGREE in values:
+            values[EVENT_TYPE] = EVENT_TYPE_NOTE
+        else:
+            values[EVENT_TYPE] = EVENT_TYPE_UNKNOWN
 
         #------------------------------------------------------------------------
         # action: Carry out an action each time this event is triggered
@@ -246,7 +253,7 @@ class Track:
                     self.output_device.note_on(note, amp, channel)
 
                     note_dur = self.next_event_duration * gate
-                    self.schedule_note_off(self.next_note + note_dur + self.next_event_phase, note, channel)
+                    self.schedule_note_off(self.next_event_time + note_dur, note, channel)
 
     def schedule_note_off(self, time, note, channel):
         self.note_offs.append([time, note, channel])

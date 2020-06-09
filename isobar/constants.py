@@ -25,11 +25,11 @@ MAX_CLOCK_RATE = 12000
 #------------------------------------------------------------------------
 # Parameters used in Timeline event dictionaries.
 #------------------------------------------------------------------------
+EVENT_TYPE = "type"
 EVENT_CHANNEL = "channel"
 EVENT_AMPLITUDE = "amp"
 EVENT_DURATION = "dur"
 EVENT_GATE = "gate"
-EVENT_PHASE = "phase"
 EVENT_NOTE = "note"
 EVENT_DEGREE = "degree"
 EVENT_KEY = "key"
@@ -48,10 +48,11 @@ EVENT_FUNCTION = "function"
 #------------------------------------------------------------------------
 # Event types
 #------------------------------------------------------------------------
-EVENT_TYPE_NOTE = 0
-EVENT_TYPE_CONTROL = 0
-EVENT_TYPE_OSC = 1
-EVENT_TYPE_ACTION = 1
+EVENT_TYPE_UNKNOWN = 0
+EVENT_TYPE_NOTE = 1
+EVENT_TYPE_CONTROL = 2
+EVENT_TYPE_OSC = 3
+EVENT_TYPE_ACTION = 4
 
 #------------------------------------------------------------------------
 # Default parameter values
@@ -59,7 +60,6 @@ EVENT_TYPE_ACTION = 1
 DEFAULT_EVENT_CHANNEL = 0
 DEFAULT_EVENT_DURATION = 1
 DEFAULT_EVENT_GATE = 1.0
-DEFAULT_EVENT_PHASE = 0.0
 DEFAULT_EVENT_AMPLITUDE = 64
 DEFAULT_EVENT_OCTAVE = 0
 DEFAULT_EVENT_TRANSPOSE = 0
