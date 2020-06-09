@@ -7,10 +7,11 @@ from ..scale import Scale
 from ..constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_TRANSPOSE, \
     EVENT_CHANNEL, EVENT_GATE, EVENT_EVENT, EVENT_DEGREE, \
     EVENT_OCTAVE, EVENT_KEY, EVENT_SCALE, EVENT_VALUE, EVENT_ACTION_OBJECT, EVENT_CONTROL, \
-    EVENT_ACTION, EVENT_OSC_ADDRESS, EVENT_TYPE
+    EVENT_ACTION, EVENT_OSC_ADDRESS, EVENT_OSC_PARAMS, EVENT_TYPE
 from ..constants import DEFAULT_EVENT_TRANSPOSE, DEFAULT_EVENT_AMPLITUDE, \
     DEFAULT_EVENT_CHANNEL, DEFAULT_EVENT_DURATION, DEFAULT_EVENT_GATE, DEFAULT_EVENT_OCTAVE
 from ..constants import EVENT_TYPE_UNKNOWN, EVENT_TYPE_NOTE, EVENT_TYPE_ACTION, EVENT_TYPE_OSC, EVENT_TYPE_CONTROL
+from ..exceptions import InvalidEventException
 import logging
 
 log = logging.getLogger(__name__)
@@ -24,17 +25,13 @@ class Track:
         # is this ever even necessary?
         #----------------------------------------------------------------------
         # self.events = Pattern.pattern(events)
-        self.events = events
-        self.event = None
-
-        self.parse_next_event(events)
+        self.set_events(events)
 
         # TODO: Is this needed?
         self.timeline = timeline
         self.output_device = output_device
 
         self.current_time = 0
-        self.next_event_duration = 0
         self.next_event_time = 0
         self.note_offs = []
         self.is_finished = False
@@ -42,37 +39,25 @@ class Track:
     def __str__(self):
         return "Track (pos = %d)" % self.current_time
 
-    def parse_next_event(self, events):
-        #----------------------------------------------------------------------
-        # Event is a dictionary of patterns. Anything which is not a pattern
-        # (eg, constant values) are turned into PConsts.
-        #----------------------------------------------------------------------
-        event = Pattern.value(events)
-
-        event.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
-        event.setdefault(EVENT_DURATION, DEFAULT_EVENT_DURATION)
-        event.setdefault(EVENT_GATE, DEFAULT_EVENT_GATE)
-        event.setdefault(EVENT_AMPLITUDE, DEFAULT_EVENT_AMPLITUDE)
-        event.setdefault(EVENT_OCTAVE, DEFAULT_EVENT_OCTAVE)
-        event.setdefault(EVENT_TRANSPOSE, DEFAULT_EVENT_TRANSPOSE)
-
-        if EVENT_KEY in event:
-            pass
-        elif EVENT_SCALE in event:
-            event[EVENT_KEY] = Key(0, event[EVENT_SCALE])
-        else:
-            event[EVENT_KEY] = Key(0, Scale.default)
+    def set_events(self, events):
+        events.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
+        events.setdefault(EVENT_DURATION, DEFAULT_EVENT_DURATION)
+        events.setdefault(EVENT_GATE, DEFAULT_EVENT_GATE)
+        events.setdefault(EVENT_AMPLITUDE, DEFAULT_EVENT_AMPLITUDE)
+        events.setdefault(EVENT_OCTAVE, DEFAULT_EVENT_OCTAVE)
+        events.setdefault(EVENT_TRANSPOSE, DEFAULT_EVENT_TRANSPOSE)
+        events.setdefault(EVENT_SCALE, Scale.default)
+        events.setdefault(EVENT_KEY, Key(0, events[EVENT_SCALE]))
 
         #----------------------------------------------------------------------
         # Turn constant values into patterns:
         #  - scalars becomes PConstant
         #  - array becomes PSequence
         #----------------------------------------------------------------------
-        for key, value in list(event.items()):
-            event[key] = Pattern.pattern(value)
+        for key, value in list(events.items()):
+            events[key] = Pattern.pattern(value)
 
-        self.event = event
-        return event
+        self.events = events
 
     def tick(self, tick_duration):
         #----------------------------------------------------------------------
@@ -83,11 +68,9 @@ class Track:
 
         try:
             if round(self.current_time, 8) >= round(self.next_event_time, 8):
-                self.next_event_duration = next(self.event[EVENT_DURATION])
-                self.perform_event()
-
-                self.next_event_time += self.next_event_duration
-                self.parse_next_event(self.events)
+                event = self.get_next_event()
+                self.perform_event(event)
+                self.next_event_time += event[EVENT_DURATION]
 
         except StopIteration:
             if len(self.note_offs) == 0:
@@ -103,64 +86,19 @@ class Track:
         self.next_event_duration = 0
         self.next_event_time = 0
 
-    def perform_event(self):
+    def get_next_event(self):
         values = {}
-        for key, pattern in list(self.event.items()):
+        for key, pattern in list(self.events.items()):
             # TODO: HACK!! to prevent stepping through dur twice (see 'tick' above')
-            if key == EVENT_DURATION:
-                value = self.next_event_duration
-            else:
-                value = next(pattern)
-            values[key] = value
-
-        if EVENT_ACTION in values:
-            values[EVENT_TYPE] = EVENT_TYPE_ACTION
-        elif EVENT_CONTROL in values:
-            values[EVENT_TYPE] = EVENT_TYPE_CONTROL
-        elif EVENT_OSC_ADDRESS in values:
-            values[EVENT_TYPE] = EVENT_TYPE_OSC
-        elif EVENT_NOTE in values or EVENT_DEGREE in values:
-            values[EVENT_TYPE] = EVENT_TYPE_NOTE
-        else:
-            values[EVENT_TYPE] = EVENT_TYPE_UNKNOWN
-
-        #------------------------------------------------------------------------
-        # action: Carry out an action each time this event is triggered
-        #------------------------------------------------------------------------
-        if EVENT_ACTION in values:
-            try:
-                if EVENT_ACTION_OBJECT in values:
-                    object = values[EVENT_ACTION_OBJECT]
-                    values[EVENT_ACTION](object)
-                else:
-                    values[EVENT_ACTION]()
-            except Exception as e:
-                print(("Exception when handling scheduled action: %s" % e))
-                import traceback
-                traceback.print_exc()
-                pass
-            return
-
-        #------------------------------------------------------------------------
-        # control: Send a control value
-        #------------------------------------------------------------------------
-        if EVENT_CONTROL in values:
-            log.debug("Control (channel %d, control %d, value %d)",
-                      values[EVENT_CHANNEL], values[EVENT_CONTROL], values[EVENT_VALUE])
-            self.output_device.control(values[EVENT_CONTROL], values[EVENT_VALUE], values[EVENT_CHANNEL])
-            return
-
-        #------------------------------------------------------------------------
-        # address: Send a value to an OSC endpoint
-        #------------------------------------------------------------------------
-        if EVENT_OSC_ADDRESS in values:
-            self.output_device.send(values[EVENT_OSC_ADDRESS], values["params"])
-            return
+            values[key] = next(pattern)
 
         #------------------------------------------------------------------------
         # Note/degree/etc: Send a MIDI note
         #------------------------------------------------------------------------
         if EVENT_DEGREE in values:
+            if EVENT_NOTE in values:
+                raise InvalidEventException("Cannot specify both note and degree")
+
             degree = values[EVENT_DEGREE]
             key = values[EVENT_KEY]
             octave = values[EVENT_OCTAVE]
@@ -176,8 +114,8 @@ class Track:
                     values[EVENT_NOTE] = key[degree] + (octave * 12)
 
         #----------------------------------------------------------------------
-        # For cases in which we want to introduce a rest, simply set our 'amp'
-        # value to zero. This means that we can still send rest events to
+        # For cases in which we want to introduce a rest, set amplitude
+        # to zero. This means that we can still send rest events to
         # devices which receive all generic events (useful to display rests
         # when rendering a score).
         #----------------------------------------------------------------------
@@ -190,11 +128,11 @@ class Track:
             values[EVENT_GATE] = 0
         else:
             #----------------------------------------------------------------------
-            # handle lists of notes (eg chords).
+            # Handle lists of notes (eg chords).
             # TODO: create a class which allows for scalars and arrays to handle
-            # addition transparently.
+            #       addition transparently.
             #
-            # the below does not allow for values[EVENT_TRANSPOSE] to be an array,
+            # The below does not allow for values[EVENT_TRANSPOSE] to be an array,
             # for example.
             #----------------------------------------------------------------------
             try:
@@ -203,57 +141,107 @@ class Track:
                 values[EVENT_NOTE] += values[EVENT_TRANSPOSE]
 
         #----------------------------------------------------------------------
-        # event: Certain devices (eg Socket IO) handle generic events,
-        #        rather than note_on/note_off. (Should probably have to
-        #        register for this behaviour rather than happening magically...)
+        # Classify the event type.
         #----------------------------------------------------------------------
-        if hasattr(self.output_device, "event") and callable(getattr(self.output_device, "event")):
-            d = copy.copy(values)
-            for key, value in list(d.items()):
-                #------------------------------------------------------------------------
-                # turn non-builtin objects into their string representations.
-                # we don't want to call repr() on numbers as it turns them into strings,
-                # which we don't want to happen in our resultant JSON.
-                # TODO: there absolutely must be a way to do this for all objects which are
-                #       non-builtins... ie, who are "class" instances rather than "type".
-                #
-                #       we could check dir(__builtins__), but for some reason, __builtins__ is
-                #       different here than it is outside of a module!?
-                #
-                #       instead, go with the lame option of listing "primitive" types.
-                #------------------------------------------------------------------------
-                if type(value) not in (int, float, bool, str, list, dict, tuple):
-                    name = type(value).__name__
-                    value = repr(value)
-                    d[key] = value
+        if EVENT_ACTION in values:
+            values[EVENT_TYPE] = EVENT_TYPE_ACTION
+        elif EVENT_CONTROL in values:
+            values[EVENT_TYPE] = EVENT_TYPE_CONTROL
+        elif EVENT_OSC_ADDRESS in values:
+            values[EVENT_TYPE] = EVENT_TYPE_OSC
+        elif EVENT_NOTE in values or EVENT_DEGREE in values:
+            values[EVENT_TYPE] = EVENT_TYPE_NOTE
+        else:
+            values[EVENT_TYPE] = EVENT_TYPE_UNKNOWN
 
-            self.output_device.event(d)
-            return
+        return values
 
-        #----------------------------------------------------------------------
-        # note_on: Standard (MIDI) type of device
-        #----------------------------------------------------------------------
-        if type(values[EVENT_AMPLITUDE]) is tuple or values[EVENT_AMPLITUDE] > 0:
-            # TODO: pythonic duck-typing approach might be better
-            # TODO: doesn't handle arrays of amp, channel values, etc
-            notes = values[EVENT_NOTE] if hasattr(values[EVENT_NOTE], '__iter__') else [values[EVENT_NOTE]]
+    def perform_event(self, values):
+        #------------------------------------------------------------------------
+        # Action: Carry out an action each time this event is triggered
+        #------------------------------------------------------------------------
+        if values[EVENT_TYPE] == EVENT_TYPE_ACTION:
+            try:
+                if EVENT_ACTION_OBJECT in values:
+                    object = values[EVENT_ACTION_OBJECT]
+                    values[EVENT_ACTION](object)
+                else:
+                    values[EVENT_ACTION]()
+            except Exception as e:
+                print(("Exception when handling scheduled action: %s" % e))
+                import traceback
+                traceback.print_exc()
+                pass
+
+        #------------------------------------------------------------------------
+        # Control: Send a control value
+        #------------------------------------------------------------------------
+        elif values[EVENT_TYPE] == EVENT_TYPE_CONTROL:
+            log.debug("Control (channel %d, control %d, value %d)",
+                      values[EVENT_CHANNEL], values[EVENT_CONTROL], values[EVENT_VALUE])
+            self.output_device.control(values[EVENT_CONTROL], values[EVENT_VALUE], values[EVENT_CHANNEL])
+
+        #------------------------------------------------------------------------
+        # address: Send a value to an OSC endpoint
+        #------------------------------------------------------------------------
+        elif values[EVENT_TYPE] == EVENT_TYPE_OSC:
+            self.output_device.send(values[EVENT_OSC_ADDRESS], values[EVENT_OSC_PARAMS])
+
+        elif values[EVENT_TYPE] == EVENT_TYPE_NOTE:
+            #----------------------------------------------------------------------
+            # event: Certain devices (eg Socket IO) handle generic events,
+            #        rather than note_on/note_off. (Should probably have to
+            #        register for this behaviour rather than happening magically...)
+            #----------------------------------------------------------------------
+            if hasattr(self.output_device, "event") and callable(getattr(self.output_device, "event")):
+                d = copy.copy(values)
+                for key, value in list(d.items()):
+                    #------------------------------------------------------------------------
+                    # turn non-builtin objects into their string representations.
+                    # we don't want to call repr() on numbers as it turns them into strings,
+                    # which we don't want to happen in our resultant JSON.
+                    # TODO: there absolutely must be a way to do this for all objects which are
+                    #       non-builtins... ie, who are "class" instances rather than "type".
+                    #
+                    #       we could check dir(__builtins__), but for some reason, __builtins__ is
+                    #       different here than it is outside of a module!?
+                    #
+                    #       instead, go with the lame option of listing "primitive" types.
+                    #------------------------------------------------------------------------
+                    if type(value) not in (int, float, bool, str, list, dict, tuple):
+                        name = type(value).__name__
+                        value = repr(value)
+                        d[key] = value
+
+                self.output_device.event(d)
+                return
 
             #----------------------------------------------------------------------
-            # Allow for arrays of amp, gate etc, to handle chords properly.
-            # Caveat: Things will go horribly wrong for an array of amp/gate values
-            # shorter than the number of notes.
+            # note_on: Standard (MIDI) type of device
             #----------------------------------------------------------------------
-            for index, note in enumerate(notes):
-                amp = values[EVENT_AMPLITUDE][index] if isinstance(values[EVENT_AMPLITUDE], tuple) else values[EVENT_AMPLITUDE]
-                channel = values[EVENT_CHANNEL][index] if isinstance(values[EVENT_CHANNEL], tuple) else values[EVENT_CHANNEL]
-                gate = values[EVENT_GATE][index] if isinstance(values[EVENT_GATE], tuple) else values[EVENT_GATE]
-                # TODO: Add an EVENT_SUSTAIN that allows absolute note lengths to be specified
+            if type(values[EVENT_AMPLITUDE]) is tuple or values[EVENT_AMPLITUDE] > 0:
+                # TODO: pythonic duck-typing approach might be better
+                # TODO: doesn't handle arrays of amp, channel values, etc
+                notes = values[EVENT_NOTE] if hasattr(values[EVENT_NOTE], '__iter__') else [values[EVENT_NOTE]]
 
-                if (amp is not None and amp > 0) and (gate is not None and gate > 0):
-                    self.output_device.note_on(note, amp, channel)
+                #----------------------------------------------------------------------
+                # Allow for arrays of amp, gate etc, to handle chords properly.
+                # Caveat: Things will go horribly wrong for an array of amp/gate values
+                # shorter than the number of notes.
+                #----------------------------------------------------------------------
+                for index, note in enumerate(notes):
+                    amp = values[EVENT_AMPLITUDE][index] if isinstance(values[EVENT_AMPLITUDE], tuple) else values[EVENT_AMPLITUDE]
+                    channel = values[EVENT_CHANNEL][index] if isinstance(values[EVENT_CHANNEL], tuple) else values[EVENT_CHANNEL]
+                    gate = values[EVENT_GATE][index] if isinstance(values[EVENT_GATE], tuple) else values[EVENT_GATE]
+                    # TODO: Add an EVENT_SUSTAIN that allows absolute note lengths to be specified
 
-                    note_dur = self.next_event_duration * gate
-                    self.schedule_note_off(self.next_event_time + note_dur, note, channel)
+                    if (amp is not None and amp > 0) and (gate is not None and gate > 0):
+                        self.output_device.note_on(note, amp, channel)
+
+                        note_dur = values[EVENT_DURATION] * gate
+                        self.schedule_note_off(self.next_event_time + note_dur, note, channel)
+        else:
+            raise InvalidEventException("Invalid event")
 
     def schedule_note_off(self, time, note, channel):
         self.note_offs.append([time, note, channel])

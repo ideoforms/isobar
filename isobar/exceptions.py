@@ -9,3 +9,9 @@ class TrackLimitReachedException (Exception):
     No more tracks could be scheduled in this Timeline.
     """
     pass
+
+class InvalidEventException (Exception):
+    """
+    Invalid event.
+    """
+    pass
