@@ -280,6 +280,27 @@ class PFunc(Pattern):
         function = Pattern.value(self.function)
         return function()
 
+class PArrayIndex(Pattern):
+    """ PArrayIndex: Request a specified index from an array.
+        """
+
+    def __init__(self, index, list):
+        self.index = index
+        self.list = list
+
+    def __next__(self):
+        index = Pattern.value(self.index)
+        list = Pattern.value(self.list)
+
+        #------------------------------------------------------------------
+        # null indices denote a rest -- so return a null value.
+        # (same behaviour as PDegree: a degree of None returns a rest.)
+        #------------------------------------------------------------------
+        if index is None:
+            return None
+        else:
+            index = int(index)
+            return list[index]
 
 class PDict(Pattern):
     """ PDict: Construct a pattern from a dict of arrays, or an array of dicts.
@@ -358,30 +379,6 @@ class PDict(Pattern):
 
         return rv
 
-
-class PArrayIndex(Pattern):
-    """ PArrayIndex: Request a specified index from an array.
-        """
-
-    def __init__(self, index, list):
-        self.index = index
-        self.list = list
-
-    def __next__(self):
-        index = Pattern.value(self.index)
-        list = Pattern.value(self.list)
-
-        #------------------------------------------------------------------
-        # null indices denote a rest -- so return a null value.
-        # (same behaviour as PDegree: a degree of None returns a rest.)
-        #------------------------------------------------------------------
-        if index is None:
-            return None
-        else:
-            index = int(index)
-            return list[index]
-
-
 class PDictKey(Pattern):
     """ PDictKey: Request a specified key from a dictionary.
         """
@@ -395,9 +392,8 @@ class PDictKey(Pattern):
         vdict = Pattern.value(self.dict)
         return vdict[vkey]
 
-
 class PConcatenate(Pattern):
-    """ PConcatenate: Concatenate the output of multiple sequences. 
+    """ PConcatenate: Concatenate the output of multiple sequences.
 
         >>> PConcatenate([ PSequence([ 1, 2, 3 ], 2), PSequence([ 9, 8, 7 ], 2) ]).nextn(16)
         [1, 2, 3, 1, 2, 3, 9, 8, 7, 9, 8, 7]

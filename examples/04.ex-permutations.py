@@ -12,6 +12,9 @@
 import isobar as iso
 import random
 
+import logging
+logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
+
 #------------------------------------------------------------------------
 # Create a pitch line comprised of multiple permutations on a pelog scale
 #------------------------------------------------------------------------

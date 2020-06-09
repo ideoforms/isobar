@@ -144,6 +144,33 @@ class PGeom(Pattern):
         self.count += 1
         return rv
 
+class PImpulse(Pattern):
+    """ PImpulse: Outputs a 1 every <period> events, otherwise 0.
+
+        >>> p = PImpulse(4)
+        >>> p.nextn(16)
+        [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
+        """
+
+    def __init__(self, period):
+        self.period = period
+        self.pos = period
+
+    def reset(self):
+        self.pos = 0
+
+    def __next__(self):
+        period = self.value(self.period)
+
+        if self.pos >= period - 1:
+            rv = 1
+            self.pos = 0
+        else:
+            rv = 0
+            self.pos += 1
+
+        return rv
+
 class PLoop(Pattern):
     """ PLoop: Repeats a finite <pattern> for <n> repeats.
         Useful for pattern generators which don't natively loop.
@@ -194,30 +221,6 @@ class PLoop(Pattern):
         rv = self.values[self.pos]
         self.pos += 1
         return rv
-
-class PConcat(Pattern):
-    """ PConcat: Concatenate the output of multiple finite sequences
-
-        >>> PConcat([ PSeq([ 1, 2, 3], 2), PSeq([ 9, 8, 7 ], 2) ]).nextn(16)
-        [1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4]
-        """
-
-    def __init__(self, inputs):
-        self.inputs = inputs
-        self.current = inputs.pop(0)
-
-    def __next__(self):
-        try:
-            return next(self.current)
-        except StopIteration:
-            if len(self.inputs) > 0:
-                self.current = self.inputs.pop(0)
-                # can't just blindly return the first value of current
-                # -- what if it is empty? 
-                return next(self)
-            else:
-                # no more sequences left, so just return.
-                raise StopIteration
 
 class PPingPong(Pattern):
     """ PPingPong: Ping-pong input pattern back and forth N times.
@@ -340,107 +343,6 @@ class PStutter(Pattern):
         self.pos += 1
         return self.value
 
-class PWrap(Pattern):
-    """ PWrap: Wrap input note values within <min>, <max>.
-
-        >>> p = PWrap(PSeries(5, 3), 0, 10)
-        >>> p.nextn(16)
-        [5, 8, 1, 4, 7, 0, 3, 6, 9, 2, 5, 8, 1, 4, 7, 0]
-        """
-
-    def __init__(self, pattern, min=40, max=80):
-        self.pattern = pattern
-        self.min = min
-        self.max = max
-
-    def __next__(self):
-        value = next(self.pattern)
-        while value < self.min:
-            value += self.max - self.min
-        while value >= self.max:
-            value -= self.max - self.min
-        return value
-
-class PPermut(Pattern):
-    """ PPermut: Generate every permutation of <count> input items.
-
-        >>> p = PPermut(PSeq([ 1, 11, 111, 1111 ]), 4)
-        >>> p.nextn(16)
-        [1, 11, 111, 1111, 1, 11, 1111, 111, 1, 111, 11, 1111, 1, 111, 1111, 11]
-        """
-
-    def __init__(self, input, count=8):
-        self.input = input
-        self.count = count
-        self.pos = sys.maxsize
-        self.permindex = sys.maxsize
-        self.permutations = []
-
-    def reset(self):
-        self.pos = sys.maxsize
-        self.permindex = sys.maxsize
-        self.permutations = []
-
-        Pattern.reset(self)
-
-    def __next__(self):
-        if self.permindex > len(self.permutations):
-            n = 0
-            values = []
-            while n < self.count:
-                try:
-                    v = next(self.input)
-                except StopIteration:
-                    break
-
-                values.append(v)
-                n += 1
-
-            self.permutations = list(itertools.permutations(values))
-            self.permindex = 0
-            self.pos = 0
-        elif self.pos >= len(self.permutations[0]):
-            self.permindex = self.permindex + 1
-            self.pos = 0
-
-        if self.permindex >= len(self.permutations):
-            raise StopIteration
-
-        rv = self.permutations[self.permindex][self.pos]
-        self.pos += 1
-        return rv
-
-class PDegree(Pattern):
-    """ PDegree: Map scale index <degree> to MIDI notes in <scale>.
-
-        >>> p = PDegree(PSeries(0, 1), Scale.major)
-        >>> p.nextn(16)
-        [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26]
-        """
-
-    def __init__(self, degree, scale=Scale.major):
-        self.degree = degree
-        self.scale = scale
-
-    def __next__(self):
-        degree = Pattern.value(self.degree)
-        scale = Pattern.value(self.scale)
-        if degree is None:
-            return None
-
-        return scale[degree]
-
-class PMidiToFrequency(Pattern):
-    """ PMidiToFrequency: Map MIDI note to frequency value.
-        """
-
-    def __init__(self, note):
-        self.note = note
-
-    def __next__(self):
-        note = Pattern.value(self.note)
-        return midi_pitch_to_frequency(note)
-
 class PSubsequence(Pattern):
     """ PSubsequence: Returns a finite subsequence of an input pattern.
 
@@ -476,33 +378,30 @@ class PSubsequence(Pattern):
 
         return rv
 
-class PImpulse(Pattern):
-    """ PImpulse: Outputs a 1 every <period> events, otherwise 0.
+class PReverse(Pattern):
+    """ PReverse: Reverses a finite sequence. """
 
-        >>> p = PImpulse(4)
-        >>> p.nextn(16)
-        [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
-        """
-
-    def __init__(self, period):
-        self.period = period
-        self.pos = period
-
-    def reset(self):
-        self.pos = 0
+    def __init__(self, input):
+        self.input = input
+        self.values = reversed(list(input))
 
     def __next__(self):
-        period = self.value(self.period)
+        return next(self.values)
 
-        if self.pos >= period - 1:
-            rv = 1
-            self.pos = 0
-        else:
-            rv = 0
-            self.pos += 1
+class PDelay(Pattern):
+    """ PDelay: Outputs the next value of patternA after patternB ticks """
 
-        return rv
+    def __init__(self, source, delay):
+        self.source = source
+        self.delay = delay
+        self.counter = Pattern.value(self.delay)
 
+    def __next__(self):
+        self.counter -= 1
+        if self.counter < 0:
+            self.counter = Pattern.value(self.delay)
+            return Pattern.value(self.source)
+        
 class PReset(Pattern):
     """ PReset: Resets <pattern> each time it receives a zero-crossing from
                 <trigger>
@@ -553,8 +452,82 @@ class PCounter(Pattern):
 
         return self.count
 
-class PArp(Pattern):
-    """ PArp: Arpeggiator.
+class PCollapse(Pattern):
+    """ PCollapse: Skip over any rests in <input> """
+
+    def __init__(self, input):
+        self.input = input
+
+    def __next__(self):
+        rv = None
+        while rv == None:
+            rv = Pattern.value(self.input)
+        return rv
+
+class PNoRepeats(Pattern):
+    """ PNoRepeats: Skip over repeated values in <input> """
+
+    def __init__(self, input):
+        self.input = input
+        self.value = sys.maxsize
+
+    def __next__(self):
+        rv = sys.maxsize
+        while rv == self.value or rv == sys.maxsize:
+            rv = Pattern.value(self.input)
+        self.value = rv
+        return rv
+
+class PPad(Pattern):
+    """ PPad: Pad <pattern> with rests until it reaches length <length>.
+        """
+
+    def __init__(self, pattern, length):
+        self.pattern = pattern
+        self.length = length
+        self.count = 0
+
+    def __next__(self):
+        try:
+            rv = next(self.pattern)
+        except:
+            if self.count >= self.length:
+                raise StopIteration
+            rv = None
+
+        self.count += 1
+        return rv
+
+class PPadToMultiple(Pattern):
+    """ PPadToMultiple: Pad <pattern> with rests until its length is divisible by <multiple>.
+        Enforces a minimum padding of <minimum_pad>.
+
+        Useful to create patterns which occupy a whole number of bars.
+        """
+
+    def __init__(self, pattern, multiple, minimum_pad=0):
+        self.pattern = pattern
+        self.multiple = multiple
+        self.minimum_pad = minimum_pad
+        self.count = 0
+        self.padcount = 0
+        self.terminated = False
+
+    def __next__(self):
+        try:
+            rv = next(self.pattern)
+        except:
+            if self.padcount >= self.minimum_pad and (self.count % self.multiple == 0):
+                raise StopIteration
+            else:
+                rv = None
+                self.padcount += 1
+
+        self.count += 1
+        return rv
+
+class PArpeggiator(Pattern):
+    """ PArpeggiator: Arpeggiator.
 
         <type> can be one of:
             PArp.UP
@@ -675,6 +648,55 @@ class PEuclidean(Pattern):
             seqs, remainder = self._split_remainder(seqs)
 
         return reduce(lambda a, b: a + b, seqs + remainder)
+
+class PPermut(Pattern):
+    """ PPermut: Generate every permutation of <count> input items.
+
+        >>> p = PPermut(PSeq([ 1, 11, 111, 1111 ]), 4)
+        >>> p.nextn(16)
+        [1, 11, 111, 1111, 1, 11, 1111, 111, 1, 111, 11, 1111, 1, 111, 1111, 11]
+        """
+
+    def __init__(self, input, count=8):
+        self.input = input
+        self.count = count
+        self.pos = sys.maxsize
+        self.permindex = sys.maxsize
+        self.permutations = []
+
+    def reset(self):
+        self.pos = sys.maxsize
+        self.permindex = sys.maxsize
+        self.permutations = []
+
+        Pattern.reset(self)
+
+    def __next__(self):
+        if self.permindex > len(self.permutations):
+            n = 0
+            values = []
+            while n < self.count:
+                try:
+                    v = next(self.input)
+                except StopIteration:
+                    break
+
+                values.append(v)
+                n += 1
+
+            self.permutations = list(itertools.permutations(values))
+            self.permindex = 0
+            self.pos = 0
+        elif self.pos >= len(self.permutations[0]):
+            self.permindex = self.permindex + 1
+            self.pos = 0
+
+        if self.permindex >= len(self.permutations):
+            raise StopIteration
+
+        rv = self.permutations[self.permindex][self.pos]
+        self.pos += 1
+        return rv
 
 class PDecisionPoint(Pattern):
     """ PDecisionPoint: Each time its pattern is exhausted, requests a new pattern by calling <fn>.

@@ -104,7 +104,7 @@ class PFadeNotewise(PFade):
         return rv
 
 class PFadeNotewiseRandom(PFadeNotewise):
-    """ PFadeNotewise: Fade a pattern in/out by gradually introducing random notes. """
+    """ PFadeNotewiseRandom: Fade a pattern in/out by gradually introducing random notes. """
 
     def __init__(self, *args, **kwargs):
         PFadeNotewise.__init__(self, *args, **kwargs)

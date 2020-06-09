@@ -42,12 +42,11 @@ class PAbs(Pattern):
 
 class PNorm(Pattern):
     """ PNorm: Normalise <input> to [0..1].
-        Use maximum and minimum values found in history of size <window_size>.
+        Use maximum and minimum values found in history.
         """
 
-    def __init__(self, input, window_size=None):
+    def __init__(self, input):
         self.input = input
-        self.window_size = window_size
 
         self.lower = None
         self.upper = None
@@ -55,20 +54,15 @@ class PNorm(Pattern):
 
     def __next__(self):
         value = Pattern.value(self.input)
-        window_size = Pattern.value(self.window_size)
 
-        if window_size:
-            # TODO
-            pass
+        if self.lower is None:
+            self.lower = value
+            self.upper = value
         else:
-            if self.lower is None:
-                self.lower = value
+            if value > self.upper:
                 self.upper = value
-            else:
-                if value > self.upper:
-                    self.upper = value
-                if value < self.lower:
-                    self.lower = value
+            if value < self.lower:
+                self.lower = value
 
         if self.upper == self.lower:
             rv = 0.0
@@ -76,56 +70,6 @@ class PNorm(Pattern):
             rv = (value - self.lower) / (self.upper - self.lower)
 
         return rv;
-
-class PCollapse(Pattern):
-    """ PCollapse: Skip over any rests in <input> """
-
-    def __init__(self, input):
-        self.input = input
-
-    def __next__(self):
-        rv = None
-        while rv == None:
-            rv = Pattern.value(self.input)
-        return rv
-
-class PNoRepeats(Pattern):
-    """ PNoRepeats: Skip over repeated values in <input> """
-
-    def __init__(self, input):
-        self.input = input
-        self.value = sys.maxsize
-
-    def __next__(self):
-        rv = sys.maxsize
-        while rv == self.value or rv == sys.maxsize:
-            rv = Pattern.value(self.input)
-        self.value = rv
-        return rv
-
-class PReverse(Pattern):
-    """ reverses a finite sequence """
-
-    def __init__(self, input):
-        self.input = input
-        self.values = reversed(list(input))
-
-    def __next__(self):
-        return next(self.values)
-
-class PDelay(Pattern):
-    """ outputs the next value of patternA after patternB ticks """
-
-    def __init__(self, source, delay):
-        self.source = source
-        self.delay = delay
-        self.counter = Pattern.value(self.delay)
-
-    def __next__(self):
-        self.counter -= 1
-        if self.counter < 0:
-            self.counter = Pattern.value(self.delay)
-            return Pattern.value(self.source)
 
 class PMap(Pattern):
     """ PMap: Apply an arbitrary function to an input pattern.
@@ -212,6 +156,27 @@ class PRound(PMap):
     def __init__(self, input, *args):
         PMap.__init__(self, input, round, *args)
 
+class PWrap(Pattern):
+    """ PWrap: Wrap input note values within <min>, <max>.
+
+        >>> p = PWrap(PSeries(5, 3), 0, 10)
+        >>> p.nextn(16)
+        [5, 8, 1, 4, 7, 0, 3, 6, 9, 2, 5, 8, 1, 4, 7, 0]
+        """
+
+    def __init__(self, pattern, min=40, max=80):
+        self.pattern = pattern
+        self.min = min
+        self.max = max
+
+    def __next__(self):
+        value = next(self.pattern)
+        while value < self.min:
+            value += self.max - self.min
+        while value >= self.max:
+            value -= self.max - self.min
+        return value
+
 class PIndexOf(Pattern):
     """ PIndexOf: Find index of items from <pattern> in <list>
 
@@ -230,51 +195,3 @@ class PIndexOf(Pattern):
         if list is None or item is None or item not in list:
             return None
         return list.index(item)
-
-class PPad(Pattern):
-    """ PPad: Pad <pattern> with rests until it reaches length <length>.
-        """
-
-    def __init__(self, pattern, length):
-        self.pattern = pattern
-        self.length = length
-        self.count = 0
-
-    def __next__(self):
-        try:
-            rv = next(self.pattern)
-        except:
-            if self.count >= self.length:
-                raise StopIteration
-            rv = None
-
-        self.count += 1
-        return rv
-
-class PPadToMultiple(Pattern):
-    """ PPadToMultiple: Pad <pattern> with rests until its length is divisible by <multiple>.
-        Enforces a minimum padding of <minimum_pad>.
-
-        Useful to create patterns which occupy a whole number of bars.
-        """
-
-    def __init__(self, pattern, multiple, minimum_pad=0):
-        self.pattern = pattern
-        self.multiple = multiple
-        self.minimum_pad = minimum_pad
-        self.count = 0
-        self.padcount = 0
-        self.terminated = False
-
-    def __next__(self):
-        try:
-            rv = next(self.pattern)
-        except:
-            if self.padcount >= self.minimum_pad and (self.count % self.multiple == 0):
-                raise StopIteration
-            else:
-                rv = None
-                self.padcount += 1
-
-        self.count += 1
-        return rv
