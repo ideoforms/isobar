@@ -1,93 +1,66 @@
-""" Unit tests for iso """
-
 import pytest
 import isobar as iso
 
-def test_pattern_stopiteration():
-    p = iso.PSequence([1, 2, 3], 1)
-    assert next(p) == 1
-    assert next(p) == 2
-    assert next(p) == 3
+def test_pref():
+    a = iso.PSequence([1, 2, 3], 1)
+    b = iso.PSequence([4, 5, 6], 1)
+    c = iso.PRef(a)
+    assert next(c) == 1
+    assert next(c) == 2
+    c.pattern = b
+    assert next(c) == 4
+    assert next(c) == 5
+    assert next(c) == 6
     with pytest.raises(StopIteration):
-        next(p)
+        next(c)
 
-def test_pattern_len():
-    p = iso.PSequence([1, 2, 3], 1)
-    assert len(p) == 3
+def test_pfunc():
+    s = "abc"
+    a = iso.PSequence([0, 1, 2], 1)
+    b = iso.PFunc(lambda: s[next(a)])
+    assert next(b) == 'a'
+    assert next(b) == 'b'
+    assert next(b) == 'c'
+    with pytest.raises(StopIteration):
+        next(b)
 
-    p = iso.PSequence([1, 2, 3], 0)
-    assert len(p) == 0
+def test_parrayindex():
+    ar = iso.PSequence([[0, 1, 2, 3, 4], [0, 1, 4, 9, 16]])
+    a = iso.PSequence([0, 2, 4], 1)
+    b = iso.PArrayIndex(a, ar)
+    assert next(b) == 0
+    assert next(b) == 4
+    assert next(b) == 4
+    with pytest.raises(StopIteration):
+        next(b)
 
-def test_pattern_iter():
-    p = iso.PSequence([1, 2, 3], 1)
-    i = iter(p)
-    o = list(i)
-    assert o == [1, 2, 3]
+def test_pdict():
+    a = iso.PDict({
+        "a": iso.PSequence([1, 2, 3], 1),
+        "b": 4,
+        "c": None
+    })
+    assert list(a) == [
+        {"a": 1, "b": 4, "c": None},
+        {"a": 2, "b": 4, "c": None},
+        {"a": 3, "b": 4, "c": None}
+    ]
 
-def test_pattern_all():
-    p = iso.PSequence([1, 2, 3], 1)
-    assert p.all() == [1, 2, 3]
+    a = iso.PDict([{"a": 1}, {"a": 2, }, {"a": 3}])
+    b = a["a"].copy()
+    assert list(b) == [1, 2, 3]
+    assert list(a) == [{"a": 1}, {"a": 2}, {"a": 3}]
 
-    # check that the sequence is reset afterwards
-    assert p.all() == [1, 2, 3]
+def test_pdictkey():
+    d1 = {"foo": "bar", "baz": "buzz"}
+    d2 = {"foo": "boo", "baz": "bez"}
+    a = iso.PSequence(["foo", "baz"], 1)
+    b = iso.PDictKey(a, iso.PSequence([d1, d2]))
+    assert list(b) == ["bar", "bez"]
 
-    p = iso.PSequence([1, 2, 3], 1)
-    assert p.all(2) == [1, 2]
-
-    p1 = iso.PSequence([1, 2, 3], 1)
-    p2 = iso.PSequence([1, 2, 3, 4], 1)
-    p = p1 + p2
-    assert p.all() == [2, 4, 6]
-
-def test_pattern_reset():
-    p = iso.PSequence([1, 2, 3], 1)
-    assert next(p) == 1
-    assert next(p) == 2
-    p.reset()
-    assert list(p) == [1, 2, 3]
-
-def test_pattern_append():
-    p1 = iso.PSequence([1, 2, 3], 1)
-    p2 = iso.PSequence([1, 2, 3], 1)
-    p3 = p1.append(p2)
-    assert p3.all() == [1, 2, 3, 1, 2, 3]
-
-def test_pattern_timeline():
-    p = iso.PSequence([1, 2, 3], 1)
-    assert p.timeline is None
-    # TODO test if it works in situ
-
-def test_pattern_copy():
-    p1 = iso.PSequence([1, 2, 3], 1)
-    p2 = p1.copy()
-    assert p1.all() == p2.all() == [1, 2, 3]
-
-    p1 = iso.PSequence([1, 2, 3], 1)
-    next(p1)
-    p2 = p1.copy()
-    assert p1.all() == p2.all() == [2, 3]
-
-def test_pattern_value():
-    p1 = iso.PSequence([1, 2, 3], 1)
-    assert iso.Pattern.value(p1) == 1
-
-    p1 = iso.PSequence([1, 2, 3], 1)
-    p2 = iso.PSequence([ p1 ])
-    assert iso.Pattern.value(p2) == 1
-
-    assert iso.Pattern.value(1) == 1
-    assert iso.Pattern.value([1]) == [1]
-    assert iso.Pattern.value(None) is None
-
-def test_pattern_patternify():
-    p = iso.Pattern.pattern(1)
-    assert type(p) is iso.PConstant
-    assert next(p) == 1
-
-    p = iso.Pattern.pattern([1, 2, 3])
-    assert type(p) is iso.PSequence
-    assert list(p) == [1, 2, 3]
-
-    p = iso.Pattern.pattern(None)
-    assert type(p) is iso.PConstant
-    assert next(p) is None
+def test_pconcatenate():
+    a = iso.PSequence([1, 2], 1)
+    b = iso.PSequence([3, 4], 1)
+    c = iso.PSequence([5], 1)
+    d = iso.PConcatenate([a, b, c])
+    assert list(d) == [1, 2, 3, 4, 5]

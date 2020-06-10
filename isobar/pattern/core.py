@@ -12,7 +12,7 @@ class Pattern:
 
         Patterns are at the core of isoar. A Pattern implements the iterator
         protocol, representing a sequence of values which are iteratively
-        returned by the next() method. A pattern may be finite, after which
+        returned by fthe next() method. A pattern may be finite, after which
         point it raises a StopIteration exception. Call reset() to return
         a pattern to its initial state.
 
@@ -401,19 +401,22 @@ class PConcatenate(Pattern):
 
     def __init__(self, inputs):
         self.inputs = inputs
-        self.current = self.inputs.pop(0)
+        self.pos = 0
 
     def __next__(self):
         try:
-            return next(self.current)
+            return next(self.inputs[self.pos])
         except StopIteration:
-            if len(self.inputs) > 0:
-                self.current = self.inputs.pop(0)
+            if self.pos < len(self.inputs) - 1:
+                self.pos += 1
                 return next(self)
             else:
                 # no more sequences left, so just return.
                 raise StopIteration
 
+    def reset(self):
+        super().reset()
+        self.pos = 0
 
 #------------------------------------------------------------------
 # Binary operators

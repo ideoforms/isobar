@@ -68,10 +68,10 @@ class PSeries(Pattern):
         self.count = 0
 
     def reset(self):
+        super().reset()
+
         self.value = self.start
         self.count = 0
-
-        Pattern.reset(self)
 
     def __next__(self):
         if self.count >= self.length:
@@ -537,7 +537,7 @@ class PArpeggiator(Pattern):
             PArp.DIVERGE
             PArp.RANDOM
 
-        >>> p = PLoop(PArp(Chord.major, PArp.CONVERGE))
+        >>> p = PLoop(PArpeggiator(Chord.major, PArpeggiator.CONVERGE))
         >>> p.nextn(16)
         [0, 12, 4, 7, 0, 12, 4, 7, 0, 12, 4, 7, 0, 12, 4, 7]
         """
@@ -564,16 +564,16 @@ class PArpeggiator(Pattern):
             #------------------------------------------------------------------------
             self.notes = self.chord
 
-        if type == PArp.UP:
+        if type == PArpeggiator.UP:
             self.offsets = list(range(len(self.notes)))
-        elif type == PArp.DOWN:
+        elif type == PArpeggiator.DOWN:
             self.offsets = list(reversed(list(range(len(self.notes)))))
-        elif type == PArp.CONVERGE:
+        elif type == PArpeggiator.CONVERGE:
             self.offsets = [(n / 2) if (n % 2 == 0) else (0 - (n + 1) / 2) for n in range(len(self.notes))]
-        elif type == PArp.DIVERGE:
+        elif type == PArpeggiator.DIVERGE:
             self.offsets = [(n / 2) if (n % 2 == 0) else (0 - (n + 1) / 2) for n in range(len(self.notes))]
             self.offsets = list(reversed(self.offsets))
-        elif type == PArp.RANDOM:
+        elif type == PArpeggiator.RANDOM:
             self.offsets = list(range(len(self.notes)))
             random.shuffle(self.offsets)
 
