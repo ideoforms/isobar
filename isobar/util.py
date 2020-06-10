@@ -1,5 +1,6 @@
 import random
 import math
+from .exceptions import InvalidMIDIPitch, UnknownNoteName
 
 note_names = [
     ["C"],
@@ -59,12 +60,19 @@ def note_name_to_midi_pitch(name):
 
     try:
         index = note_names.index([nameset for nameset in note_names if name in nameset][0])
-        return octave * 12 + index
-    except:
-        return None
+    except IndexError:
+        raise UnknownNoteName("Unknown note name: %s" % name)
+
+    return octave * 12 + index
 
 def midi_pitch_to_note_name(note):
-    """ Maps a MIDI note index to a note name. """
+    """
+    Maps a MIDI note index to a note name.
+    Supports fractional pitches.
+    """
+    if (type(note) is not int and type(note) is not float) or (note < 0 or note > 127):
+        raise InvalidMIDIPitch()
+
     degree = int(note) % len(note_names)
     octave = int(note / len(note_names)) - 1
     str = "%s%d" % (note_names[degree][0], octave)

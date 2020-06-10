@@ -8,12 +8,12 @@ class Key:
     """ Represents a harmonic structure, containing a tonic and scale.
     """
 
-    def __init__(self, tonic = 0, scale = Scale.major):
+    def __init__(self, tonic=0, scale=Scale.major):
         if type(tonic) == str:
             tonic = note_name_to_midi_pitch(tonic)
         if type(scale) == str:
             scale = Scale.byname(scale)
-            
+
         self.tonic = tonic
         self.scale = scale
 
@@ -119,4 +119,4 @@ class Key:
 
     @staticmethod
     def all():
-        return [ Key(note, scale) for note in Note.all() for scale in Scale.all() ]
+        return [Key(note, scale) for note in Note.all() for scale in Scale.all()]

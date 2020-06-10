@@ -25,7 +25,7 @@ class Track:
         # is this ever even necessary?
         #----------------------------------------------------------------------
         # self.events = Pattern.pattern(events)
-        self.set_events(events)
+        self.schedule(events)
 
         # TODO: Is this needed?
         self.timeline = timeline
@@ -39,7 +39,7 @@ class Track:
     def __str__(self):
         return "Track (pos = %d)" % self.current_time
 
-    def set_events(self, events):
+    def schedule(self, events):
         events.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
         events.setdefault(EVENT_DURATION, DEFAULT_EVENT_DURATION)
         events.setdefault(EVENT_GATE, DEFAULT_EVENT_GATE)
@@ -47,7 +47,9 @@ class Track:
         events.setdefault(EVENT_OCTAVE, DEFAULT_EVENT_OCTAVE)
         events.setdefault(EVENT_TRANSPOSE, DEFAULT_EVENT_TRANSPOSE)
         events.setdefault(EVENT_SCALE, Scale.default)
-        events.setdefault(EVENT_KEY, Key(0, events[EVENT_SCALE]))
+
+        if EVENT_NOTE in events and EVENT_DEGREE in events:
+            raise InvalidEventException("Cannot specify both note and degree")
 
         #----------------------------------------------------------------------
         # Turn constant values into patterns:
@@ -88,21 +90,23 @@ class Track:
 
     def get_next_event(self):
         values = {}
-        for key, pattern in list(self.events.items()):
-            # TODO: HACK!! to prevent stepping through dur twice (see 'tick' above')
+        for key, pattern in self.events.items():
             values[key] = next(pattern)
 
         #------------------------------------------------------------------------
         # Note/degree/etc: Send a MIDI note
         #------------------------------------------------------------------------
         if EVENT_DEGREE in values:
-            if EVENT_NOTE in values:
-                raise InvalidEventException("Cannot specify both note and degree")
-
             degree = values[EVENT_DEGREE]
-            key = values[EVENT_KEY]
-            octave = values[EVENT_OCTAVE]
-            if not degree is None:
+            if degree is None:
+                values[EVENT_NOTE] = None
+            else:
+                if EVENT_KEY in values:
+                    key = values[EVENT_KEY]
+                else:
+                    key = Key(0, values[EVENT_SCALE])
+                octave = values[EVENT_OCTAVE]
+
                 #----------------------------------------------------------------------
                 # handle lists of notes (eg chords).
                 # TODO: create a class which allows for scalars and arrays to handle
@@ -247,10 +251,10 @@ class Track:
         self.note_offs.append([time, note, channel])
 
     def process_note_offs(self):
-        for n, note in enumerate(self.note_offs):
+        for n, note in enumerate(self.note_offs[:]):
             # TODO: create a Note object to represent these note_off events
             if round(note[0], 8) <= round(self.current_time, 8):
                 index = note[1]
                 channel = note[2]
                 self.output_device.note_off(index, channel)
-                self.note_offs.pop(n)
+                self.note_offs.remove(note)

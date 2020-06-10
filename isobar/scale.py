@@ -1,4 +1,5 @@
 from .util import normalize
+from .exceptions import UnknownScaleName
 import random
 
 class Scale(object):
@@ -30,9 +31,10 @@ class Scale(object):
         if n is None:
             return None
 
-        octave = int(n / len(self.semitones))
+        octave = n // len(self.semitones)
         degree = n % len(self.semitones)
-        note = (self.octave_size * octave) + self.semitones[degree]
+        semitone = self.semitones[degree]
+        note = (self.octave_size * octave) + semitone
         return note
 
     def copy(self):
@@ -80,7 +82,10 @@ class Scale(object):
 
     @staticmethod
     def byname(name):
-        return Scale.dict[name]
+        if name in Scale.dict:
+            return Scale.dict[name]
+        else:
+            raise UnknownScaleName()
 
     @staticmethod
     def random():
