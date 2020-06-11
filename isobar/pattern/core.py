@@ -347,8 +347,8 @@ class PDict(Pattern):
     def load(self, filename):
         from isobar.io.midifile.input import MidiFileIn
 
-        reader = MidiFileIn()
-        d = reader.read(filename)
+        reader = MidiFileIn(filename)
+        d = reader.read()
         return PDict(d)
 
     def has_key(self, key):

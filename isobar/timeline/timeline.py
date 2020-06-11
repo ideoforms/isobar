@@ -186,8 +186,7 @@ class Timeline(object):
         """ Remove a PWarp object from our clock. """
         self.clock.warp(warper)
 
-    @property
-    def output_device(self):
+    def get_output_device(self):
         if len(self.output_devices) != 1:
             raise Exception("output_device is ambiguous for Timelines with multiple outputs")
         return self.output_devices[0]
@@ -196,6 +195,8 @@ class Timeline(object):
         """ Set a new device to send events to, removing any existing outputs. """
         self.output_devices = []
         self.add_output_device(output_device)
+
+    output_device = property(get_output_device, set_output_device)
 
     def add_output_device(self, output_device):
         """ Append a new output device to our output list. """

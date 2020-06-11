@@ -1,4 +1,5 @@
 from ..midinote import MidiNote
+from ...constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_GATE
 
 import mido
 import logging
@@ -12,7 +13,7 @@ class MidiFileIn:
     def __init__(self, filename):
         self.filename = filename
 
-    def read(self, quantize=0.25):
+    def read(self, quantize=0.0):
         midi_reader = mido.MidiFile(self.filename)
         note_tracks = list(filter(lambda track: any(message.type == 'note_on' for message in track), midi_reader.tracks))
         if not note_tracks:
@@ -30,16 +31,16 @@ class MidiFileIn:
                 #------------------------------------------------------------------------
                 # Found a note_on event.
                 #------------------------------------------------------------------------
-                offset += event.time / 96.0
+                offset += event.time / midi_reader.ticks_per_beat
                 note = MidiNote(event.note, event.velocity, offset)
                 notes.append(note)
             elif event.type == 'note_off' or (event.type == 'note_on' and event.velocity == 0):
                 #------------------------------------------------------------------------
                 # Found a note_off event.
                 #------------------------------------------------------------------------
-                offset += event.time / 96.0
+                offset += event.time / midi_reader.ticks_per_beat
                 for note in reversed(notes):
-                    if note.pitch == event.note:
+                    if note.pitch == event.note and note.duration is None:
                         note.duration = offset - note.location
                         break
 
@@ -48,8 +49,8 @@ class MidiFileIn:
         #------------------------------------------------------------------------
         for note in notes:
             if quantize:
-                # note.location = round(note.location / quantize) * quantize
-                # note.duration = round(note.duration / quantize) * quantize
+                note.location = round(note.location / quantize) * quantize
+                note.duration = round(note.duration / quantize) * quantize
                 pass
 
         #------------------------------------------------------------------------
@@ -66,13 +67,11 @@ class MidiFileIn:
                 notes_by_time[location] = [note]
 
         note_dict = {
-            "note": [],
-            "amp": [],
-            "gate": [],
-            "dur": []
+            EVENT_NOTE: [],
+            EVENT_AMPLITUDE: [],
+            EVENT_GATE: [],
+            EVENT_DURATION: []
         }
-        # for n in notes_by_time:
-        #     print("%s - %s" % (n, notes_by_time[n]))
 
         #------------------------------------------------------------------------
         # Next, iterate through groups of notes chronologically, figuring out
@@ -80,9 +79,10 @@ class MidiFileIn:
         # gate (eg, proportion of distance note extends across).
         #------------------------------------------------------------------------
         times = sorted(notes_by_time.keys())
-        for i in range(len(times)):
-            time = times[i]
-            notes = notes_by_time[time]
+        print()
+        for i, t in enumerate(times):
+            t = times[i]
+            notes = notes_by_time[t]
 
             #------------------------------------------------------------------------
             # Our duration is always determined by the time of the next note event.
@@ -92,19 +92,20 @@ class MidiFileIn:
             if i < len(times) - 1:
                 next_time = times[i + 1]
             else:
-                next_time = time + max([note.duration for note in notes])
+                next_time = t + max([note.duration for note in notes])
 
-            dur = next_time - time
-            note_dict["dur"].append(dur)
+            time_until_next_note = next_time - t
+            print(i, t, note.duration, time_until_next_note)
+            note_dict[EVENT_DURATION].append(time_until_next_note)
 
             if len(notes) > 1:
-                note_dict["note"].append(tuple(note.pitch for note in notes))
-                note_dict["amp"].append(tuple(note.velocity for note in notes))
-                note_dict["gate"].append(tuple(note.duration / dur for note in notes))
+                note_dict[EVENT_NOTE].append(tuple(note.pitch for note in notes))
+                note_dict[EVENT_AMPLITUDE].append(tuple(note.velocity for note in notes))
+                note_dict[EVENT_GATE].append(tuple(note.duration / time_until_next_note for note in notes))
             else:
                 note = notes[0]
-                note_dict["note"].append(note.pitch)
-                note_dict["amp"].append(note.velocity)
-                note_dict["gate"].append(note.duration / dur)
+                note_dict[EVENT_NOTE].append(note.pitch)
+                note_dict[EVENT_AMPLITUDE].append(note.velocity)
+                note_dict[EVENT_GATE].append(note.duration / time_until_next_note)
 
         return note_dict
