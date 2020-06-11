@@ -100,3 +100,6 @@ def filter_tone_row(source, target, bend_limit=7):
         if all(((note + bend) % 12) in target for note in source):
             return (True, bend)
     return (False, 0)
+
+def random_seed(seed):
+    random.seed(seed)

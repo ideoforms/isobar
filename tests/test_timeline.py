@@ -107,6 +107,7 @@ def test_timeline_reset(dummy_timeline):
     assert dummy_timeline.output_device.events[1] == [pytest.approx(1.5), "note_off", 1, 0]
 
 def test_timeline_reset_to_beat(dummy_timeline):
+    # TODO
     pass
 
 def test_timeline_tick_events(dummy_timeline):

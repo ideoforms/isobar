@@ -30,6 +30,7 @@ class PSequence(Pattern):
         self.reset()
 
     def reset(self):
+        super().reset()
         self.rcount = 0
         self.pos = 0
 
@@ -74,7 +75,8 @@ class PSeries(Pattern):
         self.count = 0
 
     def __next__(self):
-        if self.count >= self.length:
+        length = Pattern.value(self.length)
+        if self.count >= length:
             # return None
             raise StopIteration
         step = Pattern.value(self.step)
@@ -84,7 +86,7 @@ class PSeries(Pattern):
         return n
 
 class PRange(Pattern):
-    """ PRange: Similar to PSeries, but specify a max/step value. 
+    """ PRange: Similar to PSeries, but specify a max/step value.
 
         >>> p = PRange(0, 20, 2)
         >>> p.nextn(16)
@@ -92,21 +94,27 @@ class PRange(Pattern):
         """
 
     def __init__(self, start=0, end=128, step=1):
+        """
+        Args:
+            start (int or float): Start value
+            end (int, float or Pattern): End value
+            step (int, float or Pattern): Step value
+        """
         self.start = start
         self.end = end
         self.step = step
         self.reset()
 
     def reset(self):
+        super().reset()
         self.value = self.start
 
-        Pattern.reset(self)
-
     def __next__(self):
+        end = Pattern.value(self.end)
         step = Pattern.value(self.step)
-        if step > 0 and self.value >= self.end:
+        if step > 0 and self.value >= end:
             raise StopIteration
-        elif step < 0 and self.value <= self.end:
+        elif step < 0 and self.value <= end:
             raise StopIteration
         rv = self.value
         self.value += step
@@ -128,10 +136,9 @@ class PGeom(Pattern):
         self.count = 0
 
     def reset(self):
+        super().reset()
         self.value = self.start
         self.count = 0
-
-        Pattern.reset(self)
 
     def __next__(self):
         if self.count >= self.length:
@@ -157,6 +164,7 @@ class PImpulse(Pattern):
         self.pos = period
 
     def reset(self):
+        super().reset()
         self.pos = 0
 
     def __next__(self):
@@ -189,12 +197,11 @@ class PLoop(Pattern):
         self.reset()
 
     def reset(self):
+        super().reset()
         self.pos = 0
         self.rpos = 1
         self.read_all = False
         self.values = []
-
-        Pattern.reset(self)
 
     def __next__(self):
         # print "%d, %d, %d" % (self.rebang, self.pos, self.rpos)
@@ -236,6 +243,7 @@ class PPingPong(Pattern):
         self.reset()
 
     def reset(self):
+        super().reset()
         self.pattern.reset()
         self.values = self.pattern.all()
         self.pos = 0
@@ -243,7 +251,7 @@ class PPingPong(Pattern):
         self.rpos = 0
 
     def __next__(self):
-        if self.pos == 0 and self.rpos >= self.count:
+        if self.pos == 1 and self.rpos >= self.count:
             raise StopIteration
 
         rv = self.values[self.pos]
@@ -270,12 +278,15 @@ class PCreep(Pattern):
         self.creep = creep
         self.count = count
         self.prob = prob
+        self.reset()
 
+    def reset(self):
+        super().reset()
         self.buffer = []
         self.pos = 0
         self.rcount = 1
-        while len(self.buffer) < length:
-            self.buffer.append(next(pattern))
+        while len(self.buffer) < self.length:
+            self.buffer.append(next(self.pattern))
 
     def __next__(self):
         pos = Pattern.value(self.pos)
@@ -358,15 +369,13 @@ class PSubsequence(Pattern):
         self.values = []
 
     def reset(self):
+        super().reset()
         self.pos = 0
-
-        Pattern.reset(self)
 
     def __next__(self):
         offset = Pattern.value(self.offset)
         length = Pattern.value(self.length)
 
-        # print "length is %d, pos %d" % (length, self.pos)
         if self.pos >= length:
             raise StopIteration
 
@@ -383,24 +392,14 @@ class PReverse(Pattern):
 
     def __init__(self, input):
         self.input = input
-        self.values = reversed(list(input))
+        self.reset()
+
+    def reset(self):
+        super().reset()
+        self.values = reversed(list(self.input))
 
     def __next__(self):
         return next(self.values)
-
-class PDelay(Pattern):
-    """ PDelay: Outputs the next value of patternA after patternB ticks """
-
-    def __init__(self, source, delay):
-        self.source = source
-        self.delay = delay
-        self.counter = Pattern.value(self.delay)
-
-    def __next__(self):
-        self.counter -= 1
-        if self.counter < 0:
-            self.counter = Pattern.value(self.delay)
-            return Pattern.value(self.source)
 
 class PReset(Pattern):
     """ PReset: Resets <pattern> each time it receives a zero-crossing from
@@ -417,6 +416,7 @@ class PReset(Pattern):
         self.trigger = trigger
 
     def reset(self):
+        super().reset()
         self.value = 0
 
     def __next__(self):
@@ -485,6 +485,10 @@ class PPad(Pattern):
     def __init__(self, pattern, length):
         self.pattern = pattern
         self.length = length
+        self.reset()
+
+    def reset(self):
+        super().reset()
         self.count = 0
 
     def __next__(self):
@@ -665,11 +669,10 @@ class PPermut(Pattern):
         self.permutations = []
 
     def reset(self):
+        super().reset()
         self.pos = sys.maxsize
         self.permindex = sys.maxsize
         self.permutations = []
-
-        Pattern.reset(self)
 
     def __next__(self):
         if self.permindex > len(self.permutations):

@@ -1,12 +1,19 @@
 import sys
 
 from .core import Pattern
+from .sequence import PSeries
 
 class PChanged(Pattern):
-    """ PChanged: Outputs a 1 if the value of a pattern has changed. """
+    """ PChanged: Outputs a 1 if the value of a pattern has changed.
+        The length of the output patter is always 1 less than the length of the input.
+        """
 
     def __init__(self, source):
         self.source = source
+        self.current = Pattern.value(self.source)
+
+    def reset(self):
+        super().reset()
         self.current = Pattern.value(self.source)
 
     def __next__(self):
@@ -16,15 +23,25 @@ class PChanged(Pattern):
         return rv
 
 class PDiff(Pattern):
-    """ PDiff: Outputs the difference between the current and previous values of an input pattern """
+    """ PDiff: Outputs the difference between the current and previous values of an input pattern
+        If the current or next value are None, a value of None will be output.
+        The length of the output patter is always 1 less than the length of the input.
+        """
 
     def __init__(self, source):
         self.source = source
         self.current = Pattern.value(self.source)
 
+    def reset(self):
+        super().reset()
+        self.current = Pattern.value(self.source)
+
     def __next__(self):
         next = Pattern.value(self.source)
-        rv = next - self.current
+        if self.current is None or next is None:
+            rv = None
+        else:
+            rv = next - self.current
         self.current = next
         return rv
 
@@ -74,6 +91,8 @@ class PNorm(Pattern):
 class PMap(Pattern):
     """ PMap: Apply an arbitrary function to an input pattern.
               Will pass any additional arguments, which can also be patterns.
+              Instances of None in the input stream will be passed through to
+              the function as normal.
 
         >>> PMap(PSeries(), lambda value: value * value).nextn(16)
         [0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225]
@@ -87,6 +106,15 @@ class PMap(Pattern):
         self.operator = operator
         self.args = args
         self.kwargs = kwargs
+
+    def reset(self):
+        super().reset()
+        for arg in self.args:
+            if isinstance(arg, Pattern):
+                arg.reset()
+        for arg in self.kwargs.values():
+            if isinstance(arg, Pattern):
+                arg.reset()
 
     def __next__(self):
         args = [Pattern.value(value) for value in self.args]
@@ -104,14 +132,13 @@ class PMapEnumerated(PMap):
 
     def __init__(self, *args):
         PMap.__init__(self, *args)
-        self.counter = 0
+        self.counter = PSeries()
 
     def __next__(self):
         args = [Pattern.value(value) for value in self.args]
         kwargs = dict((key, Pattern.value(value)) for key, value in list(self.kwargs.items()))
         value = next(self.input)
-        rv = self.operator(self.counter, value, *args, **kwargs)
-        self.counter += 1
+        rv = self.operator(next(self.counter), value, *args, **kwargs)
         return rv
 
 class PLinLin(PMap):
@@ -143,7 +170,7 @@ class PLinExp(PMap):
         return ((to_max / to_min) ** ((value - from_min) / (from_max - from_min))) * to_min;
 
     def __init__(self, input, *args):
-        PMap.__init__(self, input, self.linexp, *args)
+        super(self, input, self.linexp, *args)
 
 class PRound(PMap):
     """ PRound: Round <input> to N decimal places.
