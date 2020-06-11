@@ -27,8 +27,8 @@ class PWhite(Pattern):
             self.min = -self.max
 
     def __next__(self):
-        min = self.value(self.min)
-        max = self.value(self.max)
+        min = Pattern.value(self.min)
+        max = Pattern.value(self.max)
 
         if type(min) == float:
             return random.uniform(min, max)
@@ -42,40 +42,36 @@ class PBrown(Pattern):
                 consecutively.
         """
 
-    def __init__(self, value=0, step=0.1, min=-sys.maxsize, max=sys.maxsize, repeats=True, length=sys.maxsize):
-        self.init = value
-        self.value = value
+    def __init__(self, initial_value=0, step=0.1, min=-sys.maxsize, max=sys.maxsize):
+        """
+
+        Args:
+            initial_value (float or int): Initial value
+            step (float or int): Maximum value to increase or decrease by each step
+            min (float or int): Minimum permitted value
+            min (float or int): Maximum permitted value
+        """
+        self.initial_value = initial_value
+        self.value = initial_value
         self.step = step
         self.min = min
         self.max = max
-        self.length = length
-        self.repeats = repeats
-        self.pos = 0
 
     def reset(self):
-        self.value = self.init
-        self.pos = 0
-
-        Pattern.reset(self)
+        super().reset()
+        self.value = self.initial_value
 
     def __next__(self):
-        # pull out modulatable values
         vstep = Pattern.value(self.step)
         vmin = Pattern.value(self.min)
         vmax = Pattern.value(self.max)
-        vrepeats = Pattern.value(self.repeats)
 
-        if self.pos >= self.length:
-            raise StopIteration
         rv = self.value
-        self.pos += 1
         if type(vstep) == float:
             self.value += random.uniform(-vstep, vstep)
         else:
-            # select new offset without repeats
+            # select new offset
             steps = list(range(-vstep, vstep + 1))
-            if not vrepeats:
-                steps.remove(0)
             self.value += random.choice(steps)
         self.value = min(max(self.value, vmin), vmax)
 
@@ -86,14 +82,27 @@ class PWalk(Pattern):
     """ PWalk: Random walk around list.
                Jumps between <min> and <max> steps inclusive.
 
-        >>> PWalk([ 0, 2, 5, 8, 11 ], min = 1, max = 2).nextn(16)
+        >>> PWalk([ 0, 2, 5, 8, 11 ], min=1, max=2).nextn(16)
         [8, 11, 0, 8, 0, 11, 2, 11, 2, 0, 5, 8, 11, 8, 5, 8]
         """
 
-    def __init__(self, values=[], min=1, max=1):
+    def __init__(self, values=[], min=1, max=1, wrap=True):
+        """
+
+        Args:
+            values (list): Array of values to walk around
+            min (int): Minimum number of steps to move
+            max (int): Maximum number of steps to move
+            wrap (bool): Whether to wrap around the start/end of the array
+        """
         self.values = values
         self.min = min
         self.max = max
+        self.wrap = wrap
+        self.reset()
+
+    def reset(self):
+        super().reset()
         self.pos = 0
 
     def __next__(self):
@@ -105,13 +114,13 @@ class PWalk(Pattern):
         move = 0 - move if random.uniform(0, 1) < 0.5 else move
         self.pos += move
 
-        while self.pos < 0:
-            self.pos += len(vvalues)
-        while self.pos >= len(vvalues):
-            self.pos -= len(vvalues)
+        if self.wrap:
+            while self.pos < 0:
+                self.pos += len(vvalues)
+            while self.pos >= len(vvalues):
+                self.pos -= len(vvalues)
 
         return vvalues[self.pos]
-
 
 class PChoice(Pattern):
     """ PChoice: Random selection from <values>
@@ -125,8 +134,8 @@ class PChoice(Pattern):
         self.values = values
 
     def __next__(self):
-        return self.values[random.randint(0, len(self.values) - 1)]
-
+        vvalues = Pattern.value(self.values)
+        return random.choice(vvalues)
 
 class PWChoice(Pattern):
     """ PWChoice: Random selection from <values>, weighted by <weights>.
@@ -143,7 +152,9 @@ class PWChoice(Pattern):
         self.weights = weights
 
     def __next__(self):
-        return wnchoice(self.values, self.weights)
+        vvalues = Pattern.value(self.values)
+        vweights = Pattern.value(self.weights)
+        return wnchoice(vvalues, vweights)
 
 
 class PShuffle(Pattern):
@@ -155,6 +166,12 @@ class PShuffle(Pattern):
         """
 
     def __init__(self, values=[], repeats=sys.maxsize):
+        """
+
+        Args:
+            values (list): List of values
+            repeats (int): Number of times to re-shuffle and iterate
+        """
         self.values = copy.copy(values)
         self.repeats = repeats
 
@@ -170,8 +187,8 @@ class PShuffle(Pattern):
         Pattern.reset(self)
 
     def __next__(self):
-        values = self.value(self.values)
-        repeats = self.value(self.repeats)
+        values = Pattern.value(self.values)
+        repeats = Pattern.value(self.repeats)
 
         if self.pos >= len(values):
             if self.rcount >= repeats:
@@ -219,56 +236,31 @@ class PShuffleEvery(Pattern):
         self.pos += 1
         return rv
 
-
-class PSelfIndex(Pattern):
-    def __init__(self, count=6):
-        self.pos = 0
-        self.values = list(range(count))
-        random.shuffle(self.values)
-        print("init values: %s" % self.values)
-
-    def __next__(self):
-        if self.pos >= len(self.values):
-            # re-index values
-            self.pos = 0
-            self.reindex()
-
-        rv = self.values[self.pos]
-        self.pos += 1
-
-        return rv
-
-    def reindex(self):
-        values_new = []
-        for n in range(len(self.values)):
-            values_new.append(self.values[self.values[n]])
-        print("new ordering: %s" % values_new)
-        self.values = values_new
-
-
 class PSkip(Pattern):
     """ PSkip: Skip events with some probability, 1 - <play>.
-               Set <random> to False to skip events regularly.
+               Set <regularise> to True to skip events regularly.
         """
 
-    def __init__(self, pattern, play, random=True):
+    def __init__(self, pattern, play, regularise=False):
         self.pattern = pattern
         self.play = play
-        self.random = random
+        self.regularise = regularise
         self.pos = 0.0
 
     def __next__(self):
-        play = self.value(self.play)
-        if self.random:
-            if random.uniform(0, 1) < self.play:
-                return next(self.pattern)
-        else:
+        play = Pattern.value(self.play)
+        value = next(self.pattern)
+
+        if self.regularise:
             self.pos += play
             if self.pos >= 1:
                 self.pos -= 1
-                return next(self.pattern)
-        return None
+                return value
+        else:
+            if random.uniform(0, 1) < self.play:
+                return value
 
+        return None
 
 class PFlipFlop(Pattern):
     """ PFlipFlop: flip a binary bit with some probability.
