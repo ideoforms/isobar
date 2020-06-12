@@ -5,9 +5,9 @@ import pytest
 from isobar.io import DummyOutputDevice, MidiOut
 from . import dummy_timeline
 
-def test_timeline_bpm():
+def test_timeline_tempo():
     timeline = iso.Timeline(100)
-    assert timeline.clock.bpm == pytest.approx(100)
+    assert timeline.clock.tempo == pytest.approx(100)
 
 def test_timeline_default_output_device():
     timeline = iso.Timeline()
