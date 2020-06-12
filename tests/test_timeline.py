@@ -48,6 +48,9 @@ def test_timeline_schedule(dummy_timeline):
     assert dummy_timeline.output_device.events[0] == [pytest.approx(0.0), "note_on", 1, 64, 0]
     assert dummy_timeline.output_device.events[1] == [pytest.approx(1.0), "note_off", 1, 0]
 
+def test_timeline_schedule_twice(dummy_timeline):
+    pass
+
 def test_timeline_schedule_real_clock():
     timeline = iso.Timeline(60, output_device=DummyOutputDevice())
     times = []
@@ -63,7 +66,6 @@ def test_timeline_schedule_real_clock():
     t0 = time.time()
     timeline.run()
     diff = times[1] - times[0]
-    print("diff %f" % diff)
     assert diff == pytest.approx(0.1, abs=timeline.tick_duration)
 
 @pytest.mark.parametrize("quantize", [0.0, 0.1, 0.5, 1.0])

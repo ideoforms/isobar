@@ -11,7 +11,6 @@ def test_event_degree(dummy_timeline):
         iso.EVENT_TRANSPOSE: 12
     })
     dummy_timeline.run()
-    print(dummy_timeline.output_device.events)
     assert dummy_timeline.output_device.events == [
         [0, 'note_on', 12, 64, 0], [1, 'note_off', 12, 0],
         [1, 'note_on', 14, 64, 0], [2, 'note_off', 14, 0],
@@ -33,6 +32,20 @@ def test_event_octave(dummy_timeline):
         [1, 'note_on', 50, 64, 0], [2, 'note_off', 50, 0],
         [2, 'note_on', 28, 64, 0], [3, 'note_off', 28, 0],
         [3, 'note_on', 53, 64, 0], [4, 'note_off', 53, 0]
+    ]
+
+def test_event_note_octave(dummy_timeline):
+    dummy_timeline.schedule({
+        iso.EVENT_NOTE: iso.PSequence([0, 1, 2, 3], 1),
+        iso.EVENT_DURATION: 1.0,
+        iso.EVENT_OCTAVE: iso.PSequence([2, 4])
+    })
+    dummy_timeline.run()
+    assert dummy_timeline.output_device.events == [
+        [0, 'note_on', 24, 64, 0], [1, 'note_off', 24, 0],
+        [1, 'note_on', 49, 64, 0], [2, 'note_off', 49, 0],
+        [2, 'note_on', 26, 64, 0], [3, 'note_off', 26, 0],
+        [3, 'note_on', 51, 64, 0], [4, 'note_off', 51, 0]
     ]
 
 def test_event_key(dummy_timeline):
