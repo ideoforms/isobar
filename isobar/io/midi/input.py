@@ -15,6 +15,10 @@ class MidiIn:
         self.queue = queue.Queue()
         log.info("Opened MIDI input: %s" % self.midi.name)
 
+    @property
+    def device_name(self):
+        return self.midi.name
+
     def callback(self, message):
         """
         Callback for mido

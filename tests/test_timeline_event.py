@@ -108,9 +108,9 @@ def test_event_gate(dummy_timeline):
 
 def test_event_chord(dummy_timeline):
     dummy_timeline.schedule({
-        iso.EVENT_NOTE: iso.PSequence([ (0, 7), 4, (2, 9, 11), 7 ], 1),
+        iso.EVENT_NOTE: iso.PSequence([(0, 7), 4, (2, 9, 11), 7], 1),
         iso.EVENT_DURATION: iso.PSequence([1, 2]),
-        iso.EVENT_AMPLITUDE: iso.PSequence([ 10, 20, 30 ])
+        iso.EVENT_AMPLITUDE: iso.PSequence([10, 20, 30])
     })
     dummy_timeline.run()
     assert dummy_timeline.output_device.events == [
@@ -151,3 +151,23 @@ def test_event_chord_2(dummy_timeline):
         [3, 'note_off', 5, 0],
         [4, 'note_off', 6, 0]
     ]
+
+def test_event_action(dummy_timeline):
+    dummy_timeline.event_times = []
+
+    def increment_counter():
+        dummy_timeline.event_times.append(dummy_timeline.beats)
+        if len(dummy_timeline.event_times) >= 5:
+            raise StopIteration
+
+    dummy_timeline.schedule({
+        iso.EVENT_ACTION: increment_counter
+    })
+    dummy_timeline.run()
+    assert len(dummy_timeline.event_times) == 5
+    assert dummy_timeline.event_times == pytest.approx([0, 1, 2, 3, 4])
+
+# def test_event_control(dummy_timeline):
+#     dummy_timeline.schedule({
+#         iso.EVENT_CONTROL: PControlChangeLinear(0, 1, 2)
+#     })

@@ -122,26 +122,27 @@ class Track:
         # devices which receive all generic events (useful to display rests
         # when rendering a score).
         #----------------------------------------------------------------------
-        if values[EVENT_NOTE] is None:
-            #----------------------------------------------------------------------
-            # Rest.
-            #----------------------------------------------------------------------
-            values[EVENT_NOTE] = 0
-            values[EVENT_AMPLITUDE] = 0
-            values[EVENT_GATE] = 0
-        else:
-            #----------------------------------------------------------------------
-            # Handle lists of notes (eg chords).
-            # TODO: create a class which allows for scalars and arrays to handle
-            #       addition transparently.
-            #
-            # The below does not allow for values[EVENT_TRANSPOSE] to be an array,
-            # for example.
-            #----------------------------------------------------------------------
-            try:
-                values[EVENT_NOTE] = [note + values[EVENT_OCTAVE] * 12 + values[EVENT_TRANSPOSE] for note in values[EVENT_NOTE]]
-            except:
-                values[EVENT_NOTE] += values[EVENT_OCTAVE] * 12 + values[EVENT_TRANSPOSE]
+        if EVENT_NOTE in values:
+            if values[EVENT_NOTE] is None:
+                #----------------------------------------------------------------------
+                # Rest.
+                #----------------------------------------------------------------------
+                values[EVENT_NOTE] = 0
+                values[EVENT_AMPLITUDE] = 0
+                values[EVENT_GATE] = 0
+            else:
+                #----------------------------------------------------------------------
+                # Handle lists of notes (eg chords).
+                # TODO: create a class which allows for scalars and arrays to handle
+                #       addition transparently.
+                #
+                # The below does not allow for values[EVENT_TRANSPOSE] to be an array,
+                # for example.
+                #----------------------------------------------------------------------
+                try:
+                    values[EVENT_NOTE] = [note + values[EVENT_OCTAVE] * 12 + values[EVENT_TRANSPOSE] for note in values[EVENT_NOTE]]
+                except:
+                    values[EVENT_NOTE] += values[EVENT_OCTAVE] * 12 + values[EVENT_TRANSPOSE]
 
         #----------------------------------------------------------------------
         # Classify the event type.
@@ -170,6 +171,8 @@ class Track:
                     values[EVENT_ACTION](object)
                 else:
                     values[EVENT_ACTION]()
+            except StopIteration:
+                raise StopIteration()
             except Exception as e:
                 print(("Exception when handling scheduled action: %s" % e))
                 import traceback
