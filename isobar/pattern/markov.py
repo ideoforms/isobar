@@ -89,11 +89,6 @@ class MarkovLearner:
         self.markov = PMarkov()
         self.last = None
 
-    def get_markov(self):
-        """ Returns the PMarkov pattern generator produced by the learning
-        process. """
-        return self.markov
-
     def learn_pattern(self, pattern):
         """ Learns the sequence described in this pattern. """
         for value in pattern:

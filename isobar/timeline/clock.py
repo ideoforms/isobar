@@ -15,7 +15,7 @@ class DummyClock:
         self.clock_target = None
 
     @property
-    def bpm(self):
+    def tempo(self):
         return 0.0
 
     def run(self):
@@ -31,7 +31,7 @@ class Clock:
         self.accelerate = 1.0
 
     @property
-    def bpm(self):
+    def tempo(self):
         return 60.0 / (self.tick_size * TICKS_PER_BEAT)
 
     def run(self):

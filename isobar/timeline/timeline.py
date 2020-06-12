@@ -20,7 +20,7 @@ class Timeline(object):
     represents a sequence of note or control events.
     """
 
-    def __init__(self, bpm=DEFAULT_CLOCK_RATE, output_device=None, clock_source=None):
+    def __init__(self, tempo=DEFAULT_CLOCK_RATE, output_device=None, clock_source=None):
         """ Expect to receive one tick per beat, generate events at 120bpm """
         self.tick_duration = 1.0 / TICKS_PER_BEAT
         self.beats = 0
@@ -44,14 +44,14 @@ class Timeline(object):
             #--------------------------------------------------------------------------------
             # Create internal clock for native timekeeping.
             #--------------------------------------------------------------------------------
-            self.clock = Clock(self, 60.0 / (bpm * TICKS_PER_BEAT))
+            self.clock = Clock(self, 60.0 / (tempo * TICKS_PER_BEAT))
 
     @property
-    def bpm(self):
+    def tempo(self):
         """ Returns the tempo of this timeline's clock, or None if an external
-        clock source is used (in which case the bpm is unknown).
+        clock source is used (in which case the tempo is unknown).
         """
-        return self.clock.bpm
+        return self.clock.tempo
 
     def tick(self):
         """
@@ -112,7 +112,7 @@ class Timeline(object):
     def dump(self):
         """ Output a summary of this Timeline object
             """
-        print("Timeline (clock: %s, tempo %s)" % (self.clock, self.clock.bpm if self.clock.bpm else "unknown"))
+        print("Timeline (clock: %s, tempo %s)" % (self.clock, self.clock.tempo if self.clock.tempo else "unknown"))
 
         print((" - %d devices" % len(self.output_devices)))
         for device in self.output_devices:
