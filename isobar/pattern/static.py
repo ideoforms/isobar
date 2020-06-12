@@ -4,7 +4,9 @@ import threading
 import copy
 
 class PStaticGlobal(Pattern):
-    """ PStaticGlobal: Static global value identified by a string, with OSC listener """
+    """ PStaticGlobal: Static global value identified by a string, with OSC listener.
+    TODO: Rename to PStaticDict, remove global support?
+    """
     dict = {}
     listening = False
 
@@ -69,6 +71,26 @@ class PStaticSequence(Pattern):
             if len(self.sequence) == 0:
                 raise StopIteration
         return self.sequence[0]
+
+class PStaticPattern(Pattern):
+    def __init__(self, pattern, element_duration):
+        self.pattern = pattern
+        self.value = None
+        self.element_duration = element_duration
+        self.current_element_start_time = None
+        self.current_element_duration = None
+
+    def __next__(self):
+        timeline = self.timeline
+        current_time = round(timeline.beats, 5)
+        if self.current_element_start_time is None or \
+            current_time - self.current_element_start_time >= self.current_element_duration:
+
+            self.value = Pattern.value(self.pattern)
+            self.current_element_start_time = round(timeline.beats, 5)
+            self.current_element_duration = Pattern.value(self.element_duration)
+
+        return self.value
 
 class PStaticOSCReceiver(Pattern):
     listening = False

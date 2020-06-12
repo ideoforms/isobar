@@ -20,7 +20,7 @@ DEFAULT_CLOCK_RATE = 120
 #------------------------------------------------------------------------
 # Very fast clock rate, used for quickly running through a timeline.
 #------------------------------------------------------------------------
-MAX_CLOCK_RATE = 12000
+MAX_CLOCK_RATE = 1e6
 
 #------------------------------------------------------------------------
 # Parameters used in Timeline event dictionaries.

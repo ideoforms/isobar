@@ -105,7 +105,6 @@ class Track:
                     key = values[EVENT_KEY]
                 else:
                     key = Key(0, values[EVENT_SCALE])
-                octave = values[EVENT_OCTAVE]
 
                 #----------------------------------------------------------------------
                 # handle lists of notes (eg chords).
@@ -113,9 +112,9 @@ class Track:
                 # addition transparently
                 #----------------------------------------------------------------------
                 try:
-                    values[EVENT_NOTE] = [key[n] + (octave * 12) for n in degree]
+                    values[EVENT_NOTE] = [key[n] for n in degree]
                 except:
-                    values[EVENT_NOTE] = key[degree] + (octave * 12)
+                    values[EVENT_NOTE] = key[degree]
 
         #----------------------------------------------------------------------
         # For cases in which we want to introduce a rest, set amplitude
@@ -140,9 +139,9 @@ class Track:
             # for example.
             #----------------------------------------------------------------------
             try:
-                values[EVENT_NOTE] = [note + values[EVENT_TRANSPOSE] for note in values[EVENT_NOTE]]
+                values[EVENT_NOTE] = [note + values[EVENT_OCTAVE] * 12 + values[EVENT_TRANSPOSE] for note in values[EVENT_NOTE]]
             except:
-                values[EVENT_NOTE] += values[EVENT_TRANSPOSE]
+                values[EVENT_NOTE] += values[EVENT_OCTAVE] * 12 + values[EVENT_TRANSPOSE]
 
         #----------------------------------------------------------------------
         # Classify the event type.

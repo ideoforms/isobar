@@ -190,41 +190,33 @@ class PLoop(Pattern):
         [1, 4, 9, 1, 4, 9, 1, 4, 9, 1, 4, 9, 1, 4, 9, 1]
         """
 
-    def __init__(self, pattern, count=sys.maxsize, bang=False):
+    def __init__(self, pattern, count=sys.maxsize):
         self.pattern = pattern
         self.count = count
-        self.bang = bang
         self.reset()
 
     def reset(self):
         super().reset()
         self.pos = 0
-        self.rpos = 1
+        self.loop_index = 0
         self.read_all = False
         self.values = []
 
     def __next__(self):
-        # print "%d, %d, %d" % (self.rebang, self.pos, self.rpos)
-        if self.bang and self.pos >= len(self.values) and self.rpos >= self.count:
-            self.reset()
-            self.pattern.bang()
-
         if not self.read_all:
-            # print "reading all"
             try:
-                rv = next(self.pattern)
-                self.values.append(rv)
+                value = next(self.pattern)
+                self.values.append(value)
             except StopIteration:
                 self.read_all = True
 
         if self.read_all and self.pos >= len(self.values):
-            if self.rpos >= self.count:
+            if self.loop_index >= self.count - 1:
                 raise StopIteration
             else:
-                self.rpos += 1
+                self.loop_index += 1
                 self.pos = 0
 
-        # print "pos = %d, value len = %d" % (self.pos, len(self.values))
         rv = self.values[self.pos]
         self.pos += 1
         return rv
@@ -723,3 +715,5 @@ class PDecisionPoint(Pattern):
             if self.pattern is None:
                 return None
             return next(self)
+
+PGeneratePattern = PDecisionPoint

@@ -63,7 +63,7 @@ class PMarkov(Pattern):
             except IndexError:
                 self.node = random.choice(list(self.nodes.keys()))
             except KeyError:
-                print("no such node: %s" % self.node)
+                print("No such node: %s" % self.node)
 
         if self.node is None:
             #--------------------------------------------------------------------------------

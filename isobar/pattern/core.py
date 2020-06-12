@@ -10,9 +10,9 @@ import isobar
 class Pattern:
     """ Pattern: Abstract superclass of all pattern generators.
 
-        Patterns are at the core of isoar. A Pattern implements the iterator
+        Patterns are at the core of isobar. A Pattern implements the iterator
         protocol, representing a sequence of values which are iteratively
-        returned by fthe next() method. A pattern may be finite, after which
+        returned by the next() method. A pattern may be finite, after which
         point it raises a StopIteration exception. Call reset() to return
         a pattern to its initial state.
 
@@ -343,13 +343,33 @@ class PDict(Pattern):
     def __contains__(self, key):
         return key in self.dict
 
-    @classmethod
-    def load(self, filename):
-        from isobar.io.midifile.input import MidiFileIn
+    def load(self, filename, quantize=None):
+        """
+        Load pattern data from a MIDI file.
 
+        Args:
+            filename (str): Filename to read from (.mid)
+        """
+        from isobar.io.midifile import MidiFileIn
         reader = MidiFileIn(filename)
-        d = reader.read()
-        return PDict(d)
+        self.dict = reader.read(quantize=quantize)
+
+    def save(self, filename):
+        """
+        Save pattern data to a MIDI file.
+
+        Args:
+            filename (str): Filename to write to (.mid)
+            quantize (float): Quantization level. 1.0 = quantize to beat, 0.25 = quantize to quarter-beat, etc.
+        """
+        from isobar.io.midifile import MidiFileOut
+        writer = MidiFileOut(filename)
+        track = isobar.Track(self, output_device=writer)
+        tick_time = 1.0 / isobar.TICKS_PER_BEAT
+        while not track.is_finished:
+            track.tick(tick_time)
+            writer.tick(tick_time)
+        writer.write()
 
     def has_key(self, key):
         return key in self.dict
