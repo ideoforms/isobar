@@ -32,7 +32,7 @@ class MidiFileIn:
                 #------------------------------------------------------------------------
                 # Found a note_on event.
                 #------------------------------------------------------------------------
-                offset += event.time / midi_reader.ticks_per_beat
+                offset +=  event.time / midi_reader.ticks_per_beat
                 note = MidiNote(event.note, event.velocity, offset)
                 notes.append(note)
             elif event.type == 'note_off' or (event.type == 'note_on' and event.velocity == 0):

@@ -64,3 +64,14 @@ def test_pconcatenate():
     c = iso.PSequence([5], 1)
     d = iso.PConcatenate([a, b, c])
     assert list(d) == [1, 2, 3, 4, 5]
+
+def test_pabs():
+    a = iso.PSequence([4, 5, 1, -2, None, 1, -1.5], 1)
+    b = iso.PAbs(a)
+    assert list(b) == [4, 5, 1, 2, None, 1, 1.5]
+
+def test_pint():
+    a = iso.PSequence([4, 5, 1.2, -2.9, None, 1, -1.5], 1)
+    b = iso.PInt(a)
+    assert list(b) == [4, 5, 1, -2, None, 1, -1]
+

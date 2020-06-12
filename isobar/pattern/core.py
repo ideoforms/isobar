@@ -33,6 +33,14 @@ class Pattern:
     def __neg__(self):
         return 0 - self
 
+    def __abs__(self):
+        """ Absolute value. """
+        return PAbs(self)
+
+    def __int__(self):
+        """ Integer value. """
+        return PInt(self)
+
     def __add__(self, operand):
         """Binary op: add two patterns"""
         operand = Pattern.pattern(operand)
@@ -437,6 +445,30 @@ class PConcatenate(Pattern):
     def reset(self):
         super().reset()
         self.pos = 0
+
+class PAbs(Pattern):
+    """ PAbs: Absolute value of <input> """
+
+    def __init__(self, input):
+        self.input = input
+
+    def __next__(self):
+        next = Pattern.value(self.input)
+        if next is not None:
+            return abs(next)
+        return next
+
+class PInt(Pattern):
+    """ PInt: Integer value of <input> """
+
+    def __init__(self, input):
+        self.input = input
+
+    def __next__(self):
+        next = Pattern.value(self.input)
+        if next is not None:
+            return int(next)
+        return next
 
 #------------------------------------------------------------------
 # Binary operators

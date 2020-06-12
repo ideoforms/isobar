@@ -45,18 +45,6 @@ class PDiff(Pattern):
         self.current = next
         return rv
 
-class PAbs(Pattern):
-    """ PAbs: Absolute value of <input> """
-
-    def __init__(self, input):
-        self.input = input
-
-    def __next__(self):
-        next = Pattern.value(self.input)
-        if next is not None:
-            return abs(next)
-        return next
-
 class PNorm(Pattern):
     """ PNorm: Normalise <input> to [0..1].
         Use maximum and minimum values found in history.
@@ -180,8 +168,49 @@ class PRound(PMap):
         [6, 8, 6, 0, 7, 6, 6, 4, 7, 7, 8, 7, 6, 8, 8, 4]
         """
 
+    def round(self, value, *args):
+        if value is None:
+            return None
+        else:
+            return round(value, *args)
+
     def __init__(self, input, *args):
-        PMap.__init__(self, input, round, *args)
+        PMap.__init__(self, input, self.round, *args)
+
+class PScalar(PMap):
+    """ PScalar: Reduce tuples and lists into single scalar values,
+        either by taking the mean or the first value.
+        Empty lists are reduced to None.
+
+        >>> p = PScalar(PSequence([ 1, (2, 3), (4, 5, 6), (), 7 ], 1)
+        >>> p.all())
+        [1, 2.5, 5, None, 7]
+        """
+
+    def scalar(self, pattern, method):
+        value = Pattern.value(pattern)
+        try:
+            values = list(value)
+            if len(values) == 0:
+                return None
+            else:
+                if method == "mean":
+                    return sum(values) / len(values)
+                elif method == "first":
+                    return values[0]
+                else:
+                    raise ValueError("Invalid scalar reduction method: %s" % method)
+        except TypeError:
+            return value
+
+    def __init__(self, pattern, method="mean"):
+        """
+        Args:
+            input (Pattern): Input pattern
+            method (str): Can be "mean", which returns the mean of each list; or
+                          "first", which returns the first item in each list.
+        """
+        PMap.__init__(self, pattern, self.scalar, method=method)
 
 class PWrap(Pattern):
     """ PWrap: Wrap input note values within <min>, <max>.
