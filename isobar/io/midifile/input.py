@@ -13,8 +13,9 @@ class MidiFileIn:
     def __init__(self, filename):
         self.filename = filename
 
-    def read(self, quantize=0.0):
+    def read(self, quantize=None):
         midi_reader = mido.MidiFile(self.filename)
+        log.info("Loading MIDI data from %s, ticks per beat = %d" % (self.filename, midi_reader.ticks_per_beat))
         note_tracks = list(filter(lambda track: any(message.type == 'note_on' for message in track), midi_reader.tracks))
         if not note_tracks:
             raise ValueError("Could not find any tracks with note data")
@@ -51,7 +52,6 @@ class MidiFileIn:
             if quantize:
                 note.location = round(note.location / quantize) * quantize
                 note.duration = round(note.duration / quantize) * quantize
-                pass
 
         #------------------------------------------------------------------------
         # Construct a sequence which honours chords and relative lengths.
@@ -59,7 +59,7 @@ class MidiFileIn:
         #------------------------------------------------------------------------
         notes_by_time = {}
         for note in notes:
-            log.debug("(time %.2f) note %d, velocity %d, duration %f" % (note.location, note.pitch, note.velocity, note.duration))
+            log.debug(" - MIDI event (t = %.2f): Note %d, velocity %d, duration %.3f" % (note.location, note.pitch, note.velocity, note.duration))
             location = note.location
             if location in notes_by_time:
                 notes_by_time[location].append(note)
@@ -79,7 +79,6 @@ class MidiFileIn:
         # gate (eg, proportion of distance note extends across).
         #------------------------------------------------------------------------
         times = sorted(notes_by_time.keys())
-        print()
         for i, t in enumerate(times):
             t = times[i]
             notes = notes_by_time[t]
@@ -95,7 +94,6 @@ class MidiFileIn:
                 next_time = t + max([note.duration for note in notes])
 
             time_until_next_note = next_time - t
-            print(i, t, note.duration, time_until_next_note)
             note_dict[EVENT_DURATION].append(time_until_next_note)
 
             if len(notes) > 1:

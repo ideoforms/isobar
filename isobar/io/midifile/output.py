@@ -1,5 +1,6 @@
 from ...pattern import Pattern
 from ..output import OutputDevice
+from mido import Message, MidiFile, MidiTrack
 
 import logging
 
@@ -7,35 +8,36 @@ log = logging.getLogger(__name__)
 
 class MidiFileOut (OutputDevice):
     """ Write events to a MIDI file.
-        Requires the MIDIUtil package:
-        https://code.google.com/p/midiutil/ """
+        """
 
-    def __init__(self, filename="score.mid", num_tracks=16):
-        # requires midiutil
-        from midiutil.MidiFile import MIDIFile
-
+    def __init__(self, filename):
         self.filename = filename
-        self.score = MIDIFile(num_tracks)
+        self.midifile = MidiFile()
+        self.miditrack = MidiTrack()
+        self.midifile.tracks.append(self.miditrack)
         self.time = 0
+        self.last_event_time = 0
 
     def tick(self, tick_duration):
         self.time += tick_duration
 
-    def note_on(self, note=60, velocity=64, channel=0, duration=1):
+    def note_on(self, note=60, velocity=64, channel=0):
         #------------------------------------------------------------------------
         # avoid rounding errors
         #------------------------------------------------------------------------
-        time = round(self.time, 5)
-        self.score.addNote(channel, channel, note, time, duration, velocity)
+        dt = self.time - self.last_event_time
+        dt_ticks = int(round(dt * self.midifile.ticks_per_beat))
+        self.miditrack.append(Message('note_on', note=note, velocity=velocity, channel=channel, time=dt_ticks))
+        self.last_event_time = self.time
 
     def note_off(self, note=60, channel=0):
-        time = round(self.time, 5)
-        self.score.addNote(channel, channel, note, time, 0, 0)
+        dt = self.time - self.last_event_time
+        dt_ticks = int(round(dt * self.midifile.ticks_per_beat))
+        self.miditrack.append(Message('note_off', note=note, channel=channel, time=dt_ticks))
+        self.last_event_time = self.time
 
     def write(self):
-        fd = open(self.filename, 'wb')
-        self.score.writeFile(fd)
-        fd.close()
+        self.midifile.save(self.filename)
 
 class PatternWriterMIDI:
     """ Writes a pattern to a MIDI file.
