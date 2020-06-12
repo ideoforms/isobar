@@ -7,11 +7,10 @@
 import isobar as iso
 
 import logging
-
 logging.basicConfig(level=logging.DEBUG, format="[%(asctime)s] %(message)s")
 
 scale = iso.Scale.pelog
-sequence = iso.PDegree(iso.PBrown(0, 3, -12, 12, repeats=False), scale)
+sequence = iso.PDegree(iso.PBrown(0, 3, -12, 12), scale)
 
 offset = iso.PStutter(iso.pattern.PWhite(0, 4), 2)
 sequence = iso.PSubsequence(sequence, offset, 4)
@@ -26,9 +25,9 @@ gate = iso.pattern.PBrown(1.5, 0.01, 0.6, 2.5)
 timeline = iso.Timeline(120)
 timeline.schedule({
     iso.EVENT_NOTE: sequence.copy(),
-    iso.EVENT_AMPLITUDE: amp,
+    iso.EVENT_AMPLITUDE: amp.copy(),
     iso.EVENT_DURATION: 0.25,
-    iso.EVENT_GATE: gate
+    iso.EVENT_GATE: gate.copy()
 })
 timeline.schedule({
     iso.EVENT_NOTE: sequence.copy() + 24,

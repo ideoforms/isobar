@@ -24,34 +24,25 @@ class MidiOut (OutputDevice):
             self.midi.send(msg)
 
     def note_on(self, note=60, velocity=64, channel=0):
-        if type(note) != int or type(velocity) != int or type(channel) != int:
-            raise ValueError("MIDI parameters must all be of int type")
-
         log.debug("[midi] Note on  (channel = %d, note = %d, velocity = %d)" % (channel, note, velocity))
-        msg = mido.Message('note_on', note=note, velocity=velocity, channel=channel)
+        msg = mido.Message('note_on', note=int(note), velocity=int(velocity), channel=int(channel))
         self.midi.send(msg)
 
     def note_off(self, note=60, channel=0):
-        if type(note) != int or type(channel) != int:
-            raise ValueError("MIDI parameters must all be of int type")
-
         log.debug("[midi] Note off (channel = %d, note = %d)" % (channel, note))
-        msg = mido.Message('note_off', note=note, channel=channel)
+        msg = mido.Message('note_off', note=int(note), channel=int(channel))
         self.midi.send(msg)
 
     def all_notes_off(self):
         log.debug("[midi] All notes off")
         for channel in range(16):
             for note in range(128):
-                msg = mido.Message('note_off', note=note, channel=channel)
+                msg = mido.Message('note_off', note=int(note), channel=int(channel))
                 self.midi.send(msg)
 
     def control(self, control=0, value=0, channel=0):
-        if type(control) != int or type(value) != int or type(channel) != int:
-            raise ValueError("MIDI parameters must all be of int type")
-
         log.debug("[midi] Control (channel %d, control %d, value %d)" % (channel, control, value))
-        msg = mido.Message('control', control=control, value=value, channel=channel)
+        msg = mido.Message('control', control=int(control), value=int(value), channel=int(channel))
         self.midi.send(msg)
 
     def __destroy__(self):
