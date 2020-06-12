@@ -3,10 +3,10 @@ from .util import midi_pitch_to_note_name
 class Note(object):
     names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
-    def __init__(self, midinote=60, velocity=64, length=1):
-        self.midinote = midinote
+    def __init__(self, note=60, velocity=64, duration=1.0):
+        self.note = note
         self.velocity = velocity
-        self.length = length
+        self.duration = duration
 
     def __str__(self):
         if self.velocity == 0:

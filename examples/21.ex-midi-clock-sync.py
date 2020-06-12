@@ -1,19 +1,13 @@
 #!/usr/bin/env python3
 
 #------------------------------------------------------------------------
-# Parallel markov chain learner:
-#
-# 1. takes MIDI input, and constructs three markov chains for pitch, duration
-#    and amplitude. 
-# 2. after receiving a keyboard interrupt (ctrl-c), plays back melodies which are
-#    statistically similar to the input.
+# MIDI input example
 #------------------------------------------------------------------------
 
 import isobar as iso
 from isobar.io.midi import MidiIn, MidiOut
 
 import logging
-
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
 import time

@@ -1,9 +1,7 @@
-try:
-    import rtmidi
-except:
-    print("rtmidi not found, no MIDI support available.")
+import mido
 
 import time
+import queue
 import logging
 from ...note import Note
 from ...exceptions import DeviceNotFoundException
@@ -11,54 +9,35 @@ from ...exceptions import DeviceNotFoundException
 log = logging.getLogger(__name__)
 
 class MidiIn:
-    def __init__(self, target=None):
-        self.midi = rtmidi.MidiIn()
-
-        #------------------------------------------------------------------------
-        # don't ignore MIDI clock messages (is on by default)
-        #------------------------------------------------------------------------
-        self.midi.ignore_types(timing=False)
+    def __init__(self, device_name=None):
+        self.midi = mido.open_input(device_name, callback=self.callback)
         self.clock_target = None
+        self.queue = queue.Queue()
+        log.info("Opened MIDI input: %s" % self.midi.name)
 
-        ports = self.midi.get_ports()
-        if len(ports) == 0:
-            raise DeviceNotFoundException("No MIDI ports found")
-
-        port_index = 0
-        if target is not None:
-            for index, name in enumerate(ports):
-                if name == target:
-                    log.info("Found MIDI source (%s)" % name)
-                    port_index = index
-
-            if self.midi is None:
-                raise DeviceNotFoundException("Could not find MIDI source %s" % target)
-
-        self.midi.open_port(port_index)
-
-    def callback(self, message, timestamp):
+    def callback(self, message):
         """
-        Callback for rtmidi
+        Callback for mido
         Args:
-            message: rtmidi message
-            timestamp: rtmidi timestamp
+            message (mido.Message): The message
         """
-        message = message[0]
-        data_type = message[0]
+        log.debug(" - MIDI message received: %s" % message)
 
-        if data_type == 248:
+        if message.type == 'clock':
             if self.clock_target is not None:
                 self.clock_target.tick()
 
-        elif data_type == 250:
+        elif message.type == 'reset':
             if self.clock_target is not None:
                 self.clock_target.reset_to_beat()
+
+        elif message.type == 'note_on' or message.type == 'control':
+            self.queue.put(message)
 
     def run(self):
         """
         Run indefinitely.
         """
-        self.midi.set_callback(self.callback)
         while True:
             time.sleep(0.1)
 
@@ -66,24 +45,21 @@ class MidiIn:
     def bpm(self):
         return None
 
+    def receive(self):
+        return self.queue.get()
+
     def poll(self):
         """
         Non-blocking poll for MIDI messages.
         Returns:
             Note: The note received, or None.
         """
-        message = self.midi.get_message()
-        if not message:
-            return
-
+        rv = None
         try:
-            data_type, data_note, data_vel = message[0]
-
-            if (data_type & 0x90) > 0 and data_vel > 0:
-                # note on
-                return Note(data_note, data_vel)
-        except:
+            rv = self.queue.get_nowait()
+        except queue.Empty:
             pass
+        return rv
 
     def close(self):
         del self.midi

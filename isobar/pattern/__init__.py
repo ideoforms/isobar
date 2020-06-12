@@ -17,7 +17,8 @@ __all__ = []
 key = value = None
 for key, value in vars().items():
     try:
-        if issubclass(value, Pattern):
+        # Add every class to pydoc
+        if issubclass(value, object):
             __all__.append(key)
     except TypeError:
         pass

@@ -6,7 +6,7 @@ from ...exceptions import DeviceNotFoundException
 log = logging.getLogger(__name__)
 
 class MidiOut (OutputDevice):
-    def __init__(self, device_name=None):
+    def __init__(self, device_name=None, clock_target=None):
         """
         Create a MIDI output device.
 
@@ -15,10 +15,13 @@ class MidiOut (OutputDevice):
                                If not specified, uses the system default.
         """
         self.midi = mido.open_output(device_name)
-        log.info("Opened MIDI output: %s" % device_name)
+        self.clock_target = clock_target
+        log.info("Opened MIDI output: %s" % self.midi.name)
 
     def tick(self, tick_length):
-        pass
+        if self.clock_target:
+            msg = mido.Message('clock')
+            self.midi.send(msg)
 
     def note_on(self, note=60, velocity=64, channel=0):
         log.debug("[midi] Note on  (channel = %d, note = %d, velocity = %d)" % (channel, note, velocity))
