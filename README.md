@@ -10,10 +10,9 @@ isobar includes a large array of basic compositional building blocks (see below)
 
  - `PLSystem` can be used to generate patterns based on the branching grammars of [L-systems](http://en.wikipedia.org/wiki/L-system)
  - `PMarkov` generates first-order Markov chains, and can learn patterns from MIDI input via `MarkovLearner`
- - `PArpeggiator` has various arpeggio patterns
- - plus lots of pattern generators for chance operations are defined in [pattern/chance.py](isobar/pattern/chance.py)
- 
-isobar's `Pattern` classes are based on Python's simple iterator protocol. Call `next()` to generate the subsequent item in a pattern, with the `StopIteration` exception raised when a pattern is exhausted. Builtins such as `list()`, `sorted()` and `itertools` can thus be used to process the output of a `Pattern`, and you can easily create patterns based on other numerical data sources: CSV files via `csv`, data analysis via `numpy`, live sensor readings, etc.
+ - `PEuclidean` generates Euclidean rhythms
+ - `PArpeggiator` supports various arpeggiator sequences
+ - ..plus lots of pattern generators for chance operations are defined in [pattern/chance.py](isobar/pattern/chance.py)
 
 # Usage
 
