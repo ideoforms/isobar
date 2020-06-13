@@ -17,9 +17,6 @@ def test_timeline_default_output_device():
     except iso.DeviceNotFoundException:
         # Ignore exception on machines without a MIDI device
         pass
-    except NameError:
-        # Ignore exception on machines without a MIDI device
-        pass
 
 def test_timeline_output_device():
     dummy = DummyOutputDevice()

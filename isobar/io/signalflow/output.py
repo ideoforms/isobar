@@ -5,7 +5,7 @@ from ..output import OutputDevice
 try:
     import libsignal as sf
 except:
-    log.warn("No Signalflow support available")
+    log.warning("No Signalflow support available")
 
 class SignalflowOutputDevice (OutputDevice):
     def __init__(self):

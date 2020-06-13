@@ -12,7 +12,7 @@ class MidiIn:
     def __init__(self, device_name=None):
         try:
             self.midi = mido.open_input(device_name, callback=self.callback)
-        except RuntimeError:
+        except (RuntimeError, SystemError):
             raise DeviceNotFoundException("Could not find MIDI device")
 
         self.clock_target = None
