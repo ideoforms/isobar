@@ -28,30 +28,31 @@ class Timeline(object):
         self.tracks = []
         self.max_tracks = 0
 
-        self.clock = None
+        self._clock_source = None
         self.thread = None
         self.stop_when_done = True
 
         self.events = []
 
-        if clock_source:
-            #--------------------------------------------------------------------------------
-            # Follow external clock.
-            #--------------------------------------------------------------------------------
-            clock_source.clock_target = self
-            self.clock = clock_source
-        else:
-            #--------------------------------------------------------------------------------
-            # Create internal clock for native timekeeping.
-            #--------------------------------------------------------------------------------
-            self.clock = Clock(self, 60.0 / (tempo * TICKS_PER_BEAT))
+        if clock_source is None:
+            clock_source = Clock(self, 60.0 / (tempo * TICKS_PER_BEAT))
+        self.clock_source = clock_source
+
+    def get_clock_source(self):
+        return self._clock_source
+
+    def set_clock_source(self, clock_source):
+        clock_source.clock_target = self
+        self._clock_source = clock_source
+
+    clock_source = property(get_clock_source, set_clock_source)
 
     @property
     def tempo(self):
         """ Returns the tempo of this timeline's clock, or None if an external
         clock source is used (in which case the tempo is unknown).
         """
-        return self.clock.tempo
+        return self.clock_source.tempo
 
     def tick(self):
         """
@@ -99,7 +100,7 @@ class Timeline(object):
             raise StopIteration
 
         #--------------------------------------------------------------------------------
-        # Tell our devices (ie, MidiFileOut) to move forward a step.
+        # Tell our output devices to move forward a step.
         #--------------------------------------------------------------------------------
         for device in self.output_devices:
             device.tick(self.tick_duration)
@@ -112,7 +113,7 @@ class Timeline(object):
     def dump(self):
         """ Output a summary of this Timeline object
             """
-        print("Timeline (clock: %s, tempo %s)" % (self.clock, self.clock.tempo if self.clock.tempo else "unknown"))
+        print("Timeline (clock: %s, tempo %s)" % (self.clock_source, self.clock_source.tempo if self.clock_source.tempo else "unknown"))
 
         print((" - %d devices" % len(self.output_devices)))
         for device in self.output_devices:
@@ -166,7 +167,9 @@ class Timeline(object):
             # Start the clock. This might internal (eg a Clock object, running on
             # an independent thread), or external (eg a MIDI clock).
             #--------------------------------------------------------------------------------
-            self.clock.run()
+            for device in self.output_devices:
+                device.start()
+            self.clock_source.run()
 
         except StopIteration:
             #--------------------------------------------------------------------------------
@@ -178,13 +181,19 @@ class Timeline(object):
             print((" *** Exception in background Timeline thread: %s" % e))
             traceback.print_exc(file=sys.stdout)
 
+    def stop(self):
+        log.info("Timeline: Stopping")
+        for device in self.output_devices:
+            device.all_notes_off()
+            device.stop()
+
     def warp(self, warper):
         """ Apply a PWarp object to warp our clock's timing. """
-        self.clock.warp(warper)
+        self.clock_source.warp(warper)
 
     def unwarp(self, warper):
         """ Remove a PWarp object from our clock. """
-        self.clock.warp(warper)
+        self.clock_source.warp(warper)
 
     def get_output_device(self):
         if len(self.output_devices) != 1:

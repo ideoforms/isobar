@@ -60,7 +60,7 @@ class MidiIn:
         elif message.type == 'note_on' or message.type == 'control':
             self.queue.put(message)
 
-    def start(self):
+    def run(self):
         """
         Run indefinitely.
         """
