@@ -6,7 +6,7 @@ isobar is a Python library for creating and manipulating musical patterns, desig
 
 The core element is a Timeline, which can control its own tempo or sync to an external clock. Onto this, you can schedule Patterns, which can be note sequences, control events, program changes, or other arbitrary events via lambda functions.
 
-isobar includes a large array of basic compositional building blocks (see below), plus some advanced pattern generators for more sophisticated operations:
+isobar includes a large array of basic compositional building blocks (see [Pattern Classes](#pattern-classes)), plus some advanced pattern generators for more sophisticated operations:
 
  - `PLSystem` can be used to generate patterns based on the branching grammars of [L-systems](http://en.wikipedia.org/wiki/L-system)
  - `PMarkov` generates first-order Markov chains, and can learn patterns from MIDI input via `MarkovLearner`
@@ -90,7 +90,7 @@ I/O classes:
 * [OSC](isobar/io/osc)
 * [SocketIO](isobar/io/socketio)
 
-Pattern classes:
+### Pattern classes:
 
     CORE (core.py)
     Pattern              - Abstract superclass of all pattern generators.
