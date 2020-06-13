@@ -16,7 +16,7 @@ class MidiOut (OutputDevice):
         """
         try:
             self.midi = mido.open_output(device_name)
-        except (RuntimeError, SystemError):
+        except (RuntimeError, SystemError, OSError):
             raise DeviceNotFoundException("Could not find MIDI device")
         self.clock_target = clock_target
         log.info("Opened MIDI output: %s" % self.midi.name)
