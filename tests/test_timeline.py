@@ -95,8 +95,8 @@ def test_timeline_reset(dummy_timeline):
     })
     for n in range(int(0.5 / dummy_timeline.tick_duration)):
         dummy_timeline.tick()
-    assert dummy_timeline.beats == 0.5
-    assert track.current_time == 0.5
+    assert dummy_timeline.beats == pytest.approx(0.5)
+    assert track.current_time == pytest.approx(0.5)
     dummy_timeline.reset()
     assert dummy_timeline.beats == 0.0
     assert track.current_time == 0.0

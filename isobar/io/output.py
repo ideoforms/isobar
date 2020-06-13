@@ -9,6 +9,12 @@ class OutputDevice:
     def tick(self, tick_duration):
         pass
 
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+
     def note_on(self, note=60, velocity=64, channel=0):
         pass
 

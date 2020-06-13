@@ -46,7 +46,7 @@ EVENT_VALUE = "value"
 EVENT_TIME = "time"
 EVENT_FUNCTION = "function"
 EVENT_PATCH = "patch"
-EVENT_PATCH_PARAMS = "patch-params"
+EVENT_PATCH_PARAMS = "params"
 
 #------------------------------------------------------------------------
 # Event types

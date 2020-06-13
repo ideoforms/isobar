@@ -166,6 +166,8 @@ class Timeline(object):
             # Start the clock. This might internal (eg a Clock object, running on
             # an independent thread), or external (eg a MIDI clock).
             #--------------------------------------------------------------------------------
+            for device in self.output_devices:
+                device.start()
             self.clock.run()
 
         except StopIteration:

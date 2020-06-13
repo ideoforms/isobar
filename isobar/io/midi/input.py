@@ -1,5 +1,6 @@
 import mido
 
+import os
 import time
 import queue
 import logging
@@ -9,13 +10,15 @@ from ...exceptions import DeviceNotFoundException
 log = logging.getLogger(__name__)
 
 class MidiIn:
-    def __init__(self, device_name=None):
+    def __init__(self, device_name=None, clock_target=None):
+        if device_name is None:
+            device_name = os.getenv("ISOBAR_DEFAULT_MIDI_IN")
         try:
             self.midi = mido.open_input(device_name, callback=self.callback)
         except (RuntimeError, SystemError, OSError):
             raise DeviceNotFoundException("Could not find MIDI device")
 
-        self.clock_target = None
+        self.clock_target = clock_target
         self.queue = queue.Queue()
         self.estimated_tempo = None
         self.last_clock_time = None
@@ -57,7 +60,7 @@ class MidiIn:
         elif message.type == 'note_on' or message.type == 'control':
             self.queue.put(message)
 
-    def run(self):
+    def start(self):
         """
         Run indefinitely.
         """
