@@ -5,13 +5,13 @@ from ..pattern import Pattern
 from ..key import Key
 from ..scale import Scale
 from ..constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_TRANSPOSE, \
-    EVENT_CHANNEL, EVENT_GATE, EVENT_DEGREE, \
+    EVENT_CHANNEL, EVENT_GATE, EVENT_DEGREE, EVENT_PROGRAM_CHANGE, \
     EVENT_OCTAVE, EVENT_KEY, EVENT_SCALE, EVENT_VALUE, EVENT_ACTION_OBJECT, EVENT_CONTROL, \
     EVENT_ACTION, EVENT_OSC_ADDRESS, EVENT_OSC_PARAMS, EVENT_TYPE, EVENT_PATCH, EVENT_PATCH_PARAMS
 from ..constants import DEFAULT_EVENT_TRANSPOSE, DEFAULT_EVENT_AMPLITUDE, \
     DEFAULT_EVENT_CHANNEL, DEFAULT_EVENT_DURATION, DEFAULT_EVENT_GATE, DEFAULT_EVENT_OCTAVE
 from ..constants import EVENT_TYPE_UNKNOWN, EVENT_TYPE_NOTE, EVENT_TYPE_ACTION, EVENT_TYPE_OSC, EVENT_TYPE_CONTROL, \
-    EVENT_TYPE_PATCH
+    EVENT_TYPE_PATCH, EVENT_TYPE_PROGRAM_CHANGE
 from ..exceptions import InvalidEventException
 import logging
 
@@ -26,7 +26,7 @@ class Track:
         # is this ever even necessary?
         #----------------------------------------------------------------------
         # self.events = Pattern.pattern(events)
-        self.schedule(events)
+        self.init_events(events)
 
         # TODO: Is this needed?
         self.timeline = timeline
@@ -40,7 +40,7 @@ class Track:
     def __str__(self):
         return "Track (pos = %d)" % self.current_time
 
-    def schedule(self, events):
+    def init_events(self, events):
         events.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
         events.setdefault(EVENT_DURATION, DEFAULT_EVENT_DURATION)
         events.setdefault(EVENT_GATE, DEFAULT_EVENT_GATE)
@@ -67,7 +67,13 @@ class Track:
         # process note_offs before we play the next note, else a repeated note
         # with gate = 1.0 will immediately be cancelled.
         #----------------------------------------------------------------------
-        self.process_note_offs()
+        for n, note in enumerate(self.note_offs[:]):
+            # TODO: Use a MidiNote object to represent these note_off events
+            if round(note[0], 8) <= round(self.current_time, 8):
+                index = note[1]
+                channel = note[2]
+                self.output_device.note_off(index, channel)
+                self.note_offs.remove(note)
 
         try:
             if round(self.current_time, 8) >= round(self.next_event_time, 8):
@@ -154,6 +160,8 @@ class Track:
             values[EVENT_TYPE] = EVENT_TYPE_PATCH
         elif EVENT_CONTROL in values:
             values[EVENT_TYPE] = EVENT_TYPE_CONTROL
+        elif EVENT_PROGRAM_CHANGE in values:
+            values[EVENT_TYPE] = EVENT_TYPE_PROGRAM_CHANGE
         elif EVENT_OSC_ADDRESS in values:
             values[EVENT_TYPE] = EVENT_TYPE_OSC
         elif EVENT_NOTE in values or EVENT_DEGREE in values:
@@ -189,6 +197,14 @@ class Track:
             log.debug("Control (channel %d, control %d, value %d)",
                       values[EVENT_CHANNEL], values[EVENT_CONTROL], values[EVENT_VALUE])
             self.output_device.control(values[EVENT_CONTROL], values[EVENT_VALUE], values[EVENT_CHANNEL])
+
+        #------------------------------------------------------------------------
+        # Program change
+        #------------------------------------------------------------------------
+        elif values[EVENT_TYPE] == EVENT_TYPE_PROGRAM_CHANGE:
+            log.debug("Program change (channel %d, program %d)",
+                      values[EVENT_CHANNEL], values[EVENT_PROGRAM_CHANGE])
+            self.output_device.program_change(values[EVENT_PROGRAM_CHANGE], values[EVENT_CHANNEL])
 
         #------------------------------------------------------------------------
         # address: Send a value to an OSC endpoint
@@ -261,12 +277,3 @@ class Track:
 
     def schedule_note_off(self, time, note, channel):
         self.note_offs.append([time, note, channel])
-
-    def process_note_offs(self):
-        for n, note in enumerate(self.note_offs[:]):
-            # TODO: create a Note object to represent these note_off events
-            if round(note[0], 8) <= round(self.current_time, 8):
-                index = note[1]
-                channel = note[2]
-                self.output_device.note_off(index, channel)
-                self.note_offs.remove(note)

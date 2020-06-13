@@ -47,16 +47,19 @@ EVENT_TIME = "time"
 EVENT_FUNCTION = "function"
 EVENT_PATCH = "patch"
 EVENT_PATCH_PARAMS = "params"
+EVENT_PROGRAM_CHANGE = "program_change"
+
 
 #------------------------------------------------------------------------
 # Event types
 #------------------------------------------------------------------------
-EVENT_TYPE_UNKNOWN = 0
-EVENT_TYPE_NOTE = 1
-EVENT_TYPE_CONTROL = 2
-EVENT_TYPE_OSC = 3
-EVENT_TYPE_ACTION = 4
-EVENT_TYPE_PATCH = 5
+EVENT_TYPE_UNKNOWN = "unknown"
+EVENT_TYPE_NOTE = "note"
+EVENT_TYPE_CONTROL = "control"
+EVENT_TYPE_PROGRAM_CHANGE = "program_change"
+EVENT_TYPE_OSC = "osc"
+EVENT_TYPE_ACTION = "action"
+EVENT_TYPE_PATCH = "patch"
 
 #------------------------------------------------------------------------
 # Default parameter values

@@ -28,3 +28,6 @@ class OutputDevice:
 
     def control(self, control=0, value=0, channel=0):
         pass
+
+    def program_change(self, program=0, channel=0):
+        pass

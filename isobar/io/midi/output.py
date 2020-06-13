@@ -63,5 +63,10 @@ class MidiOut (OutputDevice):
         msg = mido.Message('control', control=int(control), value=int(value), channel=int(channel))
         self.midi.send(msg)
 
+    def program_change(self, program=0, channel=0):
+        log.debug("[midi] Program change (channel %d, program_change %d)" % (channel, program))
+        msg = mido.Message('program_change', program=int(program), channel=int(channel))
+        self.midi.send(msg)
+
     def __destroy__(self):
         del self.midi
