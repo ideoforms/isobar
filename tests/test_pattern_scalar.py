@@ -39,7 +39,7 @@ def test_pmapenumerated():
 
 def test_plinlin():
     a = iso.PSequence([4, 5, 1, -2, 1, -1.5], 1)
-    b = iso.PLinLin(a, 0, 10, 100, 200)
+    b = iso.PScaleLinLin(a, 0, 10, 100, 200)
     assert list(b) == [140, 150, 110, 80, 110, 85]
 
 def test_plinexp():

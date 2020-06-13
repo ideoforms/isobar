@@ -95,6 +95,8 @@ Pattern classes:
     PDict               - Construct a pattern from a dict of arrays, or an array of dicts.
     PDictKey            - Request a specified key from a dictionary.
     PConcatenate        - Concatenate the output of multiple sequences.
+    PAbs                - Absolute value of <input>
+    PInt                - Integer value of <input>
     PAdd                - Add elements of two patterns (shorthand: patternA + patternB)
     PSub                - Subtract elements of two patterns (shorthand: patternA - patternB)
     PMul                - Multiply elements of two patterns (shorthand: patternA * patternB)
@@ -108,13 +110,13 @@ Pattern classes:
     SCALAR (scalar.py)
     PChanged            - Outputs a 1 if the value of a pattern has changed.
     PDiff               - Outputs the difference between the current and previous values of an input pattern
-    PAbs                - Absolute value of <input>
-    PNorm               - Normalise <input> to [0..1].
+    PNormalise          - Adaptively normalise <input> to [0..1] over a linear scale.
     PMap                - Apply an arbitrary function to an input pattern.
     PMapEnumerated      - Apply arbitrary function to input, passing a counter.
     PLinLin             - Map <input> from linear range [a,b] to linear range [c,d].
     PLinExp             - Map <input> from linear range [a,b] to exponential range [c,d].
     PRound              - Round <input> to N decimal places.
+    PScalar             - Reduce tuples and lists into single scalar values,
     PWrap               - Wrap input note values within <min>, <max>.
     PIndexOf            - Find index of items from <pattern> in <list>
 
@@ -129,7 +131,6 @@ Pattern classes:
     PStutter            - Play each note of <pattern> <count> times.
     PSubsequence        - Returns a finite subsequence of an input pattern.
     PReverse            - Reverses a finite sequence.
-    PDelay              - Outputs the next value of patternA after patternB ticks
     PReset              - Resets <pattern> each time it receives a zero-crossing from
     PCounter            - Increments a counter by 1 for each zero-crossing in <trigger>.
     PCollapse           - Skip over any rests in <input>
@@ -146,7 +147,7 @@ Pattern classes:
     PBrown              - Brownian noise, beginning at <value>, step +/-<step>.
     PWalk               - Random walk around list.
     PChoice             - Random selection from <values>
-    PWChoice            - Random selection from <values>, weighted by <weights>.
+    PWeightedChoice     - Random selection from <values>, weighted by <weights>.
     PShuffle            - Shuffled list.
     PShuffleEvery       - Every <n> steps, take <n> values from <pattern> and reorder.
     PSkip               - Skip events with some probability, 1 - <play>.
@@ -160,8 +161,8 @@ Pattern classes:
     PMidiToFrequency    - Map MIDI note to frequency value.
 
     STATIC (static.py)
+    PStaticGlobal       - Static global value identified by a string, with OSC listener.
     PStaticTimeline     - Returns the position (in beats) of the current timeline.
-    PStaticGlobal       - Static global value identified by a string, with OSC listener
 
     FADE (fade.py)
     PFadeNotewise       - Fade a pattern in/out by introducing notes at a gradual rate.

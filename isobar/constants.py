@@ -45,6 +45,8 @@ EVENT_OSC_PARAMS = "params"
 EVENT_VALUE = "value"
 EVENT_TIME = "time"
 EVENT_FUNCTION = "function"
+EVENT_PATCH = "patch"
+EVENT_PATCH_PARAMS = "patch-params"
 
 #------------------------------------------------------------------------
 # Event types

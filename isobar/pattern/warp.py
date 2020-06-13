@@ -82,8 +82,8 @@ class PWRallantando(PWarp):
         rv = self.value
 
         #------------------------------------------------------------------------
-        # need to round or we might succumb to the dreaded python rounding
-        # error (eg 0.99999 < 0 when multiplying 1/24.0 by 24)
+        # Need to round to avoid Python rounding errors
+        # (eg 0.99999 < 1 when multiplying 1/24.0 by 24)
         #------------------------------------------------------------------------
         if round(self.pos, 8) >= round(self.length_cur, 8):
             self.value = 1.0
@@ -98,8 +98,6 @@ class PWRallantando(PWarp):
 
         self.pos += 1.0 / TICKS_PER_BEAT
         self.value = self.value * self.dv
-        #------------------------------------------------------------------------
-        # subtract 
-        #------------------------------------------------------------------------
+
         rv = math.log(rv, 2)
         return rv

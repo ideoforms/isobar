@@ -1,4 +1,4 @@
-from .util import midi_pitch_to_note_name
+from .util import midi_note_to_note_name
 
 class Note(object):
     names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
@@ -12,7 +12,7 @@ class Note(object):
         if self.velocity == 0:
             return "rest"
 
-        return midi_pitch_to_note_name(self.midinote)
+        return midi_note_to_note_name(self.midinote)
 
     @staticmethod
     def all():

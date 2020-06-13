@@ -49,7 +49,7 @@ def wnchoice(array, weights):
     index = wnindex(weights)
     return array[index]
 
-def note_name_to_midi_pitch(name):
+def note_name_to_midi_note(name):
     """ Maps a MIDI note name (D3, C#6) to a value.
     Assumes that middle C is C4. """
     if name[-1].isdigit():
@@ -65,7 +65,7 @@ def note_name_to_midi_pitch(name):
 
     return octave * 12 + index
 
-def midi_pitch_to_note_name(note):
+def midi_note_to_note_name(note):
     """
     Maps a MIDI note index to a note name.
     Supports fractional pitches.
@@ -82,7 +82,7 @@ def midi_pitch_to_note_name(note):
 
     return str
 
-def midi_pitch_to_frequency(note):
+def midi_note_to_frequency(note):
     """ Maps a MIDI note index to a frequency. """
     return 440.0 * pow(2, (note - 69.0) / 12)
 

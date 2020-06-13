@@ -25,7 +25,7 @@ class PChanged(Pattern):
 class PDiff(Pattern):
     """ PDiff: Outputs the difference between the current and previous values of an input pattern
         If the current or next value are None, a value of None will be output.
-        The length of the output patter is always 1 less than the length of the input.
+        The length of the output pattern is always 1 less than the length of the input.
         """
 
     def __init__(self, source):
@@ -45,9 +45,11 @@ class PDiff(Pattern):
         self.current = next
         return rv
 
-class PNorm(Pattern):
-    """ PNorm: Normalise <input> to [0..1].
+class PNormalise(Pattern):
+    """ PNormalise: Adaptively normalise <input> to [0..1] over a linear scale.
         Use maximum and minimum values found in history.
+
+        If you know the output range ahead of time, use `PScaleLinLin`.
         """
 
     def __init__(self, input):
@@ -129,10 +131,10 @@ class PMapEnumerated(PMap):
         rv = self.operator(next(self.counter), value, *args, **kwargs)
         return rv
 
-class PLinLin(PMap):
+class PScaleLinLin(PMap):
     """ PLinLin: Map <input> from linear range [a,b] to linear range [c,d].
 
-        >>> p = PLinLin(PWhite(), 0, 1, -50, 50)
+        >>> p = PScaleLinLin(PWhite(), 0, 1, -50, 50)
         >>> p.nextn(16)
         [-34.434991496625955, -33.38823791706497, 42.153457333940267, 16.692545937573783, ... -48.850511242044604 ]
         """
@@ -144,10 +146,10 @@ class PLinLin(PMap):
     def __init__(self, input, *args):
         PMap.__init__(self, input, self.linlin, *args)
 
-class PLinExp(PMap):
+class PScaleLinExp(PMap):
     """ PLinExp: Map <input> from linear range [a,b] to exponential range [c,d].
 
-        >>> p = PLinExp(PWhite(0.0, 1.0), 0, 1, 40, 20000)
+        >>> p = PScaleLinExp(PWhite(0.0, 1.0), 0, 1, 40, 20000)
         >>> p.nextn(16)
         [946.888, 282.944, 2343.145, 634.637, 218.844, 19687.330, 4457.627, 172.419, 934.666, ... 46.697 ]
         """

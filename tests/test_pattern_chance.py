@@ -20,7 +20,7 @@ def test_pbrown():
     assert a.nextn(10) == [0.0, 0.9655709520753062, 1.0, 1.0, 0.6202951386386653, 1.0, 1.0, 1.0, 0.9442854309054267, 0.1456878470421583]
 
 def test_pwalk():
-    a = iso.PWalk([ 0, 2, 4, 5, 12 ], min=iso.PConstant(1), max=iso.PConstant(2))
+    a = iso.PRandomWalk([0, 2, 4, 5, 12], min=iso.PConstant(1), max=iso.PConstant(2))
     assert a.nextn(20) == [4, 0, 5, 0, 4, 5, 2, 4, 12, 5, 12, 4, 2, 5, 12, 4, 0, 12, 2, 4]
 
 def test_pchoice():
@@ -28,7 +28,7 @@ def test_pchoice():
     assert a.nextn(20) == [3, 7, 0, 6, 3, 7, 2, 7, 2, 5, 1, 6, 1, 4, 2, 5, 2, 4, 0, 6]
 
 def test_pwchoice():
-    a = iso.PWChoice(iso.PSequence([[ 0, 1, 2, 3], [ 4,5,6,7 ]]), iso.PSequence([[ 1, 0.5, 0.25, 0.1 ]]))
+    a = iso.PWeightedChoice(iso.PSequence([[0, 1, 2, 3], [4, 5, 6, 7]]), iso.PSequence([[1, 0.5, 0.25, 0.1]]))
     assert a.nextn(20) == [2, 5, 0, 4, 0, 4, 1, 4, 0, 5, 2, 4, 0, 5, 1, 4, 2, 7, 1, 6]
 
 def test_pshuffle():

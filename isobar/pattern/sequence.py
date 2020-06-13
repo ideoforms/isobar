@@ -4,7 +4,7 @@ import random
 import itertools
 
 from .core import Pattern
-from ..util import midi_pitch_to_frequency
+from ..util import midi_note_to_frequency
 from ..chord import Chord
 from ..scale import Scale
 from functools import reduce

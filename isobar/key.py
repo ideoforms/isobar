@@ -1,6 +1,6 @@
 from .scale import Scale
 from .note import Note
-from .util import midi_pitch_to_note_name, note_name_to_midi_pitch
+from .util import midi_note_to_note_name, note_name_to_midi_note
 
 import random
 
@@ -10,7 +10,7 @@ class Key:
 
     def __init__(self, tonic=0, scale=Scale.major):
         if type(tonic) == str:
-            tonic = note_name_to_midi_pitch(tonic)
+            tonic = note_name_to_midi_note(tonic)
         if type(scale) == str:
             scale = Scale.byname(scale)
 
@@ -21,7 +21,7 @@ class Key:
         return self.tonic == other.tonic and self.scale == other.scale
 
     def __str__(self):
-        return "key: %s %s" % (midi_pitch_to_note_name(self.tonic)[:-1], self.scale.name)
+        return "key: %s %s" % (midi_note_to_note_name(self.tonic)[:-1], self.scale.name)
 
     def __repr__(self):
         return 'Key(%s, "%s")' % (self.tonic, self.scale.name)

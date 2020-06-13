@@ -40,6 +40,10 @@ class PBrown(Pattern):
     """ PBrown: Brownian noise, beginning at <value>, step +/-<step>.
                 Set <repeats> to False to prevent repeating the same note
                 consecutively.
+
+                If initial value and step are floats, the output is a float pattern.
+                If initial value and step are ints, the output is an int pattern,
+                with min <= values <= max.
         """
 
     def __init__(self, initial_value=0, step=0.1, min=-sys.maxsize, max=sys.maxsize):
@@ -78,11 +82,11 @@ class PBrown(Pattern):
         return rv
 
 
-class PWalk(Pattern):
+class PRandomWalk(Pattern):
     """ PWalk: Random walk around list.
                Jumps between <min> and <max> steps inclusive.
 
-        >>> PWalk([ 0, 2, 5, 8, 11 ], min=1, max=2).nextn(16)
+        >>> PRandomWalk([ 0, 2, 5, 8, 11 ], min=1, max=2).nextn(16)
         [8, 11, 0, 8, 0, 11, 2, 11, 2, 0, 5, 8, 11, 8, 5, 8]
         """
 
@@ -137,12 +141,12 @@ class PChoice(Pattern):
         vvalues = Pattern.value(self.values)
         return random.choice(vvalues)
 
-class PWChoice(Pattern):
-    """ PWChoice: Random selection from <values>, weighted by <weights>.
+class PWeightedChoice(Pattern):
+    """ PWeightedChoice: Random selection from <values>, weighted by <weights>.
                   <weights> and <values> must be the same length, but not
                   necessarily normalised.
 
-        >>> p = PWChoice([ 1, 11, 111 ], [ 8, 2, 1 ])
+        >>> p = PWeightedChoice([ 1, 11, 111 ], [ 8, 2, 1 ])
         >>> p.nextn(16)
         [111, 1, 1, 111, 1, 1, 1, 1, 1, 1, 1, 11, 1, 1, 1, 1]
         """
