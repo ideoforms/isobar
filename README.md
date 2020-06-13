@@ -75,9 +75,20 @@ distribution:
 
 ## Classes
 
-Top-level classes: [Chord](isobar/chord.py), [Key](isobar/key.py), [Scale](isobar/scale.py), [Timeline](isobar/timeline.py), [Clock](isobar/clock.py)
+Top-level classes:
 
-I/O classes: [MIDI](isobar/io/midi), [MIDIFile](isobar/io/midifile), [OSC](isobar/io/osc), [SocketIO](isobar/io/socketio)
+* [Chord](isobar/chord.py)
+* [Key](isobar/key.py)
+* [Scale](isobar/scale.py)
+* [Timeline](isobar/timeline.py)
+* [Clock](isobar/clock.py)
+
+I/O classes:
+
+* [MIDI](isobar/io/midi)
+* [MIDIFile](isobar/io/midifile)
+* [OSC](isobar/io/osc)
+* [SocketIO](isobar/io/socketio)
 
 ### Pattern classes:
 
