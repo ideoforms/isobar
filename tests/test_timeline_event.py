@@ -156,7 +156,7 @@ def test_event_action(dummy_timeline):
     dummy_timeline.event_times = []
 
     def increment_counter():
-        dummy_timeline.event_times.append(dummy_timeline.beats)
+        dummy_timeline.event_times.append(dummy_timeline.current_time)
         if len(dummy_timeline.event_times) >= 5:
             raise StopIteration
 

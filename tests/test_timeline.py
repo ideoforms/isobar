@@ -7,7 +7,7 @@ from . import dummy_timeline
 
 def test_timeline_tempo():
     timeline = iso.Timeline(100)
-    assert timeline.clock.tempo == pytest.approx(100)
+    assert timeline.clock_source.tempo == pytest.approx(100)
 
 def test_timeline_default_output_device():
     timeline = iso.Timeline()
@@ -29,12 +29,12 @@ def test_timeline_stop_when_done():
     timeline = iso.Timeline()
     with pytest.raises(StopIteration):
         timeline.tick()
-    assert timeline.beats == 0.0
+    assert timeline.current_time == 0.0
 
     # When stop_when_done is False, ticking should run as normal
     timeline.stop_when_done = False
     timeline.tick()
-    assert timeline.beats == pytest.approx(1.0 / iso.TICKS_PER_BEAT)
+    assert timeline.current_time == pytest.approx(1.0 / iso.TICKS_PER_BEAT)
 
 def test_timeline_schedule(dummy_timeline):
     dummy_timeline.schedule({
@@ -70,7 +70,7 @@ def test_timeline_schedule_real_clock():
 def test_timeline_schedule_quantize_delay(dummy_timeline, quantize, delay):
     dummy_timeline.stop_when_done = False
     dummy_timeline.tick()
-    initial_time = dummy_timeline.beats
+    initial_time = dummy_timeline.current_time
     dummy_timeline.schedule({
         iso.EVENT_NOTE: iso.PSequence([1], 1)
     }, quantize=quantize, delay=delay)
@@ -95,10 +95,10 @@ def test_timeline_reset(dummy_timeline):
     })
     for n in range(int(0.5 / dummy_timeline.tick_duration)):
         dummy_timeline.tick()
-    assert dummy_timeline.beats == pytest.approx(0.5)
+    assert dummy_timeline.current_time == pytest.approx(0.5)
     assert track.current_time == pytest.approx(0.5)
     dummy_timeline.reset()
-    assert dummy_timeline.beats == 0.0
+    assert dummy_timeline.current_time == 0.0
     assert track.current_time == 0.0
     dummy_timeline.run()
     assert len(dummy_timeline.output_device.events) == 2
@@ -106,6 +106,10 @@ def test_timeline_reset(dummy_timeline):
     assert dummy_timeline.output_device.events[1] == [pytest.approx(1.5), "note_off", 1, 0]
 
 def test_timeline_reset_to_beat(dummy_timeline):
+    # TODO
+    pass
+
+def test_timeline_background(dummy_timeline):
     # TODO
     pass
 

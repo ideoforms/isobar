@@ -62,9 +62,9 @@ class PStaticSequence(Pattern):
     def __next__(self):
         timeline = self.timeline
         if self.start is None:
-            self.start = round(timeline.beats, 5)
+            self.start = round(timeline.current_time, 5)
 
-        now = round(timeline.beats, 5)
+        now = round(timeline.current_time, 5)
         if now - self.start >= self.duration:
             self.sequence.pop(0)
             self.start = now
@@ -82,12 +82,12 @@ class PStaticPattern(Pattern):
 
     def __next__(self):
         timeline = self.timeline
-        current_time = round(timeline.beats, 5)
+        current_time = round(timeline.current_time, 5)
         if self.current_element_start_time is None or \
             current_time - self.current_element_start_time >= self.current_element_duration:
 
             self.value = Pattern.value(self.pattern)
-            self.current_element_start_time = round(timeline.beats, 5)
+            self.current_element_start_time = round(timeline.current_time, 5)
             self.current_element_duration = Pattern.value(self.element_duration)
 
         return self.value
@@ -134,10 +134,10 @@ class PStaticCurrentTime(Pattern):
     def get_beats(self):
         #------------------------------------------------------------------------
         # using the specified timeline (if given) or the currently-embedded
-        # timeline (otherwise), return the current position in beats.
+        # timeline (otherwise), return the current position in current_time.
         #------------------------------------------------------------------------
         timeline = self.given_timeline if self.given_timeline else self.timeline
         if timeline:
-            return timeline.beats
+            return timeline.current_time
 
         return 0

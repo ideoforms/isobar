@@ -1,6 +1,6 @@
 import sys
 import math
-import _thread
+import threading
 import traceback
 
 import isobar.io
@@ -23,7 +23,7 @@ class Timeline(object):
     def __init__(self, tempo=DEFAULT_CLOCK_RATE, output_device=None, clock_source=None):
         """ Expect to receive one tick per beat, generate events at 120bpm """
         self.tick_duration = 1.0 / TICKS_PER_BEAT
-        self.beats = 0
+        self.current_time = 0
         self.output_devices = [output_device] if output_device else []
         self.tracks = []
         self.max_tracks = 0
@@ -63,7 +63,7 @@ class Timeline(object):
         # Round to several decimal places to avoid 7.999999999 syndrome.
         # http://docs.python.org/tutorial/floatingpoint.html
         #--------------------------------------------------------------------------------
-        if round(self.beats, 8) % 1 == 0:
+        if round(self.current_time, 8) % 1 == 0:
             log.debug("--------------------------------------------------------------------------------")
             log.debug("Tick (%d active tracks, %d pending events)" % (len(self.tracks), len(self.events)))
 
@@ -81,7 +81,7 @@ class Timeline(object):
             # Round to work around rounding errors.
             # http://docs.python.org/tutorial/floatingpoint.html
             #--------------------------------------------------------------------------------
-            if round(event[EVENT_TIME], 8) <= round(self.beats, 8):
+            if round(event[EVENT_TIME], 8) <= round(self.current_time, 8):
                 event[EVENT_FUNCTION]()
                 self.events.remove(event)
 
@@ -108,7 +108,7 @@ class Timeline(object):
         #--------------------------------------------------------------------------------
         # Increment beat count according to our current tick_length.
         #--------------------------------------------------------------------------------
-        self.beats += self.tick_duration
+        self.current_time += self.tick_duration
 
     def dump(self):
         """ Output a summary of this Timeline object
@@ -127,19 +127,21 @@ class Timeline(object):
         """ Reset our timer to the last beat.
         Useful when a MIDI Stop/Reset message is received. """
 
-        self.beats = round(self.beats)
+        self.current_time = round(self.current_time)
         for tracks in self.tracks:
             tracks.reset_to_beat()
 
     def reset(self):
         """ Reset our timeline to t = 0. """
-        self.beats = 0.0
+        self.current_time = 0.0
         for track in self.tracks:
             track.reset()
 
     def background(self):
         """ Run this Timeline in a background thread. """
-        self.thread = _thread.start_new_thread(self.run, ())
+        self.thread = threading.Thread(target=self.run)
+        self.thread.setDaemon(True)
+        self.thread.start()
 
     def run(self, high_priority=True, stop_when_done=None):
         """ Run this Timeline in the foreground.
@@ -255,9 +257,9 @@ class Timeline(object):
             # We don't want to begin events right away -- either wait till
             # the next beat boundary (quantize), or delay a number of beats.
             #--------------------------------------------------------------------------------
-            scheduled_time = self.beats
+            scheduled_time = self.current_time
             if quantize:
-                scheduled_time = quantize * math.ceil(float(self.beats) / quantize)
+                scheduled_time = quantize * math.ceil(float(self.current_time) / quantize)
             scheduled_time += delay
 
             self.events.append({
