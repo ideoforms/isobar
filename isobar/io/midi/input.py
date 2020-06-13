@@ -10,7 +10,11 @@ log = logging.getLogger(__name__)
 
 class MidiIn:
     def __init__(self, device_name=None):
-        self.midi = mido.open_input(device_name, callback=self.callback)
+        try:
+            self.midi = mido.open_input(device_name, callback=self.callback)
+        except RuntimeError:
+            raise DeviceNotFoundException("Could not find MIDI device")
+
         self.clock_target = None
         self.queue = queue.Queue()
         self.estimated_tempo = None

@@ -14,7 +14,10 @@ class MidiOut (OutputDevice):
             device_name (str): The name of the target device to use.
                                If not specified, uses the system default.
         """
-        self.midi = mido.open_output(device_name)
+        try:
+            self.midi = mido.open_output(device_name)
+        except RuntimeError:
+            raise DeviceNotFoundException("Could not find MIDI device")
         self.clock_target = clock_target
         log.info("Opened MIDI output: %s" % self.midi.name)
 
