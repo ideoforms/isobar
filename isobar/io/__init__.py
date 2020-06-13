@@ -6,4 +6,5 @@ from .midi import MidiIn, MidiOut
 from .midifile import MidiFileIn, MidiFileOut, PatternWriterMIDI
 from .osc import OSCOut
 from .socketio import SocketIOOut
+from .signalflow import SignalflowOutputDevice
 from .midinote import MidiNote

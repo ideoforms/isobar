@@ -56,6 +56,7 @@ EVENT_TYPE_NOTE = 1
 EVENT_TYPE_CONTROL = 2
 EVENT_TYPE_OSC = 3
 EVENT_TYPE_ACTION = 4
+EVENT_TYPE_PATCH = 5
 
 #------------------------------------------------------------------------
 # Default parameter values

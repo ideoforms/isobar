@@ -1,6 +1,6 @@
 from .core import Pattern
 from ..scale import Scale
-
+from ..util import midi_note_to_frequency
 
 class PDegree(Pattern):
     """ PDegree: Map scale index <degree> to MIDI notes in <scale>.
@@ -58,13 +58,13 @@ class PNearest(Pattern):
         key = Pattern.value(self.key)
         return key.nearest_note(note)
 
-class PMidiToFrequency(Pattern):
-    """ PMidiToFrequency: Map MIDI note to frequency value.
+class PMidiNoteToFrequency(Pattern):
+    """ PMidiNoteToFrequency: Map MIDI note to frequency value.
         """
 
-    def __init__(self, note):
-        self.note = note
+    def __init__(self, input):
+        self.input = input
 
     def __next__(self):
-        note = Pattern.value(self.note)
-        return midi_pitch_to_frequency(note)
+        note = Pattern.value(self.input)
+        return midi_note_to_frequency(note)

@@ -5,12 +5,13 @@ from ..pattern import Pattern
 from ..key import Key
 from ..scale import Scale
 from ..constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_TRANSPOSE, \
-    EVENT_CHANNEL, EVENT_GATE, EVENT_EVENT, EVENT_DEGREE, \
+    EVENT_CHANNEL, EVENT_GATE, EVENT_DEGREE, \
     EVENT_OCTAVE, EVENT_KEY, EVENT_SCALE, EVENT_VALUE, EVENT_ACTION_OBJECT, EVENT_CONTROL, \
-    EVENT_ACTION, EVENT_OSC_ADDRESS, EVENT_OSC_PARAMS, EVENT_TYPE
+    EVENT_ACTION, EVENT_OSC_ADDRESS, EVENT_OSC_PARAMS, EVENT_TYPE, EVENT_PATCH, EVENT_PATCH_PARAMS
 from ..constants import DEFAULT_EVENT_TRANSPOSE, DEFAULT_EVENT_AMPLITUDE, \
     DEFAULT_EVENT_CHANNEL, DEFAULT_EVENT_DURATION, DEFAULT_EVENT_GATE, DEFAULT_EVENT_OCTAVE
-from ..constants import EVENT_TYPE_UNKNOWN, EVENT_TYPE_NOTE, EVENT_TYPE_ACTION, EVENT_TYPE_OSC, EVENT_TYPE_CONTROL
+from ..constants import EVENT_TYPE_UNKNOWN, EVENT_TYPE_NOTE, EVENT_TYPE_ACTION, EVENT_TYPE_OSC, EVENT_TYPE_CONTROL, \
+    EVENT_TYPE_PATCH
 from ..exceptions import InvalidEventException
 import logging
 
@@ -149,6 +150,8 @@ class Track:
         #----------------------------------------------------------------------
         if EVENT_ACTION in values:
             values[EVENT_TYPE] = EVENT_TYPE_ACTION
+        elif EVENT_PATCH in values:
+            values[EVENT_TYPE] = EVENT_TYPE_PATCH
         elif EVENT_CONTROL in values:
             values[EVENT_TYPE] = EVENT_TYPE_CONTROL
         elif EVENT_OSC_ADDRESS in values:
@@ -192,6 +195,13 @@ class Track:
         #------------------------------------------------------------------------
         elif values[EVENT_TYPE] == EVENT_TYPE_OSC:
             self.output_device.send(values[EVENT_OSC_ADDRESS], values[EVENT_OSC_PARAMS])
+
+        elif values[EVENT_TYPE] == EVENT_TYPE_PATCH:
+            if not hasattr(self.output_device, "create"):
+                raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
+            params = values[EVENT_PATCH_PARAMS] if EVENT_PATCH_PARAMS in values else None
+            params = dict((key, Pattern.value(value)) for key, value in params.items())
+            self.output_device.create(values[EVENT_PATCH], params)
 
         elif values[EVENT_TYPE] == EVENT_TYPE_NOTE:
             #----------------------------------------------------------------------
