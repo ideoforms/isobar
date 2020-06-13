@@ -2,15 +2,18 @@
 
 ![ci](https://github.com/ideoforms/isobar/workflows/ci/badge.svg)
 
-isobar is a Python library for expressing and constructing musical patterns, designed for use in algorithmic composition. It allows for concise construction, manipulation and transposition of sequences, supporting scalar operations on lazy patterns.
+isobar is a Python library for creating and manipulating musical patterns, designed for use in algorithmic composition, generative music and sonification. It makes it quick and easy to express complex musical ideas, and can send and receive events from various different sources: MIDI, OSC, SocketIO, and .mid files.
 
-Output can be sent via MIDI, OSC or SocketIO, or written to a .mid file. Input can be taken via MIDI, and patterns can be read from a .mid file.
+The core element is a Timeline, which can control its own tempo or sync to an external clock. Onto this, you can schedule Patterns, which can be note sequences, control events, program changes, or other arbitrary events via lambda functions.
 
-Timing can be synchronised with an external MIDI clock, or generated internally. For fluid control over timings, the internal clock can also be warped by patterns subclassing the `PWarp` class; for example, a `PWRallantando` can be used to generate a gradual decrease in tempo.
+isobar includes a large array of basic compositional building blocks (see below), plus some advanced pattern generators for more sophisticated operations:
 
-Classes are included for more sophisticated operations. `PLSystem` can be used to generate patterns based on the formal grammars of [Lindenmayer Systems](http://en.wikipedia.org/wiki/L-system); `PMarkov` generates first-order Markov chains, accompanied by `MarkovLearner` to build a statistical model from an input pattern (or MIDI input). Numerous pattern generators for chance operations are defined in [pattern/chance.py](isobar/pattern/chance.py).
-
-Most of the major parts of isobar are subclasses of `Pattern`, which implement's Python's iterator protocol. The `next()` method is called to generate the subsequent item in a pattern, with the `StopIteration` exception raised when a pattern is exhausted. Builtins such as `list()`, `sorted()` and `itertools` can thus be used to process the output of a `Pattern`.
+ - `PLSystem` can be used to generate patterns based on the branching grammars of [L-systems](http://en.wikipedia.org/wiki/L-system)
+ - `PMarkov` generates first-order Markov chains, and can learn patterns from MIDI input via `MarkovLearner`
+ - `PArpeggiator` has various arpeggio patterns
+ - plus lots of pattern generators for chance operations are defined in [pattern/chance.py](isobar/pattern/chance.py)
+ 
+isobar's `Pattern` classes are based on Python's simple iterator protocol. Call `next()` to generate the subsequent item in a pattern, with the `StopIteration` exception raised when a pattern is exhausted. Builtins such as `list()`, `sorted()` and `itertools` can thus be used to process the output of a `Pattern`, and you can easily create patterns based on other numerical data sources: CSV files via `csv`, data analysis via `numpy`, live sensor readings, etc.
 
 # Usage
 
@@ -185,7 +188,7 @@ Pattern classes:
 
 ## Background
 
-isobar was first designed for the generative sound installation [Variable 4](http://www.variable4.org.uk), in which it was used to generate musical structures in response to changing weather conditions. It was more recently used as the backbone of [The Listening Machine](http://www.thelisteningmachine.org/), taking live input from Twitter and generating musical output from language patterns, streamed live over the internet.
+isobar was first designed for the generative sound installation [Variable 4](http://www.variable4.org.uk), in which it was used to generate musical structures in response to changing weather conditions. It was more recently used in [The Listening Machine](http://www.thelisteningmachine.org/), taking live input from Twitter and generating musical output from language patterns, streamed live over the internet.
 
-Many of the concepts behind Pattern and its subclasses are inspired by the excellent pattern library of the [SuperCollider](http://supercollider.sf.net) synthesis language.
+Many of the concepts behind Pattern and its subclasses are inspired by the brilliant pattern library of the [SuperCollider](http://supercollider.sf.net) synthesis language.
 
