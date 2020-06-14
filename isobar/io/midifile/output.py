@@ -18,6 +18,10 @@ class MidiFileOut (OutputDevice):
         self.time = 0
         self.last_event_time = 0
 
+    @property
+    def ticks_per_beat(self):
+        return self.midifile.ticks_per_beat
+
     def tick(self, tick_duration):
         self.time += tick_duration
 

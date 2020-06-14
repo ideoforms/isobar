@@ -1,5 +1,4 @@
 from .core import Pattern
-from ..constants import TICKS_PER_BEAT
 
 import math
 
@@ -26,8 +25,9 @@ class PWInterpolate(PWarp):
 
         #------------------------------------------------------------------------
         # keep ticking until we have reached our period (length, in beats)
+        # TODO: querying self.timeline is very inefficient, find a better way
         #------------------------------------------------------------------------
-        self.pos += 1.0 / TICKS_PER_BEAT
+        self.pos += self.timeline.tick_duration
         if self.pos >= self.length:
             self.pos = 0
             self.target = next(self.pattern)
@@ -37,7 +37,7 @@ class PWInterpolate(PWarp):
             # dv is used for linear interpolation until the next target reached.
             #------------------------------------------------------------------------
             length = Pattern.value(self.length)
-            self.dv = (self.target - self.value) / (TICKS_PER_BEAT * length)
+            self.dv = (self.target - self.value) / (self.timeline.ticks_per_beat * length)
 
         self.value = self.value + self.dv
 
@@ -54,7 +54,7 @@ class PWSine(PWarp):
         self.pos = 0.0
 
     def __next__(self):
-        self.pos += 1.0 / TICKS_PER_BEAT
+        self.pos += self.timeline.tick_duration
         if self.pos > self.length:
             self.pos -= self.length
 
@@ -93,10 +93,10 @@ class PWRallantando(PWarp):
             amp_cur = Pattern.value(self.amp)
             rate_start = 1.0
             rate_end = 1.0 + amp_cur
-            steps = TICKS_PER_BEAT * self.length_cur
+            steps = self.timeline.ticks_per_beat * self.length_cur
             self.dv = math.exp(math.log(rate_end / rate_start) / steps)
 
-        self.pos += 1.0 / TICKS_PER_BEAT
+        self.pos += self.timeline.tick_duration
         self.value = self.value * self.dv
 
         rv = math.log(rv, 2)

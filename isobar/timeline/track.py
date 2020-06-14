@@ -18,7 +18,7 @@ import logging
 log = logging.getLogger(__name__)
 
 class Track:
-    def __init__(self, events={}, timeline=None, output_device=None):
+    def __init__(self, events, timeline, output_device=None):
         #----------------------------------------------------------------------
         # evaluate in case we have a pattern which gives us an event
         # eg: PSeq([ { EVENT_NOTE : 20, EVENT_DURATION : 0.5 }, { EVENT_NOTE : 50, EVENT_DURATION : PWhite(0, 2) } ])
@@ -39,6 +39,10 @@ class Track:
 
     def __str__(self):
         return "Track (pos = %d)" % self.current_time
+
+    @property
+    def tick_duration(self):
+        return self.timeline.tick_duration
 
     def init_events(self, events):
         events.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
@@ -62,7 +66,13 @@ class Track:
 
         self.events = events
 
-    def tick(self, tick_duration):
+    def tick(self):
+        """
+        Step forward one tick.
+
+        Args:
+            tick_duration (float): Duration, in beats.
+        """
         #----------------------------------------------------------------------
         # process note_offs before we play the next note, else a repeated note
         # with gate = 1.0 will immediately be cancelled.
@@ -85,7 +95,7 @@ class Track:
             if len(self.note_offs) == 0:
                 self.is_finished = True
 
-        self.current_time += tick_duration
+        self.current_time += self.tick_duration
 
     def reset_to_beat(self):
         self.current_time = round(self.current_time)
@@ -215,7 +225,7 @@ class Track:
         elif values[EVENT_TYPE] == EVENT_TYPE_PATCH:
             if not hasattr(self.output_device, "create"):
                 raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
-            params = values[EVENT_PATCH_PARAMS] if EVENT_PATCH_PARAMS in values else None
+            params = values[EVENT_PATCH_PARAMS] if EVENT_PATCH_PARAMS in values else {}
             params = dict((key, Pattern.value(value)) for key, value in params.items())
             self.output_device.create(values[EVENT_PATCH], params)
 

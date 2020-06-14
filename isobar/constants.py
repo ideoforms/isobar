@@ -1,11 +1,11 @@
 import sys
 
 #------------------------------------------------------------------------
-# Determines how fine-grained our clocking is -- events can't be
-# scheduled any faster than this. 24 ticks per beat is identical
-# to MIDI clocking.
+# Determines how frequently clock ticks are processed.
+# At 120bpm, 24 ticks per beat means that events are processed every
+# 82ms.
 #------------------------------------------------------------------------
-TICKS_PER_BEAT = 24
+DEFAULT_TICKS_PER_BEAT = 96
 
 #------------------------------------------------------------------------
 # Used when scheduling neverending events.
@@ -15,7 +15,7 @@ FOREVER = sys.maxsize
 #------------------------------------------------------------------------
 # Default BPM
 #------------------------------------------------------------------------
-DEFAULT_CLOCK_RATE = 120
+DEFAULT_TEMPO = 120
 
 #------------------------------------------------------------------------
 # Very fast clock rate, used for quickly running through a timeline.

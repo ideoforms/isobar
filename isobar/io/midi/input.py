@@ -9,12 +9,14 @@ from ...exceptions import DeviceNotFoundException
 
 log = logging.getLogger(__name__)
 
+MIDI_CLOCK_TICKS_PER_BEAT = 24
+
 class MidiIn:
-    def __init__(self, device_name=None, clock_target=None):
+    def __init__(self, device_name=None, clock_target=None, virtual=False):
         if device_name is None:
             device_name = os.getenv("ISOBAR_DEFAULT_MIDI_IN")
         try:
-            self.midi = mido.open_input(device_name, callback=self.callback)
+            self.midi = mido.open_input(device_name, callback=self.callback, virtual=virtual)
         except (RuntimeError, SystemError, OSError):
             raise DeviceNotFoundException("Could not find MIDI device")
 
@@ -52,10 +54,23 @@ class MidiIn:
             if self.clock_target is not None:
                 self.clock_target.tick()
 
-        elif message.type == 'reset':
-            log.info("MIDI reset received")
+        elif message.type == 'start':
+            log.info(" - MIDI: Received start message")
             if self.clock_target is not None:
-                self.clock_target.reset_to_beat()
+                self.clock_target.start()
+
+        elif message.type == 'stop':
+            log.info(" - MIDI: Received stop message")
+            if self.clock_target is not None:
+                self.clock_target.stop()
+
+        elif message.type == 'songpos':
+            log.info(" - MIDI: Received songpos message")
+            if message.pos == 0:
+                if self.clock_target is not None:
+                    self.clock_target.reset()
+            else:
+                log.warning("MIDI song position message received, but MIDI input cannot seek to arbitrary position")
 
         elif message.type == 'note_on' or message.type == 'control':
             self.queue.put(message)
@@ -70,6 +85,10 @@ class MidiIn:
     @property
     def tempo(self):
         return self.estimated_tempo
+
+    @property
+    def ticks_per_beat(self):
+        return MIDI_CLOCK_TICKS_PER_BEAT
 
     def receive(self):
         return self.queue.get()

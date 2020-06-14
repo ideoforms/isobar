@@ -7,7 +7,7 @@ import isobar.io
 
 from .track import Track
 from .clock import Clock
-from ..constants import TICKS_PER_BEAT, DEFAULT_CLOCK_RATE
+from ..constants import DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO
 from ..constants import EVENT_TIME, EVENT_FUNCTION
 from ..exceptions import TrackLimitReachedException
 import logging
@@ -20,9 +20,12 @@ class Timeline(object):
     represents a sequence of note or control events.
     """
 
-    def __init__(self, tempo=DEFAULT_CLOCK_RATE, output_device=None, clock_source=None):
+    def __init__(self,
+                 tempo=DEFAULT_TEMPO,
+                 output_device=None,
+                 clock_source=None,
+                 ticks_per_beat=DEFAULT_TICKS_PER_BEAT):
         """ Expect to receive one tick per beat, generate events at 120bpm """
-        self.tick_duration = 1.0 / TICKS_PER_BEAT
         self.current_time = 0
         self.output_devices = [output_device] if output_device else []
         self.tracks = []
@@ -35,7 +38,7 @@ class Timeline(object):
         self.events = []
 
         if clock_source is None:
-            clock_source = Clock(self, 60.0 / (tempo * TICKS_PER_BEAT))
+            clock_source = Clock(self, tempo, ticks_per_beat)
         self.clock_source = clock_source
 
     def get_clock_source(self):
@@ -46,6 +49,21 @@ class Timeline(object):
         self._clock_source = clock_source
 
     clock_source = property(get_clock_source, set_clock_source)
+
+    def get_ticks_per_beat(self):
+        return self.clock_source.ticks_per_beat
+
+    def set_ticks_per_beat(self, ticks_per_beat):
+        self.clock_source.ticks_per_beat = ticks_per_beat
+
+    ticks_per_beat = property(get_ticks_per_beat, set_ticks_per_beat)
+
+    @property
+    def tick_duration(self):
+        """
+        Tick duration, in beats.
+        """
+        return 1.0 / self.ticks_per_beat
 
     @property
     def tempo(self):
@@ -89,7 +107,7 @@ class Timeline(object):
         # Copy self.tracks because removing from it whilst using it = bad idea
         #--------------------------------------------------------------------------------
         for track in self.tracks[:]:
-            track.tick(self.tick_duration)
+            track.tick()
             if track.is_finished:
                 self.tracks.remove(track)
 
@@ -143,26 +161,15 @@ class Timeline(object):
         self.thread.setDaemon(True)
         self.thread.start()
 
-    def run(self, high_priority=True, stop_when_done=None):
+    def run(self, stop_when_done=None):
         """ Run this Timeline in the foreground.
-        By default, attempts to run as a high-priority thread for more
-        accurate timing (though requires being run as root to re-nice the
-        process.)
 
         If stop_when_done is set, returns when no tracks are currently
         scheduled; otherwise, keeps running indefinitely. """
-        log.info("Timeline: Running")
+        self.start()
 
         if stop_when_done is not None:
             self.stop_when_done = stop_when_done
-
-        if high_priority:
-            try:
-                import os
-                os.nice(-20)
-                log.info("Timeline: Running as high-priority thread")
-            except:
-                log.info("Timeline: Standard thread priority (run with sudo for high-priority)")
 
         try:
             #--------------------------------------------------------------------------------
@@ -182,6 +189,9 @@ class Timeline(object):
         except Exception as e:
             print((" *** Exception in background Timeline thread: %s" % e))
             traceback.print_exc(file=sys.stdout)
+
+    def start(self):
+        log.info("Timeline: Starting")
 
     def stop(self):
         log.info("Timeline: Stopping")

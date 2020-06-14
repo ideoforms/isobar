@@ -32,6 +32,13 @@ class MidiFileIn:
                 #------------------------------------------------------------------------
                 # Found a note_on event.
                 #------------------------------------------------------------------------
+
+                #------------------------------------------------------------------------
+                # Sanitisation (some midifiles seem to give invalid input).
+                #------------------------------------------------------------------------
+                if event.velocity > 127:
+                    event.velocity = 127
+
                 offset +=  event.time / midi_reader.ticks_per_beat
                 note = MidiNote(event.note, event.velocity, offset)
                 notes.append(note)
@@ -101,9 +108,10 @@ class MidiFileIn:
                 note_dict[EVENT_AMPLITUDE].append(tuple(note.velocity for note in notes))
                 note_dict[EVENT_GATE].append(tuple(note.duration / time_until_next_note for note in notes))
             else:
-                note = notes[0]
-                note_dict[EVENT_NOTE].append(note.pitch)
-                note_dict[EVENT_AMPLITUDE].append(note.velocity)
-                note_dict[EVENT_GATE].append(note.duration / time_until_next_note)
+                if time_until_next_note:
+                    note = notes[0]
+                    note_dict[EVENT_NOTE].append(note.pitch)
+                    note_dict[EVENT_AMPLITUDE].append(note.velocity)
+                    note_dict[EVENT_GATE].append(note.duration / time_until_next_note)
 
         return note_dict

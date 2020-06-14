@@ -34,7 +34,7 @@ def test_timeline_stop_when_done():
     # When stop_when_done is False, ticking should run as normal
     timeline.stop_when_done = False
     timeline.tick()
-    assert timeline.current_time == pytest.approx(1.0 / iso.TICKS_PER_BEAT)
+    assert timeline.current_time == pytest.approx(1.0 / iso.DEFAULT_TICKS_PER_BEAT)
 
 def test_timeline_schedule(dummy_timeline):
     dummy_timeline.schedule({
