@@ -8,7 +8,7 @@ def test_timeline_clock_accuracy():
     #--------------------------------------------------------------------------------
     # 480 ticks per beat @ 125bpm = 1 tick per 1ms
     #--------------------------------------------------------------------------------
-    timeline = iso.Timeline(125)
+    timeline = iso.Timeline(125, output_device=iso.DummyOutputDevice)
     timeline.ticks_per_beat = 480
     timeline.event_times = []
     timeline.schedule({
@@ -29,7 +29,7 @@ def test_timeline_ticks_per_beat(ticks_per_beat):
     # Schedule a single event
     #--------------------------------------------------------------------------------
     delay_time = 0.1
-    timeline = iso.Timeline(120)
+    timeline = iso.Timeline(120, output_device=iso.DummyOutputDevice)
     timeline.ticks_per_beat = ticks_per_beat
     timeline.event_times = []
     timeline.schedule({
