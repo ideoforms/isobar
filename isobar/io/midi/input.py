@@ -82,9 +82,13 @@ class MidiIn:
         while True:
             time.sleep(0.1)
 
-    @property
-    def tempo(self):
+    def get_tempo(self):
         return self.estimated_tempo
+
+    def set_tempo(self, tempo):
+        raise RuntimeError("Cannot set the tempo of an external clock")
+
+    tempo = property(get_tempo, set_tempo)
 
     @property
     def ticks_per_beat(self):

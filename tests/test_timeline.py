@@ -88,6 +88,18 @@ def test_timeline_schedule_quantize_delay(dummy_timeline, quantize, delay):
         assert dummy_timeline.output_device.events[0] == [pytest.approx(quantize + delay, abs=dummy_timeline.tick_duration), "note_on", 1, 64, 0]
         assert dummy_timeline.output_device.events[1] == [pytest.approx(quantize + delay + 1.0, abs=dummy_timeline.tick_duration), "note_off", 1, 0]
 
+@pytest.mark.parametrize("quantize", [0.0, 0.1, 0.5, 1.0])
+def test_timeline_schedule_quantize_on_beat(dummy_timeline, quantize):
+    # Check that quantized notes are played immediately when scheduled on the beat.
+    dummy_timeline.schedule({
+        iso.EVENT_NOTE: iso.PSequence([1], 1)
+    }, quantize=quantize)
+    dummy_timeline.stop_when_done = True
+    dummy_timeline.run()
+    assert len(dummy_timeline.output_device.events) == 2
+    assert dummy_timeline.output_device.events[0] == [0, "note_on", 1, 64, 0]
+    assert dummy_timeline.output_device.events[1] == [pytest.approx(1.0, abs=dummy_timeline.tick_duration), "note_off", 1, 0]
+
 def test_timeline_reset(dummy_timeline):
     track = dummy_timeline.schedule({
         iso.EVENT_NOTE: iso.PSequence([1], 1),
@@ -126,3 +138,29 @@ def test_timeline_tick_events(dummy_timeline):
     with pytest.raises(StopIteration):
         dummy_timeline.tick()
     assert dummy_timeline.done
+
+def test_timeline_beats_to_seconds(dummy_timeline):
+    timeline = iso.Timeline(120)
+    assert timeline.beats_to_seconds(1) == pytest.approx(0.5)
+    assert timeline.beats_to_seconds(0) == pytest.approx(0.0)
+    timeline.tempo = 180
+    assert timeline.beats_to_seconds(1) == pytest.approx(1/3)
+
+def test_timeline_seconds_to_beats(dummy_timeline):
+    timeline = iso.Timeline(120)
+    assert timeline.seconds_to_beats(1) == pytest.approx(2)
+    assert timeline.seconds_to_beats(0) == pytest.approx(0.0)
+    timeline.tempo = 180
+    assert timeline.seconds_to_beats(1) == pytest.approx(3)
+
+def test_timeline_tempo(dummy_timeline):
+    # Set tempo of internal clock
+    dummy_timeline.clock_source = iso.Clock(120)
+    dummy_timeline.tempo = 180
+    assert dummy_timeline.clock_source.tempo == 180
+
+    # Set tempo of external clock (raise exception)
+    dummy_timeline.clock_source = iso.MidiIn("Virtual Device", virtual=True)
+    assert dummy_timeline.tempo is None
+    with pytest.raises(RuntimeError):
+        dummy_timeline.tempo = 180

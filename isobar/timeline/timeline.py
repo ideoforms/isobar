@@ -65,12 +65,30 @@ class Timeline(object):
         """
         return 1.0 / self.ticks_per_beat
 
-    @property
-    def tempo(self):
+    def get_tempo(self):
         """ Returns the tempo of this timeline's clock, or None if an external
         clock source is used (in which case the tempo is unknown).
         """
         return self.clock_source.tempo
+
+    def set_tempo(self, tempo):
+        """
+        Set the tempo of this timeline's clock.
+        If the timeline uses an external clock, this operation is invalid, and a
+        RuntimeError is raised.
+
+        Args:
+            tempo (float): Tempo, in bpm
+        """
+        self.clock_source.tempo = tempo
+
+    tempo = property(get_tempo, set_tempo)
+
+    def seconds_to_beats(self, seconds):
+        return seconds * self.tempo / 60.0
+
+    def beats_to_seconds(self, beats):
+        return beats * 60.0 / self.tempo
 
     def tick(self):
         """

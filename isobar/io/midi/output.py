@@ -7,7 +7,7 @@ from ...exceptions import DeviceNotFoundException
 log = logging.getLogger(__name__)
 
 class MidiOut (OutputDevice):
-    def __init__(self, device_name=None, send_clock=False):
+    def __init__(self, device_name=None, send_clock=False, virtual=False):
         """
         Create a MIDI output device.
 
@@ -20,7 +20,7 @@ class MidiOut (OutputDevice):
         try:
             if device_name is None:
                 device_name = os.getenv("ISOBAR_DEFAULT_MIDI_OUT")
-            self.midi = mido.open_output(device_name)
+            self.midi = mido.open_output(device_name, virtual=virtual)
         except (RuntimeError, SystemError, OSError):
             raise DeviceNotFoundException("Could not find MIDI device")
         self.send_clock = send_clock
