@@ -20,9 +20,6 @@ class SignalflowOutputDevice (OutputDevice):
         self.graph.start()
         log.info("Opened Signalflow output")
 
-    def tick(self, tick_length):
-        pass
-
     def create(self, patch_spec, patch_params):
         # TODO: patch = sf.Patch(patch_spec, patch_params)
         patch = sf.Patch(patch_spec)

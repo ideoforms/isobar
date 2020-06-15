@@ -251,7 +251,7 @@ class Timeline(object):
     def add_output_device(self, output_device):
         """ Append a new output device to our output list. """
         self.output_devices.append(output_device)
-        self.clock_multipliers[output_device] = make_clock_multiplier(output_device.ticks_per_beat / self.ticks_per_beat)
+        self.clock_multipliers[output_device] = make_clock_multiplier(output_device.ticks_per_beat, self.ticks_per_beat)
 
     def schedule(self, params, quantize=0, delay=0, output_device=None):
         """

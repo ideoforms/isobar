@@ -32,10 +32,8 @@ class Clock:
         self.thread = None
         self.running = False
 
-        clock_multiple = 1.0
-        if self.clock_target and self.clock_target.ticks_per_beat:
-            clock_multiple = self.clock_target.ticks_per_beat / self.ticks_per_beat
-        self.clock_multiplier = make_clock_multiplier(clock_multiple)
+        target_ticks_per_beat = self.clock_target.ticks_per_beat if self.clock_target else ticks_per_beat
+        self.clock_multiplier = make_clock_multiplier(target_ticks_per_beat, self.ticks_per_beat)
 
     def _calculate_tick_duration(self):
         self.tick_duration_seconds = 60.0 / (self.tempo * self.ticks_per_beat)
@@ -68,7 +66,7 @@ class Clock:
     def run(self):
         clock0 = clock1 = time.time() * self.accelerate
         #------------------------------------------------------------------------
-        # allow a tick to elapse before we call tick() for the first time
+        # Allow a tick to elapse before we call tick() for the first time
         # to keep Warp patterns in sync  
         #------------------------------------------------------------------------
         self.running = True
@@ -76,8 +74,12 @@ class Clock:
             if clock1 - clock0 >= (2.0 * self.tick_duration_seconds):
                 log.warning("Clock overflowed!")
 
-            if clock1 - clock0 >= self.tick_duration_seconds:
-                # time for a tick
+            while clock1 - clock0 >= self.tick_duration_seconds:
+                #------------------------------------------------------------------------
+                # Time for a tick.
+                # Use while() because multiple ticks might need to be processed if the
+                # clock has overflowed.
+                #------------------------------------------------------------------------
                 ticks = next(self.clock_multiplier)
                 for tick in range(ticks):
                     self.clock_target.tick()
@@ -88,7 +90,7 @@ class Clock:
                     warp = next(warper)
                     #------------------------------------------------------------------------
                     # map [-1..1] to [0.5, 2]
-                    #  - so -1 doubles our tempo, +1 halves it
+                    #  - so -1 doubles the tempo, +1 halves it
                     #------------------------------------------------------------------------
                     warp = pow(2, warp)
                     self.tick_duration_seconds *= warp

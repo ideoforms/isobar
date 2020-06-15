@@ -9,9 +9,6 @@ class OSCOut (OutputDevice):
         from pythonosc.udp_client import SimpleUDPClient
         self.osc = SimpleUDPClient(host, port)
 
-    def tick(self, tick_length):
-        pass
-
     def note_on(self, note=60, velocity=64, channel=0):
         msg = OSCMessage("/note")
         self.osc.send_message("/note", velocity, channel)

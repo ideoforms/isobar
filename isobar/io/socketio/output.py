@@ -13,9 +13,6 @@ class SocketIOOut (OutputDevice):
         import socketIO_client
         self.socket = socketIO_client.SocketIO(host, port)
 
-    def tick(self, tick_length):
-        pass
-
     def event(self, event):
         # import pprint
         # pprint.pprint(event)
