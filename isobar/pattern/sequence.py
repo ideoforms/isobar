@@ -191,7 +191,10 @@ class PLoop(Pattern):
     def __init__(self, pattern, count=sys.maxsize):
         self.pattern = pattern
         self.count = count
-        self.reset()
+        self.pos = 0
+        self.loop_index = 0
+        self.read_all = False
+        self.values = []
 
     def reset(self):
         super().reset()
