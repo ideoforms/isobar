@@ -85,9 +85,13 @@ def test_pattern_patternify():
     assert next(p) == 1
 
     p = iso.Pattern.pattern([1, 2, 3])
-    assert type(p) is iso.PSequence
-    assert list(p) == [1, 2, 3]
+    assert type(p) is iso.PConstant
+    assert list(next(p)) == [1, 2, 3]
 
     p = iso.Pattern.pattern(None)
     assert type(p) is iso.PConstant
     assert next(p) is None
+
+    p = iso.Pattern.pattern(iso.PSequence([1, 2, 3], 1))
+    assert type(p) is iso.PSequence
+    assert list(p) == [1, 2, 3]
