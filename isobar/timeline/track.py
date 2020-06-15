@@ -6,7 +6,7 @@ from ..key import Key
 from ..scale import Scale
 from ..constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_TRANSPOSE, \
     EVENT_CHANNEL, EVENT_GATE, EVENT_DEGREE, EVENT_PROGRAM_CHANGE, \
-    EVENT_OCTAVE, EVENT_KEY, EVENT_SCALE, EVENT_VALUE, EVENT_ACTION_OBJECT, EVENT_CONTROL, \
+    EVENT_OCTAVE, EVENT_KEY, EVENT_SCALE, EVENT_VALUE, EVENT_ACTION_ARGS, EVENT_CONTROL, \
     EVENT_ACTION, EVENT_OSC_ADDRESS, EVENT_OSC_PARAMS, EVENT_TYPE, EVENT_PATCH, EVENT_PATCH_PARAMS
 from ..constants import DEFAULT_EVENT_TRANSPOSE, DEFAULT_EVENT_AMPLITUDE, \
     DEFAULT_EVENT_CHANNEL, DEFAULT_EVENT_DURATION, DEFAULT_EVENT_GATE, DEFAULT_EVENT_OCTAVE
@@ -187,9 +187,9 @@ class Track:
         #------------------------------------------------------------------------
         if values[EVENT_TYPE] == EVENT_TYPE_ACTION:
             try:
-                if EVENT_ACTION_OBJECT in values:
-                    object = values[EVENT_ACTION_OBJECT]
-                    values[EVENT_ACTION](object)
+                if EVENT_ACTION_ARGS in values:
+                    args = [ Pattern.value(value) for value in values[EVENT_ACTION_ARGS] ]
+                    values[EVENT_ACTION](*args)
                 else:
                     values[EVENT_ACTION]()
             except StopIteration:

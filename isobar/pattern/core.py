@@ -228,13 +228,10 @@ class Pattern:
         to obtain its next value.
         
         Pattern subclasses remain untouched.
-        Lists are turned into PSeq sequences.
         Scalars and other objects are turned into PConst objects. """
 
         if isinstance(v, Pattern):
             return v
-        elif isinstance(v, list):
-            return isobar.PSequence(v, 1)
         else:
             return isobar.PConstant(v)
 
