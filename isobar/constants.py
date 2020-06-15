@@ -8,6 +8,11 @@ import sys
 DEFAULT_TICKS_PER_BEAT = 96
 
 #------------------------------------------------------------------------
+# Ticks per beat used by MIDI devices, as per the MIDI 1.0 standard.
+#------------------------------------------------------------------------
+MIDI_CLOCK_TICKS_PER_BEAT = 24
+
+#------------------------------------------------------------------------
 # Used when scheduling neverending events.
 #------------------------------------------------------------------------
 FOREVER = sys.maxsize

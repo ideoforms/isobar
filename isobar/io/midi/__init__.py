@@ -1,2 +1,4 @@
-from .input import *
-from .output import *
+from .input import MidiIn
+from .output import MidiOut
+
+

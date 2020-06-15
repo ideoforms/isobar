@@ -1,5 +1,6 @@
 import logging
 from ..output import OutputDevice
+from ...constants import DEFAULT_TICKS_PER_BEAT
 
 log = logging.getLogger(__name__)
 
@@ -11,8 +12,12 @@ class DummyOutputDevice(OutputDevice):
         self.current_time = 0.0
         self.events = []
 
-    def tick(self, tick_duration):
-        self.current_time += tick_duration
+    @property
+    def ticks_per_beat(self):
+        return DEFAULT_TICKS_PER_BEAT
+
+    def tick(self):
+        self.current_time += 1.0 / self.ticks_per_beat
 
     def note_on(self, note=60, velocity=64, channel=0):
         self.events.append([round(self.current_time, 8), "note_on", note, velocity, channel])

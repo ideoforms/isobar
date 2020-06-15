@@ -22,8 +22,8 @@ class MidiFileOut (OutputDevice):
     def ticks_per_beat(self):
         return self.midifile.ticks_per_beat
 
-    def tick(self, tick_duration):
-        self.time += tick_duration
+    def tick(self):
+        self.time += 1.0 / self.ticks_per_beat
 
     def note_on(self, note=60, velocity=64, channel=0):
         #------------------------------------------------------------------------

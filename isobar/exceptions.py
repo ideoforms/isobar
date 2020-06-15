@@ -22,6 +22,12 @@ class InvalidMIDIPitch (Exception):
     """
     pass
 
+class ClockException (Exception):
+    """
+    Clocking error.
+    """
+    pass
+
 class UnknownNoteName (Exception):
     """
     MIDI note name cannot be parsed.

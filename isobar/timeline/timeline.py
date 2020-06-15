@@ -9,7 +9,8 @@ from .track import Track
 from .clock import Clock
 from ..constants import DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO
 from ..constants import EVENT_TIME, EVENT_FUNCTION
-from ..exceptions import TrackLimitReachedException
+from ..exceptions import TrackLimitReachedException, ClockException
+from ..util import make_clock_multiplier
 import logging
 
 log = logging.getLogger(__name__)
@@ -26,20 +27,23 @@ class Timeline(object):
                  clock_source=None,
                  ticks_per_beat=DEFAULT_TICKS_PER_BEAT):
         """ Expect to receive one tick per beat, generate events at 120bpm """
-        self.current_time = 0
-        self.output_devices = [output_device] if output_device else []
-        self.tracks = []
-        self.max_tracks = 0
-
         self._clock_source = None
-        self.thread = None
-        self.stop_when_done = True
-
-        self.events = []
-
         if clock_source is None:
             clock_source = Clock(self, tempo, ticks_per_beat)
-        self.clock_source = clock_source
+        self.set_clock_source(clock_source)
+
+        self.output_devices = []
+        self.clock_multipliers = {}
+        if output_device:
+            self.add_output_device(output_device)
+
+        self.current_time = 0
+        self.max_tracks = 0
+        self.tracks = []
+
+        self.thread = None
+        self.stop_when_done = True
+        self.events = []
 
     def get_clock_source(self):
         return self._clock_source
@@ -51,7 +55,10 @@ class Timeline(object):
     clock_source = property(get_clock_source, set_clock_source)
 
     def get_ticks_per_beat(self):
-        return self.clock_source.ticks_per_beat
+        if self.clock_source:
+            return self.clock_source.ticks_per_beat
+        else:
+            return None
 
     def set_ticks_per_beat(self, ticks_per_beat):
         self.clock_source.ticks_per_beat = ticks_per_beat
@@ -139,7 +146,11 @@ class Timeline(object):
         # Tell our output devices to move forward a step.
         #--------------------------------------------------------------------------------
         for device in self.output_devices:
-            device.tick(self.tick_duration)
+            clock_multiplier = self.clock_multipliers[device]
+            ticks = next(clock_multiplier)
+
+            for tick in range(ticks):
+                device.tick()
 
         #--------------------------------------------------------------------------------
         # Increment beat count according to our current tick_length.
@@ -240,6 +251,7 @@ class Timeline(object):
     def add_output_device(self, output_device):
         """ Append a new output device to our output list. """
         self.output_devices.append(output_device)
+        self.clock_multipliers[output_device] = make_clock_multiplier(output_device.ticks_per_beat / self.ticks_per_beat)
 
     def schedule(self, params, quantize=0, delay=0, output_device=None):
         """

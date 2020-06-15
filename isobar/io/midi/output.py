@@ -3,6 +3,7 @@ import mido
 import logging
 from ..output import OutputDevice
 from ...exceptions import DeviceNotFoundException
+from ...constants import MIDI_CLOCK_TICKS_PER_BEAT
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +37,11 @@ class MidiOut (OutputDevice):
             msg = mido.Message("stop")
             self.midi.send(msg)
 
-    def tick(self, tick_length):
+    @property
+    def ticks_per_beat(self):
+        return MIDI_CLOCK_TICKS_PER_BEAT
+
+    def tick(self):
         if self.send_clock:
             msg = mido.Message("clock")
             self.midi.send(msg)

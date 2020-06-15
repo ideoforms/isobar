@@ -6,10 +6,9 @@ import queue
 import logging
 from ...note import Note
 from ...exceptions import DeviceNotFoundException
+from ...constants import MIDI_CLOCK_TICKS_PER_BEAT
 
 log = logging.getLogger(__name__)
-
-MIDI_CLOCK_TICKS_PER_BEAT = 24
 
 class MidiIn:
     def __init__(self, device_name=None, clock_target=None, virtual=False):
@@ -22,6 +21,7 @@ class MidiIn:
 
         self.clock_target = clock_target
         self.queue = queue.Queue()
+        self.callback = None
         self.estimated_tempo = None
         self.last_clock_time = None
         log.info("Opened MIDI input: %s" % self.midi.name)
@@ -73,7 +73,10 @@ class MidiIn:
                 log.warning("MIDI song position message received, but MIDI input cannot seek to arbitrary position")
 
         elif message.type == 'note_on' or message.type == 'control':
-            self.queue.put(message)
+            if self.callback:
+                self.callback(message)
+            else:
+                self.queue.put(message)
 
     def run(self):
         """
@@ -95,6 +98,11 @@ class MidiIn:
         return MIDI_CLOCK_TICKS_PER_BEAT
 
     def receive(self):
+        """
+        Blocking poll for MIDI message.
+        Returns:
+            Note: The note received, or None.
+        """
         return self.queue.get()
 
     def poll(self):

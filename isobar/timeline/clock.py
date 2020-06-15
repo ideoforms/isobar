@@ -1,7 +1,10 @@
 from ..constants import DEFAULT_TEMPO, DEFAULT_TICKS_PER_BEAT
+from ..exceptions import ClockException
+from ..util import make_clock_multiplier
 
 import time
 import logging
+import threading
 
 log = logging.getLogger(__name__)
 
@@ -26,6 +29,13 @@ class Clock:
         self.ticks_per_beat = ticks_per_beat
         self.warpers = []
         self.accelerate = 1.0
+        self.thread = None
+        self.running = False
+
+        clock_multiple = 1.0
+        if self.clock_target and self.clock_target.ticks_per_beat:
+            clock_multiple = self.clock_target.ticks_per_beat / self.ticks_per_beat
+        self.clock_multiplier = make_clock_multiplier(clock_multiple)
 
     def _calculate_tick_duration(self):
         self.tick_duration_seconds = 60.0 / (self.tempo * self.ticks_per_beat)
@@ -49,19 +59,29 @@ class Clock:
 
     tempo = property(get_tempo, set_tempo)
 
+    def background(self):
+        """ Run this Timeline in a background thread. """
+        self.thread = threading.Thread(target=self.run)
+        self.thread.setDaemon(True)
+        self.thread.start()
+
     def run(self):
         clock0 = clock1 = time.time() * self.accelerate
         #------------------------------------------------------------------------
         # allow a tick to elapse before we call tick() for the first time
         # to keep Warp patterns in sync  
         #------------------------------------------------------------------------
-        while True:
+        self.running = True
+        while self.running:
             if clock1 - clock0 >= (2.0 * self.tick_duration_seconds):
                 log.warning("Clock overflowed!")
 
             if clock1 - clock0 >= self.tick_duration_seconds:
                 # time for a tick
-                self.clock_target.tick()
+                ticks = next(self.clock_multiplier)
+                for tick in range(ticks):
+                    self.clock_target.tick()
+
                 clock0 += self.tick_duration_seconds
                 self.tick_duration_seconds = self.tick_duration_seconds_orig
                 for warper in self.warpers:
@@ -75,6 +95,9 @@ class Clock:
 
             time.sleep(0.0001)
             clock1 = time.time() * self.accelerate
+
+    def stop(self):
+        self.running = False
 
     def warp(self, warper):
         self.warpers.append(warper)

@@ -155,7 +155,7 @@ def test_timeline_seconds_to_beats(dummy_timeline):
 
 def test_timeline_tempo(dummy_timeline):
     # Set tempo of internal clock
-    dummy_timeline.clock_source = iso.Clock(120)
+    dummy_timeline.clock_source = iso.Clock(dummy_timeline, 120)
     dummy_timeline.tempo = 180
     assert dummy_timeline.clock_source.tempo == 180
 

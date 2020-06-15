@@ -6,7 +6,11 @@ class OutputDevice:
     def __init__(self):
         pass
 
-    def tick(self, tick_duration):
+    @property
+    def ticks_per_beat(self):
+        return None
+
+    def tick(self):
         pass
 
     def start(self):

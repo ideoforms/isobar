@@ -1,6 +1,6 @@
 import random
 import math
-from .exceptions import InvalidMIDIPitch, UnknownNoteName
+from .exceptions import InvalidMIDIPitch, UnknownNoteName, ClockException
 
 note_names = [
     ["C"],
@@ -103,3 +103,16 @@ def filter_tone_row(source, target, bend_limit=7):
 
 def random_seed(seed):
     random.seed(seed)
+
+def make_clock_multiplier(multiple):
+    if (multiple > 1 and int(multiple) != multiple) or (multiple < 1 and 1/multiple != int(1/multiple)):
+        raise ClockException("Cannot sync output device (clock rates must integer multiples of each other)")
+
+    pos = 1
+    while True:
+        rv = 0
+        pos += multiple
+        while round(pos, 8) > 1:
+            pos -= 1
+            rv += 1
+        yield rv
