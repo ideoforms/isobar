@@ -1,5 +1,5 @@
 import copy
-import random
+import inspect
 
 from ..pattern import Pattern
 from ..key import Key
@@ -187,11 +187,14 @@ class Track:
         #------------------------------------------------------------------------
         if values[EVENT_TYPE] == EVENT_TYPE_ACTION:
             try:
+                args = []
                 if EVENT_ACTION_ARGS in values:
                     args = [ Pattern.value(value) for value in values[EVENT_ACTION_ARGS] ]
-                    values[EVENT_ACTION](*args)
-                else:
-                    values[EVENT_ACTION]()
+
+                fn = values[EVENT_ACTION]
+                fn_params = inspect.signature(fn).parameters
+                kwargs = dict((key, value) for key, value in values.items() if key in fn_params)
+                values[EVENT_ACTION](*args, **kwargs)
             except StopIteration:
                 raise StopIteration()
             except Exception as e:

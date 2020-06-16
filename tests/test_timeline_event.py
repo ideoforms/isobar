@@ -167,7 +167,28 @@ def test_event_action(dummy_timeline):
     assert len(dummy_timeline.event_times) == 5
     assert dummy_timeline.event_times == pytest.approx([0, 1, 2, 3, 4])
 
+def test_event_action_args(dummy_timeline):
+    dummy_timeline.executed = False
+
+    def example_function(a, b, foo, bar=None):
+        assert a == 1
+        assert b == 2
+        assert foo == "foo"
+        assert bar == "bar"
+        dummy_timeline.executed = True
+        # TODO: When `schedule_once` is implemented, remove the below.
+        raise StopIteration
+
+    dummy_timeline.schedule({
+        iso.EVENT_ACTION: example_function,
+        iso.EVENT_ACTION_ARGS: [ iso.PConstant(1), iso.PConstant(2) ],
+        "foo": "foo",
+        "bar": iso.PConstant("bar")
+    })
+    dummy_timeline.run()
+    assert dummy_timeline.executed
+
 # def test_event_control(dummy_timeline):
 #     dummy_timeline.schedule({
-#         iso.EVENT_CONTROL: PControlChangeLinear(0, 1, 2)
+#         iso.EVENT_CONTROL: PControlChangeLinear(0, 127, 10)
 #     })
