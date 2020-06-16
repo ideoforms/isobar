@@ -100,6 +100,34 @@ def test_timeline_schedule_quantize_on_beat(dummy_timeline, quantize):
     assert dummy_timeline.output_device.events[0] == [0, "note_on", 1, 64, 0]
     assert dummy_timeline.output_device.events[1] == [pytest.approx(1.0, abs=dummy_timeline.tick_duration), "note_off", 1, 0]
 
+@pytest.mark.skip
+def test_timeline_schedule_time(dummy_timeline):
+    dummy_timeline.schedule({
+        iso.EVENT_NOTE: iso.PSequence([1], 1),
+        iso.EVENT_DURATION: 1
+    }, time=1.25)
+    dummy_timeline.stop_when_done = True
+    dummy_timeline.run()
+    assert len(dummy_timeline.output_device.events) == 2
+    assert dummy_timeline.output_device.events[0] == [pytest.approx(1.25, abs=dummy_timeline.tick_duration), "note_on", 1, 64, 0]
+    assert dummy_timeline.output_device.events[1] == [pytest.approx(2.25, abs=dummy_timeline.tick_duration), "note_off", 1, 0]
+
+@pytest.mark.skip
+def test_timeline_schedule_count(dummy_timeline):
+    dummy_timeline.schedule({
+        iso.EVENT_NOTE: iso.PSeries(0, 1),
+        iso.EVENT_DURATION: 1
+    }, count=4)
+    dummy_timeline.stop_when_done = True
+    dummy_timeline.run()
+    assert len(dummy_timeline.output_device.events) == 8
+    assert dummy_timeline.output_device.events == [
+        [0, "note_on", 0, 64, 0], [1, "note_off", 0, 0],
+        [1, "note_on", 1, 64, 0], [2, "note_off", 1, 0],
+        [2, "note_on", 2, 64, 0], [3, "note_off", 2, 0],
+        [3, "note_on", 3, 64, 0], [4, "note_off", 3, 0]
+    ]
+
 def test_timeline_reset(dummy_timeline):
     track = dummy_timeline.schedule({
         iso.EVENT_NOTE: iso.PSequence([1], 1),

@@ -168,7 +168,12 @@ class Pattern:
         return values
 
     def reset(self):
-        """ Reset a finite Pattern back to position 0. """
+        """ Calling reset() should always reset a Pattern back to its initial state
+            immediately after construction.
+
+            When implementing new Patterns, this may require storing some state variables
+            to be stored.
+        """
         fields = vars(self)
         for name, field in list(fields.items()):
             if isinstance(field, Pattern):
@@ -287,15 +292,16 @@ class PFunc(Pattern):
 
 class PArrayIndex(Pattern):
     """ PArrayIndex: Request a specified index from an array.
+        If the item is a Pattern, the next value from that pattern is returned.
         """
 
-    def __init__(self, index, list):
-        self.index = index
+    def __init__(self, list, index):
         self.list = list
+        self.index = index
 
     def __next__(self):
-        index = Pattern.value(self.index)
         list = Pattern.value(self.list)
+        index = Pattern.value(self.index)
 
         #------------------------------------------------------------------
         # null indices denote a rest -- so return a null value.
@@ -305,7 +311,7 @@ class PArrayIndex(Pattern):
             return None
         else:
             index = int(index)
-            return list[index]
+            return Pattern.value(list[index])
 
 class PDict(Pattern):
     """ PDict: Construct a pattern from a dict of arrays, or an array of dicts.

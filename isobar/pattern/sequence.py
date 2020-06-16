@@ -655,6 +655,8 @@ class PPermut(Pattern):
         """
 
     def __init__(self, input, count=8):
+        if not hasattr(input, "__next__"):
+            raise ValueError("Input to PPermut must be a Pattern or other iterator")
         self.input = input
         self.count = count
         self.pos = sys.maxsize
@@ -694,8 +696,8 @@ class PPermut(Pattern):
         self.pos += 1
         return rv
 
-class PDecisionPoint(Pattern):
-    """ PDecisionPoint: Each time its pattern is exhausted, requests a new pattern by calling <fn>.
+class PPatternGeneratorAction(Pattern):
+    """ PPatternGeneratorAction: Each time its pattern is exhausted, request a new pattern by calling <fn>.
 
         >>>
         >>>
@@ -717,4 +719,36 @@ class PDecisionPoint(Pattern):
                 return None
             return next(self)
 
-PGeneratePattern = PDecisionPoint
+PDecisionPoint = PPatternGeneratorAction
+
+class PSequenceAction(Pattern):
+    """ PSequenceAction: Iterate over an array, perform a function, and repeat.
+
+        >>>
+        >>>
+        """
+    def __init__(self, list, fn, repeats=sys.maxsize):
+        self.list = list
+        self.list_orig = list
+        self.sequence = PSequence(self.list, 1)
+        self.fn = fn
+        self.repeats = repeats
+        self.repeat_counter = 0
+
+    def reset(self):
+        super().reset()
+        self.list = self.list_orig
+        self.sequence = PSequence(self.list, 1)
+        self.repeat_counter = 0
+
+    def __next__(self):
+        try:
+            return next(self.sequence)
+        except StopIteration:
+            repeats = Pattern.value(self.repeats)
+            self.repeat_counter += 1
+            if self.repeat_counter >= repeats:
+                raise StopIteration
+            self.list = self.fn(self.list)
+            self.sequence = PSequence(self.list, 1)
+            return next(self)

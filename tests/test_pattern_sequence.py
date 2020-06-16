@@ -1,6 +1,18 @@
 import pytest
 import isobar as iso
 
+def test_psequence_ints():
+    a = iso.PSequence([1, 2, 3], 1)
+    assert list(a) == [1, 2, 3]
+
+def test_psequence_tuples():
+    a = iso.PSequence([(1, 2), (3, 4), (5, 6)], 2)
+    assert list(a) == [(1, 2), (3, 4), (5, 6), (1, 2), (3, 4), (5, 6)]
+
+def test_psequence_keys():
+    a = iso.PSequence([iso.Key("C", "major"), iso.Key("F", "minor")], 1)
+    assert list(a) == [iso.Key("C", "major"), iso.Key("F", "minor")]
+
 def test_pseries():
     a = iso.PSeries(2, iso.PSequence([1, 2]), iso.PConstant(5))
     assert list(a) == [2, 3, 5, 6, 8]
@@ -105,3 +117,7 @@ def test_ppermut():
 def test_pdecisionpoint():
     # TODO
     pass
+
+def test_psequenceoperation():
+    a = iso.PSequenceAction([1, 2, 3], lambda a: list(reversed(a)), 4)
+    assert list(a) == [1, 2, 3, 3, 2, 1, 1, 2, 3, 3, 2, 1]
