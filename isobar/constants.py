@@ -33,8 +33,8 @@ MAX_CLOCK_RATE = 1e6
 #------------------------------------------------------------------------
 EVENT_TYPE = "type"
 EVENT_CHANNEL = "channel"
-EVENT_AMPLITUDE = "amp"
-EVENT_DURATION = "dur"
+EVENT_AMPLITUDE = "amplitude"
+EVENT_DURATION = "duration"
 EVENT_GATE = "gate"
 EVENT_NOTE = "note"
 EVENT_DEGREE = "degree"
