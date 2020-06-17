@@ -20,7 +20,7 @@ def test_io_midifile_write(dummy_timeline):
     midifile.write()
 
     d = MidiFileIn("output.mid").read()
-    assert list(d[iso.EVENT_NOTE]) == list(events[iso.EVENT_NOTE])
-    assert list(d[iso.EVENT_DURATION]) == list(events[iso.EVENT_DURATION])
-    assert list(d[iso.EVENT_AMPLITUDE]) == list(events[iso.EVENT_AMPLITUDE])
-    assert list(d[iso.EVENT_GATE]) == list(events[iso.EVENT_GATE])
+
+    for key in events.keys():
+        assert isinstance(d[key], iso.PSequence)
+        assert list(d[key]) == list(events[key])

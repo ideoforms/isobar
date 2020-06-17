@@ -37,9 +37,11 @@ def test_timeline_stop_when_done():
     assert timeline.current_time == pytest.approx(1.0 / iso.DEFAULT_TICKS_PER_BEAT)
 
 def test_timeline_schedule(dummy_timeline):
-    dummy_timeline.schedule({
+    events = {
         iso.EVENT_NOTE: iso.PSequence([1], 1)
-    })
+    }
+    dummy_timeline.schedule(events)
+    assert len(events.keys()) == 1
     dummy_timeline.run()
     assert len(dummy_timeline.output_device.events) == 2
     assert dummy_timeline.output_device.events[0] == [pytest.approx(0.0), "note_on", 1, 64, 0]

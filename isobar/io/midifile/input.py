@@ -1,5 +1,6 @@
 from ..midinote import MidiNote
 from ...constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_GATE
+from ...pattern import PSequence
 
 import mido
 import logging
@@ -113,5 +114,8 @@ class MidiFileIn:
                     note_dict[EVENT_NOTE].append(note.pitch)
                     note_dict[EVENT_AMPLITUDE].append(note.velocity)
                     note_dict[EVENT_GATE].append(note.duration / time_until_next_note)
+
+        for key, value in note_dict.items():
+            note_dict[key] = PSequence(value, 1)
 
         return note_dict

@@ -273,6 +273,12 @@ class Timeline(object):
         Raises:
             TrackLimitReachedException: If `max_tracks` has been reached.
         """
+
+        #--------------------------------------------------------------------------------
+        # Take a copy of params to avoid modifying the original
+        #--------------------------------------------------------------------------------
+        params = params.copy()
+
         if not output_device:
             #--------------------------------------------------------------------------------
             # If no output device exists, send to the system default MIDI output.
