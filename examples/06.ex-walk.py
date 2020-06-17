@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 # walk up and down a minor scale
 #------------------------------------------------------------------------
 scale = iso.Scale([0, 2, 3, 7, 9, 11])
-degree = iso.PBrown(0, 2, -8, 16, repeats=False)
+degree = iso.PBrown(0, 2, -8, 16)
 notes = iso.PDegree(degree, scale) + 60
 
 #------------------------------------------------------------------------
