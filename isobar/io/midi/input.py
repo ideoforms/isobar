@@ -12,10 +12,23 @@ log = logging.getLogger(__name__)
 
 class MidiIn:
     def __init__(self, device_name=None, clock_target=None, virtual=False):
+        """
+        Create a MIDI input device.
+        Use `isobar.get_midi_input_names()` to query all available devices.
+
+        Args:
+            device_name (str): The name of the target device to use.
+                               The default MIDI output device name can also be specified
+                               with the environmental variable ISOBAR_DEFAULT_MIDI_IN.
+            clock_target:      Target to send clocking events to. To sync a specific
+                               Timeline to a MidiIn device, use
+                               `timeline.clock_source = midi_in`.
+            virtual (bool):    Whether to create a "virtual" rtmidi device.
+        """
         if device_name is None:
             device_name = os.getenv("ISOBAR_DEFAULT_MIDI_IN")
         try:
-            self.midi = mido.open_input(device_name, callback=self.callback, virtual=virtual)
+            self.midi = mido.open_input(device_name, callback=self._callback, virtual=virtual)
         except (RuntimeError, SystemError, OSError):
             raise DeviceNotFoundException("Could not find MIDI device")
 
@@ -30,11 +43,11 @@ class MidiIn:
     def device_name(self):
         return self.midi.name
 
-    def callback(self, message):
+    def _callback(self, message):
         """
-        Callback for mido
+        Callback used by mido.
         Args:
-            message (mido.Message): The message
+            message: A mido.Message.
         """
         log.debug(" - MIDI message received: %s" % message)
 
