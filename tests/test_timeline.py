@@ -157,7 +157,7 @@ def test_timeline_reset_to_beat(dummy_timeline):
     pass
 
 def test_timeline_background():
-    timeline = iso.Timeline(60)
+    timeline = iso.Timeline(60, output_device=iso.io.DummyOutputDevice())
     executed = 0
     def set_executed():
         nonlocal executed
