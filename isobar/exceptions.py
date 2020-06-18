@@ -10,6 +10,12 @@ class TrackLimitReachedException (Exception):
     """
     pass
 
+class TrackNotFoundException (Exception):
+    """
+    This track could not be found.
+    """
+    pass
+
 class InvalidEventException (Exception):
     """
     Invalid event.

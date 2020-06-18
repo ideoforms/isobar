@@ -2,6 +2,7 @@
 
 import isobar as iso
 import pytest
+import time
 from isobar.io import DummyOutputDevice, MidiOut
 from . import dummy_timeline
 
@@ -48,12 +49,16 @@ def test_timeline_schedule(dummy_timeline):
     assert dummy_timeline.output_device.events[1] == [pytest.approx(1.0), "note_off", 1, 0]
 
 def test_timeline_schedule_twice(dummy_timeline):
+    # TODO
+    pass
+
+def test_timeline_unschedule(dummy_timeline):
+    # TODO
     pass
 
 def test_timeline_schedule_real_clock():
     timeline = iso.Timeline(60, output_device=DummyOutputDevice())
     times = []
-    import time
     timeline.stop_when_done = True
     def record_time():
         times.append(time.time())
@@ -151,7 +156,22 @@ def test_timeline_reset_to_beat(dummy_timeline):
     # TODO
     pass
 
-def test_timeline_background(dummy_timeline):
+def test_timeline_background():
+    timeline = iso.Timeline(60)
+    executed = 0
+    def set_executed():
+        nonlocal executed
+        executed += 1
+    timeline.background()
+    timeline.schedule({
+        "action": set_executed,
+        "duration": 0.05
+    }, delay=0.03)
+    time.sleep(0.2)
+    timeline.stop()
+    assert executed == 4
+
+def test_timeline_running(dummy_timeline):
     # TODO
     pass
 

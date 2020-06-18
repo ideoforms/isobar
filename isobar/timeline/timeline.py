@@ -9,7 +9,7 @@ from .track import Track
 from .clock import Clock
 from ..constants import DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO
 from ..constants import EVENT_TIME, EVENT_FUNCTION
-from ..exceptions import TrackLimitReachedException, ClockException
+from ..exceptions import TrackLimitReachedException, TrackNotFoundException
 from ..util import make_clock_multiplier
 import logging
 
@@ -44,6 +44,7 @@ class Timeline(object):
         self.thread = None
         self.stop_when_done = True
         self.events = []
+        self.running = False
 
     def get_clock_source(self):
         return self._clock_source
@@ -97,6 +98,11 @@ class Timeline(object):
     def beats_to_seconds(self, beats):
         return beats * 60.0 / self.tempo
 
+    def unschedule(self, track):
+        if track not in self.tracks:
+            raise TrackNotFoundException("Track is not currently scheduled")
+        self.tracks.remove(track)
+
     def tick(self):
         """
         Called once every tick to trigger new events.
@@ -140,6 +146,9 @@ class Timeline(object):
         # If we've run out of notes, raise a StopIteration.
         #--------------------------------------------------------------------------------
         if len(self.tracks) == 0 and len(self.events) == 0 and self.stop_when_done:
+            # TODO: Don't do this if we've never played any events, e.g.
+            #       right after calling timeline.background(). Should at least
+            #       wait for some events to happen first.
             raise StopIteration
 
         #--------------------------------------------------------------------------------
@@ -190,11 +199,15 @@ class Timeline(object):
         self.thread.setDaemon(True)
         self.thread.start()
 
-    def run(self, stop_when_done=None):
+    def run(self, stop_when_done=None, background=False):
         """ Run this Timeline in the foreground.
 
         If stop_when_done is set, returns when no tracks are currently
         scheduled; otherwise, keeps running indefinitely. """
+
+        if stop_when_done and background:
+            raise Exception("Can't select both stop_when_done and background")
+
         self.start()
 
         if stop_when_done is not None:
@@ -207,6 +220,7 @@ class Timeline(object):
             #--------------------------------------------------------------------------------
             for device in self.output_devices:
                 device.start()
+            self.running = True
             self.clock_source.run()
 
         except StopIteration:
@@ -214,9 +228,10 @@ class Timeline(object):
             # This will be hit if every Pattern in a timeline is exhausted.
             #--------------------------------------------------------------------------------
             log.info("Timeline: Finished")
+            self.running = False
 
         except Exception as e:
-            print((" *** Exception in background Timeline thread: %s" % e))
+            print((" *** Exception in Timeline thread: %s" % e))
             traceback.print_exc(file=sys.stdout)
 
     def start(self):
@@ -227,6 +242,7 @@ class Timeline(object):
         for device in self.output_devices:
             device.all_notes_off()
             device.stop()
+        self.clock_source.stop()
 
     def warp(self, warper):
         """ Apply a PWarp object to warp our clock's timing. """
