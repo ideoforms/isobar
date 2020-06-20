@@ -29,7 +29,10 @@ def test_io_midi():
 
     timeline = iso.Timeline(120, midi_out)
     timeline.stop_when_done = True
-    timeline.schedule({ "note": iso.PSequence([ 60 ], 1) })
+    timeline.schedule({
+        "note": iso.PSequence([ 60 ], 1),
+        "duration" : 0.1
+    })
     timeline.run()
     assert len(events) == 1
 
@@ -42,6 +45,6 @@ def test_io_midi_sync():
     midi_in = iso.MidiIn(VIRTUAL_DEVICE_NAME)
 
     clock.background()
-    time.sleep(0.5)
+    time.sleep(0.1)
     clock.stop()
     assert midi_in.tempo == pytest.approx(tempo, rel=0.01)
