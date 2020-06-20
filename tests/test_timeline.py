@@ -154,22 +154,27 @@ def test_timeline_schedule_count(dummy_timeline):
 
 def test_timeline_reset(dummy_timeline):
     track = dummy_timeline.schedule({
-        iso.EVENT_NOTE: iso.PSequence([1], 1),
-        iso.EVENT_DURATION: 1
+        iso.EVENT_NOTE: iso.PSequence([1, 2], 1),
+        iso.EVENT_DURATION: 1.0,
+        iso.EVENT_GATE: 0.5
     })
 
-    for n in range(int(0.5 / dummy_timeline.tick_duration)):
+    for n in range(dummy_timeline.ticks_per_beat):
         dummy_timeline.tick()
-    assert dummy_timeline.current_time == pytest.approx(0.5)
-    assert track.current_time == pytest.approx(0.5)
+    assert dummy_timeline.current_time == pytest.approx(1.0)
+    assert track.current_time == pytest.approx(1.0)
     dummy_timeline.reset()
     assert dummy_timeline.current_time == 0.0
     assert track.current_time == 0.0
 
     dummy_timeline.run()
-    assert len(dummy_timeline.output_device.events) == 2
+    assert len(dummy_timeline.output_device.events) == 6
     assert dummy_timeline.output_device.events[0] == [pytest.approx(0.0), "note_on", 1, 64, 0]
-    assert dummy_timeline.output_device.events[1] == [pytest.approx(1.5), "note_off", 1, 0]
+    assert dummy_timeline.output_device.events[1] == [pytest.approx(0.5), "note_off", 1, 0]
+    assert dummy_timeline.output_device.events[2] == [pytest.approx(1.0), "note_on", 1, 64, 0]
+    assert dummy_timeline.output_device.events[3] == [pytest.approx(1.5), "note_off", 1, 0]
+    assert dummy_timeline.output_device.events[4] == [pytest.approx(2.0), "note_on", 2, 64, 0]
+    assert dummy_timeline.output_device.events[5] == [pytest.approx(2.5), "note_off", 2, 0]
 
 def test_timeline_reset_to_beat(dummy_timeline):
     # TODO
