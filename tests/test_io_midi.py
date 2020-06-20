@@ -28,6 +28,7 @@ def test_io_midi():
     midi_out = iso.MidiOut(VIRTUAL_DEVICE_NAME)
 
     timeline = iso.Timeline(120, midi_out)
+    timeline.stop_when_done = True
     timeline.schedule({ "note": iso.PSequence([ 60 ], 1) })
     timeline.run()
     assert len(events) == 1

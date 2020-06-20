@@ -14,6 +14,7 @@ def test_io_midifile_write(dummy_timeline):
     }
 
     midifile = MidiFileOut("output.mid")
+    dummy_timeline.stop_when_done = True
     dummy_timeline.output_device = midifile
     dummy_timeline.schedule(events)
     dummy_timeline.run()

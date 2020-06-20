@@ -26,16 +26,15 @@ def test_timeline_output_device():
     assert track.output_device == dummy
 
 def test_timeline_stop_when_done():
-    # When the Timeline ticks without any tracks, it should by default terminate.
-    timeline = iso.Timeline()
-    with pytest.raises(StopIteration):
-        timeline.tick()
-    assert timeline.current_time == 0.0
-
-    # When stop_when_done is False, ticking should run as normal
-    timeline.stop_when_done = False
+    # When the Timeline ticks without any tracks, it should by default keep running
+    timeline = iso.Timeline(output_device=DummyOutputDevice())
     timeline.tick()
     assert timeline.current_time == pytest.approx(1.0 / iso.DEFAULT_TICKS_PER_BEAT)
+
+    # When stop_when_done is True, the timeline should stop as soon as it runs on empty
+    timeline.stop_when_done = True
+    with pytest.raises(StopIteration):
+        timeline.tick()
 
 def test_timeline_schedule(dummy_timeline):
     events = {
@@ -53,8 +52,24 @@ def test_timeline_schedule_twice(dummy_timeline):
     pass
 
 def test_timeline_unschedule(dummy_timeline):
-    # TODO
-    pass
+    events = {
+        iso.EVENT_NOTE: iso.PSequence([1]),
+        iso.EVENT_GATE: 0.5
+    }
+    track = dummy_timeline.schedule(events)
+    ticks = 2 * dummy_timeline.ticks_per_beat
+    dummy_timeline.stop_when_done = False
+    for n in range(ticks):
+        dummy_timeline.tick()
+
+    assert len(dummy_timeline.tracks) == 1
+    assert len(dummy_timeline.output_device.events) == 4
+    dummy_timeline.unschedule(track)
+    assert len(dummy_timeline.tracks) == 0
+    for n in range(ticks):
+        dummy_timeline.tick()
+
+    assert len(dummy_timeline.output_device.events) == 4
 
 def test_timeline_schedule_real_clock():
     timeline = iso.Timeline(60, output_device=DummyOutputDevice())
@@ -77,11 +92,11 @@ def test_timeline_schedule_real_clock():
 def test_timeline_schedule_quantize_delay(dummy_timeline, quantize, delay):
     dummy_timeline.stop_when_done = False
     dummy_timeline.tick()
+    dummy_timeline.stop_when_done = True
     initial_time = dummy_timeline.current_time
     dummy_timeline.schedule({
         iso.EVENT_NOTE: iso.PSequence([1], 1)
     }, quantize=quantize, delay=delay)
-    dummy_timeline.stop_when_done = True
     dummy_timeline.run()
     assert len(dummy_timeline.output_device.events) == 2
     #--------------------------------------------------------------------------------
@@ -101,7 +116,6 @@ def test_timeline_schedule_quantize_on_beat(dummy_timeline, quantize):
     dummy_timeline.schedule({
         iso.EVENT_NOTE: iso.PSequence([1], 1)
     }, quantize=quantize)
-    dummy_timeline.stop_when_done = True
     dummy_timeline.run()
     assert len(dummy_timeline.output_device.events) == 2
     assert dummy_timeline.output_device.events[0] == [0, "note_on", 1, 64, 0]
@@ -113,7 +127,6 @@ def test_timeline_schedule_time(dummy_timeline):
         iso.EVENT_NOTE: iso.PSequence([1], 1),
         iso.EVENT_DURATION: 1
     }, time=1.25)
-    dummy_timeline.stop_when_done = True
     dummy_timeline.run()
     assert len(dummy_timeline.output_device.events) == 2
     assert dummy_timeline.output_device.events[0] == [pytest.approx(1.25, abs=dummy_timeline.tick_duration), "note_on", 1, 64, 0]
@@ -125,7 +138,6 @@ def test_timeline_schedule_count(dummy_timeline):
         iso.EVENT_NOTE: iso.PSeries(0, 1),
         iso.EVENT_DURATION: 1
     }, count=4)
-    dummy_timeline.stop_when_done = True
     dummy_timeline.run()
     assert len(dummy_timeline.output_device.events) == 8
     assert dummy_timeline.output_device.events == [
@@ -140,6 +152,7 @@ def test_timeline_reset(dummy_timeline):
         iso.EVENT_NOTE: iso.PSequence([1], 1),
         iso.EVENT_DURATION: 1
     })
+
     for n in range(int(0.5 / dummy_timeline.tick_duration)):
         dummy_timeline.tick()
     assert dummy_timeline.current_time == pytest.approx(0.5)
@@ -147,6 +160,7 @@ def test_timeline_reset(dummy_timeline):
     dummy_timeline.reset()
     assert dummy_timeline.current_time == 0.0
     assert track.current_time == 0.0
+
     dummy_timeline.run()
     assert len(dummy_timeline.output_device.events) == 2
     assert dummy_timeline.output_device.events[0] == [pytest.approx(0.0), "note_on", 1, 64, 0]

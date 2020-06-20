@@ -17,8 +17,15 @@ log = logging.getLogger(__name__)
 
 class Timeline(object):
     """
-    A Timeline object represents a number of Tracks, each of which
+    A Timeline object encapsulates a number of Tracks, each of which
     represents a sequence of note or control events.
+
+    It has a `clock_source`, which can be a real-time Clock object, or an
+    external source such as a MIDI clock (via `isobar.io.MidiIn`).
+
+    A Timeline typically runs until it is terminated by calling `stop()`.
+    If you want the Timeline to terminate as soon as no more events are available,
+    set `stop_when_done = True`.
     """
 
     def __init__(self,
@@ -42,7 +49,7 @@ class Timeline(object):
         self.tracks = []
 
         self.thread = None
-        self.stop_when_done = True
+        self.stop_when_done = False
         self.events = []
         self.running = False
 
@@ -106,6 +113,9 @@ class Timeline(object):
     def tick(self):
         """
         Called once every tick to trigger new events.
+
+        Raises:
+            StopIteration: If `stop_when_done` is true and no more events are scheduled.
         """
         #--------------------------------------------------------------------------------
         # Each time we arrive at precisely a new beat, generate a debug msg.
