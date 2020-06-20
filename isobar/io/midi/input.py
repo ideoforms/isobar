@@ -91,6 +91,9 @@ class MidiIn:
             else:
                 self.queue.put(message)
 
+    def stop(self):
+        pass
+
     def run(self):
         """
         Run indefinitely.

@@ -142,6 +142,9 @@ class Track:
         self.next_event_duration = 0
         self.next_event_time = 0
 
+        for pattern in self.events.values():
+            pattern.reset()
+
     def get_next_event(self):
         values = {}
         for key, pattern in self.events.items():
@@ -227,7 +230,7 @@ class Track:
         #------------------------------------------------------------------------
         elif self.event_type == EVENT_TYPE_CONTROL:
             log.debug("Control (channel %d, control %d, value %d)",
-                      values[EVENT_CHANNEL], values[EVENT_CONTROL], values[EVENT_VALUE])
+                  values[EVENT_CHANNEL], values[EVENT_CONTROL], values[EVENT_VALUE])
             self.output_device.control(values[EVENT_CONTROL], values[EVENT_VALUE], values[EVENT_CHANNEL])
 
         #------------------------------------------------------------------------

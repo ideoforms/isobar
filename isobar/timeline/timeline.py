@@ -189,7 +189,7 @@ class Timeline(object):
             print(("   - %s" % tracks))
 
     def reset_to_beat(self):
-        """ Reset our timer to the last beat.
+        """ Reset the timer to the last beat.
         Useful when a MIDI Stop/Reset message is received. """
 
         self.current_time = round(self.current_time)
@@ -197,7 +197,7 @@ class Timeline(object):
             tracks.reset_to_beat()
 
     def reset(self):
-        """ Reset our timeline to t = 0. """
+        """ Reset the timeline to t = 0. """
         self.current_time = 0.0
         for track in self.tracks:
             track.reset()
