@@ -6,7 +6,7 @@ import sys
 #  - 24 ticks per beat means that events are processed every 21ms
 #  - 480 ticks per beat means that events are processed every ~1ms
 #------------------------------------------------------------------------
-DEFAULT_TICKS_PER_BEAT = 480
+DEFAULT_TICKS_PER_BEAT = 120
 
 #------------------------------------------------------------------------
 # Ticks per beat used by MIDI devices, as per the MIDI 1.0 standard.
@@ -80,6 +80,6 @@ DEFAULT_EVENT_TRANSPOSE = 0
 #------------------------------------------------------------------------
 # Interpolation modes for continuous signals.
 #------------------------------------------------------------------------
-INTERPOLATION_NONE = 0
-INTERPOLATION_LINEAR = 1
-INTERPOLATION_COSINE = 2
+INTERPOLATION_NONE = "none"
+INTERPOLATION_LINEAR = "linear"
+INTERPOLATION_COSINE = "cosine"

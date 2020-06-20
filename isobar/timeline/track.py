@@ -1,7 +1,7 @@
 import copy
 import inspect
 
-from ..pattern import Pattern
+from ..pattern import Pattern, PInterpolate
 from ..key import Key
 from ..scale import Scale
 from ..constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_TRANSPOSE, \
@@ -19,7 +19,7 @@ import logging
 log = logging.getLogger(__name__)
 
 class Track:
-    def __init__(self, events, timeline, interpolation=INTERPOLATION_NONE, output_device=None):
+    def __init__(self, events, timeline, interpolate=INTERPOLATION_NONE, output_device=None):
         #----------------------------------------------------------------------
         # evaluate in case we have a pattern which gives us an event
         # eg: PSeq([ { EVENT_NOTE : 20, EVENT_DURATION : 0.5 }, { EVENT_NOTE : 50, EVENT_DURATION : PWhite(0, 2) } ])
@@ -29,8 +29,8 @@ class Track:
         # self.events = Pattern.pattern(events)
         self.timeline = timeline
         self.output_device = output_device
-        self.interpolation = interpolation
-        
+        self.interpolate = interpolate
+
         self.event_type = None
         self.events = None
         self.init_events(events)
@@ -66,7 +66,7 @@ class Track:
         #----------------------------------------------------------------------
         for key, value in list(events.items()):
             events[key] = Pattern.pattern(value)
-            
+
         #----------------------------------------------------------------------
         # Classify the event type.
         #----------------------------------------------------------------------
@@ -83,8 +83,16 @@ class Track:
         elif EVENT_NOTE in events or EVENT_DEGREE in events:
             self.event_type = EVENT_TYPE_NOTE
         else:
-            possible_event_types = [ EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL, EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS ]
+            possible_event_types = [EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL, EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS]
             raise InvalidEventException("No event type specified (must provide one of %s)" % possible_event_types)
+
+        if self.interpolate is not INTERPOLATION_NONE:
+            if self.event_type != EVENT_TYPE_CONTROL:
+                raise InvalidEventException("Interpolation is only valid for control events")
+
+            events[EVENT_VALUE] = PInterpolate(events[EVENT_VALUE],
+                                               events[EVENT_DURATION] * self.timeline.ticks_per_beat,
+                                               self.interpolate)
 
         self.events = events
 
@@ -108,10 +116,17 @@ class Track:
                 self.note_offs.remove(note)
 
         try:
-            if round(self.current_time, 8) >= round(self.next_event_time, 8):
-                event = self.get_next_event()
-                self.perform_event(event)
-                self.next_event_time += event[EVENT_DURATION]
+            if self.interpolate is not INTERPOLATION_NONE:
+                self.perform_event({
+                    "control": next(self.events["control"]),
+                    "value": next(self.events["value"]),
+                    "channel": next(self.events["channel"])
+                })
+            else:
+                if round(self.current_time, 8) >= round(self.next_event_time, 8):
+                    event = self.get_next_event()
+                    self.perform_event(event)
+                    self.next_event_time += event[EVENT_DURATION]
 
         except StopIteration:
             if len(self.note_offs) == 0:
@@ -193,7 +208,7 @@ class Track:
             try:
                 args = []
                 if EVENT_ACTION_ARGS in values:
-                    args = [ Pattern.value(value) for value in values[EVENT_ACTION_ARGS] ]
+                    args = [Pattern.value(value) for value in values[EVENT_ACTION_ARGS]]
 
                 fn = values[EVENT_ACTION]
                 fn_params = inspect.signature(fn).parameters

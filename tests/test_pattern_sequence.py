@@ -58,6 +58,17 @@ def test_psubsequence():
     b = iso.PSubsequence(a, 4, 4)
     assert list(b) == [4, 5, 6, 7]
 
+def test_pinterpolate():
+    a = iso.PSequence([0, 1, 2], 1)
+    steps = iso.PSequence([4, 2], 1)
+    b = iso.PInterpolate(a, steps, iso.INTERPOLATION_NONE)
+    assert list(b) == [0, 0, 0, 0, 1, 1, 2]
+
+    a = iso.PSequence([0, 1, 2], 1)
+    steps = iso.PSequence([4, 2], 1)
+    b = iso.PInterpolate(a, steps, iso.INTERPOLATION_LINEAR)
+    assert list(b) == [0, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0]
+
 def test_preverse():
     a = iso.PSequence([1, 2, 3, 4, 5], 1)
     b = iso.PReverse(a)

@@ -278,7 +278,7 @@ class Timeline(object):
         self.output_devices.append(output_device)
         self.clock_multipliers[output_device] = make_clock_multiplier(output_device.ticks_per_beat, self.ticks_per_beat)
 
-    def schedule(self, params, quantize=0, delay=0, interpolation=INTERPOLATION_NONE, output_device=None):
+    def schedule(self, params, quantize=0, delay=0, interpolate=INTERPOLATION_NONE, output_device=None):
         """
         Schedule a new track within this Timeline.
 
@@ -289,7 +289,7 @@ class Timeline(object):
             delay (float):       Delay time, in beats, before events should be executed.
                                  If `quantize` and `delay` are both specified, quantization is applied first,
                                  and the event is scheduled `delay` beats after the quantization time.
-            interpolation (int): Interpolation mode for control segments.
+            interpolate (int):   Interpolation mode for control segments.
             output_device:       Output device to send events to. Uses the Timeline default if not specified.
 
         Returns:
@@ -320,7 +320,7 @@ class Timeline(object):
             #--------------------------------------------------------------------------------
             # Add a new track.
             #--------------------------------------------------------------------------------
-            track = Track(params, self, interpolation=interpolation, output_device=output_device)
+            track = Track(params, self, interpolate=interpolate, output_device=output_device)
             self.tracks.append(track)
             return track
 

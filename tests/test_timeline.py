@@ -177,6 +177,7 @@ def test_timeline_reset_to_beat(dummy_timeline):
 
 def test_timeline_background():
     timeline = iso.Timeline(60, output_device=iso.io.DummyOutputDevice())
+    timeline.ticks_per_beat = 100
     executed = 0
     def set_executed():
         nonlocal executed
@@ -185,7 +186,7 @@ def test_timeline_background():
     timeline.schedule({
         "action": set_executed,
         "duration": 0.05
-    }, delay=0.03)
+    }, delay=0.01)
     time.sleep(0.2)
     timeline.stop()
     assert executed == 4

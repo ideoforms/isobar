@@ -23,7 +23,6 @@ def test_event_control_no_interpolation(dummy_timeline):
         [2, "control", 0, 5, 9]
     ]
 
-@pytest.mark.skip
 def test_event_control_linear_interpolation(dummy_timeline):
     """
     Linear interpolation between control points.
@@ -34,9 +33,9 @@ def test_event_control_linear_interpolation(dummy_timeline):
         iso.EVENT_VALUE: control_series,
         iso.EVENT_DURATION: iso.PSequence([1, 0.5]),
         iso.EVENT_CHANNEL: 9
-    }, interpolation=iso.INTERPOLATION_LINEAR)
+    }, interpolate=iso.INTERPOLATION_LINEAR)
     dummy_timeline.run()
-    assert len(dummy_timeline.output_device.events) == dummy_timeline.ticks_per_beat * 1.5
+    assert len(dummy_timeline.output_device.events) == (dummy_timeline.ticks_per_beat * 1.5) + 1
 
 @pytest.mark.skip
 def test_event_control_cosine_interpolation(dummy_timeline):
@@ -48,5 +47,5 @@ def test_event_control_cosine_interpolation(dummy_timeline):
         iso.EVENT_CONTROL: 0,
         iso.EVENT_VALUE: alternator,
         iso.EVENT_CHANNEL: 9
-    }, interpolation=iso.INTERPOLATION_COSINE, stop_after=5)
+    }, interpolate=iso.INTERPOLATION_COSINE, stop_after=5)
     dummy_timeline.run()

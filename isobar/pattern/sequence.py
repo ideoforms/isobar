@@ -5,6 +5,7 @@ import itertools
 
 from .core import Pattern
 from ..chord import Chord
+from ..constants import INTERPOLATION_NONE, INTERPOLATION_LINEAR, INTERPOLATION_COSINE
 from functools import reduce
 
 class PSequence(Pattern):
@@ -380,6 +381,48 @@ class PSubsequence(Pattern):
 
         return rv
 
+class PInterpolate(Pattern):
+    def __init__(self, pattern, steps, interpolation=INTERPOLATION_LINEAR):
+        self.pattern = pattern
+        self.steps = steps
+        self.interpolation = interpolation
+        self.reset()
+
+    def reset(self):
+        super().reset()
+        self.value = next(self.pattern)
+        self.step_values = [self.value]
+        self.pos = 0
+
+    def __next__(self):
+        if self.pos == len(self.step_values):
+            vsteps = int(Pattern.value(self.steps))
+
+            #--------------------------------------------------------------------------------
+            # Special case in which next step duration is zero: set the target value
+            # instantly, and pull a new target value.
+            #--------------------------------------------------------------------------------
+            while vsteps == 0:
+                self.value = next(self.pattern)
+                vsteps = int(Pattern.value(self.steps))
+            target = next(self.pattern)
+
+            #--------------------------------------------------------------------------------
+            # Calculate interpolated values.
+            #--------------------------------------------------------------------------------
+            if self.interpolation == INTERPOLATION_NONE:
+                self.step_values = list(self.value for n in range(vsteps - 1)) + [target]
+            elif self.interpolation == INTERPOLATION_LINEAR:
+                step = (target - self.value) / (vsteps)
+                self.step_values = list(self.value + step * (n + 1) for n in range(vsteps))
+            else:
+                raise Exception("Interpolation type not yet implemented")
+            self.pos = 0
+
+        self.value = self.step_values[self.pos]
+        self.pos += 1
+        return self.value
+
 class PReverse(Pattern):
     """ PReverse: Reverses a finite sequence. """
 
@@ -727,6 +770,7 @@ class PSequenceAction(Pattern):
         >>>
         >>>
         """
+
     def __init__(self, list, fn, repeats=sys.maxsize):
         self.list = list
         self.list_orig = list
