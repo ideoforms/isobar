@@ -37,18 +37,18 @@ class PWhite(Pattern):
 
 
 class PBrown(Pattern):
-    """ PBrown: Brownian noise, beginning at <value>, step +/-<step>.
-                Set <repeats> to False to prevent repeating the same note
-                consecutively.
+    """ PBrown: Brownian noise.
+                Output begins at <initial_value>, and steps up/down
+                by uniform random values from [-<step>, <step>]
+                inclusive.
 
-                If initial value and step are floats, the output is a float pattern.
-                If initial value and step are ints, the output is an int pattern,
+                If step is a float, the output is a float pattern.
+                If step is an int, the output is an int pattern,
                 with min <= values <= max.
         """
 
     def __init__(self, initial_value=0, step=0.1, min=-sys.maxsize, max=sys.maxsize):
         """
-
         Args:
             initial_value (float or int): Initial value
             step (float or int): Maximum value to increase or decrease by each step

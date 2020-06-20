@@ -181,14 +181,9 @@ def test_event_action_args(dummy_timeline):
 
     dummy_timeline.schedule({
         iso.EVENT_ACTION: example_function,
-        iso.EVENT_ACTION_ARGS: [ iso.PConstant(1), iso.PConstant(2) ],
+        iso.EVENT_ACTION_ARGS: [iso.PConstant(1), iso.PConstant(2)],
         "foo": "foo",
         "bar": iso.PConstant("bar")
     })
     dummy_timeline.run()
     assert dummy_timeline.executed
-
-# def test_event_control(dummy_timeline):
-#     dummy_timeline.schedule({
-#         iso.EVENT_CONTROL: PControlChangeLinear(0, 127, 10)
-#     })

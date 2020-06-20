@@ -12,13 +12,14 @@ from ..constants import DEFAULT_EVENT_TRANSPOSE, DEFAULT_EVENT_AMPLITUDE, \
     DEFAULT_EVENT_CHANNEL, DEFAULT_EVENT_DURATION, DEFAULT_EVENT_GATE, DEFAULT_EVENT_OCTAVE
 from ..constants import EVENT_TYPE_UNKNOWN, EVENT_TYPE_NOTE, EVENT_TYPE_ACTION, EVENT_TYPE_OSC, EVENT_TYPE_CONTROL, \
     EVENT_TYPE_PATCH, EVENT_TYPE_PROGRAM_CHANGE
+from ..constants import INTERPOLATION_NONE, INTERPOLATION_LINEAR, INTERPOLATION_COSINE
 from ..exceptions import InvalidEventException
 import logging
 
 log = logging.getLogger(__name__)
 
 class Track:
-    def __init__(self, events, timeline, output_device=None):
+    def __init__(self, events, timeline, interpolation=INTERPOLATION_NONE, output_device=None):
         #----------------------------------------------------------------------
         # evaluate in case we have a pattern which gives us an event
         # eg: PSeq([ { EVENT_NOTE : 20, EVENT_DURATION : 0.5 }, { EVENT_NOTE : 50, EVENT_DURATION : PWhite(0, 2) } ])
@@ -26,11 +27,13 @@ class Track:
         # is this ever even necessary?
         #----------------------------------------------------------------------
         # self.events = Pattern.pattern(events)
-        self.init_events(events)
-
-        # TODO: Is this needed?
         self.timeline = timeline
         self.output_device = output_device
+        self.interpolation = interpolation
+        
+        self.event_type = None
+        self.events = None
+        self.init_events(events)
 
         self.current_time = 0
         self.next_event_time = 0
@@ -63,6 +66,25 @@ class Track:
         #----------------------------------------------------------------------
         for key, value in list(events.items()):
             events[key] = Pattern.pattern(value)
+            
+        #----------------------------------------------------------------------
+        # Classify the event type.
+        #----------------------------------------------------------------------
+        if EVENT_ACTION in events:
+            self.event_type = EVENT_TYPE_ACTION
+        elif EVENT_PATCH in events:
+            self.event_type = EVENT_TYPE_PATCH
+        elif EVENT_CONTROL in events:
+            self.event_type = EVENT_TYPE_CONTROL
+        elif EVENT_PROGRAM_CHANGE in events:
+            self.event_type = EVENT_TYPE_PROGRAM_CHANGE
+        elif EVENT_OSC_ADDRESS in events:
+            self.event_type = EVENT_TYPE_OSC
+        elif EVENT_NOTE in events or EVENT_DEGREE in events:
+            self.event_type = EVENT_TYPE_NOTE
+        else:
+            possible_event_types = [ EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL, EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS ]
+            raise InvalidEventException("No event type specified (must provide one of %s)" % possible_event_types)
 
         self.events = events
 
@@ -74,7 +96,7 @@ class Track:
             tick_duration (float): Duration, in beats.
         """
         #----------------------------------------------------------------------
-        # process note_offs before we play the next note, else a repeated note
+        # Process note_offs before we play the next note, else a repeated note
         # with gate = 1.0 will immediately be cancelled.
         #----------------------------------------------------------------------
         for n, note in enumerate(self.note_offs[:]):
@@ -161,31 +183,13 @@ class Track:
                 except:
                     values[EVENT_NOTE] += values[EVENT_OCTAVE] * 12 + values[EVENT_TRANSPOSE]
 
-        #----------------------------------------------------------------------
-        # Classify the event type.
-        #----------------------------------------------------------------------
-        if EVENT_ACTION in values:
-            values[EVENT_TYPE] = EVENT_TYPE_ACTION
-        elif EVENT_PATCH in values:
-            values[EVENT_TYPE] = EVENT_TYPE_PATCH
-        elif EVENT_CONTROL in values:
-            values[EVENT_TYPE] = EVENT_TYPE_CONTROL
-        elif EVENT_PROGRAM_CHANGE in values:
-            values[EVENT_TYPE] = EVENT_TYPE_PROGRAM_CHANGE
-        elif EVENT_OSC_ADDRESS in values:
-            values[EVENT_TYPE] = EVENT_TYPE_OSC
-        elif EVENT_NOTE in values or EVENT_DEGREE in values:
-            values[EVENT_TYPE] = EVENT_TYPE_NOTE
-        else:
-            values[EVENT_TYPE] = EVENT_TYPE_UNKNOWN
-
         return values
 
     def perform_event(self, values):
         #------------------------------------------------------------------------
         # Action: Carry out an action each time this event is triggered
         #------------------------------------------------------------------------
-        if values[EVENT_TYPE] == EVENT_TYPE_ACTION:
+        if self.event_type == EVENT_TYPE_ACTION:
             try:
                 args = []
                 if EVENT_ACTION_ARGS in values:
@@ -206,7 +210,7 @@ class Track:
         #------------------------------------------------------------------------
         # Control: Send a control value
         #------------------------------------------------------------------------
-        elif values[EVENT_TYPE] == EVENT_TYPE_CONTROL:
+        elif self.event_type == EVENT_TYPE_CONTROL:
             log.debug("Control (channel %d, control %d, value %d)",
                       values[EVENT_CHANNEL], values[EVENT_CONTROL], values[EVENT_VALUE])
             self.output_device.control(values[EVENT_CONTROL], values[EVENT_VALUE], values[EVENT_CHANNEL])
@@ -214,7 +218,7 @@ class Track:
         #------------------------------------------------------------------------
         # Program change
         #------------------------------------------------------------------------
-        elif values[EVENT_TYPE] == EVENT_TYPE_PROGRAM_CHANGE:
+        elif self.event_type == EVENT_TYPE_PROGRAM_CHANGE:
             log.debug("Program change (channel %d, program %d)",
                       values[EVENT_CHANNEL], values[EVENT_PROGRAM_CHANGE])
             self.output_device.program_change(values[EVENT_PROGRAM_CHANGE], values[EVENT_CHANNEL])
@@ -222,17 +226,17 @@ class Track:
         #------------------------------------------------------------------------
         # address: Send a value to an OSC endpoint
         #------------------------------------------------------------------------
-        elif values[EVENT_TYPE] == EVENT_TYPE_OSC:
+        elif self.event_type == EVENT_TYPE_OSC:
             self.output_device.send(values[EVENT_OSC_ADDRESS], values[EVENT_OSC_PARAMS])
 
-        elif values[EVENT_TYPE] == EVENT_TYPE_PATCH:
+        elif self.event_type == EVENT_TYPE_PATCH:
             if not hasattr(self.output_device, "create"):
                 raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
             params = values[EVENT_PATCH_PARAMS] if EVENT_PATCH_PARAMS in values else {}
             params = dict((key, Pattern.value(value)) for key, value in params.items())
             self.output_device.create(values[EVENT_PATCH], params)
 
-        elif values[EVENT_TYPE] == EVENT_TYPE_NOTE:
+        elif self.event_type == EVENT_TYPE_NOTE:
             #----------------------------------------------------------------------
             # event: Certain devices (eg Socket IO) handle generic events,
             #        rather than note_on/note_off. (Should probably have to

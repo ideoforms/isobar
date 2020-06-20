@@ -76,3 +76,10 @@ DEFAULT_EVENT_GATE = 1.0
 DEFAULT_EVENT_AMPLITUDE = 64
 DEFAULT_EVENT_OCTAVE = 0
 DEFAULT_EVENT_TRANSPOSE = 0
+
+#------------------------------------------------------------------------
+# Interpolation modes for continuous signals.
+#------------------------------------------------------------------------
+INTERPOLATION_NONE = 0
+INTERPOLATION_LINEAR = 1
+INTERPOLATION_COSINE = 2

@@ -5,6 +5,7 @@ import pytest
 import time
 from isobar.io import DummyOutputDevice, MidiOut
 from . import dummy_timeline
+from isobar.exceptions import InvalidEventException
 
 def test_timeline_tempo():
     timeline = iso.Timeline(100)
@@ -13,7 +14,7 @@ def test_timeline_tempo():
 def test_timeline_default_output_device():
     timeline = iso.Timeline()
     try:
-        track = timeline.schedule({})
+        track = timeline.schedule({ "note": 0 })
         assert issubclass(type(track.output_device), MidiOut)
     except iso.DeviceNotFoundException:
         # Ignore exception on machines without a MIDI device
@@ -22,7 +23,7 @@ def test_timeline_default_output_device():
 def test_timeline_output_device():
     dummy = DummyOutputDevice()
     timeline = iso.Timeline(output_device=dummy)
-    track = timeline.schedule({})
+    track = timeline.schedule({ "note" : 0 })
     assert track.output_device == dummy
 
 def test_timeline_stop_when_done():
@@ -46,6 +47,10 @@ def test_timeline_schedule(dummy_timeline):
     assert len(dummy_timeline.output_device.events) == 2
     assert dummy_timeline.output_device.events[0] == [pytest.approx(0.0), "note_on", 1, 64, 0]
     assert dummy_timeline.output_device.events[1] == [pytest.approx(1.0), "note_off", 1, 0]
+
+def test_timeline_schedule_empty(dummy_timeline):
+    with pytest.raises(InvalidEventException):
+        dummy_timeline.schedule({})
 
 def test_timeline_schedule_twice(dummy_timeline):
     # TODO

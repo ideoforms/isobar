@@ -3,12 +3,11 @@ import math
 import threading
 import traceback
 
-import isobar.io
-
 from .track import Track
 from .clock import Clock
+from ..io import MidiOut
 from ..constants import DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO
-from ..constants import EVENT_TIME, EVENT_FUNCTION
+from ..constants import EVENT_TIME, EVENT_FUNCTION, INTERPOLATION_NONE
 from ..exceptions import TrackLimitReachedException, TrackNotFoundException
 from ..util import make_clock_multiplier
 import logging
@@ -279,18 +278,19 @@ class Timeline(object):
         self.output_devices.append(output_device)
         self.clock_multipliers[output_device] = make_clock_multiplier(output_device.ticks_per_beat, self.ticks_per_beat)
 
-    def schedule(self, params, quantize=0, delay=0, output_device=None):
+    def schedule(self, params, quantize=0, delay=0, interpolation=INTERPOLATION_NONE, output_device=None):
         """
         Schedule a new track within this Timeline.
 
         Args:
-            params (dict): Event dictionary. Keys are generally EVENT_* values, defined in constants.py
-            quantize (float): Quantize level, in beats. For example, 1.0 will begin executing the
-                              events on the next whole beats.
-            delay (float): Delay time, in beats, before events should be executed.
-                           If `quantize` and `delay` are both specified, quantization is applied first,
-                           and the event is scheduled `delay` beats after the quantization time.
-            output_device: Output device to send events to. Uses the Timeline default if not specified.
+            params (dict):       Event dictionary. Keys are generally EVENT_* values, defined in constants.py
+            quantize (float):    Quantize level, in beats. For example, 1.0 will begin executing the
+                                 events on the next whole beats.
+            delay (float):       Delay time, in beats, before events should be executed.
+                                 If `quantize` and `delay` are both specified, quantization is applied first,
+                                 and the event is scheduled `delay` beats after the quantization time.
+            interpolation (int): Interpolation mode for control segments.
+            output_device:       Output device to send events to. Uses the Timeline default if not specified.
 
         Returns:
             A new `Track` object if the track has been created immediately.
@@ -310,7 +310,7 @@ class Timeline(object):
             # If no output device exists, send to the system default MIDI output.
             #--------------------------------------------------------------------------------            
             if not self.output_devices:
-                self.add_output_device(isobar.io.MidiOut())
+                self.add_output_device(MidiOut())
             output_device = self.output_devices[0]
 
         if self.max_tracks and len(self.tracks) >= self.max_tracks:
@@ -320,7 +320,7 @@ class Timeline(object):
             #--------------------------------------------------------------------------------
             # Add a new track.
             #--------------------------------------------------------------------------------
-            track = Track(params, self, output_device)
+            track = Track(params, self, interpolation=interpolation, output_device=output_device)
             self.tracks.append(track)
             return track
 
