@@ -3,6 +3,9 @@ import copy
 import random
 import itertools
 
+import logging
+log = logging.getLogger(__name__)
+
 from .core import Pattern
 from ..chord import Chord
 from ..constants import INTERPOLATION_NONE, INTERPOLATION_LINEAR, INTERPOLATION_COSINE
@@ -688,6 +691,138 @@ class PEuclidean(Pattern):
             seqs, remainder = self._split_remainder(seqs)
 
         return reduce(lambda a, b: a + b, seqs + remainder)
+
+class PExplorer(Pattern):
+    def __init__(self, density=0.5, length=4, length_min=2, length_max=6, value_max=12, jump_max=4):
+        self.density = density
+        self.length = length
+        self.length_min = length_min
+        self.length_max = length_max
+        self.value_max = value_max
+        self.jump_max = jump_max
+        self.reset()
+
+    def reset(self):
+        super().reset()
+        self.counter = 0
+        self.values = []
+        self._generate_values()
+
+    def _generate_values(self):
+        self.values = []
+        value_last = None
+        for n in range(self.length):
+            if random.uniform(0, 1) < self.density:
+                if value_last is None:
+                    value = random.randint(0, self.value_max)
+                else:
+                    value = value_last + random.randint(-self.jump_max, self.jump_max)
+                if value < 0:
+                    value = 0
+                if value > self.value_max:
+                    value = self.value_max
+                self.values.append(value)
+                value_last = value
+            else:
+                self.values.append(None)
+
+    def explore(self):
+        OP_MUTATE = 0
+        OP_ROTATE = 1
+        OP_SWAP = 2
+        OP_SPLIT = 3
+        OP_REVERSE = 4
+        OP_DELETE = 5
+        OP_INSERT = 6
+        OP_COPY = 7
+
+        OPERATION_NAMES = ["mutate", "rotate", "swap", "split", "reverse", "delete", "insert", "copy"]
+
+        log.debug("PExplorer: Exploring: %s" % self.values)
+        operations = [OP_MUTATE, OP_ROTATE, OP_SWAP, OP_SPLIT, OP_REVERSE, OP_DELETE, OP_INSERT, OP_COPY]
+
+        values = self.values
+        if len(values) >= self.length_max:
+            operations.remove(OP_INSERT)
+            operations.remove(OP_COPY)
+        if len(values) <= self.length_min:
+            operations.remove(OP_DELETE)
+        operation = random.choice(operations)
+        log.debug("PExplorer: Selected operation: %s" % OPERATION_NAMES[operation])
+
+        #------------------------------------------------------------------------
+        # MUTATE: Replace a note with another note found within the sequence.
+        #------------------------------------------------------------------------
+        if operation == OP_MUTATE:
+            filled_indices = [n[0] for n in filter(lambda n: n[1] is not None, list(enumerate(values)))]
+            index = random.choice(filled_indices)
+            values[index] = random.randint(0, self.value_max)
+
+        #------------------------------------------------------------------------
+        # ROTATE: Rotate the sequence forwards or backwards one slot.
+        #------------------------------------------------------------------------
+        elif operation == OP_ROTATE:
+            if random.uniform(0, 1) < 0.1:
+                values = values[-1:] + values[:-1]
+            else:
+                values = values[1:] + values[:1]
+
+        #------------------------------------------------------------------------
+        # SWAP: Exchange two notes.
+        #------------------------------------------------------------------------
+        elif operation == OP_SWAP:
+            indexA = random.randint(0, len(values) - 1)
+            indexB = (indexA + 1) % len(values)
+            values[indexA], values[indexB] = values[indexB], values[indexA]
+
+        #------------------------------------------------------------------------
+        # SPLIT: Cut sequence in half and swap parts.
+        #------------------------------------------------------------------------
+        elif operation == OP_SPLIT:
+            point = random.randint(1, len(values) - 1)
+            values = values[:point] + values[point:]
+
+        #------------------------------------------------------------------------
+        # REVERSE: Reverses the sequence.
+        #------------------------------------------------------------------------
+        elif operation == OP_REVERSE:
+            values = list(reversed(values))
+
+        #------------------------------------------------------------------------
+        # DELETE: Remove an item.
+        #------------------------------------------------------------------------
+        elif operation == OP_DELETE:
+            index = random.randrange(len(values))
+            del (values[index])
+
+        #------------------------------------------------------------------------
+        # INSERT: Insert a new value at random.
+        #------------------------------------------------------------------------
+        elif operation == OP_INSERT:
+            index = random.randint(0, len(values))
+            value = random.choice(list(range(self.value_max + 1)) + [None])
+            values.insert(index, value)
+
+        #------------------------------------------------------------------------
+        # COPY: Duplicate a note at the subsequent index.
+        #------------------------------------------------------------------------
+        elif operation == OP_COPY:
+            index = random.randint(0, len(values) - 1)
+            values.insert(index + 1, values[index])
+
+        log.debug("PExplorer: New values: %s" % values)
+
+        self.values = values
+        self.counter = 0
+        return self
+
+    def __next__(self):
+        if self.counter >= len(self.values):
+            raise StopIteration
+
+        rv = self.values[self.counter]
+        self.counter += 1
+        return rv
 
 class PPermut(Pattern):
     """ PPermut: Generate every permutation of <count> input items.
