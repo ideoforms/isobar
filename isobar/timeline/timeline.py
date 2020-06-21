@@ -7,7 +7,7 @@ from .track import Track
 from .clock import Clock
 from ..io import MidiOut
 from ..constants import DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO
-from ..constants import EVENT_TIME, EVENT_FUNCTION, INTERPOLATION_NONE
+from ..constants import EVENT_TIME, EVENT_ACTION, INTERPOLATION_NONE
 from ..exceptions import TrackLimitReachedException, TrackNotFoundException
 from ..util import make_clock_multiplier
 import logging
@@ -140,7 +140,7 @@ class Timeline(object):
             # http://docs.python.org/tutorial/floatingpoint.html
             #--------------------------------------------------------------------------------
             if round(event[EVENT_TIME], 8) <= round(self.current_time, 8):
-                event[EVENT_FUNCTION]()
+                event[EVENT_ACTION]()
                 self.events.remove(event)
 
         #--------------------------------------------------------------------------------
@@ -336,7 +336,7 @@ class Timeline(object):
 
             self.events.append({
                 EVENT_TIME: scheduled_time,
-                EVENT_FUNCTION: _add_track
+                EVENT_ACTION: _add_track
             })
         else:
             #--------------------------------------------------------------------------------

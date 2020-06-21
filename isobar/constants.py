@@ -14,6 +14,12 @@ DEFAULT_TICKS_PER_BEAT = 120
 MIDI_CLOCK_TICKS_PER_BEAT = 24
 
 #------------------------------------------------------------------------
+# If the Timeline scheduling clock runs behind schedule, output
+# a warning if the delay exceeds <MIN_CLOCK_DELAY_WARNING_TIME> seconds.
+#------------------------------------------------------------------------
+MIN_CLOCK_DELAY_WARNING_TIME = 0.02
+
+#------------------------------------------------------------------------
 # Used when scheduling neverending events.
 #------------------------------------------------------------------------
 FOREVER = sys.maxsize
@@ -50,7 +56,6 @@ EVENT_OSC_ADDRESS = "address"
 EVENT_OSC_PARAMS = "params"
 EVENT_VALUE = "value"
 EVENT_TIME = "time"
-EVENT_FUNCTION = "function"
 EVENT_PATCH = "patch"
 EVENT_PATCH_PARAMS = "params"
 EVENT_PROGRAM_CHANGE = "program_change"

@@ -1,4 +1,4 @@
-from ..constants import DEFAULT_TEMPO, DEFAULT_TICKS_PER_BEAT
+from ..constants import DEFAULT_TEMPO, DEFAULT_TICKS_PER_BEAT, MIN_CLOCK_DELAY_WARNING_TIME
 from ..exceptions import ClockException
 from ..util import make_clock_multiplier
 
@@ -72,7 +72,9 @@ class Clock:
         self.running = True
         while self.running:
             if clock1 - clock0 >= (2.0 * self.tick_duration_seconds):
-                log.warning("Clock overflowed!")
+                delay_time = (clock1 - clock0 - self.tick_duration_seconds * 2)
+                if delay_time > MIN_CLOCK_DELAY_WARNING_TIME:
+                    log.warning("Clock: Timer overflowed (late by %.3fs)" % delay_time)
 
             while clock1 - clock0 >= self.tick_duration_seconds:
                 #------------------------------------------------------------------------
