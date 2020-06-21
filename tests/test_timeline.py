@@ -206,7 +206,7 @@ def test_timeline_tick_events(dummy_timeline):
         dummy_timeline.done = True
     event = {
         iso.EVENT_TIME: dummy_timeline.tick_duration,
-        iso.EVENT_FUNCTION: callback
+        iso.EVENT_ACTION: callback
     }
     dummy_timeline.events.append(event)
     dummy_timeline.tick()
