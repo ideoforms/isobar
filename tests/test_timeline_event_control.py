@@ -37,6 +37,12 @@ def test_event_control_linear_interpolation(dummy_timeline):
     dummy_timeline.run()
     assert len(dummy_timeline.output_device.events) == (dummy_timeline.ticks_per_beat * 1.5) + 1
 
+    expected_series = [1 + 2 * n / dummy_timeline.ticks_per_beat for n in range(dummy_timeline.ticks_per_beat)] + \
+                      [3 - 1 * n / (dummy_timeline.ticks_per_beat // 2) for n in range(dummy_timeline.ticks_per_beat // 2)] + \
+                      [2]
+    values = [event[3] for event in dummy_timeline.output_device.events]
+    assert expected_series == pytest.approx(values, rel=0.01)
+
 @pytest.mark.skip
 def test_event_control_cosine_interpolation(dummy_timeline):
     """
