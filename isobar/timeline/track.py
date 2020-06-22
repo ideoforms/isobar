@@ -18,6 +18,110 @@ import logging
 
 log = logging.getLogger(__name__)
 
+class Event:
+    def __init__(self, event_values):
+        event_values.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
+        event_values.setdefault(EVENT_DURATION, DEFAULT_EVENT_DURATION)
+        event_values.setdefault(EVENT_GATE, DEFAULT_EVENT_GATE)
+        event_values.setdefault(EVENT_AMPLITUDE, DEFAULT_EVENT_AMPLITUDE)
+        event_values.setdefault(EVENT_OCTAVE, DEFAULT_EVENT_OCTAVE)
+        event_values.setdefault(EVENT_TRANSPOSE, DEFAULT_EVENT_TRANSPOSE)
+        event_values.setdefault(EVENT_SCALE, Scale.default)
+
+        if EVENT_NOTE in event_values and EVENT_DEGREE in event_values:
+            raise InvalidEventException("Cannot specify both note and degree")
+
+        #------------------------------------------------------------------------
+        # Note/degree/etc: Send a MIDI note
+        #------------------------------------------------------------------------
+        if EVENT_DEGREE in event_values:
+            degree = event_values[EVENT_DEGREE]
+            if degree is None:
+                event_values[EVENT_NOTE] = None
+            else:
+                if EVENT_KEY in event_values:
+                    key = event_values[EVENT_KEY]
+                else:
+                    key = Key(0, event_values[EVENT_SCALE])
+
+                #----------------------------------------------------------------------
+                # handle lists of notes (eg chords).
+                # TODO: create a class which allows for scalars and arrays to handle
+                # addition transparently
+                #----------------------------------------------------------------------
+                try:
+                    event_values[EVENT_NOTE] = [key[n] for n in degree]
+                except:
+                    event_values[EVENT_NOTE] = key[degree]
+
+        #----------------------------------------------------------------------
+        # For cases in which we want to introduce a rest, set amplitude
+        # to zero. This means that we can still send rest events to
+        # devices which receive all generic events (useful to display rests
+        # when rendering a score).
+        #----------------------------------------------------------------------
+        if EVENT_NOTE in event_values:
+            if event_values[EVENT_NOTE] is None:
+                #----------------------------------------------------------------------
+                # Rest.
+                #----------------------------------------------------------------------
+                event_values[EVENT_NOTE] = 0
+                event_values[EVENT_AMPLITUDE] = 0
+                event_values[EVENT_GATE] = 0
+            else:
+                #----------------------------------------------------------------------
+                # Handle lists of notes (eg chords).
+                # TODO: create a class which allows for scalars and arrays to handle
+                #       addition transparently.
+                #
+                # The below does not allow for event_values[EVENT_TRANSPOSE] to be an array,
+                # for example.
+                #----------------------------------------------------------------------
+                try:
+                    event_values[EVENT_NOTE] = [note + event_values[EVENT_OCTAVE] * 12 + event_values[EVENT_TRANSPOSE] for note in event_values[EVENT_NOTE]]
+                except:
+                    event_values[EVENT_NOTE] += event_values[EVENT_OCTAVE] * 12 + event_values[EVENT_TRANSPOSE]
+
+        #----------------------------------------------------------------------
+        # Classify the event type.
+        #----------------------------------------------------------------------
+        if EVENT_ACTION in event_values:
+            self.type = EVENT_TYPE_ACTION
+            self.action = event_values[EVENT_ACTION]
+            self.args = []
+            if EVENT_ACTION_ARGS in event_values:
+                self.args = [Pattern.value(value) for value in event_values[EVENT_ACTION_ARGS]]
+
+        elif EVENT_PATCH in event_values:
+            self.type = EVENT_TYPE_PATCH
+            
+        elif EVENT_CONTROL in event_values:
+            self.type = EVENT_TYPE_CONTROL
+            self.control = event_values[EVENT_CONTROL]
+            self.value = event_values[EVENT_VALUE]
+            self.channel = event_values[EVENT_CHANNEL]
+            
+        elif EVENT_PROGRAM_CHANGE in event_values:
+            self.type = EVENT_TYPE_PROGRAM_CHANGE
+            
+        elif EVENT_OSC_ADDRESS in event_values:
+            self.type = EVENT_TYPE_OSC
+            
+        elif EVENT_NOTE in event_values or EVENT_DEGREE in event_values:
+            self.type = EVENT_TYPE_NOTE
+            self.note = event_values[EVENT_NOTE]
+            self.amplitude = event_values[EVENT_AMPLITUDE]
+            self.gate = event_values[EVENT_GATE]
+            self.channel = event_values[EVENT_CHANNEL]
+            
+        else:
+            possible_event_types = [EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL, EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS]
+            raise InvalidEventException("No event type specified (must provide one of %s)" % possible_event_types)
+        
+        self.duration = event_values[EVENT_DURATION]
+        
+        self.fields = event_values
+
 class Track:
     def __init__(self, events, timeline, interpolate=INTERPOLATION_NONE, output_device=None):
         #--------------------------------------------------------------------------------
@@ -77,10 +181,10 @@ class Track:
                 if round(self.current_time, 8) >= round(self.next_event_time, 8):
                     self.current_event = self.get_next_event()
                     self.perform_event(self.current_event)
-                    self.next_event_time += float(self.current_event[EVENT_DURATION])
+                    self.next_event_time += float(self.current_event.duration)
             else:
                 try:
-                    interpolated_values = next(self.interpolating_event)
+                    interpolated_values = Event(next(self.interpolating_event))
                     self.perform_event(interpolated_values)
                 except StopIteration:
                     is_first_event = False
@@ -90,25 +194,26 @@ class Track:
                     self.current_event = self.next_event
                     self.next_event = self.get_next_event()
 
-                    if self.current_event[EVENT_TYPE] != EVENT_TYPE_CONTROL:
+                    if self.current_event.type != EVENT_TYPE_CONTROL:
                         raise InvalidEventException("Interpolation is only valid for control event")
 
-                    self.interpolating_event = copy.copy(self.current_event)
-                    duration = self.current_event[EVENT_DURATION]
+                    interpolating_event_fields = copy.copy(self.current_event.fields)
+                    duration = self.current_event.duration
                     duration_ticks = duration * self.timeline.ticks_per_beat
-                    for key, value in self.current_event.items():
+                    for key, value in self.current_event.fields.items():
                         if key == EVENT_TYPE or key == EVENT_DURATION:
                             continue
                         if type(value) is not float and type(value) is not int:
                             continue
-                        self.interpolating_event[key] = PInterpolate(PSequence([self.current_event[key], self.next_event[key]], 1),
+                        interpolating_event_fields[key] = PInterpolate(PSequence([self.current_event.fields[key],
+                                                                                self.next_event.fields[key]], 1),
                                                          duration_ticks,
                                                          self.interpolate)
 
-                    self.interpolating_event = PDict(self.interpolating_event)
+                    self.interpolating_event = PDict(interpolating_event_fields)
                     if not is_first_event:
                         next(self.interpolating_event)
-                    interpolated_values = next(self.interpolating_event)
+                    interpolated_values = Event(next(self.interpolating_event))
                     self.perform_event(interpolated_values)
 
         except StopIteration:
@@ -140,103 +245,21 @@ class Track:
         event_values = next(self.event_stream)
         event_values = copy.copy(event_values)
         
-        event_values.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
-        event_values.setdefault(EVENT_DURATION, DEFAULT_EVENT_DURATION)
-        event_values.setdefault(EVENT_GATE, DEFAULT_EVENT_GATE)
-        event_values.setdefault(EVENT_AMPLITUDE, DEFAULT_EVENT_AMPLITUDE)
-        event_values.setdefault(EVENT_OCTAVE, DEFAULT_EVENT_OCTAVE)
-        event_values.setdefault(EVENT_TRANSPOSE, DEFAULT_EVENT_TRANSPOSE)
-        event_values.setdefault(EVENT_SCALE, Scale.default)
+        event = Event(event_values)
 
-        if EVENT_NOTE in event_values and EVENT_DEGREE in event_values:
-            raise InvalidEventException("Cannot specify both note and degree")
-
-        #----------------------------------------------------------------------
-        # Classify the event type.
-        #----------------------------------------------------------------------
-        if EVENT_ACTION in event_values:
-            event_values[EVENT_TYPE] = EVENT_TYPE_ACTION
-        elif EVENT_PATCH in event_values:
-            event_values[EVENT_TYPE] = EVENT_TYPE_PATCH
-        elif EVENT_CONTROL in event_values:
-            event_values[EVENT_TYPE] = EVENT_TYPE_CONTROL
-        elif EVENT_PROGRAM_CHANGE in event_values:
-            event_values[EVENT_TYPE] = EVENT_TYPE_PROGRAM_CHANGE
-        elif EVENT_OSC_ADDRESS in event_values:
-            event_values[EVENT_TYPE] = EVENT_TYPE_OSC
-        elif EVENT_NOTE in event_values or EVENT_DEGREE in event_values:
-            event_values[EVENT_TYPE] = EVENT_TYPE_NOTE
-        else:
-            possible_event_types = [EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL, EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS]
-            raise InvalidEventException("No event type specified (must provide one of %s)" % possible_event_types)
-
-        #------------------------------------------------------------------------
-        # Note/degree/etc: Send a MIDI note
-        #------------------------------------------------------------------------
-        if EVENT_DEGREE in event_values:
-            degree = event_values[EVENT_DEGREE]
-            if degree is None:
-                event_values[EVENT_NOTE] = None
-            else:
-                if EVENT_KEY in event_values:
-                    key = event_values[EVENT_KEY]
-                else:
-                    key = Key(0, event_values[EVENT_SCALE])
-
-                #----------------------------------------------------------------------
-                # handle lists of notes (eg chords).
-                # TODO: create a class which allows for scalars and arrays to handle
-                # addition transparently
-                #----------------------------------------------------------------------
-                try:
-                    event_values[EVENT_NOTE] = [key[n] for n in degree]
-                except:
-                    event_values[EVENT_NOTE] = key[degree]
-
-        #----------------------------------------------------------------------
-        # For cases in which we want to introduce a rest, set amplitude
-        # to zero. This means that we can still send rest events to
-        # devices which receive all generic events (useful to display rests
-        # when rendering a score).
-        #----------------------------------------------------------------------
-        if EVENT_NOTE in event_values:
-            if event_values[EVENT_NOTE] is None:
-                #----------------------------------------------------------------------
-                # Rest.
-                #----------------------------------------------------------------------
-                event_values[EVENT_NOTE] = 0
-                event_values[EVENT_AMPLITUDE] = 0
-                event_values[EVENT_GATE] = 0
-            else:
-                #----------------------------------------------------------------------
-                # Handle lists of notes (eg chords).
-                # TODO: create a class which allows for scalars and arrays to handle
-                #       addition transparently.
-                #
-                # The below does not allow for event_values[EVENT_TRANSPOSE] to be an array,
-                # for example.
-                #----------------------------------------------------------------------
-                try:
-                    event_values[EVENT_NOTE] = [note + event_values[EVENT_OCTAVE] * 12 + event_values[EVENT_TRANSPOSE] for note in event_values[EVENT_NOTE]]
-                except:
-                    event_values[EVENT_NOTE] += event_values[EVENT_OCTAVE] * 12 + event_values[EVENT_TRANSPOSE]
-
-        return event_values
+        return event
 
     def perform_event(self, event):
         #------------------------------------------------------------------------
         # Action: Carry out an action each time this event is triggered
         #------------------------------------------------------------------------
-        if event[EVENT_TYPE] == EVENT_TYPE_ACTION:
+        if event.type == EVENT_TYPE_ACTION:
             try:
-                args = []
-                if EVENT_ACTION_ARGS in event:
-                    args = [Pattern.value(value) for value in event[EVENT_ACTION_ARGS]]
-
-                fn = event[EVENT_ACTION]
+                fn = event.action
+                args = event.args
                 fn_params = inspect.signature(fn).parameters
-                kwargs = dict((key, value) for key, value in event.items() if key in fn_params)
-                event[EVENT_ACTION](*args, **kwargs)
+                kwargs = dict((key, value) for key, value in event.fields.items() if key in fn_params)
+                event.action(*args, **kwargs)
             except StopIteration:
                 raise StopIteration()
             except Exception as e:
@@ -248,33 +271,33 @@ class Track:
         #------------------------------------------------------------------------
         # Control: Send a control value
         #------------------------------------------------------------------------
-        elif event[EVENT_TYPE] == EVENT_TYPE_CONTROL:
+        elif event.type == EVENT_TYPE_CONTROL:
             log.debug("Control (channel %d, control %d, value %d)",
-                      event[EVENT_CHANNEL], event[EVENT_CONTROL], event[EVENT_VALUE])
-            self.output_device.control(event[EVENT_CONTROL], event[EVENT_VALUE], event[EVENT_CHANNEL])
+                      event.channel, event.control, event.value)
+            self.output_device.control(event.control, event.value, event.channel)
 
         #------------------------------------------------------------------------
         # Program change
         #------------------------------------------------------------------------
-        elif event[EVENT_TYPE] == EVENT_TYPE_PROGRAM_CHANGE:
+        elif event.type == EVENT_TYPE_PROGRAM_CHANGE:
             log.debug("Program change (channel %d, program %d)",
-                      event[EVENT_CHANNEL], event[EVENT_PROGRAM_CHANGE])
-            self.output_device.program_change(event[EVENT_PROGRAM_CHANGE], event[EVENT_CHANNEL])
+                      event.channel, event.program_change)
+            self.output_device.program_change(event.program_change, event.channel)
 
         #------------------------------------------------------------------------
         # address: Send a value to an OSC endpoint
         #------------------------------------------------------------------------
-        elif event[EVENT_TYPE] == EVENT_TYPE_OSC:
-            self.output_device.send(event[EVENT_OSC_ADDRESS], event[EVENT_OSC_PARAMS])
+        elif event.type == EVENT_TYPE_OSC:
+            self.output_device.send(event.osc_address, event.osc_params)
 
-        elif event[EVENT_TYPE] == EVENT_TYPE_PATCH:
+        elif event.type == EVENT_TYPE_PATCH:
             if not hasattr(self.output_device, "create"):
                 raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
-            params = event[EVENT_PATCH_PARAMS] if EVENT_PATCH_PARAMS in event else {}
+            params = event.patch_params if EVENT_PATCH_PARAMS in event.fields else {}
             params = dict((key, Pattern.value(value)) for key, value in params.items())
-            self.output_device.create(event[EVENT_PATCH], params)
+            self.output_device.create(event.patch, params)
 
-        elif event[EVENT_TYPE] == EVENT_TYPE_NOTE:
+        elif event.type == EVENT_TYPE_NOTE:
             #----------------------------------------------------------------------
             # event: Certain devices (eg Socket IO) handle generic events,
             #        rather than note_on/note_off. (Should probably have to
@@ -306,10 +329,10 @@ class Track:
             #----------------------------------------------------------------------
             # note_on: Standard (MIDI) type of device
             #----------------------------------------------------------------------
-            if type(event[EVENT_AMPLITUDE]) is tuple or event[EVENT_AMPLITUDE] > 0:
+            if type(event.amplitude) is tuple or event.amplitude > 0:
                 # TODO: pythonic duck-typing approach might be better
                 # TODO: doesn't handle arrays of amp, channel event, etc
-                notes = event[EVENT_NOTE] if hasattr(event[EVENT_NOTE], '__iter__') else [event[EVENT_NOTE]]
+                notes = event.note if hasattr(event.note, '__iter__') else [event.note]
 
                 #----------------------------------------------------------------------
                 # Allow for arrays of amp, gate etc, to handle chords properly.
@@ -317,18 +340,18 @@ class Track:
                 # shorter than the number of notes.
                 #----------------------------------------------------------------------
                 for index, note in enumerate(notes):
-                    amp = event[EVENT_AMPLITUDE][index] if isinstance(event[EVENT_AMPLITUDE], tuple) else event[EVENT_AMPLITUDE]
-                    channel = event[EVENT_CHANNEL][index] if isinstance(event[EVENT_CHANNEL], tuple) else event[EVENT_CHANNEL]
-                    gate = event[EVENT_GATE][index] if isinstance(event[EVENT_GATE], tuple) else event[EVENT_GATE]
+                    amp = event.amplitude[index] if isinstance(event.amplitude, tuple) else event.amplitude
+                    channel = event.channel[index] if isinstance(event.channel, tuple) else event.channel
+                    gate = event.gate[index] if isinstance(event.gate, tuple) else event.gate
                     # TODO: Add an EVENT_SUSTAIN that allows absolute note lengths to be specified
 
                     if (amp is not None and amp > 0) and (gate is not None and gate > 0):
                         self.output_device.note_on(note, amp, channel)
 
-                        note_dur = event[EVENT_DURATION] * gate
+                        note_dur = event.duration * gate
                         self.schedule_note_off(self.next_event_time + note_dur, note, channel)
         else:
-            raise InvalidEventException("Invalid event type: %s" % event[EVENT_TYPE])
+            raise InvalidEventException("Invalid event type: %s" % event.type)
 
     def schedule_note_off(self, time, note, channel):
         self.note_offs.append([time, note, channel])
