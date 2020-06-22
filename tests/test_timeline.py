@@ -49,8 +49,8 @@ def test_timeline_schedule(dummy_timeline):
     assert dummy_timeline.output_device.events[1] == [pytest.approx(1.0), "note_off", 1, 0]
 
 def test_timeline_schedule_empty(dummy_timeline):
-    with pytest.raises(InvalidEventException):
-        dummy_timeline.schedule({})
+    dummy_timeline.schedule({})
+    dummy_timeline.run()
 
 def test_timeline_schedule_twice(dummy_timeline):
     # TODO

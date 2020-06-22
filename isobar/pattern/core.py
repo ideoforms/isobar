@@ -258,6 +258,9 @@ class PConstant(Pattern):
     def __next__(self):
         return self.constant
 
+    def __float__(self):
+        return float(self.constant)
+
 
 class PRef(Pattern):
     """ PRef: Contains a reference to another pattern, which can be replaced dynamically.

@@ -1,7 +1,7 @@
 import copy
 import inspect
 
-from ..pattern import Pattern, PInterpolate
+from ..pattern import Pattern, PSequence, PDict, PInterpolate
 from ..key import Key
 from ..scale import Scale
 from ..constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_TRANSPOSE, \
@@ -20,20 +20,19 @@ log = logging.getLogger(__name__)
 
 class Track:
     def __init__(self, events, timeline, interpolate=INTERPOLATION_NONE, output_device=None):
-        #----------------------------------------------------------------------
-        # evaluate in case we have a pattern which gives us an event
-        # eg: PSeq([ { EVENT_NOTE : 20, EVENT_DURATION : 0.5 }, { EVENT_NOTE : 50, EVENT_DURATION : PWhite(0, 2) } ])
-        #
-        # is this ever even necessary?
-        #----------------------------------------------------------------------
-        # self.events = Pattern.pattern(events)
+        #--------------------------------------------------------------------------------
+        # Ensure that events is a pattern that generates a dict when it is iterated.
+        #--------------------------------------------------------------------------------
+        if isinstance(events, dict):
+            events = PDict(events)
+        self.event_stream = events
+        self.current_event = None
+        self.next_event = None
+        self.interpolating_event = PSequence([], 0)
+
         self.timeline = timeline
         self.output_device = output_device
         self.interpolate = interpolate
-
-        self.event_type = None
-        self.events = None
-        self.init_events(events)
 
         self.current_time = 0
         self.next_event_time = 0
@@ -47,55 +46,6 @@ class Track:
     def tick_duration(self):
         return self.timeline.tick_duration
 
-    def init_events(self, events):
-        events.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
-        events.setdefault(EVENT_DURATION, DEFAULT_EVENT_DURATION)
-        events.setdefault(EVENT_GATE, DEFAULT_EVENT_GATE)
-        events.setdefault(EVENT_AMPLITUDE, DEFAULT_EVENT_AMPLITUDE)
-        events.setdefault(EVENT_OCTAVE, DEFAULT_EVENT_OCTAVE)
-        events.setdefault(EVENT_TRANSPOSE, DEFAULT_EVENT_TRANSPOSE)
-        events.setdefault(EVENT_SCALE, Scale.default)
-
-        if EVENT_NOTE in events and EVENT_DEGREE in events:
-            raise InvalidEventException("Cannot specify both note and degree")
-
-        #----------------------------------------------------------------------
-        # Turn constant values into patterns:
-        #  - scalars becomes PConstant
-        #  - array becomes PSequence
-        #----------------------------------------------------------------------
-        for key, value in list(events.items()):
-            events[key] = Pattern.pattern(value)
-
-        #----------------------------------------------------------------------
-        # Classify the event type.
-        #----------------------------------------------------------------------
-        if EVENT_ACTION in events:
-            self.event_type = EVENT_TYPE_ACTION
-        elif EVENT_PATCH in events:
-            self.event_type = EVENT_TYPE_PATCH
-        elif EVENT_CONTROL in events:
-            self.event_type = EVENT_TYPE_CONTROL
-        elif EVENT_PROGRAM_CHANGE in events:
-            self.event_type = EVENT_TYPE_PROGRAM_CHANGE
-        elif EVENT_OSC_ADDRESS in events:
-            self.event_type = EVENT_TYPE_OSC
-        elif EVENT_NOTE in events or EVENT_DEGREE in events:
-            self.event_type = EVENT_TYPE_NOTE
-        else:
-            possible_event_types = [EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL, EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS]
-            raise InvalidEventException("No event type specified (must provide one of %s)" % possible_event_types)
-
-        if self.interpolate is not INTERPOLATION_NONE:
-            if self.event_type != EVENT_TYPE_CONTROL:
-                raise InvalidEventException("Interpolation is only valid for control events")
-
-            events[EVENT_VALUE] = PInterpolate(events[EVENT_VALUE],
-                                               events[EVENT_DURATION] * self.timeline.ticks_per_beat,
-                                               self.interpolate)
-
-        self.events = events
-
     def tick(self):
         """
         Step forward one tick.
@@ -103,6 +53,7 @@ class Track:
         Args:
             tick_duration (float): Duration, in beats.
         """
+
         #----------------------------------------------------------------------
         # Process note_offs before we play the next note, else a repeated note
         # with gate = 1.0 will immediately be cancelled.
@@ -116,17 +67,49 @@ class Track:
                 self.note_offs.remove(note)
 
         try:
-            if self.interpolate is not INTERPOLATION_NONE:
-                self.perform_event({
-                    "control": next(self.events["control"]),
-                    "value": next(self.events["value"]),
-                    "channel": next(self.events["channel"])
-                })
-            else:
+            # Have to be careful here.
+            # formerly had `if self.current_event` ...
+            # which would try to resolve the complete len of current_event:
+            # https://stackoverflow.com/questions/1087135/boolean-value-of-objects-in-python
+            # TODO: Think about __nonzero__ implementation for patterns?
+
+            if self.interpolate is INTERPOLATION_NONE:
                 if round(self.current_time, 8) >= round(self.next_event_time, 8):
-                    event = self.get_next_event()
-                    self.perform_event(event)
-                    self.next_event_time += event[EVENT_DURATION]
+                    self.current_event = self.get_next_event()
+                    self.perform_event(self.current_event)
+                    self.next_event_time += float(self.current_event[EVENT_DURATION])
+            else:
+                try:
+                    interpolated_values = next(self.interpolating_event)
+                    self.perform_event(interpolated_values)
+                except StopIteration:
+                    is_first_event = False
+                    if self.next_event is None:
+                        self.next_event = self.get_next_event()
+                        is_first_event = True
+                    self.current_event = self.next_event
+                    self.next_event = self.get_next_event()
+
+                    if self.current_event[EVENT_TYPE] != EVENT_TYPE_CONTROL:
+                        raise InvalidEventException("Interpolation is only valid for control event")
+
+                    self.interpolating_event = copy.copy(self.current_event)
+                    duration = self.current_event[EVENT_DURATION]
+                    duration_ticks = duration * self.timeline.ticks_per_beat
+                    for key, value in self.current_event.items():
+                        if key == EVENT_TYPE or key == EVENT_DURATION:
+                            continue
+                        if type(value) is not float and type(value) is not int:
+                            continue
+                        self.interpolating_event[key] = PInterpolate(PSequence([self.current_event[key], self.next_event[key]], 1),
+                                                         duration_ticks,
+                                                         self.interpolate)
+
+                    self.interpolating_event = PDict(self.interpolating_event)
+                    if not is_first_event:
+                        next(self.interpolating_event)
+                    interpolated_values = next(self.interpolating_event)
+                    self.perform_event(interpolated_values)
 
         except StopIteration:
             if len(self.note_offs) == 0:
@@ -142,26 +125,63 @@ class Track:
         self.next_event_duration = 0
         self.next_event_time = 0
 
-        for pattern in self.events.values():
+        for pattern in self.event_stream.values():
             pattern.reset()
 
     def get_next_event(self):
-        values = {}
-        for key, pattern in self.events.items():
-            values[key] = next(pattern)
+        #------------------------------------------------------------------------
+        # Iterate to the next event.
+        #  - If self.events is a PDict, this iterates over each of the keys
+        #    and returns a dictionary.
+        #  - If self.events is a pattern which returns a dict, the next value
+        #    is iterated.
+        # Take a copy to avoid modifying the original.
+        #------------------------------------------------------------------------
+        event_values = next(self.event_stream)
+        event_values = copy.copy(event_values)
+        
+        event_values.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
+        event_values.setdefault(EVENT_DURATION, DEFAULT_EVENT_DURATION)
+        event_values.setdefault(EVENT_GATE, DEFAULT_EVENT_GATE)
+        event_values.setdefault(EVENT_AMPLITUDE, DEFAULT_EVENT_AMPLITUDE)
+        event_values.setdefault(EVENT_OCTAVE, DEFAULT_EVENT_OCTAVE)
+        event_values.setdefault(EVENT_TRANSPOSE, DEFAULT_EVENT_TRANSPOSE)
+        event_values.setdefault(EVENT_SCALE, Scale.default)
+
+        if EVENT_NOTE in event_values and EVENT_DEGREE in event_values:
+            raise InvalidEventException("Cannot specify both note and degree")
+
+        #----------------------------------------------------------------------
+        # Classify the event type.
+        #----------------------------------------------------------------------
+        if EVENT_ACTION in event_values:
+            event_values[EVENT_TYPE] = EVENT_TYPE_ACTION
+        elif EVENT_PATCH in event_values:
+            event_values[EVENT_TYPE] = EVENT_TYPE_PATCH
+        elif EVENT_CONTROL in event_values:
+            event_values[EVENT_TYPE] = EVENT_TYPE_CONTROL
+        elif EVENT_PROGRAM_CHANGE in event_values:
+            event_values[EVENT_TYPE] = EVENT_TYPE_PROGRAM_CHANGE
+        elif EVENT_OSC_ADDRESS in event_values:
+            event_values[EVENT_TYPE] = EVENT_TYPE_OSC
+        elif EVENT_NOTE in event_values or EVENT_DEGREE in event_values:
+            event_values[EVENT_TYPE] = EVENT_TYPE_NOTE
+        else:
+            possible_event_types = [EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL, EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS]
+            raise InvalidEventException("No event type specified (must provide one of %s)" % possible_event_types)
 
         #------------------------------------------------------------------------
         # Note/degree/etc: Send a MIDI note
         #------------------------------------------------------------------------
-        if EVENT_DEGREE in values:
-            degree = values[EVENT_DEGREE]
+        if EVENT_DEGREE in event_values:
+            degree = event_values[EVENT_DEGREE]
             if degree is None:
-                values[EVENT_NOTE] = None
+                event_values[EVENT_NOTE] = None
             else:
-                if EVENT_KEY in values:
-                    key = values[EVENT_KEY]
+                if EVENT_KEY in event_values:
+                    key = event_values[EVENT_KEY]
                 else:
-                    key = Key(0, values[EVENT_SCALE])
+                    key = Key(0, event_values[EVENT_SCALE])
 
                 #----------------------------------------------------------------------
                 # handle lists of notes (eg chords).
@@ -169,9 +189,9 @@ class Track:
                 # addition transparently
                 #----------------------------------------------------------------------
                 try:
-                    values[EVENT_NOTE] = [key[n] for n in degree]
+                    event_values[EVENT_NOTE] = [key[n] for n in degree]
                 except:
-                    values[EVENT_NOTE] = key[degree]
+                    event_values[EVENT_NOTE] = key[degree]
 
         #----------------------------------------------------------------------
         # For cases in which we want to introduce a rest, set amplitude
@@ -179,44 +199,44 @@ class Track:
         # devices which receive all generic events (useful to display rests
         # when rendering a score).
         #----------------------------------------------------------------------
-        if EVENT_NOTE in values:
-            if values[EVENT_NOTE] is None:
+        if EVENT_NOTE in event_values:
+            if event_values[EVENT_NOTE] is None:
                 #----------------------------------------------------------------------
                 # Rest.
                 #----------------------------------------------------------------------
-                values[EVENT_NOTE] = 0
-                values[EVENT_AMPLITUDE] = 0
-                values[EVENT_GATE] = 0
+                event_values[EVENT_NOTE] = 0
+                event_values[EVENT_AMPLITUDE] = 0
+                event_values[EVENT_GATE] = 0
             else:
                 #----------------------------------------------------------------------
                 # Handle lists of notes (eg chords).
                 # TODO: create a class which allows for scalars and arrays to handle
                 #       addition transparently.
                 #
-                # The below does not allow for values[EVENT_TRANSPOSE] to be an array,
+                # The below does not allow for event_values[EVENT_TRANSPOSE] to be an array,
                 # for example.
                 #----------------------------------------------------------------------
                 try:
-                    values[EVENT_NOTE] = [note + values[EVENT_OCTAVE] * 12 + values[EVENT_TRANSPOSE] for note in values[EVENT_NOTE]]
+                    event_values[EVENT_NOTE] = [note + event_values[EVENT_OCTAVE] * 12 + event_values[EVENT_TRANSPOSE] for note in event_values[EVENT_NOTE]]
                 except:
-                    values[EVENT_NOTE] += values[EVENT_OCTAVE] * 12 + values[EVENT_TRANSPOSE]
+                    event_values[EVENT_NOTE] += event_values[EVENT_OCTAVE] * 12 + event_values[EVENT_TRANSPOSE]
 
-        return values
+        return event_values
 
-    def perform_event(self, values):
+    def perform_event(self, event):
         #------------------------------------------------------------------------
         # Action: Carry out an action each time this event is triggered
         #------------------------------------------------------------------------
-        if self.event_type == EVENT_TYPE_ACTION:
+        if event[EVENT_TYPE] == EVENT_TYPE_ACTION:
             try:
                 args = []
-                if EVENT_ACTION_ARGS in values:
-                    args = [Pattern.value(value) for value in values[EVENT_ACTION_ARGS]]
+                if EVENT_ACTION_ARGS in event:
+                    args = [Pattern.value(value) for value in event[EVENT_ACTION_ARGS]]
 
-                fn = values[EVENT_ACTION]
+                fn = event[EVENT_ACTION]
                 fn_params = inspect.signature(fn).parameters
-                kwargs = dict((key, value) for key, value in values.items() if key in fn_params)
-                values[EVENT_ACTION](*args, **kwargs)
+                kwargs = dict((key, value) for key, value in event.items() if key in fn_params)
+                event[EVENT_ACTION](*args, **kwargs)
             except StopIteration:
                 raise StopIteration()
             except Exception as e:
@@ -228,40 +248,40 @@ class Track:
         #------------------------------------------------------------------------
         # Control: Send a control value
         #------------------------------------------------------------------------
-        elif self.event_type == EVENT_TYPE_CONTROL:
+        elif event[EVENT_TYPE] == EVENT_TYPE_CONTROL:
             log.debug("Control (channel %d, control %d, value %d)",
-                  values[EVENT_CHANNEL], values[EVENT_CONTROL], values[EVENT_VALUE])
-            self.output_device.control(values[EVENT_CONTROL], values[EVENT_VALUE], values[EVENT_CHANNEL])
+                      event[EVENT_CHANNEL], event[EVENT_CONTROL], event[EVENT_VALUE])
+            self.output_device.control(event[EVENT_CONTROL], event[EVENT_VALUE], event[EVENT_CHANNEL])
 
         #------------------------------------------------------------------------
         # Program change
         #------------------------------------------------------------------------
-        elif self.event_type == EVENT_TYPE_PROGRAM_CHANGE:
+        elif event[EVENT_TYPE] == EVENT_TYPE_PROGRAM_CHANGE:
             log.debug("Program change (channel %d, program %d)",
-                      values[EVENT_CHANNEL], values[EVENT_PROGRAM_CHANGE])
-            self.output_device.program_change(values[EVENT_PROGRAM_CHANGE], values[EVENT_CHANNEL])
+                      event[EVENT_CHANNEL], event[EVENT_PROGRAM_CHANGE])
+            self.output_device.program_change(event[EVENT_PROGRAM_CHANGE], event[EVENT_CHANNEL])
 
         #------------------------------------------------------------------------
         # address: Send a value to an OSC endpoint
         #------------------------------------------------------------------------
-        elif self.event_type == EVENT_TYPE_OSC:
-            self.output_device.send(values[EVENT_OSC_ADDRESS], values[EVENT_OSC_PARAMS])
+        elif event[EVENT_TYPE] == EVENT_TYPE_OSC:
+            self.output_device.send(event[EVENT_OSC_ADDRESS], event[EVENT_OSC_PARAMS])
 
-        elif self.event_type == EVENT_TYPE_PATCH:
+        elif event[EVENT_TYPE] == EVENT_TYPE_PATCH:
             if not hasattr(self.output_device, "create"):
                 raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
-            params = values[EVENT_PATCH_PARAMS] if EVENT_PATCH_PARAMS in values else {}
+            params = event[EVENT_PATCH_PARAMS] if EVENT_PATCH_PARAMS in event else {}
             params = dict((key, Pattern.value(value)) for key, value in params.items())
-            self.output_device.create(values[EVENT_PATCH], params)
+            self.output_device.create(event[EVENT_PATCH], params)
 
-        elif self.event_type == EVENT_TYPE_NOTE:
+        elif event[EVENT_TYPE] == EVENT_TYPE_NOTE:
             #----------------------------------------------------------------------
             # event: Certain devices (eg Socket IO) handle generic events,
             #        rather than note_on/note_off. (Should probably have to
             #        register for this behaviour rather than happening magically...)
             #----------------------------------------------------------------------
             if hasattr(self.output_device, "event") and callable(getattr(self.output_device, "event")):
-                d = copy.copy(values)
+                d = copy.copy(event)
                 for key, value in list(d.items()):
                     #------------------------------------------------------------------------
                     # turn non-builtin objects into their string representations.
@@ -286,29 +306,29 @@ class Track:
             #----------------------------------------------------------------------
             # note_on: Standard (MIDI) type of device
             #----------------------------------------------------------------------
-            if type(values[EVENT_AMPLITUDE]) is tuple or values[EVENT_AMPLITUDE] > 0:
+            if type(event[EVENT_AMPLITUDE]) is tuple or event[EVENT_AMPLITUDE] > 0:
                 # TODO: pythonic duck-typing approach might be better
-                # TODO: doesn't handle arrays of amp, channel values, etc
-                notes = values[EVENT_NOTE] if hasattr(values[EVENT_NOTE], '__iter__') else [values[EVENT_NOTE]]
+                # TODO: doesn't handle arrays of amp, channel event, etc
+                notes = event[EVENT_NOTE] if hasattr(event[EVENT_NOTE], '__iter__') else [event[EVENT_NOTE]]
 
                 #----------------------------------------------------------------------
                 # Allow for arrays of amp, gate etc, to handle chords properly.
-                # Caveat: Things will go horribly wrong for an array of amp/gate values
+                # Caveat: Things will go horribly wrong for an array of amp/gate event
                 # shorter than the number of notes.
                 #----------------------------------------------------------------------
                 for index, note in enumerate(notes):
-                    amp = values[EVENT_AMPLITUDE][index] if isinstance(values[EVENT_AMPLITUDE], tuple) else values[EVENT_AMPLITUDE]
-                    channel = values[EVENT_CHANNEL][index] if isinstance(values[EVENT_CHANNEL], tuple) else values[EVENT_CHANNEL]
-                    gate = values[EVENT_GATE][index] if isinstance(values[EVENT_GATE], tuple) else values[EVENT_GATE]
+                    amp = event[EVENT_AMPLITUDE][index] if isinstance(event[EVENT_AMPLITUDE], tuple) else event[EVENT_AMPLITUDE]
+                    channel = event[EVENT_CHANNEL][index] if isinstance(event[EVENT_CHANNEL], tuple) else event[EVENT_CHANNEL]
+                    gate = event[EVENT_GATE][index] if isinstance(event[EVENT_GATE], tuple) else event[EVENT_GATE]
                     # TODO: Add an EVENT_SUSTAIN that allows absolute note lengths to be specified
 
                     if (amp is not None and amp > 0) and (gate is not None and gate > 0):
                         self.output_device.note_on(note, amp, channel)
 
-                        note_dur = values[EVENT_DURATION] * gate
+                        note_dur = event[EVENT_DURATION] * gate
                         self.schedule_note_off(self.next_event_time + note_dur, note, channel)
         else:
-            raise InvalidEventException("Invalid event")
+            raise InvalidEventException("Invalid event type: %s" % event[EVENT_TYPE])
 
     def schedule_note_off(self, time, note, channel):
         self.note_offs.append([time, note, channel])
