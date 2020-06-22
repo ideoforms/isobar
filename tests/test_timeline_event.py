@@ -187,3 +187,17 @@ def test_event_action_args(dummy_timeline):
     })
     dummy_timeline.run()
     assert dummy_timeline.executed
+
+def test_event_dict_permut(dummy_timeline):
+    notes = [
+        {"note": 60, "duration": 0.5},
+        {"note": 64, "duration": 0.25},
+        {"note": 67, "duration": 1.0}
+    ]
+
+    dummy_timeline.schedule(iso.PPermut(iso.PSequence(notes, 1)))
+    dummy_timeline.run()
+    times = [event[0] for event in dummy_timeline.output_device.events]
+    notes = [event[2] for event in dummy_timeline.output_device.events]
+    assert times == [0.0, 0.5, 0.5, 0.75, 0.75, 1.75, 1.75, 2.25, 2.25, 3.25, 3.25, 3.5, 3.5, 3.75, 3.75, 4.25, 4.25, 5.25, 5.25, 5.5, 5.5, 6.5, 6.5, 7.0, 7.0, 8.0, 8.0, 8.5, 8.5, 8.75, 8.75, 9.75, 9.75, 10.0, 10.0, 10.5]
+    assert notes == [60, 60, 64, 64, 67, 67, 60, 60, 67, 67, 64, 64, 64, 64, 60, 60, 67, 67, 64, 64, 67, 67, 60, 60, 67, 67, 60, 60, 64, 64, 67, 67, 64, 64, 60, 60]
