@@ -104,8 +104,9 @@ class Track:
                     self.interpolating_event = PDict(interpolating_event_fields)
                     if not is_first_event:
                         next(self.interpolating_event)
-                    interpolated_values = Event(next(self.interpolating_event))
-                    self.perform_event(interpolated_values)
+
+                    event = Event(next(self.interpolating_event))
+                    self.perform_event(event)
 
         except StopIteration:
             if len(self.note_offs) == 0:
@@ -184,7 +185,7 @@ class Track:
         elif event.type == EVENT_TYPE_PATCH:
             if not hasattr(self.output_device, "create"):
                 raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
-            params = event.patch_params if EVENT_PATCH_PARAMS in event.fields else {}
+            params = event.params
             params = dict((key, Pattern.value(value)) for key, value in params.items())
             self.output_device.create(event.patch, params)
 

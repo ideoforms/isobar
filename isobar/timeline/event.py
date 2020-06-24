@@ -4,7 +4,7 @@ from ..scale import Scale
 from ..constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_TRANSPOSE, \
     EVENT_CHANNEL, EVENT_GATE, EVENT_DEGREE, EVENT_PROGRAM_CHANGE, \
     EVENT_OCTAVE, EVENT_KEY, EVENT_SCALE, EVENT_VALUE, EVENT_ACTION_ARGS, EVENT_CONTROL, \
-    EVENT_ACTION, EVENT_OSC_ADDRESS, EVENT_PATCH
+    EVENT_ACTION, EVENT_OSC_ADDRESS, EVENT_PATCH, EVENT_PATCH_PARAMS
 from ..constants import DEFAULT_EVENT_TRANSPOSE, DEFAULT_EVENT_AMPLITUDE, \
     DEFAULT_EVENT_CHANNEL, DEFAULT_EVENT_DURATION, DEFAULT_EVENT_GATE, DEFAULT_EVENT_OCTAVE
 from ..constants import EVENT_TYPE_NOTE, EVENT_TYPE_ACTION, EVENT_TYPE_OSC, EVENT_TYPE_CONTROL, \
@@ -90,6 +90,10 @@ class Event:
 
         elif EVENT_PATCH in event_values:
             self.type = EVENT_TYPE_PATCH
+            self.patch = event_values[EVENT_PATCH]
+            self.params = {}
+            if EVENT_PATCH_PARAMS in event_values:
+                self.params = event_values[EVENT_PATCH_PARAMS]
             
         elif EVENT_CONTROL in event_values:
             self.type = EVENT_TYPE_CONTROL
