@@ -1,7 +1,7 @@
 from ..pattern import Pattern
 from ..key import Key
 from ..scale import Scale
-from ..constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_TRANSPOSE, \
+from ..constants import EVENT_NOTE, EVENT_ACTIVE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_TRANSPOSE, \
     EVENT_CHANNEL, EVENT_GATE, EVENT_DEGREE, EVENT_PROGRAM_CHANGE, \
     EVENT_OCTAVE, EVENT_KEY, EVENT_SCALE, EVENT_VALUE, EVENT_ACTION_ARGS, EVENT_CONTROL, \
     EVENT_ACTION, EVENT_OSC_ADDRESS, EVENT_PATCH, EVENT_PATCH_PARAMS
@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 
 class Event:
     def __init__(self, event_values):
+        event_values.setdefault(EVENT_ACTIVE, True)
         event_values.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
         event_values.setdefault(EVENT_DURATION, DEFAULT_EVENT_DURATION)
         event_values.setdefault(EVENT_GATE, DEFAULT_EVENT_GATE)
@@ -119,5 +120,5 @@ class Event:
             raise InvalidEventException("No event type specified (must provide one of %s)" % possible_event_types)
         
         self.duration = event_values[EVENT_DURATION]
-        
+        self.active = event_values[EVENT_ACTIVE]
         self.fields = event_values

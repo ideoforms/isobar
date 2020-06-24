@@ -38,6 +38,7 @@ MAX_CLOCK_RATE = 1e6
 # Parameters used in Timeline event dictionaries.
 #------------------------------------------------------------------------
 EVENT_TYPE = "type"
+EVENT_ACTIVE = "active"
 EVENT_CHANNEL = "channel"
 EVENT_AMPLITUDE = "amplitude"
 EVENT_DURATION = "duration"
@@ -59,6 +60,7 @@ EVENT_TIME = "time"
 EVENT_PATCH = "patch"
 EVENT_PATCH_PARAMS = "params"
 EVENT_PROGRAM_CHANGE = "program_change"
+
 
 
 #------------------------------------------------------------------------

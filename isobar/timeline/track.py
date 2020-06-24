@@ -142,6 +142,9 @@ class Track:
         return event
 
     def perform_event(self, event):
+        if not event.active:
+            return
+
         #------------------------------------------------------------------------
         # Action: Carry out an action each time this event is triggered
         #------------------------------------------------------------------------
