@@ -30,12 +30,12 @@ timeline = iso.Timeline(160)
 # by two every note... try removing the .copy() and see what happens!
 #------------------------------------------------------------------------
 timeline.schedule({
-    iso.EVENT_NOTE: seq.copy() + 60,
-    iso.EVENT_DURATION: 0.5
+    "note": seq.copy() + 60,
+    "duration": 0.5
 })
 timeline.schedule({
-    iso.EVENT_NOTE: seq.copy() + 72,
-    iso.EVENT_DURATION: 0.5 * 1.01
+    "note": seq.copy() + 72,
+    "duration": 0.5 * 1.01
 })
 
 #------------------------------------------------------------------------

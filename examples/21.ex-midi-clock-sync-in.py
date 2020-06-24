@@ -23,6 +23,6 @@ def print_tempo():
 
 timeline = iso.Timeline(120, clock_source=midi_in)
 timeline.schedule({
-    iso.EVENT_ACTION: print_tempo
+    "action": print_tempo
 })
 timeline.run()

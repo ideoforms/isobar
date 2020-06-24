@@ -30,7 +30,7 @@ print("----------------------------------------------------")
 
 t = iso.Timeline(120)
 t.sched({
-    iso.EVENT_NOTE: iso.PSequence([ note.note for note in notes ], 1),
-    iso.EVENT_DURATION: 0.5
+    "note": iso.PSequence([ note.note for note in notes ], 1),
+    "duration": 0.5
 })
 t.run()

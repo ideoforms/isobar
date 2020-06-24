@@ -19,7 +19,7 @@ notes = notes % 36 + 52
 timeline = iso.Timeline(180)
 
 timeline.schedule({
-    iso.EVENT_NOTE: notes,
-    iso.EVENT_DURATION: 0.25
+    "note": notes,
+    "duration": 0.25
 })
 timeline.run()

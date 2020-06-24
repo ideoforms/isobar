@@ -16,8 +16,8 @@ series = iso.PRange(60, 73, 1)
 timeline = iso.Timeline(120)
 
 timeline.schedule({
-    iso.EVENT_NOTE: series,
-    iso.EVENT_DURATION: 1
+    "note": series,
+    "duration": 1
 })
 
 timeline.run()

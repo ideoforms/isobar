@@ -24,22 +24,22 @@ gate = iso.pattern.PBrown(1.5, 0.01, 0.6, 2.5)
 
 timeline = iso.Timeline(120)
 timeline.schedule({
-    iso.EVENT_NOTE: sequence.copy(),
-    iso.EVENT_AMPLITUDE: amp.copy(),
-    iso.EVENT_DURATION: 0.25,
-    iso.EVENT_GATE: gate.copy()
+    "note": sequence.copy(),
+    "amplitude": amp.copy(),
+    "duration": 0.25,
+    "gate": gate.copy()
 })
 timeline.schedule({
-    iso.EVENT_NOTE: sequence.copy() + 24,
-    iso.EVENT_AMPLITUDE: amp.copy(),
-    iso.EVENT_DURATION: 0.5,
-    iso.EVENT_GATE: gate.copy()
+    "note": sequence.copy() + 24,
+    "amplitude": amp.copy(),
+    "duration": 0.5,
+    "gate": gate.copy()
 })
 timeline.schedule({
-    iso.EVENT_NOTE: sequence.copy() - 24,
-    iso.EVENT_AMPLITUDE: 10 + amp.copy() * 0.5,
-    iso.EVENT_DURATION: iso.PChoice([4, 4, 6, 8]),
-    iso.EVENT_GATE: gate.copy()
+    "note": sequence.copy() - 24,
+    "amplitude": 10 + amp.copy() * 0.5,
+    "duration": iso.PChoice([4, 4, 6, 8]),
+    "gate": gate.copy()
 })
 
 timeline.run()

@@ -58,9 +58,9 @@ if len(pitch.nodes) == 0:
 else:
     t = iso.Timeline(120, midi_out)
     t.sched({
-        iso.EVENT_NOTE: pitch,
-        iso.EVENT_DURATION: dur,
-        iso.EVENT_AMPLITUDE: amp,
-        iso.EVENT_CHANNEL: 0
+        "note": pitch,
+        "duration": dur,
+        "amplitude": amp,
+        "channel": 0
     })
     t.run()

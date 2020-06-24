@@ -20,8 +20,8 @@ amp = iso.PSequence([40, 30, 20, 25]) + iso.PBrown(0, 2, -10, 10)
 
 timeline = iso.Timeline(170)
 timeline.schedule({
-    iso.EVENT_NOTE: notes,
-    iso.EVENT_DURATION: 0.25,
-    iso.EVENT_GATE: 0.9,
-    iso.EVENT_AMPLITUDE: amp})
+    "note": notes,
+    "duration": 0.25,
+    "gate": 0.9,
+    "amplitude": amp})
 timeline.run()

@@ -27,16 +27,16 @@ pattern = iso.PDict(pattern)
 # Learn note, duration and amplitude series separately.
 #------------------------------------------------------------------------
 note_learner = iso.MarkovLearner()
-note_learner.learn_pattern(pattern[iso.EVENT_NOTE])
+note_learner.learn_pattern(pattern["note"])
 dur_learner = iso.MarkovLearner()
-dur_learner.learn_pattern(pattern[iso.EVENT_DURATION])
+dur_learner.learn_pattern(pattern["duration"])
 
 #------------------------------------------------------------------------
 # Quantize velocities to the nearest 10 to make chains easier to
 # learn with a small sample set.
 #------------------------------------------------------------------------
 amp_learner = iso.MarkovLearner()
-amp_learner.learn_pattern(iso.PInt(iso.PRound(iso.PScalar(pattern[iso.EVENT_AMPLITUDE]), -1)))
+amp_learner.learn_pattern(iso.PInt(iso.PRound(iso.PScalar(pattern["amplitude"]), -1)))
 
 #------------------------------------------------------------------------
 # The markov property of a learner is a PMarkov, which generates
@@ -44,9 +44,9 @@ amp_learner.learn_pattern(iso.PInt(iso.PRound(iso.PScalar(pattern[iso.EVENT_AMPL
 #------------------------------------------------------------------------
 timeline = iso.Timeline(90)
 timeline.schedule({
-    iso.EVENT_NOTE: note_learner.markov,
-    iso.EVENT_DURATION: dur_learner.markov,
-    iso.EVENT_AMPLITUDE: amp_learner.markov
+    "note": note_learner.markov,
+    "duration": dur_learner.markov,
+    "amplitude": amp_learner.markov
 })
 try:
     timeline.run()

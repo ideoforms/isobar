@@ -39,8 +39,8 @@ velocity = iso.PAbs(velocity)
 
 timeline = iso.Timeline(120)
 timeline.schedule({
-    iso.EVENT_NOTE: notes,
-    iso.EVENT_AMPLITUDE: velocity,
-    iso.EVENT_DURATION: times
+    "note": notes,
+    "amplitude": velocity,
+    "duration": times
 })
 timeline.run()

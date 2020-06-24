@@ -37,24 +37,24 @@ pamp = iso.PPermut(pamp)
 #------------------------------------------------------------------------
 timeline = iso.Timeline(60)
 timeline.schedule({
-    iso.EVENT_NOTE: ppitch + 60,
-    iso.EVENT_DURATION: pdur,
-    iso.EVENT_AMPLITUDE: pamp,
-    iso.EVENT_CHANNEL: 0
+    "note": ppitch + 60,
+    "duration": pdur,
+    "amplitude": pamp,
+    "channel": 0
 })
 timeline.schedule({
-    iso.EVENT_NOTE: ppitch + 24,
-    iso.EVENT_DURATION: pdur * 4,
-    iso.EVENT_AMPLITUDE: pamp,
-    iso.EVENT_CHANNEL: 1,
-    iso.EVENT_GATE: 2
+    "note": ppitch + 24,
+    "duration": pdur * 4,
+    "amplitude": pamp,
+    "channel": 1,
+    "gate": 2
 })
 timeline.schedule({
-    iso.EVENT_NOTE: ppitch + 72,
-    iso.EVENT_DURATION: pdur / 2,
-    iso.EVENT_CHANNEL: 1,
-    iso.EVENT_GATE: 1,
-    iso.EVENT_AMPLITUDE: pamp / 2
+    "note": ppitch + 72,
+    "duration": pdur / 2,
+    "channel": 1,
+    "gate": 1,
+    "amplitude": pamp / 2
 })
 
 #------------------------------------------------------------------------
