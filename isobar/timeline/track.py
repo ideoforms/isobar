@@ -15,9 +15,7 @@ class Track:
         #--------------------------------------------------------------------------------
         # Ensure that events is a pattern that generates a dict when it is iterated.
         #--------------------------------------------------------------------------------
-        if isinstance(events, dict):
-            events = PDict(events)
-        self.event_stream = events
+        self.update(events)
         self.current_event = None
         self.next_event = None
         self.interpolating_event = PSequence([], 0)
@@ -30,6 +28,17 @@ class Track:
         self.next_event_time = 0
         self.note_offs = []
         self.is_finished = False
+
+    def update(self, events):
+        """
+        Update the events that this EventStream produces.
+
+        Args:
+            events: A dict, a PDict, or a Pattern that generates dicts.
+        """
+        if isinstance(events, dict):
+            events = PDict(events)
+        self.event_stream = events
 
     def __str__(self):
         return "Track (pos = %d)" % self.current_time
