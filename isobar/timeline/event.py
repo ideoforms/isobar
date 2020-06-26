@@ -1,16 +1,10 @@
 from ..pattern import Pattern
 from ..key import Key
 from ..scale import Scale
-from ..constants import EVENT_NOTE, EVENT_ACTIVE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_TRANSPOSE, \
-    EVENT_CHANNEL, EVENT_GATE, EVENT_DEGREE, EVENT_PROGRAM_CHANGE, \
-    EVENT_OCTAVE, EVENT_KEY, EVENT_SCALE, EVENT_VALUE, EVENT_ACTION_ARGS, EVENT_CONTROL, \
-    EVENT_ACTION, EVENT_OSC_ADDRESS, EVENT_PATCH, EVENT_PATCH_PARAMS
-from ..constants import DEFAULT_EVENT_TRANSPOSE, DEFAULT_EVENT_AMPLITUDE, \
-    DEFAULT_EVENT_CHANNEL, DEFAULT_EVENT_DURATION, DEFAULT_EVENT_GATE, DEFAULT_EVENT_OCTAVE
-from ..constants import EVENT_TYPE_NOTE, EVENT_TYPE_ACTION, EVENT_TYPE_OSC, EVENT_TYPE_CONTROL, \
-    EVENT_TYPE_PATCH, EVENT_TYPE_PROGRAM_CHANGE
+from ..constants import *
 from ..exceptions import InvalidEventException
 import logging
+from typing import Iterable
 
 log = logging.getLogger(__name__)
 
@@ -107,6 +101,21 @@ class Event:
             
         elif EVENT_OSC_ADDRESS in event_values:
             self.type = EVENT_TYPE_OSC
+            self.osc_address = event_values[EVENT_OSC_ADDRESS]
+            self.osc_params = {}
+            if EVENT_OSC_PARAMS in event_values:
+                if not isinstance(event_values[EVENT_OSC_PARAMS], Iterable):
+                    raise ValueError("OSC params must be an iterable")
+                self.osc_params = list(event_values[EVENT_OSC_PARAMS])
+
+        elif EVENT_SUPERCOLLIDER_SYNTH in event_values:
+            self.type = EVENT_TYPE_SUPERCOLLIDER
+            self.synth_name = event_values[EVENT_SUPERCOLLIDER_SYNTH]
+            self.synth_params = {}
+            if EVENT_SUPERCOLLIDER_SYNTH_PARAMS in event_values:
+                if not isinstance(event_values[EVENT_SUPERCOLLIDER_SYNTH_PARAMS], dict):
+                    raise ValueError("SuperCollider params must be a dict")
+                self.synth_params = event_values[EVENT_SUPERCOLLIDER_SYNTH_PARAMS]
             
         elif EVENT_NOTE in event_values or EVENT_DEGREE in event_values:
             self.type = EVENT_TYPE_NOTE

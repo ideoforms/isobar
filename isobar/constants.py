@@ -53,14 +53,15 @@ EVENT_EVENT = "event"
 EVENT_ACTION = "action"
 EVENT_ACTION_ARGS = "args"
 EVENT_CONTROL = "control"
-EVENT_OSC_ADDRESS = "address"
-EVENT_OSC_PARAMS = "params"
+EVENT_OSC_ADDRESS = "osc_address"
+EVENT_OSC_PARAMS = "osc_params"
 EVENT_VALUE = "value"
 EVENT_TIME = "time"
 EVENT_PATCH = "patch"
 EVENT_PATCH_PARAMS = "params"
 EVENT_PROGRAM_CHANGE = "program_change"
-
+EVENT_SUPERCOLLIDER_SYNTH = "sc_synth"
+EVENT_SUPERCOLLIDER_SYNTH_PARAMS = "params"
 
 
 #------------------------------------------------------------------------
@@ -73,6 +74,7 @@ EVENT_TYPE_PROGRAM_CHANGE = "program_change"
 EVENT_TYPE_OSC = "osc"
 EVENT_TYPE_ACTION = "action"
 EVENT_TYPE_PATCH = "patch"
+EVENT_TYPE_SUPERCOLLIDER = "supercollider"
 
 #------------------------------------------------------------------------
 # Default parameter values

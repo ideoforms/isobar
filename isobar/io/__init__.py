@@ -8,3 +8,4 @@ from .osc import OSCOut
 from .socketio import SocketIOOut
 from .signalflow import SignalflowOutputDevice
 from .midinote import MidiNote
+from .supercollider import SuperColliderOutputDevice

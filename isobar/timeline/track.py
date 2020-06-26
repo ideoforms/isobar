@@ -3,10 +3,7 @@ import inspect
 
 from .event import Event
 from ..pattern import Pattern, PSequence, PDict, PInterpolate
-from ..constants import EVENT_DURATION, EVENT_TYPE, EVENT_PATCH_PARAMS
-from ..constants import EVENT_TYPE_NOTE, EVENT_TYPE_ACTION, EVENT_TYPE_OSC, EVENT_TYPE_CONTROL, \
-    EVENT_TYPE_PATCH, EVENT_TYPE_PROGRAM_CHANGE
-from ..constants import INTERPOLATION_NONE
+from ..constants import *
 from ..exceptions import InvalidEventException
 import logging
 
@@ -185,6 +182,15 @@ class Track:
         elif event.type == EVENT_TYPE_OSC:
             self.output_device.send(event.osc_address, event.osc_params)
 
+        #------------------------------------------------------------------------
+        # SuperCollider synth
+        #------------------------------------------------------------------------
+        elif event.type == EVENT_TYPE_SUPERCOLLIDER:
+            self.output_device.create(event.synth_name, event.synth_params)
+
+        #------------------------------------------------------------------------
+        # Signalflow patch
+        #------------------------------------------------------------------------
         elif event.type == EVENT_TYPE_PATCH:
             if not hasattr(self.output_device, "create"):
                 raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
@@ -192,6 +198,9 @@ class Track:
             params = dict((key, Pattern.value(value)) for key, value in params.items())
             self.output_device.create(event.patch, params)
 
+        #------------------------------------------------------------------------
+        # Note: Classic MIDI note
+        #------------------------------------------------------------------------
         elif event.type == EVENT_TYPE_NOTE:
             #----------------------------------------------------------------------
             # event: Certain devices (eg Socket IO) handle generic events,
