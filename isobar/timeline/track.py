@@ -16,7 +16,6 @@ class Track:
         # Ensure that events is a pattern that generates a dict when it is iterated.
         #--------------------------------------------------------------------------------
         if isinstance(events, dict):
-
             events = PDict(events)
         self.event_stream = events
         self.current_event = None
