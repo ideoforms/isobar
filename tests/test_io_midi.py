@@ -47,5 +47,5 @@ def test_io_midi_sync():
     clock.background()
     time.sleep(0.1)
     clock.stop()
-    assert midi_in.tempo == pytest.approx(tempo, rel=0.01)
+    assert midi_in.tempo == pytest.approx(tempo, rel=0.02)
 

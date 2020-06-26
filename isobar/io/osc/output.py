@@ -35,8 +35,5 @@ class OSCOut (OutputDevice):
     def control(self, control, value, channel=0):
         self.osc.send_message("/control", value, channel)
 
-    def __destroy__(self):
-        pass
-
     def send(self, address, params=None):
         self.osc.send_message(address, params)

@@ -1,4 +1,4 @@
-from ..pattern import Pattern
+from ..pattern import Pattern, PDict
 from ..key import Key
 from ..scale import Scale
 from ..constants import *

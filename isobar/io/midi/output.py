@@ -90,5 +90,5 @@ class MidiOut (OutputDevice):
         msg = mido.Message('pitchwheel', pitch=int(pitch), channel=int(channel))
         self.midi.send(msg)
 
-    def __destroy__(self):
+    def __del__(self):
         del self.midi

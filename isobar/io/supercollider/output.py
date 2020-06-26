@@ -1,5 +1,9 @@
 from ..output import OutputDevice
 
+import logging
+
+log = logging.getLogger(__name__)
+
 try:
     import supercollider
 except:
@@ -41,11 +45,6 @@ class SuperColliderOutputDevice (OutputDevice):
     def control(self, control, value, channel=0):
         pass
 
-    def __destroy__(self):
-        pass
-
     def create(self, name, params=None):
+        log.debug("Creating SuperCollider Synth: %s, %s" % (name, params))
         synth = supercollider.Synth(self.server, name, params)
-
-    def send(self, address, params=None):
-        self.osc.send_message(address, params)

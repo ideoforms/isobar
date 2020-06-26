@@ -237,6 +237,8 @@ class Pattern:
 
         if isinstance(v, Pattern):
             return v
+        elif isinstance(v, dict):
+            return isobar.PDict(v)
         else:
             return isobar.PConstant(v)
 
