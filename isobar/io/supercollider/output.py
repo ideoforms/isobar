@@ -6,7 +6,7 @@ log = logging.getLogger(__name__)
 
 try:
     import supercollider
-except:
+except ModuleNotFoundError:
     pass
 
 class SuperColliderOutputDevice (OutputDevice):
@@ -47,4 +47,4 @@ class SuperColliderOutputDevice (OutputDevice):
 
     def create(self, name, params=None):
         log.debug("Creating SuperCollider Synth: %s, %s" % (name, params))
-        synth = supercollider.Synth(self.server, name, params)
+        supercollider.Synth(self.server, name, params)

@@ -2,14 +2,19 @@ from .core import Pattern
 import random
 
 class LSystem:
-    def __init__(self, rule = "N[-N++N]-N", seed = "N"):
+    def __init__(self, rule="N[-N++N]-N", seed="N"):
         self.rule = rule
         self.seed = seed
         self.string = seed
 
         self.reset()
 
-    def iterate(self, count = 3):
+    def reset(self):
+        self.pos = 0
+        self.stack = []
+        self.state = 0
+
+    def iterate(self, count=3):
         if self.rule.count("[") != self.rule.count("]"):
             raise ValueError("Imbalanced brackets in rule string: %s" % self.rule)
 
@@ -34,19 +39,13 @@ class LSystem:
             elif token == '+':
                 self.state += 1
             elif token == '?':
-                self.state += random.choice([ -1, 1 ])
+                self.state += random.choice([-1, 1])
             elif token == '[':
                 self.stack.append(self.state)
             elif token == ']':
                 self.state = self.stack.pop()
 
         raise StopIteration
-
-    def reset(self):
-        self.pos = 0
-        self.stack = []
-        self.state = 0
-
 
 class PLSystem(Pattern):
     """ PLSystem: integer sequence derived from Lindenmayer systems """
@@ -55,6 +54,7 @@ class PLSystem(Pattern):
         self.rule = rule
         self.depth = depth
         self.loop = loop
+        self.lsys = None
         self.reset()
 
     def __str__(self):
@@ -71,4 +71,3 @@ class PLSystem(Pattern):
             n = next(self.lsys)
 
         return None if n is None else n
-

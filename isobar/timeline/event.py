@@ -1,4 +1,4 @@
-from ..pattern import Pattern, PDict
+from ..pattern import Pattern
 from ..key import Key
 from ..scale import Scale
 from ..constants import *
@@ -42,7 +42,7 @@ class Event:
                 #----------------------------------------------------------------------
                 try:
                     event_values[EVENT_NOTE] = [key[n] for n in degree]
-                except:
+                except TypeError:
                     event_values[EVENT_NOTE] = key[degree]
 
         #----------------------------------------------------------------------
@@ -69,8 +69,10 @@ class Event:
                 # for example.
                 #----------------------------------------------------------------------
                 try:
-                    event_values[EVENT_NOTE] = [note + event_values[EVENT_OCTAVE] * 12 + event_values[EVENT_TRANSPOSE] for note in event_values[EVENT_NOTE]]
-                except:
+                    event_values[EVENT_NOTE] = [note +
+                                                event_values[EVENT_OCTAVE] * 12 +
+                                                event_values[EVENT_TRANSPOSE] for note in event_values[EVENT_NOTE]]
+                except TypeError:
                     event_values[EVENT_NOTE] += event_values[EVENT_OCTAVE] * 12 + event_values[EVENT_TRANSPOSE]
 
         #----------------------------------------------------------------------
@@ -81,7 +83,7 @@ class Event:
             self.action = event_values[EVENT_ACTION]
             self.args = []
             if EVENT_ACTION_ARGS in event_values:
-               self.args = [Pattern.value(value) for value in event_values[EVENT_ACTION_ARGS]]
+                self.args = [Pattern.value(value) for value in event_values[EVENT_ACTION_ARGS]]
 
         elif EVENT_PATCH in event_values:
             self.type = EVENT_TYPE_PATCH
@@ -89,16 +91,16 @@ class Event:
             self.params = {}
             if EVENT_PATCH_PARAMS in event_values:
                 self.params = event_values[EVENT_PATCH_PARAMS]
-            
+
         elif EVENT_CONTROL in event_values:
             self.type = EVENT_TYPE_CONTROL
             self.control = event_values[EVENT_CONTROL]
             self.value = event_values[EVENT_VALUE]
             self.channel = event_values[EVENT_CHANNEL]
-            
+
         elif EVENT_PROGRAM_CHANGE in event_values:
             self.type = EVENT_TYPE_PROGRAM_CHANGE
-            
+
         elif EVENT_OSC_ADDRESS in event_values:
             self.type = EVENT_TYPE_OSC
             self.osc_address = event_values[EVENT_OSC_ADDRESS]
@@ -116,18 +118,19 @@ class Event:
                 if not isinstance(event_values[EVENT_SUPERCOLLIDER_SYNTH_PARAMS], dict):
                     raise ValueError("SuperCollider params must be a dict")
                 self.synth_params = event_values[EVENT_SUPERCOLLIDER_SYNTH_PARAMS]
-            
+
         elif EVENT_NOTE in event_values or EVENT_DEGREE in event_values:
             self.type = EVENT_TYPE_NOTE
             self.note = event_values[EVENT_NOTE]
             self.amplitude = event_values[EVENT_AMPLITUDE]
             self.gate = event_values[EVENT_GATE]
             self.channel = event_values[EVENT_CHANNEL]
-            
+
         else:
-            possible_event_types = [EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL, EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS]
+            possible_event_types = [EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL,
+                                    EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS]
             raise InvalidEventException("No event type specified (must provide one of %s)" % possible_event_types)
-        
+
         self.duration = event_values[EVENT_DURATION]
         self.active = event_values[EVENT_ACTIVE]
         self.fields = event_values

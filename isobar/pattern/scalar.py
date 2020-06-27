@@ -1,5 +1,3 @@
-import sys
-
 from .core import Pattern
 from .sequence import PSeries
 
@@ -76,7 +74,7 @@ class PNormalise(Pattern):
         else:
             rv = (value - self.lower) / (self.upper - self.lower)
 
-        return rv;
+        return rv
 
 class PMap(Pattern):
     """ PMap: Apply an arbitrary function to an input pattern.
@@ -155,9 +153,11 @@ class PScaleLinExp(PMap):
         """
 
     def linexp(self, value, from_min=0, from_max=1, to_min=1, to_max=10):
-        if value < from_min: return to_min
-        if value > from_max: return to_max
-        return ((to_max / to_min) ** ((value - from_min) / (from_max - from_min))) * to_min;
+        if value < from_min:
+            return to_min
+        if value > from_max:
+            return to_max
+        return ((to_max / to_min) ** ((value - from_min) / (from_max - from_min))) * to_min
 
     def __init__(self, input, *args):
         super(self, input, self.linexp, *args)

@@ -33,7 +33,7 @@ def windex(weights):
         n = n - weights[i]
 
 def wnindex(weights):
-    """ Returns a random index based on a list of weights. 
+    """ Returns a random index based on a list of weights.
     Normalises list of weights before executing. """
     wnorm = normalize(weights)
     return windex(wnorm)

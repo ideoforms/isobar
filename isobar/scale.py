@@ -94,7 +94,7 @@ class Scale(object):
 
 Scale.chromatic = Scale([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "chromatic")
 Scale.major = Scale([0, 2, 4, 5, 7, 9, 11], "major")
-Scale.maj7 = Scale([0, 2, 4, 5, 7, 9, 10], "maj7")  ## XXX?
+Scale.maj7 = Scale([0, 2, 4, 5, 7, 9, 10], "maj7")
 Scale.minor = Scale([0, 2, 3, 5, 7, 8, 11], "minor")
 Scale.pureminor = Scale([0, 3, 7], "pureminor")
 Scale.puremajor = Scale([0, 4, 7], "puremajor")
@@ -135,7 +135,7 @@ class WeightedScale(Scale):
         note_sequence = [note % octave_size for note in notes]
         notes_dict = {}
         for note in note_sequence:
-            if not note in notes_dict:
+            if note not in notes_dict:
                 notes_dict[note] = 0
             notes_dict[note] += 1.0 / len(note_sequence)
 

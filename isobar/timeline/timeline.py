@@ -180,7 +180,8 @@ class Timeline(object):
     def dump(self):
         """ Output a summary of this Timeline object
             """
-        print("Timeline (clock: %s, tempo %s)" % (self.clock_source, self.clock_source.tempo if self.clock_source.tempo else "unknown"))
+        print("Timeline (clock: %s, tempo %s)" %
+              (self.clock_source, self.clock_source.tempo if self.clock_source.tempo else "unknown"))
 
         print((" - %d devices" % len(self.output_devices)))
         for device in self.output_devices:
@@ -316,7 +317,7 @@ class Timeline(object):
         if not output_device:
             #--------------------------------------------------------------------------------
             # If no output device exists, send to the system default MIDI output.
-            #--------------------------------------------------------------------------------            
+            #--------------------------------------------------------------------------------
             if not self.output_devices:
                 self.add_output_device(MidiOut())
             output_device = self.output_devices[0]

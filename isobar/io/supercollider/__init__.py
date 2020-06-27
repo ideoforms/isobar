@@ -1,1 +1,3 @@
-from .output import *
+from .output import SuperColliderOutputDevice
+
+__all__ = ["SuperColliderOutputDevice"]

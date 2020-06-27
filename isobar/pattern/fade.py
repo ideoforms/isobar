@@ -21,7 +21,7 @@ class PFade(Pattern):
         self.pattern = None
 
     def __str__(self):
-        classname = str(p.__class__).split(".")[-1]
+        classname = str(self.pattern.__class__).split(".")[-1]
         return "%s(%s)" % (classname, str(self.pattern))
 
 class PFadeNotewise(PFade):
@@ -113,7 +113,8 @@ class PFadeNotewiseRandom(PFadeNotewise):
 
     def fade_in(self):
         fade_count = random.randint(self.rate_min, self.rate_max)
-        if fade_count < 1: fade_count = 1
+        if fade_count < 1:
+            fade_count = 1
         for n in range(fade_count):
             if self.fadeindex >= len(self.on):
                 return
@@ -124,7 +125,8 @@ class PFadeNotewiseRandom(PFadeNotewise):
 
     def fade_out(self):
         fade_count = random.randint(self.rate_min, self.rate_max)
-        if fade_count < 1: fade_count = 1
+        if fade_count < 1:
+            fade_count = 1
         for n in range(fade_count):
             if self.fadeindex >= len(self.on):
                 return

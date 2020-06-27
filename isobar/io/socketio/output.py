@@ -6,7 +6,7 @@ class SocketIOOut (OutputDevice):
 
     note [ index, velocity, channel ] : The MIDI note number depressed.
                                         For note-off, velocity is zero.
-    control [ index, value, channel ] : A MIDI control value 
+    control [ index, value, channel ] : A MIDI control value
     """
 
     def __init__(self, host="localhost", port=9000):
@@ -14,8 +14,6 @@ class SocketIOOut (OutputDevice):
         self.socket = socketIO_client.SocketIO(host, port)
 
     def event(self, event):
-        # import pprint
-        # pprint.pprint(event)
         self.socket.emit("event", event)
 
     def note_on(self, note=60, velocity=64, channel=0):

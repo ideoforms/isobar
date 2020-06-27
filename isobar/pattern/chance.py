@@ -298,28 +298,24 @@ class PFlipFlop(Pattern):
 
 
 class PSwitchOne(Pattern):
-    """ PSwitchOne: Capture <length> input values; repeat, switching two adjacent values <n> times.
+    """ PSwitchOne: Capture <length> input values; repeat, switching two adjacent values.
         """
 
-    def __init__(self, pattern, length=4, switches=1):
+    def __init__(self, pattern, length=4):
         self.pattern = pattern
         self.length = length
-        self.switches = switches
 
         self.reset()
 
     def reset(self):
+        super().reset()
         self.values = []
         self.pos = 0
 
-        # recursively reset my pattern fields
-        Pattern.reset(self)
-
     def __next__(self):
         length = self.value(self.length)
-        switches = self.value(self.switches)
 
-        if len(self.values) < self.length:
+        if len(self.values) < length:
             value = next(self.pattern)
             self.values.append(value)
             self.pos += 1

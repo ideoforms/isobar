@@ -7,13 +7,14 @@ class PWarp(Pattern):
 
 class PWInterpolate(PWarp):
     """ PWInterpolate: Requests a new target warp value from <pattern> every <length> beats
-        and applies linear interpolation to ramp between values. 
+        and applies linear interpolation to ramp between values.
 
         To select a new target warp value every 8 beats, between [-0.5, 0.5]:
 
         >>> p = PWInterpolate(PWhite(-0.5, 0.5), 8)
         """
-    def __init__(self, pattern, length = 1):
+
+    def __init__(self, pattern, length=1):
         self.length = length
         self.pattern = pattern
         self.pos = self.length
@@ -48,7 +49,8 @@ class PWSine(PWarp):
 
         >>> p = PWAmp(8, 0.5)
         """
-    def __init__(self, length = 1, amp = 0.5):
+
+    def __init__(self, length=1, amp=0.5):
         self.length = length
         self.amp = amp
         self.pos = 0.0
@@ -70,7 +72,8 @@ class PWRallantando(PWarp):
 
         >>> p = PWRallantando(8, 0.5)
         """
-    def __init__(self, length = 1, amp = 0.5):
+
+    def __init__(self, length=1, amp=0.5):
         self.length = length
         self.amp = amp
         self.pos = 0.0

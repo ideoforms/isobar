@@ -1,5 +1,4 @@
 from ..constants import DEFAULT_TEMPO, DEFAULT_TICKS_PER_BEAT, MIN_CLOCK_DELAY_WARNING_TIME
-from ..exceptions import ClockException
 from ..util import make_clock_multiplier
 
 import time
@@ -67,7 +66,7 @@ class Clock:
         clock0 = clock1 = time.time() * self.accelerate
         #------------------------------------------------------------------------
         # Allow a tick to elapse before we call tick() for the first time
-        # to keep Warp patterns in sync  
+        # to keep Warp patterns in sync
         #------------------------------------------------------------------------
         self.running = True
         while self.running:

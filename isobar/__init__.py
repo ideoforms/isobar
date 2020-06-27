@@ -13,6 +13,7 @@ For a full list of all Pattern classes:
     pydoc3 isobar.pattern
 
 """
+# flake8: noqa
 
 __version__ = "0"
 __author__ = "Daniel Jones <http://www.erase.net/>"

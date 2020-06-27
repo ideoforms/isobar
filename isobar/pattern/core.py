@@ -231,7 +231,7 @@ class Pattern:
         """
         Patternify a value, turning it into an object with a next() method
         to obtain its next value.
-        
+
         Pattern subclasses remain untouched.
         Scalars and other objects are turned into PConst objects. """
 
@@ -392,7 +392,7 @@ class PDict(Pattern):
         return key in self.dict
 
     def setdefault(self, key, value):
-        if not key in self.dict:
+        if key not in self.dict:
             self.dict[key] = value
 
     def keys(self):

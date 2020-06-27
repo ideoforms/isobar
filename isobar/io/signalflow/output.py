@@ -1,10 +1,11 @@
+from ..output import OutputDevice
+
 import logging
 log = logging.getLogger(__name__)
-from ..output import OutputDevice
 
 try:
     import libsignal as sf
-except:
+except ModuleNotFoundError:
     log.warning("No Signalflow support available")
 
 class SignalflowOutputDevice (OutputDevice):

@@ -56,9 +56,6 @@ class PMarkov(Pattern):
             self.node = random.choice(list(self.nodes.keys()))
         else:
             try:
-                #------------------------------------------------------------------------
-                # 
-                #------------------------------------------------------------------------
                 self.node = random.choice(self.nodes[self.node])
             except IndexError:
                 self.node = random.choice(list(self.nodes.keys()))
@@ -125,7 +122,7 @@ class MarkovGrapher:
         If name_map is specified, apply this function to each node value
         to obtain its name.
 
-        To graph a chain with integer node values mapped onto their 
+        To graph a chain with integer node values mapped onto their
         pitch names:
 
             MarkovGrapher.graph(markov, name_map = miditopitch)

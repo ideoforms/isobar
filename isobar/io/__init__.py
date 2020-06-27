@@ -10,3 +10,8 @@ from .socketio import SocketIOOut
 from .signalflow import SignalflowOutputDevice
 from .midinote import MidiNote
 from .supercollider import SuperColliderOutputDevice
+
+__all__ = ["OutputDevice", "DummyOutputDevice", "MidiIn", "MidiOut"]
+__all__ += ["get_midi_output_names", "get_midi_input_names"]
+__all__ += ["MidiFileIn", "MidiFileOut", "PatternWriterMIDI"]
+__all__ += ["OSCOut", "SocketIOOut", "SignalflowOutputDevice", "MidiNote", "SuperColliderOutputDevice"]

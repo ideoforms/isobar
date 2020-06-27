@@ -1,10 +1,8 @@
 from ..output import OutputDevice
 
 try:
-    import pythonosc
     from pythonosc.udp_client import SimpleUDPClient
-    from pythonosc.osc_message import OSCMessage
-except:
+except ModuleNotFoundError:
     pass
 
 class OSCOut (OutputDevice):

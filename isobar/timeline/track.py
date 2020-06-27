@@ -10,7 +10,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-
 class Track:
     def __init__(self, timeline, events, interpolate=INTERPOLATION_NONE, output_device=None):
         #--------------------------------------------------------------------------------
@@ -116,9 +115,9 @@ class Track:
                         if type(value) is not float and type(value) is not int:
                             continue
                         interpolating_event_fields[key] = PInterpolate(PSequence([self.current_event.fields[key],
-                                                                                self.next_event.fields[key]], 1),
-                                                         duration_ticks,
-                                                         self.interpolate)
+                                                                                  self.next_event.fields[key]], 1),
+                                                                       duration_ticks,
+                                                                       self.interpolate)
 
                     self.interpolating_event = PDict(interpolating_event_fields)
                     if not is_first_event:
@@ -158,7 +157,7 @@ class Track:
         #------------------------------------------------------------------------
         event_values = next(self.event_stream)
         event_values = copy.copy(event_values)
-        
+
         event = Event(event_values)
 
         return event
@@ -251,7 +250,6 @@ class Track:
                     #       instead, go with the lame option of listing "primitive" types.
                     #------------------------------------------------------------------------
                     if type(value) not in (int, float, bool, str, list, dict, tuple):
-                        name = type(value).__name__
                         value = repr(value)
                         d[key] = value
 

@@ -3,13 +3,13 @@ import copy
 import random
 import itertools
 
-import logging
-log = logging.getLogger(__name__)
-
 from .core import Pattern
 from ..chord import Chord
-from ..constants import INTERPOLATION_NONE, INTERPOLATION_LINEAR, INTERPOLATION_COSINE
+from ..constants import INTERPOLATION_NONE, INTERPOLATION_LINEAR
 from functools import reduce
+
+import logging
+log = logging.getLogger(__name__)
 
 class PSequence(Pattern):
     """ Sequence: Sequence of values based on an array
@@ -20,13 +20,13 @@ class PSequence(Pattern):
         [1, 2, 3, 5, 1, 2, 3, 5, 1, 2, 3, 5, 1, 2, 3, 5]
         """
 
-    def __init__(self, list=[], repeats=sys.maxsize):
+    def __init__(self, sequence=[], repeats=sys.maxsize):
         #------------------------------------------------------------------------
         # take a copy of the list to avoid changing the original
         #------------------------------------------------------------------------
-        if not hasattr(list, "__getitem__"):
+        if not hasattr(sequence, "__getitem__"):
             raise ValueError("Sequence must take a list argument")
-        self.list = copy.copy(list)
+        self.sequence = copy.copy(sequence)
         self.repeats = repeats
 
         self.reset()
@@ -37,16 +37,16 @@ class PSequence(Pattern):
         self.pos = 0
 
     def __next__(self):
-        if len(self.list) == 0 or self.rcount >= self.repeats:
-            raise StopIteration
-
         # support for pattern arguments
-        list = self.value(self.list)
+        sequence = self.value(self.sequence)
         repeats = self.value(self.repeats)
 
-        rv = Pattern.value(list[self.pos])
+        if len(sequence) == 0 or self.rcount >= repeats:
+            raise StopIteration
+
+        rv = Pattern.value(sequence[self.pos])
         self.pos += 1
-        if self.pos >= len(list):
+        if self.pos >= len(sequence):
             self.pos = 0
             self.rcount += 1
 
@@ -286,7 +286,6 @@ class PCreep(Pattern):
             self.buffer.append(next(self.pattern))
 
     def __next__(self):
-        pos = Pattern.value(self.pos)
         length = Pattern.value(self.length)
         creep = Pattern.value(self.creep)
         count = Pattern.value(self.count)
@@ -499,7 +498,7 @@ class PCollapse(Pattern):
 
     def __next__(self):
         rv = None
-        while rv == None:
+        while rv is None:
             rv = Pattern.value(self.input)
         return rv
 
@@ -533,7 +532,7 @@ class PPad(Pattern):
     def __next__(self):
         try:
             rv = next(self.pattern)
-        except:
+        except StopIteration:
             if self.count >= self.length:
                 raise StopIteration
             rv = None
@@ -559,7 +558,7 @@ class PPadToMultiple(Pattern):
     def __next__(self):
         try:
             rv = next(self.pattern)
-        except:
+        except StopIteration:
             if self.padcount >= self.minimum_pad and (self.count % self.multiple == 0):
                 raise StopIteration
             else:
@@ -601,7 +600,7 @@ class PArpeggiator(Pattern):
             # prefer to specify a chord (or Key)
             #------------------------------------------------------------------------
             self.notes = self.chord.semitones
-        except:
+        except AttributeError:
             #------------------------------------------------------------------------
             # can alternatively specify a list of notes
             #------------------------------------------------------------------------

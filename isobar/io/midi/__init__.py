@@ -22,3 +22,5 @@ def get_midi_input_names():
     """
     input_names = mido.get_input_names()
     return input_names
+
+__all__ = ["MidiIn", "MidiOut", "get_midi_input_names", "get_midi_output_names"]

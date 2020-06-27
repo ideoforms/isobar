@@ -53,5 +53,5 @@ def test_pflipflop():
     assert a.nextn(20) == [0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1]
 
 def test_pswitchone():
-    a = iso.PSwitchOne(iso.PSeries(0, 1), 4, 4)
+    a = iso.PSwitchOne(iso.PSeries(0, 1), 4)
     assert a.nextn(20) == [0, 1, 2, 3, 0, 1, 3, 2, 0, 1, 2, 3, 3, 1, 2, 0, 3, 2, 1, 0]

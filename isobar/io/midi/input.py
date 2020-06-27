@@ -4,7 +4,6 @@ import os
 import time
 import queue
 import logging
-from ...note import Note
 from ...exceptions import DeviceNotFoundException
 from ...constants import MIDI_CLOCK_TICKS_PER_BEAT
 

@@ -17,7 +17,8 @@ class MidiFileIn:
     def read(self, quantize=None):
         midi_reader = mido.MidiFile(self.filename)
         log.info("Loading MIDI data from %s, ticks per beat = %d" % (self.filename, midi_reader.ticks_per_beat))
-        note_tracks = list(filter(lambda track: any(message.type == 'note_on' for message in track), midi_reader.tracks))
+        note_tracks = list(filter(lambda track: any(message.type == 'note_on' for message in track),
+                                  midi_reader.tracks))
         if not note_tracks:
             raise ValueError("Could not find any tracks with note data")
 
@@ -40,7 +41,7 @@ class MidiFileIn:
                 if event.velocity > 127:
                     event.velocity = 127
 
-                offset +=  event.time / midi_reader.ticks_per_beat
+                offset += event.time / midi_reader.ticks_per_beat
                 note = MidiNote(event.note, event.velocity, offset)
                 notes.append(note)
             elif event.type == 'note_off' or (event.type == 'note_on' and event.velocity == 0):
@@ -67,7 +68,8 @@ class MidiFileIn:
         #------------------------------------------------------------------------
         notes_by_time = {}
         for note in notes:
-            log.debug(" - MIDI event (t = %.2f): Note %d, velocity %d, duration %.3f" % (note.location, note.pitch, note.velocity, note.duration))
+            log.debug(" - MIDI event (t = %.2f): Note %d, velocity %d, duration %.3f" %
+                      (note.location, note.pitch, note.velocity, note.duration))
             location = note.location
             if location in notes_by_time:
                 notes_by_time[location].append(note)
