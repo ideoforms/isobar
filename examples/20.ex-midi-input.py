@@ -5,14 +5,12 @@
 #------------------------------------------------------------------------
 
 import isobar as iso
-from isobar.io.midi import MidiInputDevice
-
 import logging
 import time
 
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
-midi_in = MidiInputDevice()
+midi_in = iso.MidiInputDevice()
 
 notes = []
 durations = []

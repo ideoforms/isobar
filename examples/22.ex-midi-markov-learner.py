@@ -10,7 +10,6 @@
 #------------------------------------------------------------------------
 
 import isobar as iso
-from isobar.io.midi import MidiInputDevice, MidiOutputDevice
 
 import logging
 
@@ -18,13 +17,13 @@ logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
 import time
 
-midi_in = MidiInputDevice()
-midi_out = MidiOutputDevice()
+midi_in = iso.MidiInputDevice()
+midi_out = iso.MidiOutputDevice()
 
 learner = iso.MarkovParallelLearners(3)
 clock0 = time.time()
 
-print("Awaiting MIDI clock signal...")
+print("Listening for MIDI events...")
 
 try:
     while True:
