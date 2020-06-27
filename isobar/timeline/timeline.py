@@ -321,13 +321,14 @@ class Timeline(object):
             output_device = self.output_devices[0]
 
         if self.max_tracks and len(self.tracks) >= self.max_tracks:
-            raise TrackLimitReachedException("Timeline: refusing to schedule track (hit limit of %d)" % self.max_tracks)
+            raise TrackLimitReachedException("Timeline: Refusing to schedule track (hit limit of %d)" % self.max_tracks)
 
         def start_track(track):
             #--------------------------------------------------------------------------------
             # Add a new track.
             #--------------------------------------------------------------------------------
             self.tracks.append(track)
+            log.info("Timeline: Scheduled new track (total tracks: %d)" % len(self.tracks))
 
         track = Track(self, params, interpolate=interpolate, output_device=output_device)
 
