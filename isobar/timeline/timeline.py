@@ -1,5 +1,6 @@
 import sys
 import math
+import copy
 import threading
 import traceback
 
@@ -278,12 +279,19 @@ class Timeline(object):
         self.output_devices.append(output_device)
         self.clock_multipliers[output_device] = make_clock_multiplier(output_device.ticks_per_beat, self.ticks_per_beat)
 
-    def schedule(self, params, quantize=0, delay=0, interpolate=INTERPOLATION_NONE, output_device=None):
+    def schedule(self,
+                 params=None,
+                 quantize=0,
+                 delay=0,
+                 interpolate=INTERPOLATION_NONE,
+                 output_device=None):
         """
         Schedule a new track within this Timeline.
 
         Args:
-            params (dict):       Event dictionary. Keys are generally EVENT_* values, defined in constants.py
+            params (dict):       Event dictionary. Keys are generally EVENT_* values, defined in constants.py.
+                                 If params is None, a new empty Track will be scheduled and returned.
+                                 This can be updated with Track.update() to begin generating events.
             quantize (float):    Quantize level, in beats. For example, 1.0 will begin executing the
                                  events on the next whole beats.
             delay (float):       Delay time, in beats, before events should be executed.
@@ -293,8 +301,7 @@ class Timeline(object):
             output_device:       Output device to send events to. Uses the Timeline default if not specified.
 
         Returns:
-            A new `Track` object if the track has been created immediately.
-            If `quantize` or `delay` have been used, return value is None as the track creation is deferred.
+            The new `Track` object.
 
         Raises:
             TrackLimitReachedException: If `max_tracks` has been reached.
@@ -303,7 +310,7 @@ class Timeline(object):
         #--------------------------------------------------------------------------------
         # Take a copy of params to avoid modifying the original
         #--------------------------------------------------------------------------------
-        params = params.copy()
+        params = copy.copy(params)
 
         if not output_device:
             #--------------------------------------------------------------------------------
@@ -316,13 +323,13 @@ class Timeline(object):
         if self.max_tracks and len(self.tracks) >= self.max_tracks:
             raise TrackLimitReachedException("Timeline: refusing to schedule track (hit limit of %d)" % self.max_tracks)
 
-        def _add_track():
+        def start_track(track):
             #--------------------------------------------------------------------------------
             # Add a new track.
             #--------------------------------------------------------------------------------
-            track = Track(params, self, interpolate=interpolate, output_device=output_device)
             self.tracks.append(track)
-            return track
+
+        track = Track(self, params, interpolate=interpolate, output_device=output_device)
 
         if quantize or delay:
             #--------------------------------------------------------------------------------
@@ -336,13 +343,15 @@ class Timeline(object):
 
             self.events.append({
                 EVENT_TIME: scheduled_time,
-                EVENT_ACTION: _add_track
+                EVENT_ACTION: lambda: start_track(track)
             })
         else:
             #--------------------------------------------------------------------------------
             # Begin events on this track right away.
             #--------------------------------------------------------------------------------
-            return _add_track()
+            start_track(track)
+
+        return track
 
     #--------------------------------------------------------------------------------
     # Backwards-compatibility

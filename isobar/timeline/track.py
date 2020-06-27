@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 class Track:
-    def __init__(self, events, timeline, interpolate=INTERPOLATION_NONE, output_device=None):
+    def __init__(self, timeline, events, interpolate=INTERPOLATION_NONE, output_device=None):
         #--------------------------------------------------------------------------------
         # Ensure that events is a pattern that generates a dict when it is iterated.
         #--------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ class Track:
         self.current_time = 0
         self.next_event_time = 0
         self.note_offs = []
+        self.is_started = False
         self.is_finished = False
 
     def update(self, events):
@@ -77,8 +78,9 @@ class Track:
             if self.interpolate is INTERPOLATION_NONE:
                 if round(self.current_time, 8) >= round(self.next_event_time, 8):
                     self.current_event = self.get_next_event()
-                    self.perform_event(self.current_event)
-                    self.next_event_time += float(self.current_event.duration)
+                    if self.current_event is not None:
+                        self.perform_event(self.current_event)
+                        self.next_event_time += float(self.current_event.duration)
             else:
                 try:
                     interpolated_values = Event(next(self.interpolating_event))
@@ -132,6 +134,9 @@ class Track:
             pattern.reset()
 
     def get_next_event(self):
+        if self.event_stream is None:
+            return None
+
         #------------------------------------------------------------------------
         # Iterate to the next event.
         #  - If self.events is a PDict, this iterates over each of the keys
@@ -150,6 +155,9 @@ class Track:
     def perform_event(self, event):
         if not event.active:
             return
+
+        if not self.is_started:
+            self.is_started = True
 
         #------------------------------------------------------------------------
         # Action: Carry out an action each time this event is triggered
