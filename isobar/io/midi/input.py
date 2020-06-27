@@ -84,7 +84,7 @@ class MidiInputDevice:
             else:
                 log.warning("MIDI song position message received, but MIDI input cannot seek to arbitrary position")
 
-        elif message.type == 'note_on' or message.type == 'control':
+        elif message.type == 'note_on' or message.type == 'control_change' or message.type == 'pitchwheel':
             if self.callback:
                 self.callback(message)
             else:
@@ -114,17 +114,25 @@ class MidiInputDevice:
 
     def receive(self):
         """
-        Blocking poll for MIDI message.
+        Return the next MIDI event, blocking until an event is received.
+
+        Returns a mido Message object:
+        https://mido.readthedocs.io/en/latest/messages.html
+
+        Messages may be of type note, control_change, program_change, pitch_bend.
+
         Returns:
-            Note: The note received, or None.
+            Message: The event received, or None.
         """
         return self.queue.get()
 
     def poll(self):
         """
-        Non-blocking poll for MIDI messages.
+        Similar to `receive`, but does not block. If an event has been received,
+        it returns the mido Message immediately. Otherwise, returns None.
+
         Returns:
-            Note: The note received, or None.
+            Message: The event received, or None.
         """
         rv = None
         try:

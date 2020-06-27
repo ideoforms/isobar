@@ -28,16 +28,16 @@ print("Awaiting MIDI clock signal...")
 
 try:
     while True:
-        note = midi_in.poll()
-        if note is not None:
+        message = midi_in.poll()
+        if message is not None and message.type == "note_on":
             clock = time.time()
-            print("[%f] note %s (%d, %d)" % (clock, note, note.note, note.velocity))
+            print("[%f] %s (%d, %d)" % (clock, message, message.note, message.velocity))
 
-            velocity = round(note.velocity, -1)
+            velocity = round(message.velocity, -1)
             dur = clock - clock0
             dur = round(dur, 2)
 
-            learner.register([note.note, velocity, dur])
+            learner.register([message.note, velocity, dur])
             clock0 = clock
 
 except KeyboardInterrupt:
