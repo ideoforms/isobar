@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 #------------------------------------------------------------------------
 # Melody line
 #------------------------------------------------------------------------
-seq = iso.PSequence([-7, -5, 0, 2, 3, -5, -7, 2, 0, -5, 3, 2])
+sequence = iso.PSequence([-7, -5, 0, 2, 3, -5, -7, 2, 0, -5, 3, 2])
 
 #------------------------------------------------------------------------
 # Create a timeline at 160BPM
@@ -30,11 +30,11 @@ timeline = iso.Timeline(160)
 # by two every note... try removing the .copy() and see what happens!
 #------------------------------------------------------------------------
 timeline.schedule({
-    "note": seq.copy() + 60,
+    "note": sequence.copy() + 60,
     "duration": 0.5
 })
 timeline.schedule({
-    "note": seq.copy() + 72,
+    "note": sequence.copy() + 72,
     "duration": 0.5 * 1.01
 })
 

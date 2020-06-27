@@ -1,4 +1,4 @@
-from .input import MidiFileIn
-from .output import MidiFileOut, PatternWriterMIDI
+from .input import MidiFileInputDevice
+from .output import MidiFileOutputDevice, PatternWriterMIDI
 
-__all__ = ["MidiFileIn", "MidiFileOut", "PatternWriterMIDI"]
+__all__ = ["MidiFileInputDevice", "MidiFileOutputDevice", "PatternWriterMIDI"]

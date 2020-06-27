@@ -8,7 +8,7 @@
 
 import argparse
 import isobar as iso
-from isobar.io.midifile.input import MidiFileIn
+from isobar.io.midifile.input import MidiFileInputDevice
 
 import logging
 logging.basicConfig(level=logging.DEBUG, format="[%(asctime)s] %(message)s")
@@ -20,7 +20,7 @@ args = parser.parse_args()
 #------------------------------------------------------------------------
 # Quantize durations to the nearest 1/8th note.
 #------------------------------------------------------------------------
-pattern = MidiFileIn(args.filename).read(quantize=1/8)
+pattern = MidiFileInputDevice(args.filename).read(quantize=1 / 8)
 pattern = iso.PDict(pattern)
 
 #------------------------------------------------------------------------
@@ -48,7 +48,8 @@ timeline.schedule({
     "duration": dur_learner.markov,
     "amplitude": amp_learner.markov
 })
+
 try:
     timeline.run()
-except:
+except KeyboardInterrupt:
     timeline.output_device.all_notes_off()

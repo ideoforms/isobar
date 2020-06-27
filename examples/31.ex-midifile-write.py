@@ -7,7 +7,7 @@
 #------------------------------------------------------------------------
 
 import isobar as iso
-from isobar.io import MidiFileOut
+from isobar.io import MidiFileOutputDevice
 
 import logging
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 key = iso.Key("C", "major")
 
 filename = "output.mid"
-output = MidiFileOut(filename)
+output = MidiFileOutputDevice(filename)
 
 timeline = iso.Timeline(iso.MAX_CLOCK_RATE, output_device=output)
 timeline.sched({

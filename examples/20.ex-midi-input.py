@@ -5,32 +5,49 @@
 #------------------------------------------------------------------------
 
 import isobar as iso
-from isobar.io.midi import MidiIn
+from isobar.io.midi import MidiInputDevice
 
 import logging
+import time
+
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
-midi_in = MidiIn()
+midi_in = MidiInputDevice()
+
 notes = []
+durations = []
+last_note_time = None
+
+print("Listening for notes on %s. Press Ctrl-C to stop." % midi_in.device_name)
 
 try:
     while True:
         note = midi_in.receive()
         if note is not None:
-            print("Received note: %s" % note.note)
+            print(" - Read note: %s" % note.note)
             notes.append(note)
+            if last_note_time is not None:
+                durations.append(time.time() - last_note_time)
+            last_note_time = time.time()
 
 except KeyboardInterrupt:
     pass
 
-print()
-print("----------------------------------------------------")
-print("Ctrl-C detected, now playing back")
-print("----------------------------------------------------")
+if last_note_time:
+    durations.append(time.time() - last_note_time)
 
-t = iso.Timeline(120)
-t.sched({
-    "note": iso.PSequence([ note.note for note in notes ], 1),
-    "duration": 0.5
-})
-t.run()
+    print()
+    print("----------------------------------------------------")
+    print("Ctrl-C detected, now playing back")
+    print("----------------------------------------------------")
+
+    timeline = iso.Timeline(60)
+    timeline.stop_when_done = True
+    timeline.schedule({
+        "note": iso.PSequence([note.note for note in notes], 1),
+        "duration": iso.PSequence(durations, 1)
+    })
+    timeline.run()
+else:
+    print()
+    print("No notes detected")

@@ -5,9 +5,9 @@ try:
 except ModuleNotFoundError:
     pass
 
-class OSCOut (OutputDevice):
+class OSCOutputDevice (OutputDevice):
     """
-    OSCOut: Wraps MIDI messages in OSC.
+    OSCOutputDevice: Wraps MIDI messages in OSC.
     /note [ note, velocity, channel ]
     /control [ control, value, channel ]
     """

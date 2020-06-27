@@ -3,16 +3,17 @@
 #------------------------------------------------------------------------
 # MIDI clock sync input example.
 # Start an external MIDI clock with this device as the clock target.
-# The MidiIn object estimates the input tempo via a moving average.
+# The MidiInputDevice object estimates the input tempo via a moving average.
 #------------------------------------------------------------------------
 
 import isobar as iso
-from isobar.io.midi import MidiIn
+from isobar.io.midi import MidiInputDevice
 
 import logging
+
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
-midi_in = MidiIn()
+midi_in = MidiInputDevice()
 
 print("Start a MIDI clock device with %s as the clock destination" % midi_in.device_name)
 print("Awaiting clock signal...")

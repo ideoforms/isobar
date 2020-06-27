@@ -7,7 +7,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-class MidiFileIn:
+class MidiFileInputDevice:
     """ Read events from a MIDI file.
         Requires mido. """
 

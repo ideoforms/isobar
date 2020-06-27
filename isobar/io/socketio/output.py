@@ -1,7 +1,7 @@
 from ..output import OutputDevice
 
-class SocketIOOut (OutputDevice):
-    """ SocketIOOut: Support for sending note on/off events via websockets.
+class SocketIOOutputDevice (OutputDevice):
+    """ SocketIOOutputDevice: Support for sending note on/off events via websockets.
     Two types of event are sent at the moment:
 
     note [ index, velocity, channel ] : The MIDI note number depressed.

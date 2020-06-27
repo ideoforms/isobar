@@ -6,7 +6,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-class MidiFileOut (OutputDevice):
+class MidiFileOutputDevice (OutputDevice):
     """ Write events to a MIDI file.
         """
 

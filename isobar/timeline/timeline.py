@@ -6,7 +6,7 @@ import traceback
 
 from .track import Track
 from .clock import Clock
-from ..io import MidiOut
+from ..io import MidiOutputDevice
 from ..constants import DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO
 from ..constants import EVENT_TIME, EVENT_ACTION, INTERPOLATION_NONE
 from ..exceptions import TrackLimitReachedException, TrackNotFoundException
@@ -21,7 +21,7 @@ class Timeline(object):
     represents a sequence of note or control events.
 
     It has a `clock_source`, which can be a real-time Clock object, or an
-    external source such as a MIDI clock (via `isobar.io.MidiIn`).
+    external source such as a MIDI clock (via `isobar.io.MidiInputDevice`).
 
     A Timeline typically runs until it is terminated by calling `stop()`.
     If you want the Timeline to terminate as soon as no more events are available,
@@ -319,7 +319,7 @@ class Timeline(object):
             # If no output device exists, send to the system default MIDI output.
             #--------------------------------------------------------------------------------
             if not self.output_devices:
-                self.add_output_device(MidiOut())
+                self.add_output_device(MidiOutputDevice())
             output_device = self.output_devices[0]
 
         if self.max_tracks and len(self.tracks) >= self.max_tracks:

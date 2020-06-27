@@ -7,7 +7,7 @@
 #------------------------------------------------------------------------
 
 import isobar as iso
-from isobar.io import MidiFileIn
+from isobar.io import MidiFileInputDevice
 
 import argparse
 import logging

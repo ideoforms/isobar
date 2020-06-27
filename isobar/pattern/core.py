@@ -364,8 +364,8 @@ class PDict(Pattern):
         Args:
             filename (str): Filename to read from (.mid)
         """
-        from isobar.io.midifile import MidiFileIn
-        reader = MidiFileIn(filename)
+        from isobar.io.midifile import MidiFileInputDevice
+        reader = MidiFileInputDevice(filename)
         self.dict = reader.read(quantize=quantize)
 
     def save(self, filename):
@@ -376,8 +376,8 @@ class PDict(Pattern):
             filename (str): Filename to write to (.mid)
             quantize (float): Quantization level. 1.0 = quantize to beat, 0.25 = quantize to quarter-beat, etc.
         """
-        from isobar.io.midifile import MidiFileOut
-        writer = MidiFileOut(filename)
+        from isobar.io.midifile import MidiFileOutputDevice
+        writer = MidiFileOutputDevice(filename)
         clock = isobar.DummyClock()
         timeline = isobar.Timeline(self, output_device=writer, clock_source=clock)
         timeline.schedule(self)

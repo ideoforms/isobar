@@ -3,7 +3,7 @@
 import isobar as iso
 import pytest
 import time
-from isobar.io import DummyOutputDevice, MidiOut
+from isobar.io import DummyOutputDevice, MidiOutputDevice
 from . import dummy_timeline
 from isobar.exceptions import InvalidEventException
 
@@ -15,7 +15,7 @@ def test_timeline_default_output_device():
     timeline = iso.Timeline()
     try:
         track = timeline.schedule({ "note": 0 })
-        assert issubclass(type(track.output_device), MidiOut)
+        assert issubclass(type(track.output_device), MidiOutputDevice)
     except iso.DeviceNotFoundException:
         # Ignore exception on machines without a MIDI device
         pass
@@ -274,7 +274,7 @@ def test_timeline_tempo(dummy_timeline):
 
     # Set tempo of external clock (raise exception)
     try:
-        dummy_timeline.clock_source = iso.MidiIn("Virtual Device", virtual=True)
+        dummy_timeline.clock_source = iso.MidiInputDevice("Virtual Device", virtual=True)
         assert dummy_timeline.tempo is None
         with pytest.raises(RuntimeError):
             dummy_timeline.tempo = 180

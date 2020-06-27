@@ -1,3 +1,3 @@
-from .output import SocketIOOut
+from .output import SocketIOOutputDevice
 
-__all__ = ["SocketIOOut"]
+__all__ = ["SocketIOOutputDevice"]

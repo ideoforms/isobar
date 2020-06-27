@@ -10,7 +10,7 @@
 #------------------------------------------------------------------------
 
 import isobar as iso
-from isobar.io.midi import MidiIn, MidiOut
+from isobar.io.midi import MidiInputDevice, MidiOutputDevice
 
 import logging
 
@@ -18,8 +18,8 @@ logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
 import time
 
-midi_in = MidiIn()
-midi_out = MidiOut()
+midi_in = MidiInputDevice()
+midi_out = MidiOutputDevice()
 
 learner = iso.MarkovParallelLearners(3)
 clock0 = time.time()
@@ -56,11 +56,11 @@ dur = chains[2]
 if len(pitch.nodes) == 0:
     print("No notes detected")
 else:
-    t = iso.Timeline(120, midi_out)
-    t.sched({
+    timeline = iso.Timeline(120, midi_out)
+    timeline.schedule({
         "note": pitch,
         "duration": dur,
         "amplitude": amp,
         "channel": 0
     })
-    t.run()
+    timeline.run()

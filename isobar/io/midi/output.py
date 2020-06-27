@@ -7,7 +7,7 @@ from ...constants import MIDI_CLOCK_TICKS_PER_BEAT
 
 log = logging.getLogger(__name__)
 
-class MidiOut (OutputDevice):
+class MidiOutputDevice (OutputDevice):
     def __init__(self, device_name=None, send_clock=False, virtual=False):
         """
         Create a MIDI output device.

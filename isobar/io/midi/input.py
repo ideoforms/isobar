@@ -9,7 +9,7 @@ from ...constants import MIDI_CLOCK_TICKS_PER_BEAT
 
 log = logging.getLogger(__name__)
 
-class MidiIn:
+class MidiInputDevice:
     def __init__(self, device_name=None, clock_target=None, virtual=False):
         """
         Create a MIDI input device.
@@ -20,7 +20,7 @@ class MidiIn:
                                The default MIDI output device name can also be specified
                                with the environmental variable ISOBAR_DEFAULT_MIDI_IN.
             clock_target:      Target to send clocking events to. To sync a specific
-                               Timeline to a MidiIn device, use
+                               Timeline to a MidiInputDevice device, use
                                `timeline.clock_source = midi_in`.
             virtual (bool):    Whether to create a "virtual" rtmidi device.
         """

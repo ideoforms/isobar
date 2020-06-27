@@ -1,5 +1,5 @@
 import isobar as iso
-from isobar.io.midi import MidiIn, MidiOut
+from isobar.io.midi import MidiInputDevice, MidiOutputDevice
 import pytest
 import time
 from . import dummy_timeline
@@ -8,7 +8,7 @@ VIRTUAL_DEVICE_NAME = "Virtual Device"
 
 no_midi = False
 try:
-    midi_out = iso.MidiOut()
+    midi_out = iso.MidiOutputDevice()
 except iso.DeviceNotFoundException:
     no_midi = True
 
@@ -23,9 +23,9 @@ def test_io_midi():
     def log_event(message):
         nonlocal events
         events.append(message)
-    midi_in = iso.MidiIn(VIRTUAL_DEVICE_NAME, virtual=True)
+    midi_in = iso.MidiInputDevice(VIRTUAL_DEVICE_NAME, virtual=True)
     midi_in.callback = log_event
-    midi_out = iso.MidiOut(VIRTUAL_DEVICE_NAME)
+    midi_out = iso.MidiOutputDevice(VIRTUAL_DEVICE_NAME)
 
     timeline = iso.Timeline(120, midi_out)
     timeline.stop_when_done = True
@@ -39,11 +39,11 @@ def test_io_midi():
 @pytest.mark.skipif(no_midi, reason="Device does not have MIDI support")
 def test_io_midi_sync():
     tempo = 150
-    midi_out = iso.MidiOut(VIRTUAL_DEVICE_NAME, virtual=True, send_clock=True)
+    midi_out = iso.MidiOutputDevice(VIRTUAL_DEVICE_NAME, virtual=True, send_clock=True)
     print("Created MIDI out: %s" % midi_out)
     clock = iso.Clock(tempo=tempo, clock_target=midi_out)
 
-    midi_in = iso.MidiIn(VIRTUAL_DEVICE_NAME)
+    midi_in = iso.MidiInputDevice(VIRTUAL_DEVICE_NAME)
 
     clock.background()
     time.sleep(0.1)

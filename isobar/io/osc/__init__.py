@@ -1,3 +1,3 @@
-from .output import OSCOut
+from .output import OSCOutputDevice
 
-__all__ = ["OSCOut"]
+__all__ = ["OSCOutputDevice"]
