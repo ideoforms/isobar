@@ -151,6 +151,7 @@ class Timeline(object):
             track.tick()
             if track.is_finished:
                 self.tracks.remove(track)
+                log.info("Timeline: Track finished, removing from scheduler (total tracks: %d)" % len(self.tracks))
 
         #--------------------------------------------------------------------------------
         # If we've run out of notes, raise a StopIteration.

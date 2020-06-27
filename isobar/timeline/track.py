@@ -1,4 +1,5 @@
 import copy
+import math
 import inspect
 
 from .event import Event
@@ -15,6 +16,9 @@ class Track:
         #--------------------------------------------------------------------------------
         # Ensure that events is a pattern that generates a dict when it is iterated.
         #--------------------------------------------------------------------------------
+        self.current_time = 0
+        self.next_event_time = 0
+
         self.update(events)
         self.current_event = None
         self.next_event = None
@@ -24,13 +28,11 @@ class Track:
         self.output_device = output_device
         self.interpolate = interpolate
 
-        self.current_time = 0
-        self.next_event_time = 0
         self.note_offs = []
         self.is_started = False
         self.is_finished = False
 
-    def update(self, events):
+    def update(self, events, quantize=None):
         """
         Update the events that this EventStream produces.
 
@@ -39,6 +41,12 @@ class Track:
         """
         if isinstance(events, dict):
             events = PDict(events)
+
+        if quantize:
+            self.next_event_time = quantize * math.ceil(float(self.current_time) / quantize)
+        else:
+            self.next_event_time = self.current_time
+
         self.event_stream = events
 
     def __str__(self):
@@ -77,10 +85,13 @@ class Track:
 
             if self.interpolate is INTERPOLATION_NONE:
                 if round(self.current_time, 8) >= round(self.next_event_time, 8):
-                    self.current_event = self.get_next_event()
+                    while round(self.current_time, 8) >= round(self.next_event_time, 8):
+                        self.current_event = self.get_next_event()
+                        if self.current_event is None:
+                            break
+                        self.next_event_time += float(self.current_event.duration)
                     if self.current_event is not None:
                         self.perform_event(self.current_event)
-                        self.next_event_time += float(self.current_event.duration)
             else:
                 try:
                     interpolated_values = Event(next(self.interpolating_event))
@@ -270,7 +281,7 @@ class Track:
                         self.output_device.note_on(note, amp, channel)
 
                         note_dur = event.duration * gate
-                        self.schedule_note_off(self.next_event_time + note_dur, note, channel)
+                        self.schedule_note_off(self.current_time + note_dur, note, channel)
         else:
             raise InvalidEventException("Invalid event type: %s" % event.type)
 

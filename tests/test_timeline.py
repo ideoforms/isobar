@@ -56,12 +56,38 @@ def test_timeline_schedule_update(dummy_timeline):
     dummy_timeline.stop_when_done = False
     dummy_timeline.tick()
     dummy_timeline.stop_when_done = True
+
+    #--------------------------------------------------------------------------------
+    # Note that, because the Track has its own current_time which is relative
+    # to the moment it is created, the track creation and the update() call
+    # both need to have quantize=1.
+    #--------------------------------------------------------------------------------
     track = dummy_timeline.schedule(quantize=1)
     track.update({
         iso.EVENT_NOTE: iso.PSequence([1], 1)
-    })
+    }, quantize=1)
+
     dummy_timeline.run()
     assert dummy_timeline.output_device.events == [[1.0, 'note_on', 1, 64, 0], [2.0, 'note_off', 1, 0]]
+
+def test_timeline_schedule_update_after_period(dummy_timeline):
+    """
+    Check that, if we update the contents of a Track after a long period has elapsed,
+    it does not play through the whole history of past events that would have been played.
+    """
+    dummy_timeline.stop_when_done = False
+    track = dummy_timeline.schedule()
+    for n in range(int(dummy_timeline.ticks_per_beat * 2.5)):
+        dummy_timeline.tick()
+    dummy_timeline.stop_when_done = True
+    track.update({
+        iso.EVENT_NOTE: iso.PSequence([1, 2], 1)
+    }, quantize=1)
+    dummy_timeline.run()
+    assert dummy_timeline.output_device.events == [
+        [3.0, 'note_on', 1, 64, 0], [4.0, 'note_off', 1, 0],
+        [4.0, 'note_on', 2, 64, 0], [5.0, 'note_off', 2, 0],
+    ]
 
 def test_timeline_schedule_twice(dummy_timeline):
     # TODO
