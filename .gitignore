@@ -4,3 +4,6 @@
 .eggs
 *.egg-info
 dist/
+.coverage
+.idea
+.ipynb_checkpoints/
