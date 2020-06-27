@@ -7,3 +7,7 @@ dist/
 .coverage
 .idea
 .ipynb_checkpoints/
+dev
+audio
+midi
+TODO.md
