@@ -9,9 +9,10 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
+        sudo add-apt-repository ppa:deadsnakes/ppa
         sudo apt-get update -y
-        sudo apt-get install python3 python3-setuptools python3-pip
+        sudo apt-get install python3.5
+        sudo python3.5 -m pip install pytest
         sudo apt-get install libasound2-dev
-        sudo pip3 install pytest
     - name: Python test
       run: python3 setup.py test
