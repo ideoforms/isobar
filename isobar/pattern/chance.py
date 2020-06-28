@@ -127,38 +127,35 @@ class PRandomWalk(Pattern):
         return vvalues[self.pos]
 
 class PChoice(Pattern):
-    """ PChoice: Random selection from <values>
+    """ PChoice: Random selection from <values>, weighted by optional <weights>.
+                 <weights> and <values> must be the same length, but not
+                 necessarily normalised.
 
         >>> p = PChoice([ 0, 1, 10, 11 ])
         >>> p.nextn(16)
         [11, 1, 0, 10, 1, 11, 1, 0, 11, 1, 11, 1, 1, 11, 11, 1]
-        """
 
-    def __init__(self, values=[]):
-        self.values = values
-
-    def __next__(self):
-        vvalues = Pattern.value(self.values)
-        return random.choice(vvalues)
-
-class PWeightedChoice(Pattern):
-    """ PWeightedChoice: Random selection from <values>, weighted by <weights>.
-                  <weights> and <values> must be the same length, but not
-                  necessarily normalised.
-
-        >>> p = PWeightedChoice([ 1, 11, 111 ], [ 8, 2, 1 ])
+        >>> p = PChoice([ 1, 11, 111 ], [ 8, 2, 1 ])
         >>> p.nextn(16)
         [111, 1, 1, 111, 1, 1, 1, 1, 1, 1, 1, 11, 1, 1, 1, 1]
         """
 
-    def __init__(self, values=[], weights=[]):
+    def __init__(self, values, weights=[]):
+        """
+        Args:
+            values: A list of values
+            weights: An optional list of weights, of the same length as values.
+        """
         self.values = values
         self.weights = weights
 
     def __next__(self):
         vvalues = Pattern.value(self.values)
         vweights = Pattern.value(self.weights)
-        return wnchoice(vvalues, vweights)
+        if vweights:
+            return wnchoice(vvalues, vweights)
+        else:
+            return random.choice(vvalues)
 
 
 class PShuffle(Pattern):
@@ -171,7 +168,6 @@ class PShuffle(Pattern):
 
     def __init__(self, values=[], repeats=sys.maxsize):
         """
-
         Args:
             values (list): List of values
             repeats (int): Number of times to re-shuffle and iterate
