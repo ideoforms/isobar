@@ -28,6 +28,12 @@ class InvalidMIDIPitch (Exception):
     """
     pass
 
+class InvalidKeyException (Exception):
+    """
+    Key is invalid.
+    """
+    pass
+
 class ClockException (Exception):
     """
     Clocking error.

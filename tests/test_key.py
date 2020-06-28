@@ -25,6 +25,11 @@ def test_key_invalid():
     with pytest.raises(iso.UnknownScaleName):
         a = iso.Key("C", "mundo")
 
+    with pytest.raises(iso.InvalidKeyException):
+        a = iso.Key(-1, "major")
+    with pytest.raises(iso.InvalidKeyException):
+        a = iso.Key(12, "minor")
+
 def test_key_get():
     a = iso.Key("C", "major")
     assert a.get(0) == a[0] == 0

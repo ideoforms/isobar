@@ -1,6 +1,7 @@
 from .scale import Scale
 from .note import Note
 from .util import midi_note_to_note_name, note_name_to_midi_note
+from .exceptions import InvalidKeyException
 
 import random
 
@@ -13,6 +14,10 @@ class Key:
             tonic = note_name_to_midi_note(tonic)
         if type(scale) == str:
             scale = Scale.byname(scale)
+        if tonic < 0:
+            raise InvalidKeyException("Tonic must be >= 0")
+        if tonic >= scale.octave_size:
+            raise InvalidKeyException("Tonic cannot be beyond octave size")
 
         self.tonic = tonic
         self.scale = scale
