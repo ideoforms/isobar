@@ -127,9 +127,9 @@ class PRandomWalk(Pattern):
         return vvalues[self.pos]
 
 class PChoice(Pattern):
-    """ PChoice: Random selection from <values>, weighted by optional <weights>.
-                 <weights> and <values> must be the same length, but not
-                 necessarily normalised.
+    """ PChoice: Pick a random element from <values>, weighted by optional <weights>.
+                 <weights> and <values> must be the same length.
+                 weights do not need to be normalised.
 
         >>> p = PChoice([ 0, 1, 10, 11 ])
         >>> p.nextn(16)
@@ -140,11 +140,11 @@ class PChoice(Pattern):
         [111, 1, 1, 111, 1, 1, 1, 1, 1, 1, 1, 11, 1, 1, 1, 1]
         """
 
-    def __init__(self, values, weights=[]):
+    def __init__(self, values, weights=None):
         """
         Args:
             values: A list of values
-            weights: An optional list of weights, of the same length as values.
+            weights: An optional list of weights, of the same length as values
         """
         self.values = values
         self.weights = weights
@@ -152,11 +152,49 @@ class PChoice(Pattern):
     def __next__(self):
         vvalues = Pattern.value(self.values)
         vweights = Pattern.value(self.weights)
-        if vweights:
+        if vweights is not None:
             return wnchoice(vvalues, vweights)
         else:
             return random.choice(vvalues)
 
+
+class PSample(Pattern):
+    """ PSample: Pick multiple random elements from <values>, weighted by optional <weights>,
+                 without replacement. Each return value is a list.
+
+                 <weights> and <values> must be the same length.
+                 weights do not need to be normalised.
+
+        >>> p = PSample([1, 2, 3], count=2, weights=[1, 2, 3])
+        >>> p.nextn(16)
+        [[3, 2], [2, 3], [3, 2], [3, 1], [2, 3], [3, 2], [2, 3], [3, 1], [3, 2], [3, 2], [2, 3], [3, 2], [2, 1], [2, 3], [3, 2], [2, 3]]
+        """
+
+    def __init__(self, values, count, weights=None):
+        """
+        Args:
+            values: A list of values
+            weights: An optional list of weights, of the same length as values
+        """
+        self.values = values
+        self.count = count
+        self.weights = weights
+
+    def __next__(self):
+        vvalues = copy.copy(Pattern.value(self.values))
+        vcount = copy.copy(Pattern.value(self.count))
+        vweights = copy.copy(Pattern.value(self.weights))
+
+        if vcount > len(vvalues):
+            raise ValueError("Count cannot be larger than the number of available values")
+
+        rv = []
+        for n in range(vcount):
+            index = wnchoice(list(range(len(vvalues))), vweights)
+            rv.append(vvalues.pop(index))
+            vweights.pop(index)
+
+        return rv
 
 class PShuffle(Pattern):
     """ PShuffle: Shuffled list.
