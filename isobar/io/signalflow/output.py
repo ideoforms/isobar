@@ -6,7 +6,8 @@ log = logging.getLogger(__name__)
 try:
     import libsignal as sf
 except ModuleNotFoundError:
-    log.warning("No Signalflow support available")
+    # No Signalflow support available
+    pass
 
 class SignalflowOutputDevice (OutputDevice):
     def __init__(self):
@@ -17,7 +18,11 @@ class SignalflowOutputDevice (OutputDevice):
             device_name (str): The name of the target device to use.
                                If not specified, uses the system default.
         """
-        self.graph = sf.AudioGraph()
+        try:
+            self.graph = sf.AudioGraph()
+        except NameError:
+            raise Exception("Could not instantiate OutputDevice as libsignal not installed")
+
         self.graph.start()
         log.info("Opened Signalflow output")
 
