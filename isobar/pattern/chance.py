@@ -190,9 +190,13 @@ class PSample(Pattern):
 
         rv = []
         for n in range(vcount):
-            index = wnchoice(list(range(len(vvalues))), vweights)
+            if vweights:
+                index = wnchoice(list(range(len(vvalues))), vweights)
+                vweights.pop(index)
+            else:
+                index = random.randrange(0, len(vvalues))
+
             rv.append(vvalues.pop(index))
-            vweights.pop(index)
 
         return rv
 

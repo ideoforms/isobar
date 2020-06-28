@@ -32,6 +32,10 @@ def test_pchoice_weighted():
     assert a.nextn(20) == [2, 5, 0, 4, 0, 4, 1, 4, 0, 5, 2, 4, 0, 5, 1, 4, 2, 7, 1, 6]
 
 def test_psample():
+    p = iso.PSample(iso.PSequence([[1, 2, 3], [4, 5, 6]]), count=2)
+    assert p.nextn(16) == [[2, 3], [4, 6], [3, 2], [5, 6], [2, 3], [6, 4], [3, 1], [5, 4], [1, 3], [6, 4], [2, 1], [6, 4], [3, 2], [5, 4], [2, 3], [5, 4]]
+
+def test_psample_weighted():
     p = iso.PSample(iso.PSequence([[1, 2, 3], [4,5,6]]), count=2, weights=[0.5, 0.25, 0.1])
     assert p.nextn(16) == [[2, 1], [4, 5], [1, 2], [5, 4], [1, 2], [6, 4], [1, 3], [5, 4], [3, 2], [5, 6], [1, 3], [6, 5], [1, 2], [4, 5], [3, 2], [4, 6]]
 
