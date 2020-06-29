@@ -24,7 +24,16 @@ class PStochasticPattern(Pattern):
         super().reset()
         self.rng.seed(self._seed)
 
-    def seed(self, seed):
+    def seed(self, seed=None):
+        """
+        Seed the pattern's random number generator with a new seed,
+        initialising a new pseudo-random sequence.
+
+        Args:
+            seed: A hashable value, or None. See pydoc random.
+        """
+        if seed is None:
+            seed = random.randint(0, sys.maxsize)
         self._seed = seed
         self.rng.seed(self._seed)
 
