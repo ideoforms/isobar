@@ -163,21 +163,23 @@ class PImpulse(Pattern):
 
     def __init__(self, period):
         self.period = period
-        self.pos = period
+        self.pos = 0
 
     def reset(self):
         super().reset()
         self.pos = 0
 
     def __next__(self):
-        period = self.value(self.period)
+        period = Pattern.value(self.period)
 
-        if self.pos >= period - 1:
-            rv = 1
+        if self.pos >= period:
             self.pos = 0
+
+        if self.pos == 0:
+            rv = 1
         else:
             rv = 0
-            self.pos += 1
+        self.pos += 1
 
         return rv
 
@@ -262,18 +264,18 @@ class PPingPong(Pattern):
         return rv
 
 class PCreep(Pattern):
-    """ PCreep: Loop <length>-note segment, progressing <creep> notes after <count> repeats.
+    """ PCreep: Loop <length>-note segment, progressing <creep> notes after <repeats> repeats.
 
         >>> p = PCreep(PSeries(), 3, 1, 2)
         >>> p.nextn(16)
         [0, 1, 2, 0, 1, 2, 1, 2, 3, 1, 2, 3, 2, 3, 4, 2]
         """
 
-    def __init__(self, pattern, length=4, creep=1, count=1, prob=1):
+    def __init__(self, pattern, length=4, creep=1, repeats=1, prob=1):
         self.pattern = pattern
         self.length = length
         self.creep = creep
-        self.count = count
+        self.repeats = repeats
         self.prob = prob
         self.reset()
 
@@ -288,7 +290,7 @@ class PCreep(Pattern):
     def __next__(self):
         length = Pattern.value(self.length)
         creep = Pattern.value(self.creep)
-        count = Pattern.value(self.count)
+        repeats = Pattern.value(self.repeats)
         prob = Pattern.value(self.prob)
 
         while len(self.buffer) < length:
@@ -299,7 +301,7 @@ class PCreep(Pattern):
         if self.pos >= len(self.buffer):
             repeat = random.uniform(0, 1) < prob
 
-            if self.rcount >= count or not repeat:
+            if self.rcount >= repeats or not repeat:
                 #------------------------------------------------------------------------
                 # finished creeping, pull some more data from our buffer
                 #------------------------------------------------------------------------
@@ -367,6 +369,13 @@ class PSubsequence(Pattern):
     def reset(self):
         super().reset()
         self.pos = 0
+
+    def clear(self):
+        """
+        Clears the history and resets.
+        """
+        self.values = []
+        self.reset()
 
     def __next__(self):
         offset = Pattern.value(self.offset)
@@ -440,8 +449,7 @@ class PReverse(Pattern):
         return next(self.values)
 
 class PReset(Pattern):
-    """ PReset: Resets <pattern> each time it receives a zero-crossing from
-                <trigger>
+    """ PReset: Resets <pattern> whenever <trigger> is true
 
         >>> p = PReset(PSeries(0, 1), PImpulse(4))
         >>> p.nextn(16)
@@ -449,21 +457,13 @@ class PReset(Pattern):
         """
 
     def __init__(self, pattern, trigger):
-        self.value = 0
         self.pattern = pattern
         self.trigger = trigger
 
-    def reset(self):
-        super().reset()
-        self.value = 0
-
     def __next__(self):
-        value = next(self.trigger)
-        if value > 0 and self.value <= 0:
+        trigger_input = next(self.trigger)
+        if trigger_input is not None and trigger_input > 0:
             self.pattern.reset()
-            self.value = value
-        elif value <= 0 and self.value > 0:
-            self.value = value
 
         return next(self.pattern)
 
