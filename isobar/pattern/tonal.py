@@ -24,37 +24,39 @@ class PDegree(Pattern):
 
 class PFilterByKey(Pattern):
     """ PFilterByKey: Filter notes based on their presence in <key>.
+        IF a note is not in <key>, None is returned instead.
+        To compress the output and remove rests, use PCollapse.
 
         >>>
         >>> p.nextn(16)
         []
         """
 
-    def __init__(self, input, key):
-        self.input = input
+    def __init__(self, pattern, key):
+        self.pattern = pattern
         self.key = key
 
     def __next__(self):
-        note = next(self.input)
+        note = Pattern.value(self.pattern)
         key = Pattern.value(self.key)
         if note in key:
             return note
         else:
             return None
 
-class PNearest(Pattern):
-    """ PNearest: Return nearest note in <key>.
+class PNearestNoteInKey(Pattern):
+    """ PNearestNoteInKey: Return nearest note in <key>.
 
         >>>
         >>> p.nextn(16)
         []
         """
-    def __init__(self, input, key):
-        self.input = input
+    def __init__(self, pattern, key):
+        self.pattern = pattern
         self.key = key
 
     def __next__(self):
-        note = next(self.input)
+        note = Pattern.value(self.pattern)
         key = Pattern.value(self.key)
         return key.nearest_note(note)
 

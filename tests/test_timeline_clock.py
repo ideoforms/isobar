@@ -22,7 +22,7 @@ def test_timeline_clock_accuracy():
     #--------------------------------------------------------------------------------
     for index, t in enumerate(timeline.event_times[:-1]):
         dt = timeline.event_times[index + 1] - t
-        assert 0.0005 < dt < 0.002
+        assert 0.0002 < dt < 0.002
 
 @pytest.mark.parametrize("ticks_per_beat", [ 24, 96, 480 ])
 def test_timeline_ticks_per_beat(ticks_per_beat):
