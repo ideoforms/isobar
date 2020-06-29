@@ -50,6 +50,31 @@ class PStaticGlobal(Pattern):
         value = data[1]
         PStaticGlobal.set(key, value)
 
+class Globals:
+    @classmethod
+    def get(cls, key):
+        value = PGlobals.dict[key]
+        return Pattern.value(value)
+
+    @classmethod
+    def set(cls, key, value):
+        PGlobals.dict[key] = value
+
+class PGlobals (Pattern):
+    """ PGlobals: Static global value identified by a string.
+    """
+    dict = {}
+
+    def __init__(self, name, value=None):
+        self.name = name
+        if value is not None:
+            Globals.set(name, value)
+
+    def __next__(self):
+        name = Pattern.value(self.name)
+        value = Globals.get(name)
+        return Pattern.value(value)
+
 class PStaticSequence(Pattern):
     def __init__(self, sequence, duration):
         #------------------------------------------------------------------------
@@ -122,7 +147,7 @@ class PStaticOSCReceiver(Pattern):
         return self.value
 
 class PStaticCurrentTime(Pattern):
-    """ PStaticTimeline: Returns the position (in beats) of the current timeline. """
+    """ PStaticCurrentTime: Returns the position (in beats) of the current timeline. """
 
     def __init__(self, timeline=None):
         self.given_timeline = timeline
