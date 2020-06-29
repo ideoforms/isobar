@@ -23,30 +23,30 @@ def normalize(array):
         return array
     return [float(n) / sum(array) for n in array]
 
-def windex(weights):
+def windex(weights, rng=random):
     """ Return a random index based on a list of weights, from 0..(len(weights) - 1).
     Assumes that weights is already normalised. """
-    n = random.uniform(0, 1)
+    n = rng.uniform(0, 1)
     for i in range(len(weights)):
         if n < weights[i]:
             return i
         n = n - weights[i]
 
-def wnindex(weights):
+def wnindex(weights, rng=random):
     """ Returns a random index based on a list of weights.
     Normalises list of weights before executing. """
     wnorm = normalize(weights)
-    return windex(wnorm)
+    return windex(wnorm, rng=rng)
 
-def wchoice(array, weights):
+def wchoice(array, weights, rng=random):
     """ Performs a weighted choice from a list of values (assumes pre-normalised weights) """
-    index = windex(weights)
+    index = windex(weights, rng=rng)
     return array[index]
 
-def wnchoice(array, weights):
+def wnchoice(array, weights, rng=random):
     """ Performs a weighted choice from a list of values
     (does not assume pre-normalised weights). """
-    index = wnindex(weights)
+    index = wnindex(weights, rng=rng)
     return array[index]
 
 def note_name_to_midi_note(name):
