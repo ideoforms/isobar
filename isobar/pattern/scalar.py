@@ -43,6 +43,21 @@ class PDiff(Pattern):
         self.current = next
         return rv
 
+class PSkipIf(Pattern):
+    """ PSkipIf: If <skip> is false, returns <input>; otherwise, returns None.
+        """
+
+    def __init__(self, pattern, skip):
+        self.pattern = pattern
+        self.skip = skip
+
+    def __next__(self):
+        rv = Pattern.value(self.pattern)
+        rskip = Pattern.value(self.skip)
+        if rskip:
+            rv = None
+        return rv
+
 class PNormalise(Pattern):
     """ PNormalise: Adaptively normalise <input> to [0..1] over a linear scale.
         Use maximum and minimum values found in history.

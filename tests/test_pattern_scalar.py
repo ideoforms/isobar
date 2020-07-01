@@ -19,6 +19,13 @@ def test_pdiff():
     list(b)
     assert list(b) == [1, 0, -4, -3, None, None, 0.5]
 
+def test_pskipif():
+    a = iso.PSequence([1, 2, -1, 0, 4], 1)
+    b = iso.PSequence([0, 1, False, True, None])
+    c = iso.PSkipIf(a, b)
+
+    assert list(c) == [1, None, -1, None, 4]
+
 def test_pnorm():
     pass
 
