@@ -128,6 +128,30 @@ class Pattern:
         """Right bitshift"""
         operand = Pattern.pattern(operand)
         return PRShift(operand, self)
+    
+    def __eq__(self, operand):
+        """ Equal """
+        return PEqual(self, Pattern.pattern(operand))
+    
+    def __ne__(self, operand):
+        """ Not equal """
+        return PNotEqual(self, Pattern.pattern(operand))
+
+    def __gt__(self, operand):
+        """ Greater than """
+        return PGreaterThan(self, Pattern.pattern(operand))
+
+    def __ge__(self, operand):
+        """ Greater than or equal """
+        return PGreaterThanOrEqual(self, Pattern.pattern(operand))
+    
+    def __lt__(self, operand):
+        """ Less than """
+        return PLessThan(self, Pattern.pattern(operand))
+    
+    def __le__(self, operand):
+        """ Less than or equal """
+        return PLessThanOrEqual(self, Pattern.pattern(operand))
 
     def __iter__(self):
         return self
@@ -586,3 +610,69 @@ class PRShift(PBinOp):
         a = next(self.a)
         b = next(self.b)
         return None if a is None or b is None else a >> b
+
+class PEqual(PBinOp):
+    """ PEqual: Return 1 if a == b, 0 otherwise (shorthand: patternA == patternB) """
+
+    def __str__(self):
+        return "%s == %s" % (self.a, self.b)
+
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
+        return None if a is None or b is None else a == b
+
+class PNotEqual(PBinOp):
+    """ PGreaterThanOrEqual: Return 1 if a != b, 0 otherwise (shorthand: patternA != patternB) """
+
+    def __str__(self):
+        return "%s != %s" % (self.a, self.b)
+
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
+        return None if a is None or b is None else a != b
+
+class PGreaterThan(PBinOp):
+    """ PGreaterThan: Return 1 if a > b, 0 otherwise (shorthand: patternA > patternB) """
+
+    def __str__(self):
+        return "%s > %s" % (self.a, self.b)
+
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
+        return None if a is None or b is None else a > b
+
+class PGreaterThanOrEqual(PBinOp):
+    """ PGreaterThanOrEqual: Return 1 if a >= b, 0 otherwise (shorthand: patternA >= patternB) """
+
+    def __str__(self):
+        return "%s >= %s" % (self.a, self.b)
+
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
+        return None if a is None or b is None else a >= b
+    
+class PLessThan(PBinOp):
+    """ PLessThan: Return 1 if a < b, 0 otherwise (shorthand: patternA < patternB) """
+
+    def __str__(self):
+        return "%s < %s" % (self.a, self.b)
+
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
+        return None if a is None or b is None else a < b
+
+class PLessThanOrEqual(PBinOp):
+    """ PLessThanOrEqual: Return 1 if a <= b, 0 otherwise (shorthand: patternA <= patternB) """
+
+    def __str__(self):
+        return "%s <= %s" % (self.a, self.b)
+
+    def __next__(self):
+        a = next(self.a)
+        b = next(self.b)
+        return None if a is None or b is None else a <= b

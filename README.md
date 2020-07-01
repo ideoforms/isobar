@@ -113,10 +113,17 @@ I/O classes:
     PPow                 - One pattern to the power of another (shorthand: patternA ** patternB)
     PLShift              - Binary left-shift (shorthand: patternA << patternB)
     PRShift              - Binary right-shift (shorthand: patternA << patternB)
+    PEqual               - Return 1 if a == b, 0 otherwise (shorthand: patternA == patternB)
+    PGreaterThanOrEqual  - Return 1 if a != b, 0 otherwise (shorthand: patternA != patternB)
+    PGreaterThan         - Return 1 if a > b, 0 otherwise (shorthand: patternA > patternB)
+    PGreaterThanOrEqual  - Return 1 if a >= b, 0 otherwise (shorthand: patternA >= patternB)
+    PLessThan            - Return 1 if a < b, 0 otherwise (shorthand: patternA < patternB)
+    PLessThanOrEqual     - Return 1 if a <= b, 0 otherwise (shorthand: patternA <= patternB)
 
     SCALAR (scalar.py)
     PChanged             - Outputs a 1 if the value of a pattern has changed.
     PDiff                - Outputs the difference between the current and previous values of an input pattern
+    PSkipIf              - If <skip> is false, returns <input>; otherwise, returns None.
     PNormalise           - Adaptively normalise <input> to [0..1] over a linear scale.
     PMap                 - Apply an arbitrary function to an input pattern.
     PMapEnumerated       - Apply arbitrary function to input, passing a counter.
@@ -134,11 +141,11 @@ I/O classes:
     PImpulse             - Outputs a 1 every <period> events, otherwise 0.
     PLoop                - Repeats a finite <pattern> for <n> repeats.
     PPingPong            - Ping-pong input pattern back and forth N times.
-    PCreep               - Loop <length>-note segment, progressing <creep> notes after <count> repeats.
+    PCreep               - Loop <length>-note segment, progressing <creep> notes after <repeats> repeats.
     PStutter             - Play each note of <pattern> <count> times.
     PSubsequence         - Returns a finite subsequence of an input pattern.
     PReverse             - Reverses a finite sequence.
-    PReset               - Resets <pattern> each time it receives a zero-crossing from
+    PReset               - Resets <pattern> whenever <trigger> is true
     PCounter             - Increments a counter by 1 for each zero-crossing in <trigger>.
     PCollapse            - Skip over any rests in <input>
     PNoRepeats           - Skip over repeated values in <input>
@@ -157,20 +164,21 @@ I/O classes:
     PChoice              - Pick a random element from <values>, weighted by optional <weights>.
     PSample              - Pick multiple random elements from <values>, weighted by optional <weights>,
     PShuffle             - Shuffled list.
-    PShuffleEvery        - Every <n> steps, take <n> values from <pattern> and reorder.
+    PShuffleInput        - Every <n> steps, take <n> values from <pattern> and reorder.
     PSkip                - Skip events with some probability, 1 - <play>.
     PFlipFlop            - flip a binary bit with some probability.
-    PSwitchOne           - Capture <length> input values; repeat, switching two adjacent values.
+    PSwitchOne           - Capture <length> input values; loop, repeatedly switching two adjacent values.
 
     TONAL (tonal.py)
     PDegree              - Map scale index <degree> to MIDI notes in <scale>.
     PFilterByKey         - Filter notes based on their presence in <key>.
-    PNearest             - Return nearest note in <key>.
+    PNearestNoteInKey    - Return nearest note in <key>.
     PMidiNoteToFrequency - Map MIDI note to frequency value.
 
     STATIC (static.py)
     PStaticGlobal        - Static global value identified by a string, with OSC listener.
-    PStaticTimeline      - Returns the position (in beats) of the current timeline.
+    PGlobals             - Static global value identified by a string.
+    PStaticCurrentTime   - Returns the position (in beats) of the current timeline.
 
     FADE (fade.py)
     PFadeNotewise        - Fade a pattern in/out by introducing notes at a gradual rate.

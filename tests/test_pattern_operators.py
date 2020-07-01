@@ -73,3 +73,45 @@ def test_pattern_rshift():
 
     p2 = iso.PSequence([4, 8, 16, 32], 1)
     assert list(p2 >> p1) == [2, 2, 2]
+
+def test_pattern_eq():
+    p1 = iso.PSequence([1, 2, 3], 1)
+    assert list(p1 == 2) == [0, 1, 0]
+
+    p2 = iso.PSequence([5, None, 3])
+    assert list(p1 == p2) == [0, None, 1]
+
+def test_pattern_ne():
+    p1 = iso.PSequence([1, 2, 3], 1)
+    assert list(p1 != 2) == [1, 0, 1]
+
+    p2 = iso.PSequence([5, None, 3])
+    assert list(p1 != p2) == [1, None, 0]
+
+def test_pattern_gt():
+    p1 = iso.PSequence([1, 2, 3], 1)
+    assert list(p1 > 2) == [0, 0, 1]
+
+    p2 = iso.PSequence([5, None, 3])
+    assert list(p1 > p2) == [0, None, 0]
+
+def test_pattern_ge():
+    p1 = iso.PSequence([1, 2, 3], 1)
+    assert list(p1 >= 2) == [0, 1, 1]
+
+    p2 = iso.PSequence([5, None, 3])
+    assert list(p1 >= p2) == [0, None, 1]
+
+def test_pattern_lt():
+    p1 = iso.PSequence([1, 2, 3], 1)
+    assert list(p1 < 2) == [1, 0, 0]
+
+    p2 = iso.PSequence([5, None, 3])
+    assert list(p1 < p2) == [1, None, 0]
+
+def test_pattern_le():
+    p1 = iso.PSequence([1, 2, 3], 1)
+    assert list(p1 <= 2) == [1, 1, 0]
+
+    p2 = iso.PSequence([5, None, 3])
+    assert list(p1 <= p2) == [1, None, 1]
