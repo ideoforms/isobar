@@ -48,6 +48,7 @@ def test_key_contains():
     assert 12 in a
     assert 13 not in a
     assert -1 in a
+    assert None in a
 
 def test_key_semitones():
     a = iso.Key("C", "minor")

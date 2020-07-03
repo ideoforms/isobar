@@ -115,7 +115,22 @@ def test_ppadtomultiple():
 
 def test_parpeggiator():
     # TODO
-    pass
+    a = iso.PArpeggiator([0, 1, 2, 3], iso.PArpeggiator.UP)
+    assert a.nextn(16) == [0, 1, 2, 3]
+
+    a = iso.PArpeggiator([0, 1, 2, 3], iso.PArpeggiator.DOWN)
+    assert a.nextn(16) == [3, 2, 1, 0]
+
+    a = iso.PArpeggiator([0, 1, 2, 3], iso.PArpeggiator.CONVERGE)
+    assert a.nextn(16) == [0, 3, 1, 2]
+
+    a = iso.PArpeggiator([0, 1, 2, 3, 4], iso.PArpeggiator.CONVERGE)
+    assert a.nextn(16) == [0, 4, 1, 3, 2]
+
+    a = iso.PArpeggiator([0, 1, 2, 3, 4], iso.PArpeggiator.RANDOM)
+    a.seed(0)
+    a.reset()
+    assert a.nextn(16) == [2, 1, 0, 4, 3]
 
 def test_peuclidean():
     # TODO
@@ -125,10 +140,27 @@ def test_ppermut():
     # TODO
     pass
 
-def test_pdecisionpoint():
-    # TODO
-    pass
+def test_ppatterngeneratoraction():
+    n = 0
 
-def test_psequenceoperation():
+    def generate():
+        nonlocal n
+        n += 1
+        if n == 1:
+            return iso.PSequence([0], 2)
+        elif n == 2:
+            return iso.PSequence([1, 2], 1)
+        else:
+            return None
+
+    a = iso.PPatternGeneratorAction(generate)
+    assert next(a) == 0
+    assert next(a) == 0
+    assert next(a) == 1
+    assert next(a) == 2
+    with pytest.raises(StopIteration):
+        next(a)
+
+def test_psequenceaction():
     a = iso.PSequenceAction([1, 2, 3], lambda a: list(reversed(a)), 4)
     assert list(a) == [1, 2, 3, 3, 2, 1, 1, 2, 3, 3, 2, 1]
