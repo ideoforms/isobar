@@ -26,7 +26,7 @@ class Key:
         return self.tonic == other.tonic and self.scale == other.scale
 
     def __str__(self):
-        return "key: %s %s" % (midi_note_to_note_name(self.tonic)[:-1], self.scale.name)
+        return "Key: %s %s" % (midi_note_to_note_name(self.tonic)[:], self.scale.name)
 
     def __repr__(self):
         return 'Key(%s, "%s")' % (self.tonic, self.scale.name)
@@ -43,6 +43,9 @@ class Key:
         return self.get(degree)
 
     def __contains__(self, semitone):
+        # Always return true if None (rest) is queried.
+        if semitone is None:
+            return True
         return (semitone % self.scale.octave_size) in self.semitones
 
     @property
