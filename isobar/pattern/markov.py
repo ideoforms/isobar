@@ -1,9 +1,8 @@
-from .core import Pattern
+from .chance import PStochasticPattern
 
 import os
-import random
 
-class PMarkov(Pattern):
+class PMarkov(PStochasticPattern):
     """ PMarkov: First-order Markov chain generator.
     """
 
@@ -15,6 +14,8 @@ class PMarkov(Pattern):
            where values determine the probability of transitioning from A to B
            based on the number of occurrences of B in the list with key A.
         """
+        super().__init__()
+
         #------------------------------------------------------------------------
         # avoid using [] (mutable default arguments considered harmful)
         # http://stackoverflow.com/questions/1132941/least-astonishment-in-python-the-mutable-default-argument
@@ -45,7 +46,7 @@ class PMarkov(Pattern):
         for node in list(self.nodes.keys()):
             self.nodes[node] = []
             for other in list(self.nodes.keys()):
-                prob = random.randint(0, 10)
+                prob = self.rng.randint(0, 10)
                 self.nodes[node] += [other] * prob
 
     def __next__(self):
@@ -53,12 +54,12 @@ class PMarkov(Pattern):
         # Returns the next value according to our internal statistical model.
         #------------------------------------------------------------------------
         if self.node is None and len(self.nodes) > 0:
-            self.node = random.choice(list(self.nodes.keys()))
+            self.node = self.rng.choice(list(self.nodes.keys()))
         else:
             try:
-                self.node = random.choice(self.nodes[self.node])
+                self.node = self.rng.choice(self.nodes[self.node])
             except IndexError:
-                self.node = random.choice(list(self.nodes.keys()))
+                self.node = self.rng.choice(list(self.nodes.keys()))
             except KeyError:
                 print("No such node: %s" % self.node)
 
