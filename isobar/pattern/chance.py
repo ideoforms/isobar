@@ -49,7 +49,7 @@ class PWhite(PStochasticPattern):
         [3.6747936220022082, 0.61313530428271923, 9.1515368696591555, ... 6.2963694390145974 ]
        """
 
-    def __init__(self, min, max):
+    def __init__(self, min=0.0, max=1.0):
         super().__init__()
 
         self.min = min

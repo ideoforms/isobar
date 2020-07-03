@@ -53,6 +53,8 @@ class PStaticGlobal(Pattern):
 class Globals:
     @classmethod
     def get(cls, key):
+        if key not in PGlobals.dict:
+            raise ValueError("Global variable does not exist: %s" % key)
         value = PGlobals.dict[key]
         return Pattern.value(value)
 
@@ -65,10 +67,8 @@ class PGlobals (Pattern):
     """
     dict = {}
 
-    def __init__(self, name, value=None):
+    def __init__(self, name):
         self.name = name
-        if value is not None:
-            Globals.set(name, value)
 
     def __next__(self):
         name = Pattern.value(self.name)

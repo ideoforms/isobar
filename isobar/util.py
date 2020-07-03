@@ -84,6 +84,8 @@ def midi_note_to_note_name(note):
 
 def midi_note_to_frequency(note):
     """ Maps a MIDI note index to a frequency. """
+    if note is None:
+        return None
     return 440.0 * pow(2, (note - 69.0) / 12)
 
 def bipolar_diverge(maximum):

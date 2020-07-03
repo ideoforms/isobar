@@ -7,6 +7,7 @@ from .core import Pattern
 from ..chord import Chord
 from ..constants import INTERPOLATION_NONE, INTERPOLATION_LINEAR
 from functools import reduce
+from .chance import PStochasticPattern
 
 import logging
 log = logging.getLogger(__name__)
@@ -568,7 +569,8 @@ class PPadToMultiple(Pattern):
         self.count += 1
         return rv
 
-class PArpeggiator(Pattern):
+
+class PArpeggiator(PStochasticPattern):
     """ PArpeggiator: Arpeggiator.
 
         <type> can be one of:
@@ -590,6 +592,8 @@ class PArpeggiator(Pattern):
     RANDOM = 3
 
     def __init__(self, chord=Chord.major, type=UP):
+        super().__init__()
+
         self.chord = chord
         self.type = type
         self.pos = 0
@@ -611,13 +615,19 @@ class PArpeggiator(Pattern):
         elif type == PArpeggiator.DOWN:
             self.offsets = list(reversed(list(range(len(self.notes)))))
         elif type == PArpeggiator.CONVERGE:
-            self.offsets = [(n / 2) if (n % 2 == 0) else (0 - (n + 1) / 2) for n in range(len(self.notes))]
+            self.offsets = [(n // 2) if (n % 2 == 0) else (0 - (n + 1) // 2) for n in range(len(self.notes))]
         elif type == PArpeggiator.DIVERGE:
-            self.offsets = [(n / 2) if (n % 2 == 0) else (0 - (n + 1) / 2) for n in range(len(self.notes))]
+            self.offsets = [(n // 2) if (n % 2 == 0) else (0 - (n + 1) // 2) for n in range(len(self.notes))]
             self.offsets = list(reversed(self.offsets))
         elif type == PArpeggiator.RANDOM:
             self.offsets = list(range(len(self.notes)))
-            random.shuffle(self.offsets)
+            self.rng.shuffle(self.offsets)
+
+    def reset(self):
+        super().reset()
+        if self.type == PArpeggiator.RANDOM:
+            self.offsets = list(range(len(self.notes)))
+            self.rng.shuffle(self.offsets)
 
     def __next__(self):
         pos = self.value(self.pos)
@@ -893,7 +903,7 @@ class PPatternGeneratorAction(Pattern):
             # causes this to break horribly in the PStaticSeq case
             # -- seems to try to evaluate self.pattern as a list
             if self.pattern is None:
-                return None
+                raise StopIteration
             return next(self)
 
 PDecisionPoint = PPatternGeneratorAction
