@@ -114,7 +114,6 @@ def test_ppadtomultiple():
     assert list(b) == [1, None, 2]
 
 def test_parpeggiator():
-    # TODO
     a = iso.PArpeggiator([0, 1, 2, 3], iso.PArpeggiator.UP)
     assert a.nextn(16) == [0, 1, 2, 3]
 
@@ -133,12 +132,15 @@ def test_parpeggiator():
     assert a.nextn(16) == [2, 1, 0, 4, 3]
 
 def test_peuclidean():
-    # TODO
-    pass
+    a = iso.PEuclidean(4, 7, 0)
+    assert a.nextn(16) == [1, None, 1, None, 1, None, 1, 1, None, 1, None, 1, None, 1, 1, None]
+
+    a = iso.PEuclidean(4, iso.PSequence([7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 4, 4, 4, 4], 1))
+    assert a.nextn(19) == [1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, 1, 1, 1, 1]
 
 def test_ppermut():
-    # TODO
-    pass
+    a = iso.PPermut(iso.PSequence([1, 11, 111]), 3)
+    assert list(a) == [1, 11, 111, 1, 111, 11, 11, 1, 111, 11, 111, 1, 111, 1, 11, 111, 11, 1]
 
 def test_ppatterngeneratoraction():
     n = 0
