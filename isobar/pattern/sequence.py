@@ -371,13 +371,6 @@ class PSubsequence(Pattern):
         super().reset()
         self.pos = 0
 
-    def clear(self):
-        """
-        Clears the history and resets.
-        """
-        self.values = []
-        self.reset()
-
     def __next__(self):
         offset = Pattern.value(self.offset)
         length = Pattern.value(self.length)
@@ -428,7 +421,7 @@ class PInterpolate(Pattern):
                 step = (target - self.value) / (vsteps)
                 self.step_values = list(self.value + step * (n + 1) for n in range(vsteps))
             else:
-                raise Exception("Interpolation type not yet implemented")
+                raise ValueError("Interpolation type not yet implemented")
             self.pos = 0
 
         self.value = self.step_values[self.pos]
@@ -588,8 +581,8 @@ class PArpeggiator(PStochasticPattern):
     UP = 0
     DOWN = 1
     CONVERGE = 2
-    DIVERGE = 2
-    RANDOM = 3
+    DIVERGE = 3
+    RANDOM = 4
 
     def __init__(self, chord=Chord.major, type=UP):
         super().__init__()
@@ -617,8 +610,10 @@ class PArpeggiator(PStochasticPattern):
         elif type == PArpeggiator.CONVERGE:
             self.offsets = [(n // 2) if (n % 2 == 0) else (0 - (n + 1) // 2) for n in range(len(self.notes))]
         elif type == PArpeggiator.DIVERGE:
-            self.offsets = [(n // 2) if (n % 2 == 0) else (0 - (n + 1) // 2) for n in range(len(self.notes))]
-            self.offsets = list(reversed(self.offsets))
+            if len(self.notes) % 2 == 0:
+                self.offsets = [(len(self.notes) // 2 - 1) - (n // 2) if (n % 2 == 0) else (len(self.notes) // 2 + n // 2) for n in range(len(self.notes))]
+            else:
+                self.offsets = [(len(self.notes) // 2 - 1) - (n // 2) if (n % 2 == 1) else (len(self.notes) // 2 + n // 2) for n in range(len(self.notes))]
         elif type == PArpeggiator.RANDOM:
             self.offsets = list(range(len(self.notes)))
             self.rng.shuffle(self.offsets)

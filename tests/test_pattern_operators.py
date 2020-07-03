@@ -29,7 +29,7 @@ def test_pattern_mul():
 def test_pattern_div():
     p1 = iso.PSequence([1, 2, 3], 1)
     assert list(p1 / 2.0) == [0.5, 1.0, 1.5]
-    assert list(2 / p1) == [2, 1, 2/3]
+    assert list(2 / p1) == [2, 1, 2 / 3]
 
     p2 = iso.PSequence([2, 4, 6, 8], 1)
     assert list(p2 / p1) == [2, 2, 2]

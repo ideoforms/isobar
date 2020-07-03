@@ -69,6 +69,11 @@ def test_pinterpolate():
     b = iso.PInterpolate(a, steps, iso.INTERPOLATION_LINEAR)
     assert list(b) == [0, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0]
 
+    b = iso.PInterpolate(iso.PSequence([0, 1, 2]), iso.PSequence([2, 2]), 99)
+    print(next(b))
+    with pytest.raises(ValueError):
+        next(b)
+
 def test_preverse():
     a = iso.PSequence([1, 2, 3, 4, 5], 1)
     b = iso.PReverse(a)
@@ -125,6 +130,15 @@ def test_parpeggiator():
 
     a = iso.PArpeggiator([0, 1, 2, 3, 4], iso.PArpeggiator.CONVERGE)
     assert a.nextn(16) == [0, 4, 1, 3, 2]
+
+    a = iso.PArpeggiator([0, 1, 2, 3], iso.PArpeggiator.CONVERGE)
+    assert a.nextn(16) == [0, 3, 1, 2]
+
+    a = iso.PArpeggiator([0, 1, 2, 3, 4], iso.PArpeggiator.DIVERGE)
+    assert a.nextn(16) == [2, 1, 3, 0, 4]
+
+    a = iso.PArpeggiator([0, 1, 2, 3], iso.PArpeggiator.DIVERGE)
+    assert a.nextn(16) == [1, 2, 0, 3]
 
     a = iso.PArpeggiator([0, 1, 2, 3, 4], iso.PArpeggiator.RANDOM)
     a.seed(0)

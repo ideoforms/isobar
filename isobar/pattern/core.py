@@ -37,10 +37,6 @@ class Pattern:
         """ Absolute value. """
         return PAbs(self)
 
-    def __int__(self):
-        """ Integer value. """
-        return PInt(self)
-
     def __add__(self, operand):
         """Binary op: add two patterns"""
         operand = Pattern.pattern(operand)
