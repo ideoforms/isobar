@@ -107,6 +107,8 @@ class PStaticPattern(Pattern):
 
     def __next__(self):
         timeline = self.timeline
+        if timeline is None:
+            raise Exception("Cannot query current timeline outside of a scheduled event context")
         current_time = round(timeline.current_time, 5)
         if self.current_element_start_time is None or \
                 current_time - self.current_element_start_time >= self.current_element_duration:
