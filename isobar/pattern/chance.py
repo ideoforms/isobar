@@ -324,8 +324,8 @@ class PSkip(PStochasticPattern):
         self.pos = 0.0
 
     def __next__(self):
+        value = Pattern.value(self.pattern)
         play = Pattern.value(self.play)
-        value = next(self.pattern)
 
         if self.regularise:
             self.pos += play
@@ -333,7 +333,7 @@ class PSkip(PStochasticPattern):
                 self.pos -= 1
                 return value
         else:
-            if self.rng.uniform(0, 1) < self.play:
+            if self.rng.uniform(0, 1) < play:
                 return value
 
         return None
