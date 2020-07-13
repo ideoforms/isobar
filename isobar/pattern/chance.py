@@ -38,7 +38,7 @@ class PStochasticPattern(Pattern):
         self.rng.seed(self._seed)
 
 class PWhite(PStochasticPattern):
-    """ PWhite: White noise between <min> and <max>.
+    """ PWhite: White noise between `min` and `max`.
        If values are given as floats, output values are also floats < max.
        If values are ints, output values are ints <= max (as random.randint)
 
@@ -72,8 +72,8 @@ class PWhite(PStochasticPattern):
 
 class PBrown(PStochasticPattern):
     """ PBrown: Brownian noise.
-                Output begins at <initial_value>, and steps up/down
-                by uniform random values from [-<step>, <step>]
+                Output begins at `initial_value`, and steps up/down
+                by uniform random values from [-`step`, `step`]
                 inclusive.
 
                 If step is a float, the output is a float pattern.
@@ -119,7 +119,7 @@ class PBrown(PStochasticPattern):
 
 class PRandomWalk(PStochasticPattern):
     """ PWalk: Random walk around list.
-               Jumps between <min> and <max> steps inclusive.
+               Jumps between `min` and `max` steps inclusive.
 
         >>> PRandomWalk([ 0, 2, 5, 8, 11 ], min=1, max=2).nextn(16)
         [8, 11, 0, 8, 0, 11, 2, 11, 2, 0, 5, 8, 11, 8, 5, 8]
@@ -163,8 +163,8 @@ class PRandomWalk(PStochasticPattern):
         return vvalues[self.pos]
 
 class PChoice(PStochasticPattern):
-    """ PChoice: Pick a random element from <values>, weighted by optional <weights>.
-                 <weights> and <values> must be the same length.
+    """ PChoice: Pick a random element from `values`, weighted by optional `weights`.
+                 `weights` and `values` must be the same length.
                  weights do not need to be normalised.
 
         >>> p = PChoice([ 0, 1, 10, 11 ])
@@ -196,10 +196,10 @@ class PChoice(PStochasticPattern):
 
 
 class PSample(PStochasticPattern):
-    """ PSample: Pick multiple random elements from <values>, weighted by optional <weights>,
+    """ PSample: Pick multiple random elements from `values`, weighted by optional `weights`,
                  without replacement. Each return value is a list.
 
-                 <weights> and <values> must be the same length.
+                 `weights` and `values` must be the same length.
                  weights do not need to be normalised.
 
         >>> p = PSample([1, 2, 3], count=2, weights=[1, 2, 3])
@@ -285,7 +285,7 @@ class PShuffle(PStochasticPattern):
 
 
 class PShuffleInput(PStochasticPattern):
-    """ PShuffleInput: Every <n> steps, take <n> values from <pattern> and reorder.
+    """ PShuffleInput: Every `n` steps, take `n` values from `pattern` and reorder.
 
         >>> p = PShuffleInput(PSeries(0, 1), 4)
         >>> p.nextn(16)
@@ -376,7 +376,7 @@ class PFlipFlop(PStochasticPattern):
 
 
 class PSwitchOne(PStochasticPattern):
-    """ PSwitchOne: Capture <length> input values; loop, repeatedly switching two adjacent values.
+    """ PSwitchOne: Capture `length` input values; loop, repeatedly switching two adjacent values.
         """
 
     def __init__(self, pattern, length=4):

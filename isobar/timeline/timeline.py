@@ -297,7 +297,7 @@ class Timeline(object):
             quantize (float):    Quantize level, in beats. For example, 1.0 will begin executing the
                                  events on the next whole beats.
             delay (float):       Delay time, in beats, before events should be executed.
-                                 If `quantize` and `delay` are both specified, quantization is applied first,
+                                 If `quantize` and `delay` are both specified, quantization is applied,
                                  and the event is scheduled `delay` beats after the quantization time.
             interpolate (int):   Interpolation mode for control segments.
             output_device:       Output device to send events to. Uses the Timeline default if not specified.

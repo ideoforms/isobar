@@ -44,7 +44,7 @@ class PDiff(Pattern):
         return rv
 
 class PSkipIf(Pattern):
-    """ PSkipIf: If <skip> is false, returns <input>; otherwise, returns None.
+    """ PSkipIf: If `skip` is false, returns `input`; otherwise, returns None.
         """
 
     def __init__(self, pattern, skip):
@@ -59,7 +59,7 @@ class PSkipIf(Pattern):
         return rv
 
 class PNormalise(Pattern):
-    """ PNormalise: Adaptively normalise <input> to [0..1] over a linear scale.
+    """ PNormalise: Adaptively normalise `input` to [0..1] over a linear scale.
         Use maximum and minimum values found in history.
 
         If you know the output range ahead of time, use `PScaleLinLin`.
@@ -145,7 +145,7 @@ class PMapEnumerated(PMap):
         return rv
 
 class PScaleLinLin(PMap):
-    """ PLinLin: Map <input> from linear range [a,b] to linear range [c,d].
+    """ PLinLin: Map `input` from linear range [a,b] to linear range [c,d].
 
         >>> p = PScaleLinLin(PWhite(), 0, 1, -50, 50)
         >>> p.nextn(16)
@@ -160,7 +160,7 @@ class PScaleLinLin(PMap):
         PMap.__init__(self, input, self.linlin, *args)
 
 class PScaleLinExp(PMap):
-    """ PLinExp: Map <input> from linear range [a,b] to exponential range [c,d].
+    """ PLinExp: Map `input` from linear range [a,b] to exponential range [c,d].
 
         >>> p = PScaleLinExp(PWhite(0.0, 1.0), 0, 1, 40, 20000)
         >>> p.nextn(16)
@@ -178,7 +178,7 @@ class PScaleLinExp(PMap):
         super(self, input, self.linexp, *args)
 
 class PRound(PMap):
-    """ PRound: Round <input> to N decimal places.
+    """ PRound: Round `input` to N decimal places.
 
         >>> p = PRound(PWhite(0.0, 10.0))
         >>> p.nextn(16)
@@ -251,7 +251,7 @@ class PWrap(Pattern):
         return value
 
 class PIndexOf(Pattern):
-    """ PIndexOf: Find index of items from <pattern> in <list>
+    """ PIndexOf: Find index of items from `pattern` in <list>
 
         >>> p = PIndexOf([ chr(ord("a") + n) for n in range(26) ], PSeq("isobar"))
         >>> p.nextn(16)

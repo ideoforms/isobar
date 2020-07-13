@@ -3,7 +3,7 @@
 from .core import Pattern
 
 class PTri(Pattern):
-    """ PTri: Generates a triangle waveform of period <length>.
+    """ PTri: Generates a triangle waveform of period `length`.
 
         >>> p = PTri(10)
         >>> p.nextn(10)

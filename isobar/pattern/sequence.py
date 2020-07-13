@@ -57,7 +57,7 @@ class PSequence(Pattern):
 PSeq = PSequence
 
 class PSeries(Pattern):
-    """ PSeries: Arithmetic series, beginning at <start>, increment by <step>
+    """ PSeries: Arithmetic series, beginning at `start`, increment by `step`
 
         >>> p = PSeries(3, 9)
         >>> p.nextn(16)
@@ -124,7 +124,7 @@ class PRange(Pattern):
         return rv
 
 class PGeom(Pattern):
-    """ PGeom: Geometric series, beginning at <start>, multiplied by <step>
+    """ PGeom: Geometric series, beginning at `start`, multiplied by `step`
 
         >>> p = PGeom(1, 2)
         >>> p.nextn(16)
@@ -185,7 +185,7 @@ class PImpulse(Pattern):
         return rv
 
 class PLoop(Pattern):
-    """ PLoop: Repeats a finite <pattern> for <n> repeats.
+    """ PLoop: Repeats a finite `pattern` for `n` repeats.
         Useful for pattern generators which don't natively loop.
 
         Input must be finite or results may vary.
@@ -265,7 +265,7 @@ class PPingPong(Pattern):
         return rv
 
 class PCreep(Pattern):
-    """ PCreep: Loop <length>-note segment, progressing <creep> notes after <repeats> repeats.
+    """ PCreep: Loop `length`-note segment, progressing `creep` notes after `repeats` repeats.
 
         >>> p = PCreep(PSeries(), 3, 1, 2)
         >>> p.nextn(16)
@@ -328,7 +328,7 @@ class PCreep(Pattern):
         return self.buffer[self.pos - 1]
 
 class PStutter(Pattern):
-    """ PStutter: Play each note of <pattern> <count> times.
+    """ PStutter: Play each note of `pattern` `count` times.
         Is really a more convenient way to do:
 
             PCreep(pattern, 1, 1, count)
@@ -443,7 +443,7 @@ class PReverse(Pattern):
         return next(self.values)
 
 class PReset(Pattern):
-    """ PReset: Resets <pattern> whenever <trigger> is true
+    """ PReset: Resets `pattern` whenever `trigger` is true
 
         >>> p = PReset(PSeries(0, 1), PImpulse(4))
         >>> p.nextn(16)
@@ -462,7 +462,7 @@ class PReset(Pattern):
         return next(self.pattern)
 
 class PCounter(Pattern):
-    """ PCounter: Increments a counter by 1 for each zero-crossing in <trigger>.
+    """ PCounter: Increments a counter by 1 for each zero-crossing in `trigger`.
 
         >>> p = PCounter(PImpulse(4))
         >>> p.nextn(16)
@@ -485,7 +485,7 @@ class PCounter(Pattern):
         return self.count
 
 class PCollapse(Pattern):
-    """ PCollapse: Skip over any rests in <input> """
+    """ PCollapse: Skip over any rests in `input` """
 
     def __init__(self, input):
         self.input = input
@@ -497,7 +497,7 @@ class PCollapse(Pattern):
         return rv
 
 class PNoRepeats(Pattern):
-    """ PNoRepeats: Skip over repeated values in <input> """
+    """ PNoRepeats: Skip over repeated values in `input` """
 
     def __init__(self, input):
         self.input = input
@@ -511,7 +511,7 @@ class PNoRepeats(Pattern):
         return rv
 
 class PPad(Pattern):
-    """ PPad: Pad <pattern> with rests until it reaches length <length>.
+    """ PPad: Pad `pattern` with rests until it reaches length `length`.
         """
 
     def __init__(self, pattern, length):
@@ -535,8 +535,8 @@ class PPad(Pattern):
         return rv
 
 class PPadToMultiple(Pattern):
-    """ PPadToMultiple: Pad <pattern> with rests until its length is divisible by <multiple>.
-        Enforces a minimum padding of <minimum_pad>.
+    """ PPadToMultiple: Pad `pattern` with rests until its length is divisible by `multiple`.
+        Enforces a minimum padding of `minimum_pad`.
 
         Useful to create patterns which occupy a whole number of bars.
         """
@@ -596,48 +596,68 @@ class PArpeggiator(PStochasticPattern):
             #------------------------------------------------------------------------
             # prefer to specify a chord (or Key)
             #------------------------------------------------------------------------
-            self.notes = self.chord.semitones
+            self._notes = self.chord.semitones
         except AttributeError:
             #------------------------------------------------------------------------
             # can alternatively specify a list of notes
             #------------------------------------------------------------------------
-            self.notes = self.chord
+            self._notes = self.chord
 
-        if type == PArpeggiator.UP:
-            self.offsets = list(range(len(self.notes)))
-        elif type == PArpeggiator.DOWN:
-            self.offsets = list(reversed(list(range(len(self.notes)))))
-        elif type == PArpeggiator.CONVERGE:
-            self.offsets = [(n // 2) if (n % 2 == 0) else (0 - (n + 1) // 2) for n in range(len(self.notes))]
-        elif type == PArpeggiator.DIVERGE:
-            if len(self.notes) % 2 == 0:
-                self.offsets = [(len(self.notes) // 2 - 1) - (n // 2) if (n % 2 == 0) else (len(self.notes) // 2 + n // 2) for n in range(len(self.notes))]
+        self.restart()
+
+
+    def get_notes(self):
+        return self._notes
+    def set_notes(self, notes):
+        self._notes = list(sorted(notes))
+    notes = property(get_notes, set_notes)
+
+    def restart(self):
+        self._notes = list(sorted(self._notes))
+
+        if self.type == PArpeggiator.UP:
+            self.offsets = list(range(len(self._notes)))
+        elif self.type == PArpeggiator.DOWN:
+            self.offsets = list(reversed(list(range(len(self._notes)))))
+        elif self.type == PArpeggiator.CONVERGE:
+            self.offsets = [(n // 2) if (n % 2 == 0) else (0 - (n + 1) // 2) for n in range(len(self._notes))]
+        elif self.type == PArpeggiator.DIVERGE:
+            if len(self._notes) % 2 == 0:
+                self.offsets = [(len(self._notes) // 2 - 1) - (n // 2) if (n % 2 == 0) else (len(self._notes) // 2 + n // 2) for n in range(len(self.notes))]
             else:
-                self.offsets = [(len(self.notes) // 2 - 1) - (n // 2) if (n % 2 == 1) else (len(self.notes) // 2 + n // 2) for n in range(len(self.notes))]
-        elif type == PArpeggiator.RANDOM:
-            self.offsets = list(range(len(self.notes)))
+                self.offsets = [(len(self._notes) // 2 - 1) - (n // 2) if (n % 2 == 1) else (len(self._notes) // 2 + n // 2) for n in range(len(self.notes))]
+        elif self.type == PArpeggiator.RANDOM:
+            self.offsets = list(range(len(self._notes)))
             self.rng.shuffle(self.offsets)
+        else:
+            raise ValueError("Invalid Arpeggiator type: %s" % self.type)
 
     def reset(self):
         super().reset()
-        if self.type == PArpeggiator.RANDOM:
-            self.offsets = list(range(len(self.notes)))
-            self.rng.shuffle(self.offsets)
+        self.restart()
 
     def __next__(self):
+        if len(self._notes) == 0:
+            self.pos = 0
+            return None
+
         pos = self.value(self.pos)
 
-        if pos < len(self.offsets):
+        if pos < len(self.offsets) and pos < len(self._notes):
             offset = self.offsets[pos]
-            rv = self.notes[offset]
+            rv = self._notes[offset]
             self.pos = pos + 1
             return rv
         else:
+            # self.pos = 0
+            # self.restart()
+            # return next(self)
+            # TODO: Looping arpeggiator
             raise StopIteration
 
 class PEuclidean(Pattern):
     """ PEuclidean: Generate Euclidean rhythms.
-        Effectively tries to space <mod> events out evenly over <length> beats.
+        Effectively tries to space <mod> events out evenly over `length` beats.
         Events returned are either 1 or None (rest)
 
         >>> p = PEuclidean(5, 8)
@@ -829,7 +849,7 @@ class PExplorer(Pattern):
         return rv
 
 class PPermut(Pattern):
-    """ PPermut: Generate every permutation of <count> input items.
+    """ PPermut: Generate every permutation of `count` input items.
 
         >>> p = PPermut(PSeq([ 1, 11, 111, 1111 ]), 4)
         >>> p.nextn(16)

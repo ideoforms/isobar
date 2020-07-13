@@ -93,8 +93,9 @@ class Track:
                         self.perform_event(self.current_event)
             else:
                 try:
-                    interpolated_values = Event(next(self.interpolating_event))
-                    self.perform_event(interpolated_values)
+                    interpolated_values = next(self.interpolating_event)
+                    interpolated_event = Event(interpolated_values)
+                    self.perform_event(interpolated_event)
                 except StopIteration:
                     is_first_event = False
                     if self.next_event is None:
@@ -122,7 +123,6 @@ class Track:
                     self.interpolating_event = PDict(interpolating_event_fields)
                     if not is_first_event:
                         next(self.interpolating_event)
-
                     event = Event(next(self.interpolating_event))
                     self.perform_event(event)
 

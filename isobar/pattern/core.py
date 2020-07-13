@@ -476,7 +476,7 @@ class PConcatenate(Pattern):
         self.pos = 0
 
 class PAbs(Pattern):
-    """ PAbs: Absolute value of <input> """
+    """ PAbs: Absolute value of `input` """
 
     def __init__(self, input):
         self.input = input
@@ -488,7 +488,7 @@ class PAbs(Pattern):
         return next
 
 class PInt(Pattern):
-    """ PInt: Integer value of <input> """
+    """ PInt: Integer value of `input` """
 
     def __init__(self, input):
         self.input = input

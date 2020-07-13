@@ -6,7 +6,7 @@ import sys
 #  - 24 ticks per beat means that events are processed every 21ms
 #  - 480 ticks per beat means that events are processed every ~1ms
 #------------------------------------------------------------------------
-DEFAULT_TICKS_PER_BEAT = 120
+DEFAULT_TICKS_PER_BEAT = 480
 
 #------------------------------------------------------------------------
 # Ticks per beat used by MIDI devices, as per the MIDI 1.0 standard.
