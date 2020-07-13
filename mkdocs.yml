@@ -1,0 +1,36 @@
+site_name: isobar
+theme:
+  name: material
+  features:
+    - tabs
+
+repo_name: ideoforms/isobar
+repo_url: https://github.com/ideoforms/isobar
+
+markdown_extensions:
+ - markdown.extensions.admonition
+ - markdown.extensions.codehilite
+ - pymdownx.tabbed
+
+nav:
+ - Home: index.md
+ - Getting started: getting-started.md
+ - About the project: about.md
+# - Changelog: changelog.md
+ - Contributing: contributing.md
+ - License: license.md
+ - Patterns:
+   - About patterns: patterns/index.md
+   - Pattern library reference: patterns/reference.md
+ - Timelines:
+   - About timelines: timelines/index.md
+ - Events:
+   - Events: events/index.md
+   - Note events: events/note.md
+   - Control events: events/control.md
+   - Action events: events/action.md
+ - Devices and I/O:
+   - Devices and I/O: devices/index.md
+   - MIDI: devices/midi.md
+   - MIDI files: devices/midifile.md
+   - OSC: devices/osc.md
