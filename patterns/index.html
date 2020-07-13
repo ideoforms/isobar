@@ -1,0 +1,977 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.4.0">
+    
+    
+      
+        <title>About patterns - isobar</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.fe0cca5b.min.css">
+      
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#patterns" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href=".." title="isobar" class="md-header-nav__button md-logo" aria-label="isobar">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            isobar
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              About patterns
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/ideoforms/isobar/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ideoforms/isobar
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+          
+
+  
+
+<nav class="md-tabs md-tabs--active" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  <li class="md-tabs__item">
+    
+      <a href=".." class="md-tabs__link">
+        Home
+      </a>
+    
+  </li>
+
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="./" class="md-tabs__link md-tabs__link--active">
+          Patterns
+        </a>
+      
+    </li>
+  
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../timelines/" class="md-tabs__link">
+          Timelines
+        </a>
+      
+    </li>
+  
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../events/" class="md-tabs__link">
+          Events
+        </a>
+      
+    </li>
+  
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../devices/" class="md-tabs__link">
+          Devices and I/O
+        </a>
+      
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="isobar" class="md-nav__button md-logo" aria-label="isobar">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    isobar
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/ideoforms/isobar/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ideoforms/isobar
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href=".." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../getting-started/" title="Getting started" class="md-nav__link">
+      Getting started
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../about/" title="About the project" class="md-nav__link">
+      About the project
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../contributing/" title="Contributing" class="md-nav__link">
+      Contributing
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../license/" title="License" class="md-nav__link">
+      License
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6" checked>
+    
+    <label class="md-nav__link" for="nav-6">
+      Patterns
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Patterns" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Patterns
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        About patterns
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="About patterns" class="md-nav__link md-nav__link--active">
+      About patterns
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#about-patterns" class="md-nav__link">
+    About patterns
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pattern-operators" class="md-nav__link">
+    Pattern operators
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#duplicating-patterns" class="md-nav__link">
+    Duplicating patterns
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resetting-a-pattern" class="md-nav__link">
+    Resetting a pattern
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stochastic-patterns" class="md-nav__link">
+    Stochastic patterns
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static-patterns" class="md-nav__link">
+    Static patterns
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#globals" class="md-nav__link">
+    Globals
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="reference/" title="Pattern library reference" class="md-nav__link">
+      Pattern library reference
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
+      Timelines
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Timelines" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Timelines
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../timelines/" title="About timelines" class="md-nav__link">
+      About timelines
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
+      Events
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Events" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Events
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../events/" title="Events" class="md-nav__link">
+      Events
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../events/note/" title="Note events" class="md-nav__link">
+      Note events
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../events/control/" title="Control events" class="md-nav__link">
+      Control events
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../events/action/" title="Action events" class="md-nav__link">
+      Action events
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
+    
+    <label class="md-nav__link" for="nav-9">
+      Devices and I/O
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Devices and I/O" data-md-level="1">
+      <label class="md-nav__title" for="nav-9">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Devices and I/O
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../devices/" title="Devices and I/O" class="md-nav__link">
+      Devices and I/O
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../devices/midi.md" title="MIDI" class="md-nav__link">
+      MIDI
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../devices/midifile.md" title="MIDI files" class="md-nav__link">
+      MIDI files
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../devices/osc.md" title="OSC" class="md-nav__link">
+      OSC
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#about-patterns" class="md-nav__link">
+    About patterns
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pattern-operators" class="md-nav__link">
+    Pattern operators
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#duplicating-patterns" class="md-nav__link">
+    Duplicating patterns
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resetting-a-pattern" class="md-nav__link">
+    Resetting a pattern
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stochastic-patterns" class="md-nav__link">
+    Stochastic patterns
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static-patterns" class="md-nav__link">
+    Static patterns
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#globals" class="md-nav__link">
+    Globals
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/ideoforms/isobar/edit/master/docs/patterns/index.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                <h1 id="patterns">Patterns</h1>
+<h2 id="about-patterns">About patterns</h2>
+<p>Patterns are the fundamental building blocks that are used to create melodies, rhythms and control sequences.
+In Python terms, a pattern is an <a href="https://wiki.python.org/moin/Iterator">iterator</a>, which is to say it does two things:</p>
+<ul>
+<li>generates and returns the next item in the sequence</li>
+<li>when no more items are available in the sequence, raises a <code>StopIteration</code> exception</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">seq</span> <span class="o">=</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
+<span class="mi">1</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
+<span class="mi">2</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
+<span class="mi">3</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+  <span class="n">File</span> <span class="s2">&quot;sequence.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">46</span><span class="p">,</span> <span class="ow">in</span> <span class="fm">__next__</span>
+    <span class="k">raise</span> <span class="ne">StopIteration</span>
+<span class="ne">StopIteration</span>
+</code></pre></div>
+
+
+<p>Note that this means that patterns can't seek backwards in time. Their only concern is generating the next event.</p>
+<p>By assigning patterns to properties of <a href="events/index.md">events</a>, you can specify sequences of values to control any aspect of the control output: pitch, velocity, duration, etc.    </p>
+<p>Patterns can be finite, such as the example above, or infinite, in which case they will keep generating new values forever.</p>
+<p>Patterns can also typically generate different Python types. Some Pattern classes will seek to do the right thing based on whether they are passed them int or float arguments.</p>
+<ul>
+<li><code>PSequence([ "apple", "pear" ])</code> generates an alternating pair of strings</li>
+<li><code>PWhite(0, 10)</code> generates a stream of ints between <code>[0 .. 9]</code></li>
+<li><code>PWhite(0.0, 10.0)</code> generates a stream of floats between <code>[0.0 .. 10.0]</code></li>
+<li><code>PChoice([ Key("C", "major"), Key("A", "minor") ])</code> picks one of the specified <a href="../events/note/">Key</a>s at random</li>
+</ul>
+<h2 id="pattern-operators">Pattern operators</h2>
+<p>Patterns can be combined and modified using standard Python arithmetic operators, with other patterns or with scalar values.</p>
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">added</span> <span class="o">=</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">])</span> <span class="o">+</span> <span class="mi">10</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">added</span><span class="p">)</span>
+<span class="mi">11</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">added</span><span class="p">)</span>
+<span class="mi">12</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">multiplied</span> <span class="o">=</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">])</span> <span class="o">*</span> <span class="mi">4</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">added</span><span class="p">)</span>
+<span class="mi">4</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">added</span><span class="p">)</span>
+<span class="mi">8</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">inverted</span> <span class="o">=</span> <span class="mi">12</span> <span class="o">-</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">inverted</span><span class="p">)</span>
+<span class="mi">11</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">inverted</span><span class="p">)</span>
+<span class="mi">10</span>
+
+<span class="n">combined</span> <span class="o">=</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">])</span> <span class="o">+</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">12</span> <span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span>
+<span class="mi">13</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span>
+<span class="mi">2</span>
+</code></pre></div>
+
+
+<p>The operators are designed to do what you would expect:</p>
+<ul>
+<li>binary operators (<code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code>, <code>&lt;&lt;</code>, <code>&gt;&gt;</code>) perform the operation on each item of the input patterns. Note that, for binary operators, if either of the inputs returns <code>None</code>, the output value becomes <code>None</code>.</li>
+<li>equality operators (<code>&lt;</code>, <code>&gt;</code>, <code>==</code>, <code>!=</code>) can be used to do element-wise comparison on the input sequences, returning a pattern whose values are either <code>True</code>, <code>False</code> or <code>None</code>.</li>
+<li><code>abs()</code> can be used to generate the absolute values of a sequence</li>
+<li>For finite sequences, <code>len()</code> will return the length of the sequence</li>
+<li>A <code>float</code> pattern can be turned into an <code>int</code> pattern with <code>isobar.PInt(pattern)</code> </li>
+</ul>
+<h2 id="duplicating-patterns">Duplicating patterns</h2>
+<p>It's often useful to be able to apply the same pattern to multiple properties or events.</p>
+<p>However, this can result in unwanted behaviours as shown below:</p>
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">d</span> <span class="o">=</span> <span class="n">iso</span><span class="o">.</span><span class="n">PDict</span><span class="p">({</span> <span class="s2">&quot;p1&quot;</span> <span class="p">:</span> <span class="n">a</span><span class="p">,</span> <span class="s2">&quot;p2&quot;</span> <span class="p">:</span> <span class="n">a</span> <span class="p">})</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="p">{</span><span class="s1">&#39;p1&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;p2&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+</code></pre></div>
+
+
+<p>Because the "p1" and "p2" properties both refer to the same instance, the <code>next()</code> method is called twice on <code>a</code>.</p>
+<p>Instead, use <code>a.copy()</code> to create a duplicate with identical state:</p>
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">d</span> <span class="o">=</span> <span class="n">iso</span><span class="o">.</span><span class="n">PDict</span><span class="p">({</span> <span class="s2">&quot;p1&quot;</span> <span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="s2">&quot;p2&quot;</span> <span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="p">})</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="p">{</span><span class="s1">&#39;p1&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;p2&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+</code></pre></div>
+
+
+<h2 id="resetting-a-pattern">Resetting a pattern</h2>
+<p>To rewind a pattern to its initial state, call <code>pattern.reset()</code>. This restores all state variables to their original values.</p>
+<h2 id="stochastic-patterns">Stochastic patterns</h2>
+<p>Stochastic patterns each have their own independent random number generator state. This allows them to be seeded with a known value to create repeatable pseudo-random number sequences.</p>
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="n">iso</span><span class="o">.</span><span class="n">PWhite</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="o">.</span><span class="n">nextn</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="o">.</span><span class="n">nextn</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+</code></pre></div>
+
+
+<h2 id="static-patterns">Static patterns</h2>
+<p>Regular patterns are detached from the environmental state; their internal state steps forward each time their <code>next()</code> method is called. </p>
+<p>Static patterns, conversely, are not modified by a call to <code>next()</code>. This means that <code>next()</code> may be called multiple times and return the same value each time.</p>
+<p>Static patterns may be used to impose specific temporal structure on a piece. For example, to modulate over a set of keys:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">#--------------------------------------------------------------------------------</span>
+<span class="c1"># Create a pattern which is an alternating pair of Keys.</span>
+<span class="c1">#--------------------------------------------------------------------------------</span>
+<span class="n">key_sequence</span> <span class="o">=</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span>
+    <span class="n">iso</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;minor&quot;</span><span class="p">),</span>
+    <span class="n">iso</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="s2">&quot;major&quot;</span><span class="p">),</span>
+<span class="p">])</span>
+<span class="c1">#--------------------------------------------------------------------------------</span>
+<span class="c1"># Create a static pattern embeds the key_sequence pattern.</span>
+<span class="c1"># Each value will be held for 4 beats before progressing to the next value.</span>
+<span class="c1">#--------------------------------------------------------------------------------</span>
+<span class="n">key_static</span> <span class="o">=</span> <span class="n">iso</span><span class="o">.</span><span class="n">PStaticPattern</span><span class="p">(</span><span class="n">key_sequence</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+<span class="c1">#--------------------------------------------------------------------------------</span>
+<span class="c1"># Schedule a pattern which plays notes following the given keys.</span>
+<span class="c1"># A &quot;C&quot; note will be played for 4 notes, followed by a &quot;G&quot; for 4 notes,</span>
+<span class="c1"># repeatedly.</span>
+<span class="c1">#--------------------------------------------------------------------------------</span>
+<span class="n">timeline</span> <span class="o">=</span> <span class="n">iso</span><span class="o">.</span><span class="n">Timeline</span><span class="p">(</span><span class="mi">120</span><span class="p">)</span>
+<span class="n">timeline</span><span class="o">.</span><span class="n">schedule</span><span class="p">({</span>
+    <span class="s2">&quot;degree&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;octave&quot;</span><span class="p">:</span> <span class="mi">5</span>
+    <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">key_static</span><span class="p">,</span>
+<span class="p">})</span>
+</code></pre></div>
+
+
+<h2 id="globals">Globals</h2>
+<p>The <code>Globals</code> class, and accompanying <code>PGlobals</code> pattern, can be used to share common variables across an isobar composition.</p>
+<p>For example:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">#--------------------------------------------------------------------------------</span>
+<span class="c1"># Create a stream of events that will skip each note based on a &quot;density&quot;</span>
+<span class="c1"># global, with a key set by the &quot;key&quot; global.</span>
+<span class="c1">#--------------------------------------------------------------------------------</span>
+<span class="n">iso</span><span class="o">.</span><span class="n">Globals</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;density&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="n">iso</span><span class="o">.</span><span class="n">Globals</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="n">iso</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;minor&quot;</span><span class="p">))</span>
+
+<span class="n">p</span> <span class="o">=</span> <span class="n">iso</span><span class="o">.</span><span class="n">PDict</span><span class="p">({</span>
+    <span class="s2">&quot;degree&quot;</span><span class="p">:</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSkip</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">iso</span><span class="o">.</span><span class="n">PGlobals</span><span class="p">(</span><span class="s2">&quot;density&quot;</span><span class="p">)),</span>
+    <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">iso</span><span class="o">.</span><span class="n">PGlobals</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">)</span>
+<span class="p">})</span>
+</code></pre></div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../license/" title="License" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                License
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="reference/" title="Pattern library reference" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Pattern library reference
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.d710d30a.min.js"></script>
+      <script src="../assets/javascripts/bundle.b39636ac.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: ["tabs"],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.a68abb33.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>
