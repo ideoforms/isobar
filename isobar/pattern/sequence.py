@@ -1,11 +1,12 @@
 import sys
+import math
 import copy
 import random
 import itertools
 
 from .core import Pattern
 from ..chord import Chord
-from ..constants import INTERPOLATION_NONE, INTERPOLATION_LINEAR
+from ..constants import INTERPOLATION_NONE, INTERPOLATION_LINEAR, INTERPOLATION_COSINE
 from functools import reduce
 from .chance import PStochasticPattern
 
@@ -418,10 +419,13 @@ class PInterpolate(Pattern):
             if self.interpolation == INTERPOLATION_NONE:
                 self.step_values = list(self.value for n in range(vsteps - 1)) + [target]
             elif self.interpolation == INTERPOLATION_LINEAR:
-                step = (target - self.value) / (vsteps)
-                self.step_values = list(self.value + step * (n + 1) for n in range(vsteps))
+                dt = target - self.value
+                self.step_values = list(self.value + dt * (n + 1) / vsteps for n in range(vsteps))
+            elif self.interpolation == INTERPOLATION_COSINE:
+                dt = target - self.value
+                self.step_values = list(self.value + dt * 0.5 * (1.0 - math.cos(math.pi * (n + 1) / vsteps)) for n in range(vsteps))
             else:
-                raise ValueError("Interpolation type not yet implemented")
+                raise ValueError("Interpolation type not recognised")
             self.pos = 0
 
         self.value = self.step_values[self.pos]

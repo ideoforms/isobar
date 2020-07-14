@@ -285,6 +285,7 @@ class Timeline(object):
                  params=None,
                  quantize=0,
                  delay=0,
+                 count=None,
                  interpolate=INTERPOLATION_NONE,
                  output_device=None):
         """
@@ -299,6 +300,7 @@ class Timeline(object):
             delay (float):       Delay time, in beats, before events should be executed.
                                  If `quantize` and `delay` are both specified, quantization is applied,
                                  and the event is scheduled `delay` beats after the quantization time.
+            count (int):         Number of events to process, or unlimited if not specified.
             interpolate (int):   Interpolation mode for control segments.
             output_device:       Output device to send events to. Uses the Timeline default if not specified.
 
@@ -332,7 +334,7 @@ class Timeline(object):
             self.tracks.append(track)
             log.info("Timeline: Scheduled new track (total tracks: %d)" % len(self.tracks))
 
-        track = Track(self, params, interpolate=interpolate, output_device=output_device)
+        track = Track(self, params, max_event_count=count, interpolate=interpolate, output_device=output_device)
 
         if quantize or delay:
             #--------------------------------------------------------------------------------

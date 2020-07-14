@@ -11,12 +11,14 @@ import logging
 log = logging.getLogger(__name__)
 
 class Track:
-    def __init__(self, timeline, events, interpolate=INTERPOLATION_NONE, output_device=None):
+    def __init__(self, timeline, events, max_event_count=None, interpolate=INTERPOLATION_NONE, output_device=None):
         #--------------------------------------------------------------------------------
         # Ensure that events is a pattern that generates a dict when it is iterated.
         #--------------------------------------------------------------------------------
         self.current_time = 0
         self.next_event_time = 0
+        self.max_event_count = max_event_count
+        self.current_event_count = 0
 
         self.update(events)
         self.current_event = None
@@ -85,12 +87,16 @@ class Track:
             if self.interpolate is INTERPOLATION_NONE:
                 if round(self.current_time, 8) >= round(self.next_event_time, 8):
                     while round(self.current_time, 8) >= round(self.next_event_time, 8):
+                        if self.max_event_count is not None and self.current_event_count >= self.max_event_count:
+                            raise StopIteration
+
                         self.current_event = self.get_next_event()
                         if self.current_event is None:
                             break
                         self.next_event_time += float(self.current_event.duration)
                     if self.current_event is not None:
                         self.perform_event(self.current_event)
+                        self.current_event_count += 1
             else:
                 try:
                     interpolated_values = next(self.interpolating_event)
@@ -103,6 +109,9 @@ class Track:
                         is_first_event = True
                     self.current_event = self.next_event
                     self.next_event = self.get_next_event()
+                    self.current_event_count += 1
+                    if self.max_event_count is not None and self.current_event_count >= self.max_event_count:
+                        raise StopIteration
 
                     if self.current_event.type != EVENT_TYPE_CONTROL:
                         raise InvalidEventException("Interpolation is only valid for control event")
