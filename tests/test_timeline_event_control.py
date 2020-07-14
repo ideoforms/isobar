@@ -2,6 +2,7 @@
 
 import isobar as iso
 import pytest
+import math
 from . import dummy_timeline
 
 def test_event_control_no_interpolation(dummy_timeline):
@@ -45,15 +46,22 @@ def test_event_control_linear_interpolation(dummy_timeline):
     assert len(dummy_timeline.output_device.events) == (dummy_timeline.ticks_per_beat * 1.5) + 1
     assert expected_series == pytest.approx(values, rel=0.01)
 
-@pytest.mark.skip
 def test_event_control_cosine_interpolation(dummy_timeline):
     """
     Linear interpolation between control points.
     """
-    alternator = iso.PAlternator()
+    alternator = iso.PSequence([ 0, 1 ])
+    dummy_timeline.ticks_per_beat = 10
     dummy_timeline.schedule({
         iso.EVENT_CONTROL: 0,
         iso.EVENT_VALUE: alternator,
         iso.EVENT_CHANNEL: 9
-    }, interpolate=iso.INTERPOLATION_COSINE, stop_after=5)
+    }, interpolate=iso.INTERPOLATION_COSINE, count=4)
     dummy_timeline.run()
+
+    expected_series = [
+        0.5 * (1.0 - math.cos(math.pi * n / dummy_timeline.ticks_per_beat))
+            for n in range(3 * dummy_timeline.ticks_per_beat + 1)
+    ]
+    values = [event[3] for event in dummy_timeline.output_device.events]
+    assert expected_series == pytest.approx(values, rel=0.000001)
