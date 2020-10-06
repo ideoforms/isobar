@@ -118,11 +118,17 @@ Stochastic patterns each have their own independent random number generator stat
 
 ## Static patterns
 
-Regular patterns are detached from the environmental state; their internal state steps forward each time their `next()` method is called. 
+The state of a regular pattern steps forward each time the `next()` method is called.
 
-Static patterns, conversely, are not modified by a call to `next()`. This means that `next()` may be called multiple times and return the same value each time.
+The state of a static pattern, conversely, is not modified by a call to `next()`. This means that `next()` may be called multiple times and return the same value each time.
 
-Static patterns may be used to impose specific temporal structure on a piece. For example, to modulate over a set of keys:
+Static pattern classes include:
+
+ - `PStaticPattern`: When called as `PStaticPattern(pattern, duration)`, wraps a regular pattern and returns a new static pattern. Each new value of the inner pattern is returned for a specified duration in beats (see example below). The `duration` parameter may also be a pattern. 
+ - `PCurrentTime`: Returns the current Timeline's time, in beats.
+ - `PGlobals`: See [Globals](#globals).
+
+Static patterns can be used to impose temporal structure on a piece. For example, to modulate over a set of keys:
 
 ```python
 #--------------------------------------------------------------------------------
@@ -141,7 +147,8 @@ key_static = iso.PStaticPattern(key_sequence, 4)
 #--------------------------------------------------------------------------------
 # Schedule a pattern which plays notes following the given keys.
 # A "C" note will be played for 4 notes, followed by a "G" for 4 notes,
-# repeatedly.
+# repeatedly. The same static pattern can be accessed by multiple different
+# tracks or timelines to orchestrate changes across the composition. 
 #--------------------------------------------------------------------------------
 timeline = iso.Timeline(120)
 timeline.schedule({
