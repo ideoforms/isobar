@@ -49,6 +49,8 @@ timeline.schedule({
     "duration": 0.25,
     "amplitude": amplitude
 })
+
+timeline.run()
 ```
 
 ## Examples

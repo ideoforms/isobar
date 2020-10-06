@@ -19,11 +19,11 @@ nav:
 # - Changelog: changelog.md
  - Contributing: contributing.md
  - License: license.md
+ - Timelines:
+   - About timelines: timelines/index.md
  - Patterns:
    - About patterns: patterns/index.md
    - Pattern library reference: patterns/reference.md
- - Timelines:
-   - About timelines: timelines/index.md
  - Events:
    - Events: events/index.md
    - Note events: events/note.md

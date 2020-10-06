@@ -20,10 +20,12 @@ isobar does not generate any audio on its own. It must be configured to send eve
 
 There are a few key components in isobar.
 
-- The **Timeline** handles timing and scheduling, triggering events at the correct moment. It can maintain its own clock with millisecond accuracy, or sync to an external clock.  
+- The **[Timeline](timeline/index.md)** handles timing and scheduling, triggering events at the correct moment. It is made up of multiple Tracks, which normally . It can maintain its own clock with millisecond accuracy, or sync to an external clock.  
 - **Events** correspond to triggers that are typically sent to output devices or received from input devices. These may be MIDI notes, control changes, OSC triggers, and other general types. An event is typically described by a dict with a number of properties. For example: `{ "note" : 60, "amplitude": 127 }`
-- **Patterns**: Each of the elements of an event can be specified by a Pattern, which generates a sequence of return values. Simple pattern types generate fixed sequences, random values, or values based on statistical models. Patterns can be passed other patterns as parameters, so they can operate on each other -- for example, causing an input pattern to loop N times, or skipping the input values with some probability.  
+- **Patterns**: Each of the properties of an event can be specified by a Pattern, which generates a sequence of return values. Simple pattern types generate fixed sequences, random values, or values based on statistical models. Patterns can be passed other patterns as parameters, so they can operate on each other -- for example, causing an input pattern to loop N times, or skipping the input values with some probability.  
 - **Devices**: Events are sent to output devices, over interfaces such as MIDI or OSC. Events can also be received and processed. 
+
+![Flow Diagram](diagrams/Isobar Flow Diagram.png)
 
 ## Documentation
 

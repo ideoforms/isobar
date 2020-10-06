@@ -35,7 +35,7 @@ class Track:
 
     def update(self, events, quantize=None):
         """
-        Update the events that this EventStream produces.
+        Update the events that this Track produces.
 
         Args:
             events: A dict, a PDict, or a Pattern that generates dicts.
@@ -78,12 +78,6 @@ class Track:
                 self.note_offs.remove(note)
 
         try:
-            # Have to be careful here.
-            # formerly had `if self.current_event` ...
-            # which would try to resolve the complete len of current_event:
-            # https://stackoverflow.com/questions/1087135/boolean-value-of-objects-in-python
-            # TODO: Think about __nonzero__ implementation for patterns?
-
             if self.interpolate is INTERPOLATION_NONE:
                 if round(self.current_time, 8) >= round(self.next_event_time, 8):
                     while round(self.current_time, 8) >= round(self.next_event_time, 8):
@@ -94,6 +88,13 @@ class Track:
                         if self.current_event is None:
                             break
                         self.next_event_time += float(self.current_event.duration)
+
+                    #--------------------------------------------------------------------------------
+                    # Have to be careful here.
+                    # formerly had `if self.current_event` ...
+                    # which would try to resolve the complete len of current_event:
+                    # https://stackoverflow.com/questions/1087135/boolean-value-of-objects-in-python
+                    #--------------------------------------------------------------------------------
                     if self.current_event is not None:
                         self.perform_event(self.current_event)
                         self.current_event_count += 1
