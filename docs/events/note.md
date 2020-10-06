@@ -92,7 +92,7 @@ Chords can be specified by passing tuples of notes to the `note` or `degree` pro
 
 ```python
 #--------------------------------------------------------------------------------
-# Play an F minor arpeggio
+# Play a series of 3-note chords.
 #--------------------------------------------------------------------------------
 timeline.schedule({
     "degree": iso.PSequence([
@@ -103,6 +103,25 @@ timeline.schedule({
     ]),
     "octave": 4,
     "duration": 2
+})
+```
+
+You can also specify different amplitudes or gates for notes of a chord by passing tuples of the same length:
+
+```python
+timeline.schedule({
+    "note": iso.PSequence([
+        (60, 62, 67),
+    ]),
+    "gate": iso.PSequence([
+        (0.25, 0.5, 1)
+    ]),
+    "amplitude": iso.PSequence([
+        (96, 64, 32),
+        (64, 96, 32),
+        (64, 32, 96),
+    ]),
+    "duration": 0.25
 })
 ```
 
