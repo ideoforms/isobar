@@ -166,8 +166,8 @@
   
     <li class="md-tabs__item">
       
-        <a href="patterns/" class="md-tabs__link">
-          Patterns
+        <a href="timelines/" class="md-tabs__link">
+          Timelines
         </a>
       
     </li>
@@ -179,8 +179,8 @@
   
     <li class="md-tabs__item">
       
-        <a href="timelines/" class="md-tabs__link">
-          Timelines
+        <a href="patterns/" class="md-tabs__link">
+          Patterns
         </a>
       
     </li>
@@ -310,6 +310,19 @@
     Basic concepts
   </a>
   
+    <nav class="md-nav" aria-label="Basic concepts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flow-diagram" class="md-nav__link">
+    Flow diagram
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -384,13 +397,55 @@
       <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
     
     <label class="md-nav__link" for="nav-6">
+      Timelines
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Timelines" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Timelines
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="timelines/" title="About timelines" class="md-nav__link">
+      About timelines
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
       Patterns
       <span class="md-nav__icon md-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
       </span>
     </label>
     <nav class="md-nav" aria-label="Patterns" data-md-level="1">
-      <label class="md-nav__title" for="nav-6">
+      <label class="md-nav__title" for="nav-7">
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
         </span>
@@ -419,48 +474,6 @@
   <li class="md-nav__item">
     <a href="patterns/reference/" title="Pattern library reference" class="md-nav__link">
       Pattern library reference
-    </a>
-  </li>
-
-        
-      </ul>
-    </nav>
-  </li>
-
-    
-      
-      
-      
-
-
-  <li class="md-nav__item md-nav__item--nested">
-    
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
-    
-    <label class="md-nav__link" for="nav-7">
-      Timelines
-      <span class="md-nav__icon md-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
-      </span>
-    </label>
-    <nav class="md-nav" aria-label="Timelines" data-md-level="1">
-      <label class="md-nav__title" for="nav-7">
-        <span class="md-nav__icon md-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
-        </span>
-        Timelines
-      </label>
-      <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="timelines/" title="About timelines" class="md-nav__link">
-      About timelines
     </a>
   </li>
 
@@ -670,6 +683,19 @@
     Basic concepts
   </a>
   
+    <nav class="md-nav" aria-label="Basic concepts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flow-diagram" class="md-nav__link">
+    Flow diagram
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -711,11 +737,13 @@
 <h2 id="basic-concepts">Basic concepts</h2>
 <p>There are a few key components in isobar.</p>
 <ul>
-<li>The <strong>Timeline</strong> handles timing and scheduling, triggering events at the correct moment. It can maintain its own clock with millisecond accuracy, or sync to an external clock.  </li>
-<li><strong>Events</strong> correspond to triggers that are typically sent to output devices or received from input devices. These may be MIDI notes, control changes, OSC triggers, and other general types. An event is typically described by a dict with a number of properties. For example: <code>{ "note" : 60, "amplitude": 127 }</code></li>
-<li><strong>Patterns</strong>: Each of the elements of an event can be specified by a Pattern, which generates a sequence of return values. Simple pattern types generate fixed sequences, random values, or values based on statistical models. Patterns can be passed other patterns as parameters, so they can operate on each other -- for example, causing an input pattern to loop N times, or skipping the input values with some probability.  </li>
-<li><strong>Devices</strong>: Events are sent to output devices, over interfaces such as MIDI or OSC. Events can also be received and processed. </li>
+<li>The <strong><a href="timelines/">Timeline</a></strong> handles timing and scheduling, triggering events at the correct moment. It is made up of multiple Tracks, which normally . It can maintain its own clock with millisecond accuracy, or sync to an external clock.  </li>
+<li><strong><a href="events/">Events</a></strong> correspond to triggers that are typically sent to output devices or received from input devices. These may be MIDI notes, control changes, OSC triggers, and other general types. An event is typically described by a dict with a number of properties. For example: <code>{ "note" : 60, "amplitude": 127 }</code></li>
+<li><strong><a href="patterns/">Patterns</a></strong>: Each of the properties of an event can be specified by a Pattern, which generates a sequence of return values. Simple pattern types generate fixed sequences, random values, or values based on statistical models. Patterns can be passed other patterns as parameters, so they can operate on each other -- for example, causing an input pattern to loop N times, or skipping the input values with some probability.  </li>
+<li><strong><a href="devices/">Devices</a></strong>: Events are sent to output devices, over interfaces such as MIDI or OSC. Events can also be received and processed. </li>
 </ul>
+<h3 id="flow-diagram">Flow diagram</h3>
+<p><img alt="Flow Diagram" src="diagrams/Isobar%20Flow%20Diagram.png" /></p>
 <h2 id="documentation">Documentation</h2>
 <ul>
 <li><a href="getting-started/">Getting started</a></li>

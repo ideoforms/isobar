@@ -168,8 +168,8 @@
   
     <li class="md-tabs__item">
       
-        <a href="../../patterns/" class="md-tabs__link">
-          Patterns
+        <a href="../../timelines/" class="md-tabs__link">
+          Timelines
         </a>
       
     </li>
@@ -181,8 +181,8 @@
   
     <li class="md-tabs__item">
       
-        <a href="../../timelines/" class="md-tabs__link">
-          Timelines
+        <a href="../../patterns/" class="md-tabs__link">
+          Patterns
         </a>
       
     </li>
@@ -323,13 +323,55 @@
       <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
     
     <label class="md-nav__link" for="nav-6">
+      Timelines
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Timelines" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Timelines
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../timelines/" title="About timelines" class="md-nav__link">
+      About timelines
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
       Patterns
       <span class="md-nav__icon md-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
       </span>
     </label>
     <nav class="md-nav" aria-label="Patterns" data-md-level="1">
-      <label class="md-nav__title" for="nav-6">
+      <label class="md-nav__title" for="nav-7">
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
         </span>
@@ -358,48 +400,6 @@
   <li class="md-nav__item">
     <a href="../../patterns/reference/" title="Pattern library reference" class="md-nav__link">
       Pattern library reference
-    </a>
-  </li>
-
-        
-      </ul>
-    </nav>
-  </li>
-
-    
-      
-      
-      
-
-
-  <li class="md-nav__item md-nav__item--nested">
-    
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
-    
-    <label class="md-nav__link" for="nav-7">
-      Timelines
-      <span class="md-nav__icon md-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
-      </span>
-    </label>
-    <nav class="md-nav" aria-label="Timelines" data-md-level="1">
-      <label class="md-nav__title" for="nav-7">
-        <span class="md-nav__icon md-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
-        </span>
-        Timelines
-      </label>
-      <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../timelines/" title="About timelines" class="md-nav__link">
-      About timelines
     </a>
   </li>
 
@@ -841,7 +841,7 @@
 <h2 id="chords">Chords</h2>
 <p>Chords can be specified by passing tuples of notes to the <code>note</code> or <code>degree</code> property.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1">#--------------------------------------------------------------------------------</span>
-<span class="c1"># Play an F minor arpeggio</span>
+<span class="c1"># Play a series of 3-note chords.</span>
 <span class="c1">#--------------------------------------------------------------------------------</span>
 <span class="n">timeline</span><span class="o">.</span><span class="n">schedule</span><span class="p">({</span>
     <span class="s2">&quot;degree&quot;</span><span class="p">:</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span>
@@ -852,6 +852,24 @@
     <span class="p">]),</span>
     <span class="s2">&quot;octave&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
     <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="mi">2</span>
+<span class="p">})</span>
+</code></pre></div>
+
+
+<p>You can also specify different amplitudes or gates for notes of a chord by passing tuples of the same length:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">timeline</span><span class="o">.</span><span class="n">schedule</span><span class="p">({</span>
+    <span class="s2">&quot;note&quot;</span><span class="p">:</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span>
+        <span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">62</span><span class="p">,</span> <span class="mi">67</span><span class="p">),</span>
+    <span class="p">]),</span>
+    <span class="s2">&quot;gate&quot;</span><span class="p">:</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span>
+        <span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">]),</span>
+    <span class="s2">&quot;amplitude&quot;</span><span class="p">:</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span>
+        <span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">96</span><span class="p">),</span>
+    <span class="p">]),</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="mf">0.25</span>
 <span class="p">})</span>
 </code></pre></div>
 
