@@ -3,7 +3,7 @@
 ## About patterns
 
 Patterns are the fundamental building blocks that are used to create melodies, rhythms and control sequences.
-In Python terms, a pattern is an [iterator](https://wiki.python.org/moin/Iterator), which is to say it does two things:
+A pattern is a Python [iterator](https://wiki.python.org/moin/Iterator), which is to say it does two things:
 
  - generates and returns the next item in the sequence
  - when no more items are available in the sequence, raises a `StopIteration` exception
