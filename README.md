@@ -50,6 +50,10 @@ timeline.schedule({
     "amplitude": amplitude
 })
 
+#------------------------------------------------------------------------
+# Run the timeline.
+# Call timeline.background() to run in a separate thread.
+#------------------------------------------------------------------------
 timeline.run()
 ```
 
@@ -104,8 +108,8 @@ I/O classes:
     PDict                - Construct a pattern from a dict of arrays, or an array of dicts.
     PDictKey             - Request a specified key from a dictionary.
     PConcatenate         - Concatenate the output of multiple sequences.
-    PAbs                 - Absolute value of <input>
-    PInt                 - Integer value of <input>
+    PAbs                 - Absolute value of `input`
+    PInt                 - Integer value of `input`
     PAdd                 - Add elements of two patterns (shorthand: patternA + patternB)
     PSub                 - Subtract elements of two patterns (shorthand: patternA - patternB)
     PMul                 - Multiply elements of two patterns (shorthand: patternA * patternB)
@@ -125,62 +129,61 @@ I/O classes:
     SCALAR (scalar.py)
     PChanged             - Outputs a 1 if the value of a pattern has changed.
     PDiff                - Outputs the difference between the current and previous values of an input pattern
-    PSkipIf              - If <skip> is false, returns <input>; otherwise, returns None.
-    PNormalise           - Adaptively normalise <input> to [0..1] over a linear scale.
+    PSkipIf              - If `skip` is false, returns `input`; otherwise, returns None.
+    PNormalise           - Adaptively normalise `input` to [0..1] over a linear scale.
     PMap                 - Apply an arbitrary function to an input pattern.
     PMapEnumerated       - Apply arbitrary function to input, passing a counter.
-    PLinLin              - Map <input> from linear range [a,b] to linear range [c,d].
-    PLinExp              - Map <input> from linear range [a,b] to exponential range [c,d].
-    PRound               - Round <input> to N decimal places.
+    PLinLin              - Map `input` from linear range [a,b] to linear range [c,d].
+    PLinExp              - Map `input` from linear range [a,b] to exponential range [c,d].
+    PRound               - Round `input` to N decimal places.
     PScalar              - Reduce tuples and lists into single scalar values,
     PWrap                - Wrap input note values within <min>, <max>.
-    PIndexOf             - Find index of items from <pattern> in <list>
+    PIndexOf             - Find index of items from `pattern` in <list>
 
     SEQUENCE (sequence.py)
-    PSeries              - Arithmetic series, beginning at <start>, increment by <step>
+    PSeries              - Arithmetic series, beginning at `start`, increment by `step`
     PRange               - Similar to PSeries, but specify a max/step value.
-    PGeom                - Geometric series, beginning at <start>, multiplied by <step>
+    PGeom                - Geometric series, beginning at `start`, multiplied by `step`
     PImpulse             - Outputs a 1 every <period> events, otherwise 0.
-    PLoop                - Repeats a finite <pattern> for <n> repeats.
+    PLoop                - Repeats a finite `pattern` for `n` repeats.
     PPingPong            - Ping-pong input pattern back and forth N times.
-    PCreep               - Loop <length>-note segment, progressing <creep> notes after <repeats> repeats.
-    PStutter             - Play each note of <pattern> <count> times.
+    PCreep               - Loop `length`-note segment, progressing `creep` notes after `repeats` repeats.
+    PStutter             - Play each note of `pattern` `count` times.
     PSubsequence         - Returns a finite subsequence of an input pattern.
     PReverse             - Reverses a finite sequence.
-    PReset               - Resets <pattern> whenever <trigger> is true
-    PCounter             - Increments a counter by 1 for each zero-crossing in <trigger>.
-    PCollapse            - Skip over any rests in <input>
-    PNoRepeats           - Skip over repeated values in <input>
-    PPad                 - Pad <pattern> with rests until it reaches length <length>.
-    PPadToMultiple       - Pad <pattern> with rests until its length is divisible by <multiple>.
+    PReset               - Resets `pattern` whenever `trigger` is true
+    PCounter             - Increments a counter by 1 for each zero-crossing in `trigger`.
+    PCollapse            - Skip over any rests in `input`
+    PNoRepeats           - Skip over repeated values in `input`
+    PPad                 - Pad `pattern` with rests until it reaches length `length`.
+    PPadToMultiple       - Pad `pattern` with rests until its length is divisible by `multiple`.
     PArpeggiator         - Arpeggiator.
     PEuclidean           - Generate Euclidean rhythms.
-    PPermut              - Generate every permutation of <count> input items.
+    PPermut              - Generate every permutation of `count` input items.
     PPatternGeneratorAction - Each time its pattern is exhausted, request a new pattern by calling <fn>.
     PSequenceAction      - Iterate over an array, perform a function, and repeat.
 
     CHANCE (chance.py)
-    PWhite               - White noise between <min> and <max>.
+    PWhite               - White noise between `min` and `max`.
     PBrown               - Brownian noise.
     PWalk                - Random walk around list.
-    PChoice              - Pick a random element from <values>, weighted by optional <weights>.
-    PSample              - Pick multiple random elements from <values>, weighted by optional <weights>,
+    PChoice              - Pick a random element from `values`, weighted by optional `weights`.
+    PSample              - Pick multiple random elements from `values`, weighted by optional `weights`,
     PShuffle             - Shuffled list.
-    PShuffleInput        - Every <n> steps, take <n> values from <pattern> and reorder.
+    PShuffleInput        - Every `n` steps, take `n` values from `pattern` and reorder.
     PSkip                - Skip events with some probability, 1 - <play>.
     PFlipFlop            - flip a binary bit with some probability.
-    PSwitchOne           - Capture <length> input values; loop, repeatedly switching two adjacent values.
+    PSwitchOne           - Capture `length` input values; loop, repeatedly switching two adjacent values.
 
     TONAL (tonal.py)
     PDegree              - Map scale index <degree> to MIDI notes in <scale>.
     PFilterByKey         - Filter notes based on their presence in <key>.
-    PNearestNoteInKey    - Return nearest note in <key>.
+    PNearestNoteInKey    - Return the nearest note in <key>.
     PMidiNoteToFrequency - Map MIDI note to frequency value.
 
     STATIC (static.py)
-    PStaticGlobal        - Static global value identified by a string, with OSC listener.
     PGlobals             - Static global value identified by a string.
-    PStaticCurrentTime   - Returns the position (in beats) of the current timeline.
+    PCurrentTime         - Returns the position (in beats) of the current timeline.
 
     FADE (fade.py)
     PFadeNotewise        - Fade a pattern in/out by introducing notes at a gradual rate.
@@ -193,9 +196,9 @@ I/O classes:
     PLSystem             - integer sequence derived from Lindenmayer systems
 
     WARP (warp.py)
-    PWInterpolate        - Requests a new target warp value from <pattern> every <length> beats
-    PWSine               - Sinosoidal warp, period <length> beats, amplitude +/-<amp>.
-    PWRallantando        - Exponential deceleration to <amp> times the current tempo over <length> beats.
+    PWInterpolate        - Requests a new target warp value from `pattern` every `length` beats
+    PWSine               - Sinosoidal warp, period `length` beats, amplitude +/-<amp>.
+    PWRallantando        - Exponential deceleration to <amp> times the current tempo over `length` beats.
 
 ## Background
 
