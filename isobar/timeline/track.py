@@ -185,10 +185,11 @@ class Track:
         if event.type == EVENT_TYPE_ACTION:
             try:
                 fn = event.action
-                args = event.args
                 fn_params = inspect.signature(fn).parameters
-                kwargs = dict((key, value) for key, value in event.fields.items() if key in fn_params)
-                event.action(*args, **kwargs)
+                for key in event.args.keys():
+                    if key not in fn_params:
+                        raise Exception("Named argument not found in callback args: %s" % key)
+                event.action(**event.args)
             except StopIteration:
                 raise StopIteration()
             except Exception as e:

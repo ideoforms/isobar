@@ -81,9 +81,9 @@ class Event:
         if EVENT_ACTION in event_values:
             self.type = EVENT_TYPE_ACTION
             self.action = event_values[EVENT_ACTION]
-            self.args = []
+            self.args = {}
             if EVENT_ACTION_ARGS in event_values:
-                self.args = [Pattern.value(value) for value in event_values[EVENT_ACTION_ARGS]]
+                self.args = dict((key, Pattern.value(value)) for key, value in event_values[EVENT_ACTION_ARGS].items())
 
         elif EVENT_PATCH in event_values:
             self.type = EVENT_TYPE_PATCH

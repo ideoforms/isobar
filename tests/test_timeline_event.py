@@ -170,7 +170,7 @@ def test_event_action(dummy_timeline):
 def test_event_action_args(dummy_timeline):
     dummy_timeline.executed = False
 
-    def example_function(a, b, foo, bar=None):
+    def example_function(a, b, foo, bar="bar"):
         assert a == 1
         assert b == 2
         assert foo == "foo"
@@ -181,9 +181,11 @@ def test_event_action_args(dummy_timeline):
 
     dummy_timeline.schedule({
         iso.EVENT_ACTION: example_function,
-        iso.EVENT_ACTION_ARGS: [iso.PConstant(1), iso.PConstant(2)],
-        "foo": "foo",
-        "bar": iso.PConstant("bar")
+        iso.EVENT_ACTION_ARGS: {
+            "a": 1,
+            "b": iso.PSequence([ 2, 3, 4 ]),
+            "foo": "foo"
+        }
     })
     dummy_timeline.run()
     assert dummy_timeline.executed
