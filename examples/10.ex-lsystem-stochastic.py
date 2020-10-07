@@ -7,7 +7,6 @@
 #------------------------------------------------------------------------
 
 import isobar as iso
-from isobar.io.midi import MidiOutputDevice
 
 import logging
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")

@@ -17,9 +17,13 @@ parser = argparse.ArgumentParser(description="Read and play a .mid file")
 parser.add_argument("filename", type=str, help="File to load (.mid)")
 args = parser.parse_args()
 
-pattern = iso.PDict()
-pattern.load(args.filename)
-print(pattern["note"])
+#--------------------------------------------------------------------------------
+# Read a MIDI file into a pattern.
+# The resulting pattern is a PDict, with keys containing patterns for each
+# of the event properties (note, duration, amplitude)
+#--------------------------------------------------------------------------------
+pattern = MidiFileInputDevice(args.filename).read()
+print("Read pattern containing %d note events" % len(pattern["note"]))
 
 timeline = iso.Timeline()
 timeline.schedule(pattern)

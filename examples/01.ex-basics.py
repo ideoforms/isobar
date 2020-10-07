@@ -47,7 +47,8 @@ bassline = iso.PStutter(bassline, 3) + iso.PSequence([0, 12, 24])
 # A Timeline schedules events at a specified tempo. By default, events
 # are send to the system's default MIDI output.
 #------------------------------------------------------------------------
-output = iso.io.midi.MidiOutputDevice()
+output = iso.MidiOutputDevice()
+
 timeline = iso.Timeline(120, output)
 
 #------------------------------------------------------------------------

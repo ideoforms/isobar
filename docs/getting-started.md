@@ -45,7 +45,7 @@ python3 examples/00.ex-hello-world.py
 
 The script will print the default MIDI driver to screen, and begin triggering notes.
 
-!!! tip Troubleshooting
+!!! tip "Troubleshooting"
     If you don't hear any notes, check that:
     
     - the name of the correct device is printed to the console

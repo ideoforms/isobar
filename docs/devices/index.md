@@ -1,13 +1,7 @@
 # Devices and I/O
 
-## MIDI
-
-isobar's MIDI support is based entirely on the fantastic [mido](https://mido.readthedocs.io/en/latest/) library. 
-
-## MIDI file
-
-## OpenSoundControl
-
-## SuperCollider
-
-## SignalFlow
+- [MIDI](midi.md)
+- [MIDI file](midifile.md)
+- [OpenSoundControl](osc.md)
+- [SuperCollider](supercollider.md)
+- [SignalFlow](signalflow.md)
