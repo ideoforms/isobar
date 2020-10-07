@@ -73,6 +73,7 @@ distribution:
 * [04.ex-permutations.py](examples/04.ex-permutations.py)
 * [05.ex-piano-phase.py](examples/05.ex-piano-phase.py)
 * [06.ex-walk.py](examples/06.ex-walk.py)
+* [07.ex-static-pattern.py](examples/07.ex-static-pattern.py)
 * [10.ex-lsystem-stochastic.py](examples/10.ex-lsystem-stochastic.py)
 * [11.ex-lsystem-rhythm.py](examples/11.ex-lsystem-rhythm.py)
 * [12.ex-lsystem-grapher.py](examples/12.ex-lsystem-grapher.py)
@@ -83,6 +84,7 @@ distribution:
 * [30.ex-midifile-read.py](examples/30.ex-midifile-read.py)
 * [31.ex-midifile-write.py](examples/31.ex-midifile-write.py)
 * [32.ex-midifile-markov.py](examples/32.ex-midifile-markov.py)
+* [40.ex-osc-send.py](examples/40.ex-osc-send.py)
 
 ### Pattern classes
 
