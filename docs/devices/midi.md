@@ -21,6 +21,12 @@ timeline = Timeline(tempo=120, output_device=midi_out)
 - `device_name`: Specifies the device name to search for. Leave empty to use the system default.
 - `send_clock`: If True, sends clock sync signals to the external device.
 
+A default MIDI output device name can be set with an environmental variable:
+
+```
+export ISOBAR_DEFAULT_MIDI_OUT="Prophet 6"
+``` 
+
 ## MidiInputDevice
 
 Receives notes and control events from a MIDI device, or sync isobar to an external MIDI clock.
@@ -43,3 +49,9 @@ name = "My MIDI Device Name"
 midi_in = iso.MidiInputDevice(device_name=name)
 timeline = Timeline(tempo=120, clock_source=midi_in)
 ```
+
+A default MIDI input device name can be set with an environmental variable:
+
+```
+export ISOBAR_DEFAULT_MIDI_IN="Prophet 6"
+``` 

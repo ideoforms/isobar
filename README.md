@@ -2,13 +2,13 @@
 
 ![ci](https://github.com/ideoforms/isobar/workflows/ci/badge.svg)
 
-isobar is a Python library for creating and manipulating musical patterns, designed for use in algorithmic composition, generative music and sonification. It makes it quick and easy to express complex musical ideas, and can send and receive events from various different sources: MIDI, OSC, SocketIO, and .mid files.
+isobar is a Python library for creating and manipulating musical patterns, designed for use in algorithmic composition, generative music and sonification. It makes it quick and easy to express complex musical ideas, and can send and receive events from various different sources including MIDI, MIDI files, and OSC.
 
-The core element is a Timeline, which can control its own tempo or sync to an external clock. Onto this, you can schedule Patterns, which can be note sequences, control events, program changes, or other arbitrary events via lambda functions.
+The core element is a Timeline, which can control its own tempo or sync to an external clock. Onto this, you can schedule Patterns, which can be note sequences, control events, program changes, or other arbitrary events via lambda functions. (Check out a [diagrammatic overview](http://ideoforms.github.io/isobar/#flow-diagram).)
 
 isobar includes a large array of basic compositional building blocks (see [Pattern Classes](#pattern-classes)), plus some advanced pattern generators for more sophisticated operations (arpeggiators, Euclidean rhythms, L-systems, Markov chains).
 
-# Usage
+## Usage
 
 ```python
 import isobar as iso
@@ -50,6 +50,12 @@ timeline.schedule({
 #------------------------------------------------------------------------
 timeline.run()
 ```
+
+## Installation
+
+The short answer: `pip3 install isobar`
+
+The long answer: [isobar Getting Started guide](http://ideoforms.github.io/isobar/getting-started/)
 
 ## Documentation
 

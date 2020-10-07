@@ -34,5 +34,3 @@ nav:
    - MIDI: devices/midi.md
    - MIDI files: devices/midifile.md
    - OSC: devices/osc.md
-   - SuperCollider: devices/supercollider.md
-   - SignalFlow: devices/signalflow.md
