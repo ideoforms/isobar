@@ -141,5 +141,6 @@ Many Pattern classes can operate explicitly on rests, or introduce rests.
 For example:
 
 - `PCollapse` takes an input and steps past any rests to remove gaps
-- `PSkipIf` replaces notes with rests randomly given a probability
+- `PSkipIf` replaces notes with rests given a conditional
+- `PSkip` replaces notes with rests randomly given a probability
 - `PPad` pads a sequence with rests until it reaches a specified length

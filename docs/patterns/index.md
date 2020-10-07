@@ -25,7 +25,7 @@ StopIteration
 
 Note that this means that patterns can't seek backwards in time. Their only concern is generating the next event.
 
-By assigning patterns to properties of [events](events/index.md), you can specify sequences of values to control any aspect of the control output: pitch, velocity, duration, etc.    
+By assigning patterns to properties of [events](/events/), you can specify sequences of values to control any aspect of the control output: pitch, velocity, duration, etc.    
 
 Patterns can be finite, such as the example above, or infinite, in which case they will keep generating new values forever.
 
@@ -35,6 +35,12 @@ Patterns can also typically generate different Python types. Some Pattern classe
  - `PWhite(0, 10)` generates a stream of ints between `[0 .. 9]`
  - `PWhite(0.0, 10.0)` generates a stream of floats between `[0.0 .. 10.0]`
  - `PChoice([ Key("C", "major"), Key("A", "minor") ])` picks one of the specified [Key](../events/note.md)s at random
+ 
+## Pattern resolution
+
+When a pattern returns a pattern, the embedded pattern will also be resolved recursively. For example:
+
+ - `PChoice([ PSequence([0, 2, 3]), PSequence([7, 5, 2 ]) ])` each step, picks one of the embedded patterns and returns its next value
 
 ## Pattern operators
 
