@@ -6,13 +6,7 @@ isobar is a Python library for creating and manipulating musical patterns, desig
 
 The core element is a Timeline, which can control its own tempo or sync to an external clock. Onto this, you can schedule Patterns, which can be note sequences, control events, program changes, or other arbitrary events via lambda functions.
 
-isobar includes a large array of basic compositional building blocks (see [Pattern Classes](#pattern-classes)), plus some advanced pattern generators for more sophisticated operations:
-
- - `PLSystem` can be used to generate patterns based on the branching grammars of [L-systems](http://en.wikipedia.org/wiki/L-system)
- - `PMarkov` generates first-order Markov chains, and can learn patterns from MIDI input via `MarkovLearner`
- - `PEuclidean` generates Euclidean rhythms
- - `PArpeggiator` supports various arpeggiator sequences
- - ..plus lots of pattern generators for chance operations are defined in [pattern/chance.py](isobar/pattern/chance.py)
+isobar includes a large array of basic compositional building blocks (see [Pattern Classes](#pattern-classes)), plus some advanced pattern generators for more sophisticated operations (arpeggiators, Euclidean rhythms, L-systems, Markov chains).
 
 # Usage
 
@@ -57,9 +51,13 @@ timeline.schedule({
 timeline.run()
 ```
 
+## Documentation
+
+For complete documentation, see [ideoforms.github.io/isobar](http://ideoforms.github.io/isobar/).
+
 ## Examples
 
-More examples are available in the [examples](examples) directory with this
+Examples are available in the [examples](examples) directory with this
 distribution:
 
 * [00.ex-hello-world.py](examples/00.ex-hello-world.py)
@@ -80,24 +78,7 @@ distribution:
 * [31.ex-midifile-write.py](examples/31.ex-midifile-write.py)
 * [32.ex-midifile-markov.py](examples/32.ex-midifile-markov.py)
 
-## Classes
-
-Top-level classes:
-
-* [Chord](isobar/chord.py)
-* [Key](isobar/key.py)
-* [Scale](isobar/scale.py)
-* [Timeline](isobar/timeline.py)
-* [Clock](isobar/clock.py)
-
-I/O classes:
-
-* [MIDI](isobar/io/midi)
-* [MIDIFile](isobar/io/midifile)
-* [OSC](isobar/io/osc)
-* [SocketIO](isobar/io/socketio)
-
-### Pattern classes:
+### Pattern classes
 
     CORE (core.py)
     Pattern              - Abstract superclass of all pattern generators.
