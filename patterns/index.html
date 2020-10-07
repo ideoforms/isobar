@@ -430,6 +430,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pattern-resolution" class="md-nav__link">
+    Pattern resolution
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pattern-operators" class="md-nav__link">
     Pattern operators
   </a>
@@ -484,7 +491,7 @@
 
 
   <li class="md-nav__item">
-    <a href="reference/" title="Pattern library reference" class="md-nav__link">
+    <a href="library/" title="Pattern library reference" class="md-nav__link">
       Pattern library reference
     </a>
   </li>
@@ -616,7 +623,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../devices/midi.md" title="MIDI" class="md-nav__link">
+    <a href="../devices/midi/" title="MIDI" class="md-nav__link">
       MIDI
     </a>
   </li>
@@ -628,7 +635,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../devices/midifile.md" title="MIDI files" class="md-nav__link">
+    <a href="../devices/midifile/" title="MIDI files" class="md-nav__link">
       MIDI files
     </a>
   </li>
@@ -640,7 +647,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../devices/osc.md" title="OSC" class="md-nav__link">
+    <a href="../devices/osc/" title="OSC" class="md-nav__link">
       OSC
     </a>
   </li>
@@ -679,6 +686,13 @@
         <li class="md-nav__item">
   <a href="#about-patterns" class="md-nav__link">
     About patterns
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pattern-resolution" class="md-nav__link">
+    Pattern resolution
   </a>
   
 </li>
@@ -748,7 +762,7 @@
                 <h1 id="patterns">Patterns</h1>
 <h2 id="about-patterns">About patterns</h2>
 <p>Patterns are the fundamental building blocks that are used to create melodies, rhythms and control sequences.
-In Python terms, a pattern is an <a href="https://wiki.python.org/moin/Iterator">iterator</a>, which is to say it does two things:</p>
+A pattern is a Python <a href="https://wiki.python.org/moin/Iterator">iterator</a>, which is to say it does two things:</p>
 <ul>
 <li>generates and returns the next item in the sequence</li>
 <li>when no more items are available in the sequence, raises a <code>StopIteration</code> exception</li>
@@ -769,7 +783,7 @@ In Python terms, a pattern is an <a href="https://wiki.python.org/moin/Iterator"
 
 
 <p>Note that this means that patterns can't seek backwards in time. Their only concern is generating the next event.</p>
-<p>By assigning patterns to properties of <a href="events/index.md">events</a>, you can specify sequences of values to control any aspect of the control output: pitch, velocity, duration, etc.    </p>
+<p>By assigning patterns to properties of <a href="/events/">events</a>, you can specify sequences of values to control any aspect of the control output: pitch, velocity, duration, etc.    </p>
 <p>Patterns can be finite, such as the example above, or infinite, in which case they will keep generating new values forever.</p>
 <p>Patterns can also typically generate different Python types. Some Pattern classes will seek to do the right thing based on whether they are passed them int or float arguments.</p>
 <ul>
@@ -777,6 +791,11 @@ In Python terms, a pattern is an <a href="https://wiki.python.org/moin/Iterator"
 <li><code>PWhite(0, 10)</code> generates a stream of ints between <code>[0 .. 9]</code></li>
 <li><code>PWhite(0.0, 10.0)</code> generates a stream of floats between <code>[0.0 .. 10.0]</code></li>
 <li><code>PChoice([ Key("C", "major"), Key("A", "minor") ])</code> picks one of the specified <a href="../events/note/">Key</a>s at random</li>
+</ul>
+<h2 id="pattern-resolution">Pattern resolution</h2>
+<p>When a pattern returns a pattern, the embedded pattern will also be resolved recursively. For example:</p>
+<ul>
+<li><code>PChoice([ PSequence([0, 2, 3]), PSequence([7, 5, 2 ]) ])</code> each step, picks one of the embedded patterns and returns its next value</li>
 </ul>
 <h2 id="pattern-operators">Pattern operators</h2>
 <p>Patterns can be combined and modified using standard Python arithmetic operators, with other patterns or with scalar values.</p>
@@ -848,9 +867,15 @@ In Python terms, a pattern is an <a href="https://wiki.python.org/moin/Iterator"
 
 
 <h2 id="static-patterns">Static patterns</h2>
-<p>Regular patterns are detached from the environmental state; their internal state steps forward each time their <code>next()</code> method is called. </p>
-<p>Static patterns, conversely, are not modified by a call to <code>next()</code>. This means that <code>next()</code> may be called multiple times and return the same value each time.</p>
-<p>Static patterns may be used to impose specific temporal structure on a piece. For example, to modulate over a set of keys:</p>
+<p>The state of a regular pattern steps forward each time the <code>next()</code> method is called.</p>
+<p>The state of a static pattern, conversely, is not modified by a call to <code>next()</code>. This means that <code>next()</code> may be called multiple times and return the same value each time.</p>
+<p>Static pattern classes include:</p>
+<ul>
+<li><code>PStaticPattern</code>: When called as <code>PStaticPattern(pattern, duration)</code>, wraps a regular pattern and returns a new static pattern. Each new value of the inner pattern is returned for a specified duration in beats (see example below). The <code>duration</code> parameter may also be a pattern. </li>
+<li><code>PCurrentTime</code>: Returns the current Timeline's time, in beats.</li>
+<li><code>PGlobals</code>: See <a href="#globals">Globals</a>.</li>
+</ul>
+<p>Static patterns can be used to impose temporal structure on a piece. For example, to modulate over a set of keys:</p>
 <div class="codehilite"><pre><span></span><code><span class="c1">#--------------------------------------------------------------------------------</span>
 <span class="c1"># Create a pattern which is an alternating pair of Keys.</span>
 <span class="c1">#--------------------------------------------------------------------------------</span>
@@ -867,7 +892,8 @@ In Python terms, a pattern is an <a href="https://wiki.python.org/moin/Iterator"
 <span class="c1">#--------------------------------------------------------------------------------</span>
 <span class="c1"># Schedule a pattern which plays notes following the given keys.</span>
 <span class="c1"># A &quot;C&quot; note will be played for 4 notes, followed by a &quot;G&quot; for 4 notes,</span>
-<span class="c1"># repeatedly.</span>
+<span class="c1"># repeatedly. The same static pattern can be accessed by multiple different</span>
+<span class="c1"># tracks or timelines to orchestrate changes across the composition. </span>
 <span class="c1">#--------------------------------------------------------------------------------</span>
 <span class="n">timeline</span> <span class="o">=</span> <span class="n">iso</span><span class="o">.</span><span class="n">Timeline</span><span class="p">(</span><span class="mi">120</span><span class="p">)</span>
 <span class="n">timeline</span><span class="o">.</span><span class="n">schedule</span><span class="p">({</span>
@@ -926,7 +952,7 @@ In Python terms, a pattern is an <a href="https://wiki.python.org/moin/Iterator"
           </a>
         
         
-          <a href="reference/" title="Pattern library reference" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="library/" title="Pattern library reference" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">

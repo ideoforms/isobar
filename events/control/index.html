@@ -398,7 +398,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../patterns/reference/" title="Pattern library reference" class="md-nav__link">
+    <a href="../../patterns/library/" title="Pattern library reference" class="md-nav__link">
       Pattern library reference
     </a>
   </li>
@@ -574,7 +574,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../devices/midi.md" title="MIDI" class="md-nav__link">
+    <a href="../../devices/midi/" title="MIDI" class="md-nav__link">
       MIDI
     </a>
   </li>
@@ -586,7 +586,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../devices/midifile.md" title="MIDI files" class="md-nav__link">
+    <a href="../../devices/midifile/" title="MIDI files" class="md-nav__link">
       MIDI files
     </a>
   </li>
@@ -598,7 +598,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../devices/osc.md" title="OSC" class="md-nav__link">
+    <a href="../../devices/osc/" title="OSC" class="md-nav__link">
       OSC
     </a>
   </li>
@@ -662,7 +662,41 @@
                 
                 
                 <h1 id="control-events">Control events</h1>
+<p>MIDI control change events can be sequenced by specifying the integer <code>control</code> index and the <code>value</code> to set the control change to:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">timeline</span><span class="o">.</span><span class="n">schedule</span><span class="p">({</span>
+    <span class="s2">&quot;control&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">iso</span><span class="o">.</span><span class="n">PWhite</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="mf">0.5</span>
+<span class="p">})</span>
+</code></pre></div>
+
+
+<p>The above example sets control index <code>0</code> to a value drawn from a uniformly distribution, once every half-beat. </p>
 <h2 id="interpolation">Interpolation</h2>
+<p>To transmit smooth control curves, isobar can interpolate between control values. The resulting interpolated value is sent continuously to the output device.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Apply linear interpolation to smoothly fade between values.</span>
+<span class="n">timeline</span><span class="o">.</span><span class="n">schedule</span><span class="p">({</span>
+    <span class="s2">&quot;control&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">iso</span><span class="o">.</span><span class="n">PWhite</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="mf">0.5</span>
+<span class="p">},</span> <span class="n">interpolate</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+
+<p>To jump instantaneously between values when interpolation is being used, simply set a <code>duration</code> of zero. The below applies sawtooth-shaped modulation to a control signal.</p>
+<div class="codehilite"><pre><span></span><code><span class="n">timeline</span><span class="o">.</span><span class="n">schedule</span><span class="p">({</span>
+    <span class="s2">&quot;control&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">127</span> <span class="p">]),</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">iso</span><span class="o">.</span><span class="n">PSequence</span><span class="p">([</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span> <span class="p">])</span>
+<span class="p">},</span> <span class="n">interpolate</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+
+<p>Interpolation modes include:</p>
+<ul>
+<li><code>linear</code></li>
+<li><code>cosine</code> </li>
+</ul>
                 
               
               

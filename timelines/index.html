@@ -470,7 +470,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../patterns/reference/" title="Pattern library reference" class="md-nav__link">
+    <a href="../patterns/library/" title="Pattern library reference" class="md-nav__link">
       Pattern library reference
     </a>
   </li>
@@ -602,7 +602,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../devices/midi.md" title="MIDI" class="md-nav__link">
+    <a href="../devices/midi/" title="MIDI" class="md-nav__link">
       MIDI
     </a>
   </li>
@@ -614,7 +614,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../devices/midifile.md" title="MIDI files" class="md-nav__link">
+    <a href="../devices/midifile/" title="MIDI files" class="md-nav__link">
       MIDI files
     </a>
   </li>
@@ -626,7 +626,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../devices/osc.md" title="OSC" class="md-nav__link">
+    <a href="../devices/osc/" title="OSC" class="md-nav__link">
       OSC
     </a>
   </li>
@@ -770,6 +770,13 @@
 <li><code>quantize=N</code>: quantize to the next <code>N</code> beats before beginning playback. For example, <code>quantize=1</code> will quantize to the next beat. <code>quantize=0.25</code> will quantize to a quarter-beat.</li>
 <li><code>delay=N</code>: delay by <code>N</code> beats before beginning playback. If <code>quantize</code> and <code>delay</code> are both specified, quantization is applied, and the event is scheduled <code>delay</code> beats after the quantization time.</li>
 </ul>
+<p>To limit the number of iterations of an event, pass the <code>count</code> property:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">timeline.schedule({</span>
+<span class="err">    &quot;note&quot;: iso.PSeries(0, 1) + 60</span>
+<span class="err">}, count=4)</span>
+</code></pre></div>
+
+
 <h2 id="clock-resolution-and-accuracy">Clock resolution and accuracy</h2>
 <p>isobar's internal clock by default has a resolution of 480 ticks per beat (PPQN), which equates to a timing precision of 1ms at 120bpm.</p>
 <p>High-precision scheduling in Python is inherently limited by Python's global interpreter lock (GIL), which means that sub-millisecond accuracy is unfortunately not possible. The good news is that, when using Python 3+, jitter is pretty low: the unit test suite verifies that the host device is able to keep time to +/- 1ms, and passes on Linux and macOS. </p>
