@@ -1,4 +1,5 @@
 from ..output import OutputDevice
+from ...pattern import Pattern
 
 try:
     from pythonosc.udp_client import SimpleUDPClient
@@ -34,4 +35,6 @@ class OSCOutputDevice (OutputDevice):
         self.osc.send_message("/control", value, channel)
 
     def send(self, address, params=None):
+        if params is not None:
+            params = [ Pattern.value(param) for param in params ]
         self.osc.send_message(address, params)

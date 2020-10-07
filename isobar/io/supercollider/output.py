@@ -11,7 +11,7 @@ except ModuleNotFoundError:
 
 class SuperColliderOutputDevice (OutputDevice):
     """
-    OSCOutputDevice: Wraps MIDI messages in OSC.
+    SuperColliderOutputDevice: Wraps MIDI messages in OSC.
     /note [ note, velocity, channel ]
     /control [ control, value, channel ]
     """
