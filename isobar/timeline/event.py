@@ -10,6 +10,10 @@ log = logging.getLogger(__name__)
 
 class Event:
     def __init__(self, event_values):
+        for key in event_values.keys():
+            if key not in ALL_EVENT_PARAMETERS:
+                raise ValueError("Invalid key for event: %s" % (key))
+
         event_values.setdefault(EVENT_ACTIVE, True)
         event_values.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
         event_values.setdefault(EVENT_DURATION, DEFAULT_EVENT_DURATION)
@@ -99,6 +103,7 @@ class Event:
             self.channel = event_values[EVENT_CHANNEL]
 
         elif EVENT_PROGRAM_CHANGE in event_values:
+            # TODO: Implement program changes
             self.type = EVENT_TYPE_PROGRAM_CHANGE
 
         elif EVENT_OSC_ADDRESS in event_values:
