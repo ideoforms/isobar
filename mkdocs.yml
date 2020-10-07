@@ -15,8 +15,8 @@ markdown_extensions:
 nav:
  - Home: index.md
  - Getting started: getting-started.md
+ - Source code: source-code.md
  - About the project: about.md
-# - Changelog: changelog.md
  - Contributing: contributing.md
  - License: license.md
  - Timelines:
