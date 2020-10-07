@@ -2,21 +2,12 @@
 
 from setuptools import setup, find_packages
 
-#------------------------------------------------------------------------
-# Generate a PyPI-friendly RST file from our markdown README.
-#------------------------------------------------------------------------
-try:
-    import pypandoc
-
-    long_description = pypandoc.convert('README.md', 'rst')
-except:
-    long_description = None
-
 setup(
     name='isobar',
     version='0.1.0',
     description='A Python library to express and manipulate musical patterns',
-    long_description=long_description,
+    long_description = open("README.md", "r").read(),
+    long_description_content_type = "text/markdown",
     author='Daniel Jones',
     author_email='dan-isobar@erase.net',
     url='https://github.com/ideoforms/isobar',
