@@ -1,24 +1,41 @@
 # Contributing
 
-## Testing
+## Code style
 
-To run flake8 PEP8 style checker:
+To run a style check with flake8:
+
 ```
 flake8 isobar
 ```
 
+## Testing
+
 To run unit tests:
+
 ```
 python3 setup.py test
 ```
 
-To generate a coverage report:
+To generate a unit test coverage report:
+
 ```
 pip3 install pytest-cov
 pytest --cov=isobar tests
 ```
 
+## Documentation
+
 To regenerate the per-class pattern docs for the README:
+
 ```
 aux/scripts/generate-docs.py
 ```
+
+## Distribution
+
+To push to PyPi:
+
+* increment version in `setup.py`
+* `git tag vx.y.z`, `git push --tags`, and create GitHub release
+* `python3 setup.py sdist`
+* `twine upload dist/isobar-x.y.z.tar.gz`
