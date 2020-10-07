@@ -254,7 +254,7 @@ class Track:
             self.output_device.create(event.synth_name, event.synth_params)
 
         #------------------------------------------------------------------------
-        # Signalflow patch
+        # SignalFlow patch
         #------------------------------------------------------------------------
         elif event.type == EVENT_TYPE_PATCH:
             if not hasattr(self.output_device, "create"):

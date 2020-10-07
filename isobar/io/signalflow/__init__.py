@@ -1,3 +1,3 @@
-from .output import SignalflowOutputDevice
+from .output import SignalFlowOutputDevice
 
-__all__ = ["SignalflowOutputDevice"]
+__all__ = ["SignalFlowOutputDevice"]
