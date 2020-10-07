@@ -13,7 +13,7 @@ setup(
     url='https://github.com/ideoforms/isobar',
     packages=find_packages(),
     install_requires=['python-osc', 'mido', 'python-rtmidi'],
-    keywords=('sound', 'music', 'composition'),
+    keywords=['sound', 'music', 'composition'],
     classifiers=[
         'Topic :: Multimedia :: Sound/Audio',
         'Topic :: Artistic Software',
