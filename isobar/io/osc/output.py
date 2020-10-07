@@ -6,7 +6,7 @@ try:
 except ModuleNotFoundError:
     pass
 
-class OSCOutputDevice (OutputDevice):
+class OSCOutputDevice(OutputDevice):
     """
     OSCOutputDevice: Wraps MIDI messages in OSC.
     /note [ note, velocity, channel ]
@@ -36,5 +36,5 @@ class OSCOutputDevice (OutputDevice):
 
     def send(self, address, params=None):
         if params is not None:
-            params = [ Pattern.value(param) for param in params ]
+            params = [Pattern.value(param) for param in params]
         self.osc.send_message(address, params)

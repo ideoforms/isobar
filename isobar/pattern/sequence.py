@@ -11,6 +11,7 @@ from functools import reduce
 from .chance import PStochasticPattern
 
 import logging
+
 log = logging.getLogger(__name__)
 
 class PSequence(Pattern):
@@ -423,7 +424,8 @@ class PInterpolate(Pattern):
                 self.step_values = list(self.value + dt * (n + 1) / vsteps for n in range(vsteps))
             elif self.interpolation == INTERPOLATION_COSINE:
                 dt = target - self.value
-                self.step_values = list(self.value + dt * 0.5 * (1.0 - math.cos(math.pi * (n + 1) / vsteps)) for n in range(vsteps))
+                self.step_values = list(self.value + dt * 0.5 * (1.0 - math.cos(math.pi * (n + 1) / vsteps))
+                                        for n in range(vsteps))
             else:
                 raise ValueError("Interpolation type not recognised")
             self.pos = 0
@@ -566,7 +568,6 @@ class PPadToMultiple(Pattern):
         self.count += 1
         return rv
 
-
 class PArpeggiator(PStochasticPattern):
     """ PArpeggiator: Arpeggiator.
 
@@ -609,11 +610,12 @@ class PArpeggiator(PStochasticPattern):
 
         self.restart()
 
-
     def get_notes(self):
         return self._notes
+
     def set_notes(self, notes):
         self._notes = list(sorted(notes))
+
     notes = property(get_notes, set_notes)
 
     def restart(self):
@@ -627,9 +629,11 @@ class PArpeggiator(PStochasticPattern):
             self.offsets = [(n // 2) if (n % 2 == 0) else (0 - (n + 1) // 2) for n in range(len(self._notes))]
         elif self.type == PArpeggiator.DIVERGE:
             if len(self._notes) % 2 == 0:
-                self.offsets = [(len(self._notes) // 2 - 1) - (n // 2) if (n % 2 == 0) else (len(self._notes) // 2 + n // 2) for n in range(len(self.notes))]
+                self.offsets = [(len(self._notes) // 2 - 1) - (n // 2) if (n % 2 == 0) else
+                                (len(self._notes) // 2 + n // 2) for n in range(len(self.notes))]
             else:
-                self.offsets = [(len(self._notes) // 2 - 1) - (n // 2) if (n % 2 == 1) else (len(self._notes) // 2 + n // 2) for n in range(len(self.notes))]
+                self.offsets = [(len(self._notes) // 2 - 1) - (n // 2) if (n % 2 == 1) else
+                                (len(self._notes) // 2 + n // 2) for n in range(len(self.notes))]
         elif self.type == PArpeggiator.RANDOM:
             self.offsets = list(range(len(self._notes)))
             self.rng.shuffle(self.offsets)

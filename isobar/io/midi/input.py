@@ -53,7 +53,7 @@ class MidiInputDevice:
         if message.type == 'clock':
             if self.last_clock_time is not None:
                 dt = time.time() - self.last_clock_time
-                tick_estimate = (120/48) * 1.0/dt
+                tick_estimate = (120 / 48) * 1.0 / dt
                 if self.estimated_tempo is None:
                     self.estimated_tempo = tick_estimate
                 else:
@@ -84,7 +84,7 @@ class MidiInputDevice:
             else:
                 log.warning("MIDI song position message received, but MIDI input cannot seek to arbitrary position")
 
-        elif message.type == 'note_on' or message.type == 'note_off' or message.type == 'control_change' or message.type == 'pitchwheel':
+        elif message.type in ['note_on', 'note_off', 'control_change', 'pitchwheel']:
             if self.callback:
                 self.callback(message)
             else:

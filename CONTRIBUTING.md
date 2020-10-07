@@ -2,6 +2,11 @@
 
 ## Testing
 
+To run flake8 PEP8 style checker:
+```
+flake8 isobar
+```
+
 To run unit tests:
 ```
 python3 setup.py test

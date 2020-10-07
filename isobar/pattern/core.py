@@ -124,11 +124,11 @@ class Pattern:
         """Right bitshift"""
         operand = Pattern.pattern(operand)
         return PRShift(operand, self)
-    
+
     def __eq__(self, operand):
         """ Equal """
         return PEqual(self, Pattern.pattern(operand))
-    
+
     def __ne__(self, operand):
         """ Not equal """
         return PNotEqual(self, Pattern.pattern(operand))
@@ -140,11 +140,11 @@ class Pattern:
     def __ge__(self, operand):
         """ Greater than or equal """
         return PGreaterThanOrEqual(self, Pattern.pattern(operand))
-    
+
     def __lt__(self, operand):
         """ Less than """
         return PLessThan(self, Pattern.pattern(operand))
-    
+
     def __le__(self, operand):
         """ Less than or equal """
         return PLessThanOrEqual(self, Pattern.pattern(operand))
@@ -650,7 +650,7 @@ class PGreaterThanOrEqual(PBinOp):
         a = next(self.a)
         b = next(self.b)
         return None if a is None or b is None else a >= b
-    
+
 class PLessThan(PBinOp):
     """ PLessThan: Return 1 if a < b, 0 otherwise (shorthand: patternA < patternB) """
 

@@ -1,6 +1,7 @@
 from ..output import OutputDevice
 
 import logging
+
 log = logging.getLogger(__name__)
 
 try:
@@ -9,7 +10,7 @@ except ModuleNotFoundError:
     # No Signalflow support available
     pass
 
-class SignalflowOutputDevice (OutputDevice):
+class SignalflowOutputDevice(OutputDevice):
     def __init__(self, graph=None):
         """
         Create an output device for the Signalflow audio DSP framework.
@@ -26,7 +27,8 @@ class SignalflowOutputDevice (OutputDevice):
             except NameError:
                 raise Exception("Could not instantiate OutputDevice as libsignal not installed")
             except sf.GraphAlreadyCreatedException:
-                raise Exception("SignalFlow graph has already been instantiated. Pass the AudioGraph object as an argument to SignalflowOutputDevice.")
+                raise Exception("SignalFlow graph has already been instantiated."
+                                "Pass the AudioGraph object as an argument to SignalflowOutputDevice.")
 
         self.graph.start()
         log.info("Opened Signalflow output")

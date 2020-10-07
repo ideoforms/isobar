@@ -14,4 +14,5 @@ from .supercollider import SuperColliderOutputDevice
 __all__ = ["OutputDevice", "DummyOutputDevice", "MidiInputDevice", "MidiOutputDevice"]
 __all__ += ["get_midi_output_names", "get_midi_input_names"]
 __all__ += ["MidiFileInputDevice", "MidiFileOutputDevice", "PatternWriterMIDI"]
-__all__ += ["OSCOutputDevice", "SocketIOOutputDevice", "SignalflowOutputDevice", "MidiNote", "SuperColliderOutputDevice"]
+__all__ += ["OSCOutputDevice", "SocketIOOutputDevice", "SignalflowOutputDevice",
+            "MidiNote", "SuperColliderOutputDevice"]
