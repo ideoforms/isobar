@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+#------------------------------------------------------------------------
+# isobar: ex-walk
+#
+# Brownian walk around a scale.
+#------------------------------------------------------------------------
+
 import isobar as iso
 
 import logging
