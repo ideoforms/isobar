@@ -76,14 +76,14 @@ def test_timeline_schedule_update_after_period(dummy_timeline):
     it does not play through the whole history of past events that would have been played.
     """
     dummy_timeline.stop_when_done = False
-    track = dummy_timeline.schedule()
+    track = dummy_timeline.schedule(remove_when_done=False)
     for n in range(int(dummy_timeline.ticks_per_beat * 2.5)):
         dummy_timeline.tick()
-    dummy_timeline.stop_when_done = True
     track.update({
         iso.EVENT_NOTE: iso.PSequence([1, 2], 1)
     }, quantize=1)
-    dummy_timeline.run()
+    for n in range(int(dummy_timeline.ticks_per_beat * 2.5) + 1):
+        dummy_timeline.tick()
     assert dummy_timeline.output_device.events == [
         [3.0, 'note_on', 1, 64, 0], [4.0, 'note_off', 1, 0],
         [4.0, 'note_on', 2, 64, 0], [5.0, 'note_off', 2, 0],

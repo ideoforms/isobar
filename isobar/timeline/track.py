@@ -11,7 +11,8 @@ import logging
 log = logging.getLogger(__name__)
 
 class Track:
-    def __init__(self, timeline, events, max_event_count=None, interpolate=INTERPOLATION_NONE, output_device=None):
+    def __init__(self, timeline, events, max_event_count=None, interpolate=INTERPOLATION_NONE,
+                 output_device=None, remove_when_done=True):
         #--------------------------------------------------------------------------------
         # Ensure that events is a pattern that generates a dict when it is iterated.
         #--------------------------------------------------------------------------------
@@ -30,8 +31,8 @@ class Track:
         self.interpolate = interpolate
 
         self.note_offs = []
-        self.is_started = False
         self.is_finished = False
+        self.remove_when_done = remove_when_done
 
     def update(self, events, quantize=None):
         """
@@ -81,24 +82,24 @@ class Track:
             if self.interpolate is INTERPOLATION_NONE:
                 if round(self.current_time, 8) >= round(self.next_event_time, 8):
                     while round(self.current_time, 8) >= round(self.next_event_time, 8):
-                        if self.max_event_count is not None and self.current_event_count >= self.max_event_count:
-                            raise StopIteration
-
+                        #--------------------------------------------------------------------------------
+                        # Retrieve the next event.
+                        # If no more events are available, this raises StopIteration.
+                        #--------------------------------------------------------------------------------
                         self.current_event = self.get_next_event()
-                        if self.current_event is None:
-                            break
                         self.next_event_time += float(self.current_event.duration)
 
                     #--------------------------------------------------------------------------------
-                    # Have to be careful here.
-                    # formerly had `if self.current_event` ...
-                    # which would try to resolve the complete len of current_event:
-                    # https://stackoverflow.com/questions/1087135/boolean-value-of-objects-in-python
+                    # Perform the event.
                     #--------------------------------------------------------------------------------
-                    if self.current_event is not None:
-                        self.perform_event(self.current_event)
-                        self.current_event_count += 1
+                    self.perform_event(self.current_event)
             else:
+                #--------------------------------------------------------------------------------
+                # Track has interpolation enabled.
+                # Interpolation is done by wrapping the evolving event in an
+                # interpolating_event, which generates a new value each tick until it is
+                # exhausted.
+                #--------------------------------------------------------------------------------
                 try:
                     interpolated_values = next(self.interpolating_event)
                     interpolated_event = Event(interpolated_values)
@@ -106,21 +107,36 @@ class Track:
                 except StopIteration:
                     is_first_event = False
                     if self.next_event is None:
+                        #--------------------------------------------------------------------------------
+                        # The current and next events are needed to perform interpolation.
+                        # No events have yet been obtained, so query the current and next events off
+                        # the stack.
+                        #--------------------------------------------------------------------------------
                         self.next_event = self.get_next_event()
                         is_first_event = True
+
                     self.current_event = self.next_event
                     self.next_event = self.get_next_event()
-                    self.current_event_count += 1
-                    if self.max_event_count is not None and self.current_event_count >= self.max_event_count:
-                        raise StopIteration
 
-                    if self.current_event.type != EVENT_TYPE_CONTROL:
+                    #--------------------------------------------------------------------------------
+                    # Special case to handle zero-duration events: continue to pop new
+                    # events from the pattern.
+                    #--------------------------------------------------------------------------------
+                    while int(self.current_event.duration * self.timeline.ticks_per_beat) <= 0:
+                        self.current_event = self.next_event
+                        self.next_event = self.get_next_event()
+
+                    if self.current_event.type != EVENT_TYPE_CONTROL or self.next_event.type != EVENT_TYPE_CONTROL:
                         raise InvalidEventException("Interpolation is only valid for control event")
 
                     interpolating_event_fields = copy.copy(self.current_event.fields)
                     duration = self.current_event.duration
                     duration_ticks = duration * self.timeline.ticks_per_beat
                     for key, value in self.current_event.fields.items():
+                        #--------------------------------------------------------------------------------
+                        # Create a new interpolating_event with patterns for each parameter to
+                        # interpolate.
+                        #--------------------------------------------------------------------------------
                         if key == EVENT_TYPE or key == EVENT_DURATION:
                             continue
                         if type(value) is not float and type(value) is not int:
@@ -154,8 +170,21 @@ class Track:
             pattern.reset()
 
     def get_next_event(self):
+        """
+        Retrieve the next event from the event stream dict.
+
+        Returns:
+            The next Event object
+
+        Raises:
+            StopIteration: If no more events are available, or the event count limit has been hit.
+
+        """
         if self.event_stream is None:
-            return None
+            raise StopIteration
+
+        if self.max_event_count is not None and self.current_event_count >= self.max_event_count:
+            raise StopIteration
 
         #------------------------------------------------------------------------
         # Iterate to the next event.
@@ -169,15 +198,13 @@ class Track:
         event_values = copy.copy(event_values)
 
         event = Event(event_values)
+        self.current_event_count += 1
 
         return event
 
     def perform_event(self, event):
         if not event.active:
             return
-
-        if not self.is_started:
-            self.is_started = True
 
         #------------------------------------------------------------------------
         # Action: Carry out an action each time this event is triggered

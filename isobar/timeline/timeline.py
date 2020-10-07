@@ -1,8 +1,6 @@
-import sys
 import math
 import copy
 import threading
-import traceback
 
 from .track import Track
 from .clock import Clock
@@ -149,7 +147,7 @@ class Timeline(object):
         #--------------------------------------------------------------------------------
         for track in self.tracks[:]:
             track.tick()
-            if track.is_finished:
+            if track.is_finished and track.remove_when_done:
                 self.tracks.remove(track)
                 log.info("Timeline: Track finished, removing from scheduler (total tracks: %d)" % len(self.tracks))
 
@@ -244,7 +242,7 @@ class Timeline(object):
 
         except Exception as e:
             print((" *** Exception in Timeline thread: %s" % e))
-            traceback.print_exc(file=sys.stdout)
+            raise e
 
     def start(self):
         log.info("Timeline: Starting")
@@ -287,22 +285,26 @@ class Timeline(object):
                  delay=0,
                  count=None,
                  interpolate=INTERPOLATION_NONE,
-                 output_device=None):
+                 output_device=None,
+                 remove_when_done=True):
         """
         Schedule a new track within this Timeline.
 
         Args:
-            params (dict):       Event dictionary. Keys are generally EVENT_* values, defined in constants.py.
-                                 If params is None, a new empty Track will be scheduled and returned.
-                                 This can be updated with Track.update() to begin generating events.
-            quantize (float):    Quantize level, in beats. For example, 1.0 will begin executing the
-                                 events on the next whole beats.
-            delay (float):       Delay time, in beats, before events should be executed.
-                                 If `quantize` and `delay` are both specified, quantization is applied,
-                                 and the event is scheduled `delay` beats after the quantization time.
-            count (int):         Number of events to process, or unlimited if not specified.
-            interpolate (int):   Interpolation mode for control segments.
-            output_device:       Output device to send events to. Uses the Timeline default if not specified.
+            params (dict):           Event dictionary. Keys are generally EVENT_* values, defined in constants.py.
+                                     If params is None, a new empty Track will be scheduled and returned.
+                                     This can be updated with Track.update() to begin generating events.
+            quantize (float):        Quantize level, in beats. For example, 1.0 will begin executing the
+                                     events on the next whole beats.
+            delay (float):           Delay time, in beats, before events should be executed.
+                                     If `quantize` and `delay` are both specified, quantization is applied,
+                                     and the event is scheduled `delay` beats after the quantization time.
+            count (int):             Number of events to process, or unlimited if not specified.
+            interpolate (int):       Interpolation mode for control segments.
+            output_device:           Output device to send events to. Uses the Timeline default if not specified.
+            remove_when_done (bool): If True, removes the Track from the Timeline when it is finished.
+                                     Otherwise, retains the Track, so update() can later be called to schedule
+                                     additional events on it.
 
         Returns:
             The new `Track` object.
@@ -334,7 +336,8 @@ class Timeline(object):
             self.tracks.append(track)
             log.info("Timeline: Scheduled new track (total tracks: %d)" % len(self.tracks))
 
-        track = Track(self, params, max_event_count=count, interpolate=interpolate, output_device=output_device)
+        track = Track(self, params, max_event_count=count, interpolate=interpolate,
+                      output_device=output_device, remove_when_done=remove_when_done)
 
         if quantize or delay:
             #--------------------------------------------------------------------------------
