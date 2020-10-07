@@ -23,6 +23,11 @@ pip3 install pytest-cov
 pytest --cov=isobar tests
 ```
 
+To automatically run unit tests on commit:
+```
+echo pytest > .git/hooks/pre-commit
+```
+
 ## Documentation
 
 To regenerate the per-class pattern docs for the README:
