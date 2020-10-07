@@ -1,6 +1,6 @@
 # Changelog
 
-## [v0.1.0](https://github.com/ideoforms/isobar/tree/v0.1.0) (2020-10-07)
+## [v0.1.1](https://github.com/ideoforms/isobar/tree/v0.1.0) (2020-10-07)
 
 Major overhaul and refactor.
 
