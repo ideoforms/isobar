@@ -24,3 +24,7 @@ def get_midi_input_names():
     return input_names
 
 __all__ = ["MidiInputDevice", "MidiOutputDevice", "get_midi_input_names", "get_midi_output_names"]
+
+# Class aliases for backwards-compatibility
+MidiOut = MidiOutputDevice
+MidiIn = MidiInputDevice

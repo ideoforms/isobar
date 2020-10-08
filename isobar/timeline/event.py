@@ -14,6 +14,11 @@ class Event:
             if key not in ALL_EVENT_PARAMETERS:
                 raise ValueError("Invalid key for event: %s" % (key))
 
+        if EVENT_DURATION_LEGACY in event_values:
+            event_values[EVENT_DURATION] = event_values[EVENT_DURATION_LEGACY]
+        if EVENT_AMPLITUDE_LEGACY in event_values:
+            event_values[EVENT_AMPLITUDE] = event_values[EVENT_AMPLITUDE_LEGACY]
+
         event_values.setdefault(EVENT_ACTIVE, True)
         event_values.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
         event_values.setdefault(EVENT_DURATION, DEFAULT_EVENT_DURATION)
