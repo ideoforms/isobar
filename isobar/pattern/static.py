@@ -10,8 +10,19 @@ class Globals:
     """
     @classmethod
     def get(cls, key):
+        """
+        Returns the value stored in `key`.
+        Args:
+            key: The key to query.
+
+        Returns:
+            The value, which can be of any type.
+
+        Raises:
+            KeyError: If the key does not exist in the globals dict.
+        """
         if key not in PGlobals.dict:
-            raise ValueError("Global variable does not exist: %s" % key)
+            raise KeyError("Global variable does not exist: %s" % key)
         value = PGlobals.dict[key]
         return Pattern.value(value)
 
@@ -45,9 +56,9 @@ class PStaticPattern(Pattern):
         if timeline is None:
             raise Exception("Cannot query current timeline outside of a scheduled event context")
         current_time = round(timeline.current_time, 5)
-        if self.current_element_start_time is None or \
-                current_time - self.current_element_start_time >= self.current_element_duration:
 
+        while self.current_element_start_time is None or \
+                current_time - self.current_element_start_time >= self.current_element_duration:
             self.value = Pattern.value(self.pattern)
             self.current_element_start_time = round(timeline.current_time, 5)
             self.current_element_duration = Pattern.value(self.element_duration)
