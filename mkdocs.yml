@@ -2,7 +2,7 @@ site_name: isobar
 theme:
   name: material
   features:
-    - tabs
+    - navigation.tabs
 
 repo_name: ideoforms/isobar
 repo_url: https://github.com/ideoforms/isobar
