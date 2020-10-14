@@ -30,6 +30,18 @@ echo pytest > .git/hooks/pre-commit
 
 ## Documentation
 
+To generate and serve the docs:
+
+```
+pip3 install mkdocs
+mkdocs serve
+```
+
+To deploy docs to GitHub:
+```
+mkdocs gh-deploy
+```
+
 To regenerate the per-class pattern docs for the README:
 
 ```
