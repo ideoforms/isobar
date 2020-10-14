@@ -33,7 +33,7 @@ echo pytest > .git/hooks/pre-commit
 To generate and serve the docs:
 
 ```
-pip3 install mkdocs
+pip3 install mkdocs mkdocs-material
 mkdocs serve
 ```
 
