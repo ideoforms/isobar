@@ -736,7 +736,11 @@
                 <h1 id="getting-started">Getting started</h1>
 <h2 id="requirements">Requirements</h2>
 <p>isobar has been tested on Linux (Ubuntu, Raspberry Pi OS) and macOS. It has not been officially tested on Windows, although third-party contributions of support and QA efforts would be welcomed.</p>
-<p>It requires Python 3.5.    </p>
+<p>It requires Python 3.5 or above. </p>
+<p>On Linux, the <code>libasound</code> and <code>libjack-dev</code> packages are also required:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">apt install libasound2-dev libjack-dev</span>
+</code></pre></div>
+
 <h3 id="1-install-isobar">1. Install isobar</h3>
 <p>The simplest way to install isobar is via <code>pip</code>:</p>
 <div class="codehilite"><pre><span></span><code><span class="n">pip3</span> <span class="n">install</span> <span class="n">isobar</span>
