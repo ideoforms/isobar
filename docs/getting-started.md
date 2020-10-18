@@ -4,7 +4,13 @@
 
 isobar has been tested on Linux (Ubuntu, Raspberry Pi OS) and macOS. It has not been officially tested on Windows, although third-party contributions of support and QA efforts would be welcomed.
 
-It requires Python 3.5.    
+It requires Python 3.5 or above. 
+
+On Linux, the `libasound` and `libjack-dev` packages are also required:
+
+```
+apt install libasound2-dev libjack-dev
+```
 
 ### 1. Install isobar
 
