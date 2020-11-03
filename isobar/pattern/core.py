@@ -39,7 +39,6 @@ class Pattern:
 
     def __add__(self, operand):
         """Binary op: add two patterns"""
-        operand = Pattern.pattern(operand)
         return PAdd(self, operand)
 
     def __radd__(self, operand):
@@ -48,17 +47,14 @@ class Pattern:
 
     def __sub__(self, operand):
         """Binary op: subtract two patterns"""
-        operand = Pattern.pattern(operand)
         return PSub(self, operand)
 
     def __rsub__(self, operand):
         """Binary op: subtract two patterns"""
-        operand = Pattern.pattern(operand)
         return PSub(operand, self)
 
     def __mul__(self, operand):
         """Binary op: multiply two patterns"""
-        operand = Pattern.pattern(operand)
         return PMul(self, operand)
 
     def __rmul__(self, operand):
@@ -67,27 +63,22 @@ class Pattern:
 
     def __truediv__(self, operand):
         """Binary op: divide two patterns"""
-        operand = Pattern.pattern(operand)
         return PDiv(self, operand)
 
     def __rtruediv__(self, operand):
         """Binary op: divide two patterns"""
-        operand = Pattern.pattern(operand)
         return PDiv(operand, self)
 
     def __floordiv__(self, operand):
         """Binary op: integer divide two patterns"""
-        operand = Pattern.pattern(operand)
         return PFloorDiv(self, operand)
 
     def __rfloordiv__(self, operand):
         """Binary op: integer divide two patterns"""
-        operand = Pattern.pattern(operand)
         return PFloorDiv(operand, self)
 
     def __mod__(self, operand):
         """Modulo"""
-        operand = Pattern.pattern(operand)
         return PMod(self, operand)
 
     def __rmod__(self, operand):
@@ -97,7 +88,6 @@ class Pattern:
 
     def __pow__(self, operand):
         """Power"""
-        operand = Pattern.pattern(operand)
         return PPow(self, operand)
 
     def __rpow__(self, operand):
@@ -107,47 +97,43 @@ class Pattern:
 
     def __lshift__(self, operand):
         """Left bitshift"""
-        operand = Pattern.pattern(operand)
         return PLShift(self, operand)
 
     def __rlshift__(self, operand):
         """Left bitshift"""
-        operand = Pattern.pattern(operand)
         return PLShift(operand, self)
 
     def __rshift__(self, operand):
         """Right bitshift"""
-        operand = Pattern.pattern(operand)
         return PRShift(self, operand)
 
     def __rrshift__(self, operand):
         """Right bitshift"""
-        operand = Pattern.pattern(operand)
         return PRShift(operand, self)
 
     def __eq__(self, operand):
         """ Equal """
-        return PEqual(self, Pattern.pattern(operand))
+        return PEqual(self, operand)
 
     def __ne__(self, operand):
         """ Not equal """
-        return PNotEqual(self, Pattern.pattern(operand))
+        return PNotEqual(self, operand)
 
     def __gt__(self, operand):
         """ Greater than """
-        return PGreaterThan(self, Pattern.pattern(operand))
+        return PGreaterThan(self, operand)
 
     def __ge__(self, operand):
         """ Greater than or equal """
-        return PGreaterThanOrEqual(self, Pattern.pattern(operand))
+        return PGreaterThanOrEqual(self, operand)
 
     def __lt__(self, operand):
         """ Less than """
-        return PLessThan(self, Pattern.pattern(operand))
+        return PLessThan(self, operand)
 
     def __le__(self, operand):
         """ Less than or equal """
-        return PLessThanOrEqual(self, Pattern.pattern(operand))
+        return PLessThanOrEqual(self, operand)
 
     def __iter__(self):
         return self
@@ -515,8 +501,8 @@ class PAdd(PBinOp):
         return "%s + %s" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else a + b
 
 class PSub(PBinOp):
@@ -526,8 +512,8 @@ class PSub(PBinOp):
         return "%s - %s" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else a - b
 
 class PMul(PBinOp):
@@ -537,8 +523,8 @@ class PMul(PBinOp):
         return "(%s) * (%s)" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else a * b
 
 class PDiv(PBinOp):
@@ -548,8 +534,8 @@ class PDiv(PBinOp):
         return "(%s) / (%s)" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else a / b
 
 class PFloorDiv(PBinOp):
@@ -559,8 +545,8 @@ class PFloorDiv(PBinOp):
         return "(%s) // (%s)" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else a // b
 
 class PMod(PBinOp):
@@ -570,8 +556,8 @@ class PMod(PBinOp):
         return "(%s) %% (%s)" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else a % b
 
 class PPow(PBinOp):
@@ -581,8 +567,8 @@ class PPow(PBinOp):
         return "pow(%s, %s)" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else pow(a, b)
 
 class PLShift(PBinOp):
@@ -592,8 +578,8 @@ class PLShift(PBinOp):
         return "(%s << %s)" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else a << b
 
 class PRShift(PBinOp):
@@ -603,8 +589,8 @@ class PRShift(PBinOp):
         return "(%s >> %s)" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else a >> b
 
 class PEqual(PBinOp):
@@ -614,8 +600,8 @@ class PEqual(PBinOp):
         return "%s == %s" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else a == b
 
 class PNotEqual(PBinOp):
@@ -625,8 +611,8 @@ class PNotEqual(PBinOp):
         return "%s != %s" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else a != b
 
 class PGreaterThan(PBinOp):
@@ -636,8 +622,8 @@ class PGreaterThan(PBinOp):
         return "%s > %s" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else a > b
 
 class PGreaterThanOrEqual(PBinOp):
@@ -647,8 +633,8 @@ class PGreaterThanOrEqual(PBinOp):
         return "%s >= %s" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else a >= b
 
 class PLessThan(PBinOp):
@@ -658,8 +644,8 @@ class PLessThan(PBinOp):
         return "%s < %s" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else a < b
 
 class PLessThanOrEqual(PBinOp):
@@ -669,6 +655,6 @@ class PLessThanOrEqual(PBinOp):
         return "%s <= %s" % (self.a, self.b)
 
     def __next__(self):
-        a = next(self.a)
-        b = next(self.b)
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
         return None if a is None or b is None else a <= b
