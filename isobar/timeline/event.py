@@ -129,7 +129,7 @@ class Event:
                     raise ValueError("SuperCollider params must be a dict")
                 self.synth_params = event_values[EVENT_SUPERCOLLIDER_SYNTH_PARAMS]
 
-        elif EVENT_NOTE in event_values or EVENT_DEGREE in event_values:
+        elif EVENT_NOTE in event_values:
             self.type = EVENT_TYPE_NOTE
             self.note = event_values[EVENT_NOTE]
             self.amplitude = event_values[EVENT_AMPLITUDE]
