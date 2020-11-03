@@ -29,6 +29,13 @@ def test_pbrown():
     a.reset()
     assert a.nextn(10) == expected
 
+def test_pcoin():
+    a = iso.PCoin(0.75)
+    a.seed(0)
+    assert a.nextn(16) == [0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1]
+    a.seed(0)
+    assert a.nextn(16) == [0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1]
+
 def test_pwalk():
     a = iso.PRandomWalk([0, 2, 4, 5, 12], min=iso.PConstant(1), max=iso.PConstant(2))
     expected = [4, 0, 5, 0, 4, 5, 2, 4, 12, 5, 12, 4, 2, 5, 12, 4, 0, 12, 2, 4]

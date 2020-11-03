@@ -81,6 +81,7 @@ View source: [chance.py](https://github.com/ideoforms/isobar/tree/master/isobar/
 |-|-|
 | PWhite | White noise between `min` and `max`. |
 | PBrown | Brownian noise. |
+| PCoin | Coin toss, returning either 0 or 1 given some `probability`. |
 | PWalk | Random walk around list. |
 | PChoice | Pick a random element from `values`, weighted by optional `weights`. |
 | PSample | Pick multiple random elements from `values`, weighted by optional `weights`, |
@@ -105,9 +106,8 @@ View source: [static.py](https://github.com/ideoforms/isobar/tree/master/isobar/
 
 | Class | Function |
 |-|-|
-| PStaticGlobal | Static global value identified by a string, with OSC listener. |
 | PGlobals | Static global value identified by a string. |
-| PStaticCurrentTime | Returns the position (in beats) of the current timeline. |
+| PCurrentTime | Returns the position (in beats) of the current timeline. |
 
 ## Fade
 View source: [fade.py](https://github.com/ideoforms/isobar/tree/master/isobar/pattern/fade.py)

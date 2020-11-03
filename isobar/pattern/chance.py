@@ -117,6 +117,30 @@ class PBrown(PStochasticPattern):
         return rv
 
 
+class PCoin(PStochasticPattern):
+    """ PCoin: Coin toss, returning either 0 or 1 given some `probability`.
+               `probability` is the chance of returning 1, and must be between [0, 1].
+
+               This is a convenience pattern which could also be written
+                as `PWhite(0, 1) < probability`
+
+        >>> PCoin(0.75).nextn(16)
+        [1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1]
+       """
+
+    def __init__(self, probability=0.5):
+        super().__init__()
+        self.probability = probability
+
+    def __next__(self):
+        probability = Pattern.value(self.probability)
+
+        if self.rng.uniform(0, 1) < probability:
+            return 1
+        else:
+            return 0
+
+
 class PRandomWalk(PStochasticPattern):
     """ PWalk: Random walk around list.
                Jumps between `min` and `max` steps inclusive.
