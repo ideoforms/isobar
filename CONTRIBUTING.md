@@ -42,9 +42,10 @@ To deploy docs to GitHub:
 mkdocs gh-deploy
 ```
 
-To regenerate the per-class pattern docs for the README:
+To regenerate the per-class pattern docs for the pattern library docs and README:
 
 ```
+aux/scripts/generate-docs.py -m > docs/patterns/library.md
 aux/scripts/generate-docs.py
 ```
 
