@@ -108,8 +108,9 @@ class Event:
             self.channel = event_values[EVENT_CHANNEL]
 
         elif EVENT_PROGRAM_CHANGE in event_values:
-            # TODO: Implement program changes
             self.type = EVENT_TYPE_PROGRAM_CHANGE
+            self.program_change = event_values[EVENT_PROGRAM_CHANGE]
+            self.channel = event_values[EVENT_CHANNEL]
 
         elif EVENT_OSC_ADDRESS in event_values:
             self.type = EVENT_TYPE_OSC
