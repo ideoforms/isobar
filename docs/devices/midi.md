@@ -27,6 +27,12 @@ A default MIDI output device name can be set with an environmental variable:
 export ISOBAR_DEFAULT_MIDI_OUT="Prophet 6"
 ``` 
 
+To list all available MIDI output devices:
+
+```
+print(iso.io.midi.get_midi_output_names())
+```
+
 ## MidiInputDevice
 
 Receives notes and control events from a MIDI device, or sync isobar to an external MIDI clock.
@@ -55,3 +61,10 @@ A default MIDI input device name can be set with an environmental variable:
 ```
 export ISOBAR_DEFAULT_MIDI_IN="Prophet 6"
 ``` 
+
+To list all available MIDI input devices:
+
+```
+print(iso.io.midi.get_midi_input_names())
+```
+
