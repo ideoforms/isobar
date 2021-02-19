@@ -384,5 +384,5 @@ class Timeline(object):
         self.tracks.remove(track)
 
     def clear(self):
-        for track in self.tracks:
+        for track in self.tracks[:]:
             self.unschedule(track)
