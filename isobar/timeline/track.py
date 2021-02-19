@@ -13,6 +13,10 @@ log = logging.getLogger(__name__)
 class Track:
     def __init__(self, timeline, events, max_event_count=None, interpolate=INTERPOLATION_NONE,
                  output_device=None, remove_when_done=True):
+        #--------------------------------------------------------------------------------
+        # Ensure that events is a pattern that generates a dict when it is iterated.
+        #--------------------------------------------------------------------------------
+        self.event_stream = {}
         self.timeline = timeline
         self.current_time = 0
         self.next_event_time = 0
@@ -31,6 +35,29 @@ class Track:
         self.is_finished = False
         self.remove_when_done = remove_when_done
 
+    def __getattr__(self, item):
+        return self.event_stream[item]
+
+    def __setattr__(self, item, value):
+        #--------------------------------------------------------------------------------
+        # Benign magic so that you can do things like
+        #
+        #    track.note = 64
+        #
+        # Note that this will only work when the track has been created with a dict
+        # of key-value pairs (rather than a pattern that will itself generate dicts.)
+        #--------------------------------------------------------------------------------
+        if item != "event_stream" and isinstance(self.event_stream, dict) and item in self.event_stream:
+            self.event_stream[item] = value
+        else:
+            super().__setattr__(item, value)
+
+    def __delattr__(self, item):
+        if item != "event_stream" and isinstance(self.event_stream, dict) and item in self.event_stream:
+            del self.event_stream[item]
+        else:
+            super().__delattr__(item)
+
     def update(self, events, quantize=None):
         """
         Update the events that this Track produces.
@@ -38,6 +65,8 @@ class Track:
         Args:
             events: A dict, a PDict, or a Pattern that generates dicts.
         """
+        if events is None:
+            events = {}
         if isinstance(events, dict):
             events = PDict(events)
 
@@ -167,7 +196,11 @@ class Track:
         self.next_event_time = 0
 
         for pattern in self.event_stream.values():
-            pattern.reset()
+            try:
+                pattern.reset()
+            except AttributeError:
+                # Event stream may contain constant values, in which case no reset is needed.
+                pass
 
     def get_next_event(self):
         """
