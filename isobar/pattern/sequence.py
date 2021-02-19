@@ -690,6 +690,11 @@ class PEuclidean(Pattern):
         return rv
 
     def _split_remainder(self, seq):
+        """
+        Assuming an input array of the form [a, a, a, a, b, b, b],
+        partitions the input into two halves and returns
+        ([a, a, a, a], [b, b, b])
+        """
         last = None
         a = []
         b = []
@@ -702,6 +707,11 @@ class PEuclidean(Pattern):
         return (a, b)
 
     def _interleave(self, a, b):
+        """
+        Assuming two input arrays of the form ([a, a, a, a], [b, b, b]),
+        interleaves the two with concatenation and returns
+        ([ab, ab, ab, a])
+        """
         if len(a) < len(b):
             return [a[n] + b[n] for n in range(len(a))] + b[len(a) - len(b):]
         elif len(b) < len(a):
