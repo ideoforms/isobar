@@ -1,6 +1,6 @@
 from ..pattern import Pattern
-from ..key import Key
 from ..scale import Scale
+from ..key import Key
 from ..constants import *
 from ..exceptions import InvalidEventException
 import logging
@@ -19,14 +19,19 @@ class Event:
         if EVENT_AMPLITUDE_LEGACY in event_values:
             event_values[EVENT_AMPLITUDE] = event_values[EVENT_AMPLITUDE_LEGACY]
 
-        event_values.setdefault(EVENT_ACTIVE, True)
-        event_values.setdefault(EVENT_CHANNEL, DEFAULT_EVENT_CHANNEL)
-        event_values.setdefault(EVENT_DURATION, DEFAULT_EVENT_DURATION)
-        event_values.setdefault(EVENT_GATE, DEFAULT_EVENT_GATE)
-        event_values.setdefault(EVENT_AMPLITUDE, DEFAULT_EVENT_AMPLITUDE)
-        event_values.setdefault(EVENT_OCTAVE, DEFAULT_EVENT_OCTAVE)
-        event_values.setdefault(EVENT_TRANSPOSE, DEFAULT_EVENT_TRANSPOSE)
-        event_values.setdefault(EVENT_SCALE, Scale.default)
+        default_values = {
+            EVENT_ACTIVE: True,
+            EVENT_CHANNEL: DEFAULT_EVENT_CHANNEL,
+            EVENT_DURATION: DEFAULT_EVENT_DURATION,
+            EVENT_GATE: DEFAULT_EVENT_GATE,
+            EVENT_AMPLITUDE: DEFAULT_EVENT_AMPLITUDE,
+            EVENT_OCTAVE: DEFAULT_EVENT_OCTAVE,
+            EVENT_TRANSPOSE: DEFAULT_EVENT_TRANSPOSE,
+            EVENT_KEY: Key("C", Scale.default)
+        }
+
+        for key, value in default_values.items():
+            event_values.setdefault(key, value)
 
         if EVENT_NOTE in event_values and EVENT_DEGREE in event_values:
             raise InvalidEventException("Cannot specify both note and degree")
@@ -39,10 +44,7 @@ class Event:
             if degree is None:
                 event_values[EVENT_NOTE] = None
             else:
-                if EVENT_KEY in event_values:
-                    key = event_values[EVENT_KEY]
-                else:
-                    key = Key(0, event_values[EVENT_SCALE])
+                key = event_values[EVENT_KEY]
 
                 #----------------------------------------------------------------------
                 # handle lists of notes (eg chords).

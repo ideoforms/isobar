@@ -128,3 +128,5 @@ class Key:
     @staticmethod
     def all():
         return [Key(note, scale) for note in Note.all() for scale in Scale.all()]
+
+Key.default = Key("C", "major")

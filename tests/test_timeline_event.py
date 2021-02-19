@@ -62,20 +62,6 @@ def test_event_key(dummy_timeline):
         [3, 'note_on', 22, 64, 0], [4, 'note_off', 22, 0]
     ]
 
-def test_event_scale(dummy_timeline):
-    dummy_timeline.schedule({
-        iso.EVENT_DEGREE: iso.PSequence([0, 1, 2, 3], 1),
-        iso.EVENT_SCALE: iso.PSequence([iso.Scale.major, iso.Scale.chromatic]),
-        iso.EVENT_TRANSPOSE: 36
-    })
-    dummy_timeline.run()
-    assert dummy_timeline.output_device.events == [
-        [0, 'note_on', 36, 64, 0], [1, 'note_off', 36, 0],
-        [1, 'note_on', 37, 64, 0], [2, 'note_off', 37, 0],
-        [2, 'note_on', 40, 64, 0], [3, 'note_off', 40, 0],
-        [3, 'note_on', 39, 64, 0], [4, 'note_off', 39, 0]
-    ]
-
 def test_event_dur(dummy_timeline):
     dummy_timeline.schedule({
         iso.EVENT_NOTE: iso.PSequence([1, 2, 3]),
