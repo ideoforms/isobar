@@ -39,7 +39,9 @@ class SignalFlowOutputDevice(OutputDevice):
         # TODO: patch = sf.Patch(patch_spec, patch_params)
         patch = sf.Patch(patch_spec)
         for key, value in patch_params.items():
-            if value is not None:
+            if value is None:
+                return
+            else:
                 patch.set_input(key, value)
         patch.auto_free = True
         self.graph.play(patch)
