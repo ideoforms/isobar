@@ -748,6 +748,7 @@ class PExplorer(Pattern):
     def reset(self):
         super().reset()
         self.counter = 0
+        self.loop_pos = 0
         self.values = []
         self._generate_values()
 
@@ -865,7 +866,11 @@ class PExplorer(Pattern):
             if self.loop is None:
                 raise StopIteration
             else:
-                self.explore()
+                self.loop_pos += 1
+                if self.loop_pos >= self.loop:
+                    self.explore()
+                    self.loop_pos = 0
+                self.counter = 0
 
         rv = self.values[self.counter]
         self.counter += 1
