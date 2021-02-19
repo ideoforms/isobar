@@ -360,6 +360,9 @@ class PDict(Pattern):
     def __setitem__(self, key, value):
         self.dict[key] = value
 
+    def __delitem__(self, key):
+        del self.dict[key]
+
     def __contains__(self, key):
         return key in self.dict
 
