@@ -51,6 +51,7 @@ class Timeline(object):
         self.events = []
         self.running = False
         self.default_quantize = None
+        self.ignore_exceptions = False
 
     def get_clock_source(self):
         return self._clock_source
@@ -104,11 +105,6 @@ class Timeline(object):
     def beats_to_seconds(self, beats):
         return beats * 60.0 / self.tempo
 
-    def unschedule(self, track):
-        if track not in self.tracks:
-            raise TrackNotFoundException("Track is not currently scheduled")
-        self.tracks.remove(track)
-
     def tick(self):
         """
         Called once every tick to trigger new events.
@@ -147,7 +143,13 @@ class Timeline(object):
         # Copy self.tracks because removing from it whilst using it = bad idea
         #--------------------------------------------------------------------------------
         for track in self.tracks[:]:
-            track.tick()
+            try:
+                track.tick()
+            except Exception as e:
+                if self.ignore_exceptions:
+                    print("*** Exception in track: %s" % e)
+                else:
+                    raise
             if track.is_finished and track.remove_when_done:
                 self.tracks.remove(track)
                 log.info("Timeline: Track finished, removing from scheduler (total tracks: %d)" % len(self.tracks))
@@ -243,7 +245,8 @@ class Timeline(object):
 
         except Exception as e:
             print((" *** Exception in Timeline thread: %s" % e))
-            raise e
+            if not self.ignore_exceptions:
+                raise e
 
     def start(self):
         log.info("Timeline: Starting")
@@ -295,6 +298,7 @@ class Timeline(object):
             params (dict):           Event dictionary. Keys are generally EVENT_* values, defined in constants.py.
                                      If params is None, a new empty Track will be scheduled and returned.
                                      This can be updated with Track.update() to begin generating events.
+                                     params can alternatively be a Pattern that generates a dict output.
             quantize (float):        Quantize level, in beats. For example, 1.0 will begin executing the
                                      events on the next whole beats.
             delay (float):           Delay time, in beats, before events should be executed.
@@ -314,11 +318,6 @@ class Timeline(object):
             TrackLimitReachedException: If `max_tracks` has been reached.
         """
 
-        #--------------------------------------------------------------------------------
-        # Take a copy of params to avoid modifying the original
-        #--------------------------------------------------------------------------------
-        params = copy.copy(params)
-
         if not output_device:
             #--------------------------------------------------------------------------------
             # If no output device exists, send to the system default MIDI output.
@@ -337,8 +336,15 @@ class Timeline(object):
             self.tracks.append(track)
             log.info("Timeline: Scheduled new track (total tracks: %d)" % len(self.tracks))
 
-        track = Track(self, params, max_event_count=count, interpolate=interpolate,
-                      output_device=output_device, remove_when_done=remove_when_done)
+        if isinstance(params, Track):
+            track = params
+            track.reset()
+        else:
+            #--------------------------------------------------------------------------------
+            # Take a copy of params to avoid modifying the original
+            #--------------------------------------------------------------------------------
+            track = Track(self, copy.copy(params), max_event_count=count, interpolate=interpolate,
+                          output_device=output_device, remove_when_done=remove_when_done)
 
         if quantize is None:
             quantize = self.default_quantize
@@ -368,3 +374,12 @@ class Timeline(object):
     # Backwards-compatibility
     #--------------------------------------------------------------------------------
     sched = schedule
+
+    def unschedule(self, track):
+        if track not in self.tracks:
+            raise TrackNotFoundException("Track is not currently scheduled")
+        self.tracks.remove(track)
+
+    def clear(self):
+        for track in self.tracks:
+            self.unschedule(track)
