@@ -165,7 +165,7 @@ def test_timeline_schedule_quantize_on_beat(dummy_timeline, quantize):
     assert dummy_timeline.output_device.events[1] == [pytest.approx(1.0, abs=dummy_timeline.tick_duration), "note_off", 1, 0]
 
 def test_timeline_schedule_default_quantize(dummy_timeline):
-    dummy_timeline.default_quantize = 1
+    dummy_timeline.defaults.quantize = 1
     dummy_timeline.stop_when_done = False
     dummy_timeline.tick()
     dummy_timeline.stop_when_done = True
@@ -179,7 +179,7 @@ def test_timeline_schedule_default_quantize(dummy_timeline):
     assert dummy_timeline.output_device.events[1] == [pytest.approx(2, abs=dummy_timeline.tick_duration), "note_off", 1, 0]
 
 def test_timeline_schedule_default_quantize_override(dummy_timeline):
-    dummy_timeline.default_quantize = 1
+    dummy_timeline.defaults.quantize = 1
     dummy_timeline.stop_when_done = False
     dummy_timeline.tick()
     dummy_timeline.stop_when_done = True

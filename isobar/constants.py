@@ -63,6 +63,15 @@ EVENT_PROGRAM_CHANGE = "program_change"
 EVENT_SUPERCOLLIDER_SYNTH = "synth"
 EVENT_SUPERCOLLIDER_SYNTH_PARAMS = "params"
 
+#------------------------------------------------------------------------
+# Quantize is used to beat-align events, so should not be included
+# directly in the dictionary.
+#------------------------------------------------------------------------
+EVENT_QUANTIZE = "quantize"
+
+#------------------------------------------------------------------------
+# Legacy keys.
+#------------------------------------------------------------------------
 EVENT_DURATION_LEGACY = "dur"
 EVENT_AMPLITUDE_LEGACY = "amp"
 
@@ -72,7 +81,7 @@ ALL_EVENT_PARAMETERS = [
     EVENT_TRANSPOSE, EVENT_EVENT, EVENT_ACTION, EVENT_ACTION_ARGS, EVENT_CONTROL,
     EVENT_OSC_ADDRESS, EVENT_OSC_PARAMS, EVENT_VALUE, EVENT_TIME, EVENT_PATCH,
     EVENT_PATCH_PARAMS, EVENT_PROGRAM_CHANGE, EVENT_SUPERCOLLIDER_SYNTH,
-    EVENT_SUPERCOLLIDER_SYNTH_PARAMS,
+    EVENT_SUPERCOLLIDER_SYNTH_PARAMS, EVENT_QUANTIZE,
     EVENT_DURATION_LEGACY, EVENT_AMPLITUDE_LEGACY
 ]
 
@@ -97,6 +106,7 @@ DEFAULT_EVENT_GATE = 1.0
 DEFAULT_EVENT_AMPLITUDE = 64
 DEFAULT_EVENT_OCTAVE = 0
 DEFAULT_EVENT_TRANSPOSE = 0
+DEFAULT_EVENT_QUANTIZE = 0
 
 #------------------------------------------------------------------------
 # Interpolation modes for continuous signals.

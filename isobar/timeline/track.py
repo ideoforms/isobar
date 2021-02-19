@@ -71,7 +71,7 @@ class Track:
             events = PDict(events)
 
         if quantize is None:
-            quantize = self.timeline.default_quantize
+            quantize = self.timeline.defaults.quantize
 
         if quantize:
             self.next_event_time = quantize * math.ceil(float(self.current_time) / quantize)
@@ -131,7 +131,7 @@ class Track:
                 #--------------------------------------------------------------------------------
                 try:
                     interpolated_values = next(self.interpolating_event)
-                    interpolated_event = Event(interpolated_values)
+                    interpolated_event = Event(interpolated_values, self.timeline.defaults)
                     self.perform_event(interpolated_event)
                 except StopIteration:
                     is_first_event = False
@@ -178,7 +178,7 @@ class Track:
                     self.interpolating_event = PDict(interpolating_event_fields)
                     if not is_first_event:
                         next(self.interpolating_event)
-                    event = Event(next(self.interpolating_event))
+                    event = Event(next(self.interpolating_event), self.timeline.defaults)
                     self.perform_event(event)
 
         except StopIteration:
@@ -230,7 +230,7 @@ class Track:
         event_values = next(self.event_stream)
         event_values = copy.copy(event_values)
 
-        event = Event(event_values)
+        event = Event(event_values, self.timeline.defaults)
         self.current_event_count += 1
 
         return event

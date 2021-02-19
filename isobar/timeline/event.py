@@ -8,8 +8,24 @@ from typing import Iterable
 
 log = logging.getLogger(__name__)
 
+class EventDefaults:
+    def __init__(self):
+        default_values = {
+            EVENT_ACTIVE: True,
+            EVENT_CHANNEL: DEFAULT_EVENT_CHANNEL,
+            EVENT_DURATION: DEFAULT_EVENT_DURATION,
+            EVENT_GATE: DEFAULT_EVENT_GATE,
+            EVENT_AMPLITUDE: DEFAULT_EVENT_AMPLITUDE,
+            EVENT_OCTAVE: DEFAULT_EVENT_OCTAVE,
+            EVENT_TRANSPOSE: DEFAULT_EVENT_TRANSPOSE,
+            EVENT_KEY: Key("C", Scale.default),
+            EVENT_QUANTIZE: DEFAULT_EVENT_QUANTIZE
+        }
+        for key, value in default_values.items():
+            setattr(self, key, value)
+
 class Event:
-    def __init__(self, event_values):
+    def __init__(self, event_values, defaults=EventDefaults()):
         for key in event_values.keys():
             if key not in ALL_EVENT_PARAMETERS:
                 raise ValueError("Invalid key for event: %s" % (key))
@@ -19,18 +35,7 @@ class Event:
         if EVENT_AMPLITUDE_LEGACY in event_values:
             event_values[EVENT_AMPLITUDE] = event_values[EVENT_AMPLITUDE_LEGACY]
 
-        default_values = {
-            EVENT_ACTIVE: True,
-            EVENT_CHANNEL: DEFAULT_EVENT_CHANNEL,
-            EVENT_DURATION: DEFAULT_EVENT_DURATION,
-            EVENT_GATE: DEFAULT_EVENT_GATE,
-            EVENT_AMPLITUDE: DEFAULT_EVENT_AMPLITUDE,
-            EVENT_OCTAVE: DEFAULT_EVENT_OCTAVE,
-            EVENT_TRANSPOSE: DEFAULT_EVENT_TRANSPOSE,
-            EVENT_KEY: Key("C", Scale.default)
-        }
-
-        for key, value in default_values.items():
+        for key, value in defaults.__dict__.items():
             event_values.setdefault(key, value)
 
         if EVENT_NOTE in event_values and EVENT_DEGREE in event_values:

@@ -4,6 +4,8 @@ import threading
 
 from .track import Track
 from .clock import Clock
+from .event import EventDefaults
+from ..key import Key
 from ..io import MidiOutputDevice
 from ..constants import DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO
 from ..constants import EVENT_TIME, EVENT_ACTION, INTERPOLATION_NONE
@@ -50,8 +52,9 @@ class Timeline(object):
         self.stop_when_done = False
         self.events = []
         self.running = False
-        self.default_quantize = None
         self.ignore_exceptions = False
+
+        self.defaults = EventDefaults()
 
     def get_clock_source(self):
         return self._clock_source
@@ -347,7 +350,7 @@ class Timeline(object):
                           output_device=output_device, remove_when_done=remove_when_done)
 
         if quantize is None:
-            quantize = self.default_quantize
+            quantize = self.defaults.quantize
         if quantize or delay:
             #--------------------------------------------------------------------------------
             # We don't want to begin events right away -- either wait till
