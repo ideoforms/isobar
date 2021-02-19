@@ -735,13 +735,14 @@ class PEuclidean(Pattern):
         return reduce(lambda a, b: a + b, seqs + remainder)
 
 class PExplorer(Pattern):
-    def __init__(self, density=0.5, length=4, length_min=2, length_max=6, value_max=12, jump_max=4):
+    def __init__(self, density=0.5, length=4, length_min=2, length_max=6, value_max=12, jump_max=4, loop=None):
         self.density = density
         self.length = length
         self.length_min = length_min
         self.length_max = length_max
         self.value_max = value_max
         self.jump_max = jump_max
+        self.loop = loop
         self.reset()
 
     def reset(self):
@@ -860,7 +861,10 @@ class PExplorer(Pattern):
 
     def __next__(self):
         if self.counter >= len(self.values):
-            raise StopIteration
+            if self.loop is None:
+                raise StopIteration
+            else:
+                self.explore()
 
         rv = self.values[self.counter]
         self.counter += 1
