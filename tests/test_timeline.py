@@ -164,6 +164,33 @@ def test_timeline_schedule_quantize_on_beat(dummy_timeline, quantize):
     assert dummy_timeline.output_device.events[0] == [0, "note_on", 1, 64, 0]
     assert dummy_timeline.output_device.events[1] == [pytest.approx(1.0, abs=dummy_timeline.tick_duration), "note_off", 1, 0]
 
+def test_timeline_schedule_default_quantize(dummy_timeline):
+    dummy_timeline.default_quantize = 1
+    dummy_timeline.stop_when_done = False
+    dummy_timeline.tick()
+    dummy_timeline.stop_when_done = True
+
+    dummy_timeline.schedule({
+        iso.EVENT_NOTE: iso.PSequence([1], 1)
+    })
+    dummy_timeline.run()
+    assert len(dummy_timeline.output_device.events) == 2
+    assert dummy_timeline.output_device.events[0] == [1, "note_on", 1, 64, 0]
+    assert dummy_timeline.output_device.events[1] == [pytest.approx(2, abs=dummy_timeline.tick_duration), "note_off", 1, 0]
+
+def test_timeline_schedule_default_quantize_override(dummy_timeline):
+    dummy_timeline.default_quantize = 1
+    dummy_timeline.stop_when_done = False
+    dummy_timeline.tick()
+    dummy_timeline.stop_when_done = True
+    dummy_timeline.schedule({
+        iso.EVENT_NOTE: iso.PSequence([1], 1)
+    }, quantize=0)
+    dummy_timeline.run()
+    assert len(dummy_timeline.output_device.events) == 2
+    assert dummy_timeline.output_device.events[0] == [pytest.approx(dummy_timeline.tick_duration, abs=dummy_timeline.tick_duration), "note_on", 1, 64, 0]
+    assert dummy_timeline.output_device.events[1] == [pytest.approx(1 + dummy_timeline.tick_duration, abs=dummy_timeline.tick_duration), "note_off", 1, 0]
+
 @pytest.mark.skip
 def test_timeline_schedule_time(dummy_timeline):
     dummy_timeline.schedule({

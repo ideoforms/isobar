@@ -50,6 +50,7 @@ class Timeline(object):
         self.stop_when_done = False
         self.events = []
         self.running = False
+        self.default_quantize = None
 
     def get_clock_source(self):
         return self._clock_source
@@ -281,7 +282,7 @@ class Timeline(object):
 
     def schedule(self,
                  params=None,
-                 quantize=0,
+                 quantize=None,
                  delay=0,
                  count=None,
                  interpolate=INTERPOLATION_NONE,
@@ -339,6 +340,8 @@ class Timeline(object):
         track = Track(self, params, max_event_count=count, interpolate=interpolate,
                       output_device=output_device, remove_when_done=remove_when_done)
 
+        if quantize is None:
+            quantize = self.default_quantize
         if quantize or delay:
             #--------------------------------------------------------------------------------
             # We don't want to begin events right away -- either wait till
