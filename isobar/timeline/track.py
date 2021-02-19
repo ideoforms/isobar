@@ -13,9 +13,7 @@ log = logging.getLogger(__name__)
 class Track:
     def __init__(self, timeline, events, max_event_count=None, interpolate=INTERPOLATION_NONE,
                  output_device=None, remove_when_done=True):
-        #--------------------------------------------------------------------------------
-        # Ensure that events is a pattern that generates a dict when it is iterated.
-        #--------------------------------------------------------------------------------
+        self.timeline = timeline
         self.current_time = 0
         self.next_event_time = 0
         self.max_event_count = max_event_count
@@ -26,7 +24,6 @@ class Track:
         self.next_event = None
         self.interpolating_event = PSequence([], 0)
 
-        self.timeline = timeline
         self.output_device = output_device
         self.interpolate = interpolate
 
@@ -43,6 +40,9 @@ class Track:
         """
         if isinstance(events, dict):
             events = PDict(events)
+
+        if quantize is None:
+            quantize = self.timeline.default_quantize
 
         if quantize:
             self.next_event_time = quantize * math.ceil(float(self.current_time) / quantize)
