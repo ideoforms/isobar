@@ -31,6 +31,7 @@ Note events support the following properties:
 | degree | int | Degree within key/scale (cannot be used if note is specified) |
 | transpose | int | MIDI note transpose |
 | octave | int | MIDI note octave transpose |
+| active | int | If false, skips the note |
 
 ## Duration and gate
 
