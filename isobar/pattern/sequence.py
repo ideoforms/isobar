@@ -798,8 +798,9 @@ class PExplorer(Pattern):
         #------------------------------------------------------------------------
         if operation == OP_MUTATE:
             filled_indices = [n[0] for n in filter(lambda n: n[1] is not None, list(enumerate(values)))]
-            index = random.choice(filled_indices)
-            values[index] = random.randint(0, self.value_max)
+            if len(filled_indices) > 0:
+                index = random.choice(filled_indices)
+                values[index] = random.randint(0, self.value_max)
 
         #------------------------------------------------------------------------
         # ROTATE: Rotate the sequence forwards or backwards one slot.
