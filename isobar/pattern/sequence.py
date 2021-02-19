@@ -993,14 +993,21 @@ class PMetropolis(Pattern):
         self.note_offset = 0
 
     def __next__(self):
-        if self.note_offset > self.repeats[self.note_index] + self.rests[self.note_index]:
+        repeats = self.repeats
+        if len(repeats) < len(self.notes):
+            repeats = repeats * int(math.ceil(len(self.notes) / len(repeats)))
+        rests = self.rests
+        if len(rests) < len(self.notes):
+            rests = rests * int(math.ceil(len(self.notes) / len(rests)))
+
+        if self.note_offset > repeats[self.note_index] + rests[self.note_index]:
             self.note_index += 1
             self.note_offset = 0
         if self.note_index >= len(self.notes):
             self.note_index = 0
             self.note_offset = 0
 
-        if self.note_offset < self.repeats[self.note_index]:
+        if self.note_offset < repeats[self.note_index]:
             rv = self.notes[self.note_index]
         else:
             rv = None
