@@ -47,13 +47,13 @@ class Track:
         # Note that this will only work when the track has been created with a dict
         # of key-value pairs (rather than a pattern that will itself generate dicts.)
         #--------------------------------------------------------------------------------
-        if item != "event_stream" and isinstance(self.event_stream, dict) and item in self.event_stream:
+        if item != "event_stream" and isinstance(self.event_stream, PDict) and item in self.event_stream:
             self.event_stream[item] = value
         else:
             super().__setattr__(item, value)
 
     def __delattr__(self, item):
-        if item != "event_stream" and isinstance(self.event_stream, dict) and item in self.event_stream:
+        if item != "event_stream" and isinstance(self.event_stream, PDict) and item in self.event_stream:
             del self.event_stream[item]
         else:
             super().__delattr__(item)
@@ -356,3 +356,6 @@ class Track:
 
     def schedule_note_off(self, time, note, channel):
         self.note_offs.append([time, note, channel])
+
+    def stop(self):
+        self.timeline.unschedule(self)
