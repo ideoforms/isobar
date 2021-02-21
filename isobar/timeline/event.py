@@ -36,7 +36,8 @@ class Event:
             event_values[EVENT_AMPLITUDE] = event_values[EVENT_AMPLITUDE_LEGACY]
 
         for key, value in defaults.__dict__.items():
-            event_values.setdefault(key, value)
+            # Defaults can be patterns too
+            event_values.setdefault(key, Pattern.value(value))
 
         if EVENT_NOTE in event_values and EVENT_DEGREE in event_values:
             raise InvalidEventException("Cannot specify both note and degree")
