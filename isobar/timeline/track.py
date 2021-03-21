@@ -47,13 +47,13 @@ class Track:
         # Note that this will only work when the track has been created with a dict
         # of key-value pairs (rather than a pattern that will itself generate dicts.)
         #--------------------------------------------------------------------------------
-        if item != "event_stream" and isinstance(self.event_stream, PDict) and item in self.event_stream:
+        if item != "event_stream" and isinstance(self.event_stream, PDict) and item in ALL_EVENT_PARAMETERS:
             self.event_stream[item] = value
         else:
             super().__setattr__(item, value)
 
     def __delattr__(self, item):
-        if item != "event_stream" and isinstance(self.event_stream, PDict) and item in self.event_stream:
+        if item != "event_stream" and isinstance(self.event_stream, PDict) and item in ALL_EVENT_PARAMETERS:
             del self.event_stream[item]
         else:
             super().__delattr__(item)

@@ -153,3 +153,6 @@ class Event:
         self.duration = event_values[EVENT_DURATION]
         self.active = event_values[EVENT_ACTIVE]
         self.fields = event_values
+
+    def __str__(self):
+        return "Event (%s)" % self.fields
