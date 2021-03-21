@@ -1,6 +1,7 @@
 from ..output import OutputDevice
 
 import logging
+import inspect
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +38,11 @@ class SignalFlowOutputDevice(OutputDevice):
 
     def create(self, patch_spec, patch_params):
         # TODO: patch = sf.Patch(patch_spec, patch_params)
-        patch = sf.Patch(patch_spec)
+        if inspect.isclass(patch_spec):
+            patch = patch_spec()
+        elif isinstance(patch_spec, sf.PatchSpec):
+            patch = sf.Patch(patch_spec)
+
         for key, value in patch_params.items():
             if value is None:
                 return
@@ -45,3 +50,7 @@ class SignalFlowOutputDevice(OutputDevice):
                 patch.set_input(key, value)
         patch.auto_free = True
         self.graph.play(patch)
+
+    def trigger(self, patch, patch_params):
+        patch.trigger()
+

@@ -292,9 +292,14 @@ class Track:
         elif event.type == EVENT_TYPE_PATCH:
             if not hasattr(self.output_device, "create"):
                 raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
-            params = event.params
-            params = dict((key, Pattern.value(value)) for key, value in params.items())
+            params = dict((key, Pattern.value(value)) for key, value in event.params.items())
             self.output_device.create(event.patch, params)
+
+        elif event.type == EVENT_TYPE_TRIGGER:
+            if not hasattr(self.output_device, "trigger"):
+                raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
+            params = dict((key, Pattern.value(value)) for key, value in event.params.items())
+            self.output_device.trigger(event.patch, params)
 
         #------------------------------------------------------------------------
         # Note: Classic MIDI note

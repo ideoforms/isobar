@@ -103,7 +103,14 @@ class Event:
                 self.args = dict((key, Pattern.value(value)) for key, value in event_values[EVENT_ACTION_ARGS].items())
 
         elif EVENT_PATCH in event_values:
-            self.type = EVENT_TYPE_PATCH
+            #----------------------------------------------------------------------
+            # Patches support different event types:
+            # create from PatchSpec, create from Patch subclass, trigger
+            #----------------------------------------------------------------------
+            if EVENT_TYPE in event_values:
+                self.type = event_values[EVENT_TYPE]
+            else:
+                self.type = EVENT_TYPE_PATCH
             self.patch = event_values[EVENT_PATCH]
             self.params = {}
             if EVENT_PATCH_PARAMS in event_values:
