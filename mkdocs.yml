@@ -13,13 +13,14 @@ markdown_extensions:
  - pymdownx.tabbed
 
 nav:
- - Home: index.md
- - Getting started: getting-started.md
- - Examples: examples.md
- - Source code: source-code.md
- - About the project: about.md
- - Contributing: contributing.md
- - License: license.md
+ - Home:
+   - Home: index.md
+   - Getting started: getting-started.md
+   - Examples: examples.md
+   - Source code: source-code.md
+   - About the project: about.md
+   - Contributing: contributing.md
+   - License: license.md
  - Timelines:
    - About timelines: timelines/index.md
  - Patterns:
