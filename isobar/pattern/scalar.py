@@ -2,8 +2,13 @@ from .core import Pattern
 from .sequence import PSeries
 
 class PChanged(Pattern):
-    """ PChanged: Outputs a 1 if the value of a pattern has changed.
-        The length of the output patter is always 1 less than the length of the input.
+    """ PChanged: Outputs a 1 if the value of the input pattern has changed,
+        or 0 otherwise.
+
+        >>> a = PSequence([1, 0, 1, 2, 2, 2, 1, 0, 0, 1], repeats=1)
+        >>> b = PChanged(a)
+        >>> b.all()
+        [1, 1, 1, 0, 0, 1, 1, 0, 1]
         """
 
     def __init__(self, source):
@@ -23,7 +28,13 @@ class PChanged(Pattern):
 class PDiff(Pattern):
     """ PDiff: Outputs the difference between the current and previous values of an input pattern
         If the current or next value are None, a value of None will be output.
+
         The length of the output pattern is always 1 less than the length of the input.
+
+        >>> a = PSequence([1, 0, 1, 2, 2, 2, 1, 0, 0, 1], repeats=1)
+        >>> b = PDiff(a)
+        >>> b.all()
+        [-1, 1, 1, 0, 0, -1, -1, 0, 1]
         """
 
     def __init__(self, source):
