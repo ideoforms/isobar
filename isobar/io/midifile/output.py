@@ -41,6 +41,14 @@ class MidiFileOutputDevice (OutputDevice):
         self.last_event_time = self.time
 
     def write(self):
+        #------------------------------------------------------------------------
+        # When closing the MIDI file, append a dummy `note_off` event to ensure
+        # any rests at the end of the file remain intact
+        # (cf. https://forum.noteworthycomposer.com/?topic=4708.0)
+        #------------------------------------------------------------------------
+        dt = self.time - self.last_event_time
+        dt_ticks = int(round(dt * self.midifile.ticks_per_beat))
+        self.miditrack.append(Message('note_off', note=0, channel=0, time=dt_ticks))
         self.midifile.save(self.filename)
 
 class PatternWriterMIDI:
