@@ -159,7 +159,7 @@ key_static = iso.PStaticPattern(key_sequence, 4)
 timeline = iso.Timeline(120)
 timeline.schedule({
     "degree": 0,
-    "octave": 5
+    "octave": 5,
     "key": key_static,
 })
 ```
