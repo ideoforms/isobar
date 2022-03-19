@@ -26,7 +26,7 @@ This executes an action every 4 beats to change the global key of the piece, usi
 
 ```python
 def set_key(k):
-    iso.Globals.set("key", iso.Key(key))
+    iso.Globals.set("key", iso.Key(k))
 
 timeline.schedule({
     "action": set_key,
