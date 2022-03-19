@@ -215,14 +215,11 @@ class Timeline(object):
         self.thread.setDaemon(True)
         self.thread.start()
 
-    def run(self, stop_when_done=None, background=False):
+    def run(self, stop_when_done=None):
         """ Run this Timeline in the foreground.
 
         If stop_when_done is set, returns when no tracks are currently
         scheduled; otherwise, keeps running indefinitely. """
-
-        if stop_when_done and background:
-            raise Exception("Can't select both stop_when_done and background")
 
         self.start()
 
