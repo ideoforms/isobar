@@ -245,10 +245,18 @@ class Track:
         if event.type == EVENT_TYPE_ACTION:
             try:
                 fn = event.action
-                fn_params = inspect.signature(fn).parameters
-                for key in event.args.keys():
-                    if key not in fn_params:
-                        raise Exception("Named argument not found in callback args: %s" % key)
+                try:
+                    fn_params = inspect.signature(fn).parameters
+                    for key in event.args.keys():
+                        if key not in fn_params:
+                            raise Exception("Named argument not found in callback args: %s" % key)
+                except ValueError:
+                    #------------------------------------------------------------------------
+                    # inspect.signature does not work on cython/pybind11 bindings, and
+                    # raises a ValueError. In these cases, simply pass the arguments
+                    # without validation.
+                    #------------------------------------------------------------------------
+                    pass
                 event.action(**event.args)
             except StopIteration:
                 raise StopIteration()
