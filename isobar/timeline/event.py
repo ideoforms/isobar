@@ -105,13 +105,19 @@ class Event:
         elif EVENT_PATCH in event_values:
             #----------------------------------------------------------------------
             # Patches support different event types:
-            # create from PatchSpec, create from Patch subclass, trigger
+            #  - create from PatchSpec (EVENT_TYPE_PATCH_CREATE)
+            #  - trigger Patch (EVENT_TYPE_PATCH_TRIGGER)
+            #  - set Patch params (EVENT_TYPE_PATCH_SET)
             #----------------------------------------------------------------------
+            self.patch = event_values[EVENT_PATCH]
             if EVENT_TYPE in event_values:
                 self.type = event_values[EVENT_TYPE]
             else:
-                self.type = EVENT_TYPE_PATCH
-            self.patch = event_values[EVENT_PATCH]
+                if type(self.patch).__name__ == "PatchSpec" or isinstance(self.patch, type):
+                    self.type = EVENT_TYPE_PATCH_CREATE
+                else:
+                    self.type = EVENT_TYPE_PATCH_SET
+
             self.params = {}
             if EVENT_PATCH_PARAMS in event_values:
                 self.params = event_values[EVENT_PATCH_PARAMS]

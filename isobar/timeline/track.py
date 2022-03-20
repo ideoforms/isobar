@@ -301,13 +301,27 @@ class Track:
         #------------------------------------------------------------------------
         # SignalFlow patch
         #------------------------------------------------------------------------
-        elif event.type == EVENT_TYPE_PATCH:
+        elif event.type == EVENT_TYPE_PATCH_CREATE:
+            #------------------------------------------------------------------------
+            # Action: Create patch
+            #------------------------------------------------------------------------
             if not hasattr(self.output_device, "create"):
                 raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
             params = dict((key, Pattern.value(value)) for key, value in event.params.items())
             self.output_device.create(event.patch, params)
 
-        elif event.type == EVENT_TYPE_TRIGGER:
+        elif event.type == EVENT_TYPE_PATCH_SET:
+            #------------------------------------------------------------------------
+            # Action: Set patch's input(s)
+            #------------------------------------------------------------------------
+            for key, value in event.params.items():
+                value = Pattern.value(value)
+                event.patch.set_input(key, value)
+
+        elif event.type == EVENT_TYPE_PATCH_TRIGGER:
+            #------------------------------------------------------------------------
+            # Action: Trigger a patch
+            #------------------------------------------------------------------------
             if not hasattr(self.output_device, "trigger"):
                 raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
             params = dict((key, Pattern.value(value)) for key, value in event.params.items())

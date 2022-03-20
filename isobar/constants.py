@@ -94,8 +94,9 @@ EVENT_TYPE_CONTROL = "control"
 EVENT_TYPE_PROGRAM_CHANGE = "program_change"
 EVENT_TYPE_OSC = "osc"
 EVENT_TYPE_ACTION = "action"
-EVENT_TYPE_PATCH = "patch"
-EVENT_TYPE_TRIGGER = "trigger"
+EVENT_TYPE_PATCH_CREATE = "patch"
+EVENT_TYPE_PATCH_TRIGGER = "trigger"
+EVENT_TYPE_PATCH_SET = "set"
 EVENT_TYPE_SUPERCOLLIDER = "supercollider"
 
 #------------------------------------------------------------------------
