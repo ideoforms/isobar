@@ -37,17 +37,13 @@ class SignalFlowOutputDevice(OutputDevice):
         self.patches = []
 
     def create(self, patch_spec, patch_params):
-        # TODO: patch = sf.Patch(patch_spec, patch_params)
+        #--------------------------------------------------------------------------------
+        # Create a Patch, passing all params as keyword args
+        #--------------------------------------------------------------------------------
         if inspect.isclass(patch_spec):
-            patch = patch_spec()
+            patch = patch_spec(**patch_params)
         elif isinstance(patch_spec, sf.PatchSpec):
-            patch = sf.Patch(patch_spec)
-
-        for key, value in patch_params.items():
-            if value is None:
-                return
-            else:
-                patch.set_input(key, value)
+            patch = sf.Patch(patch_spec, patch_params)
         patch.auto_free = True
         self.graph.play(patch)
 
