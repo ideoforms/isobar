@@ -256,7 +256,7 @@ def test_timeline_background():
     timeline.schedule({
         "action": set_executed,
         "duration": 0.05
-    }, delay=0.01)
+    }, delay=0.025)
     time.sleep(0.2)
     timeline.stop()
     assert executed == 4
