@@ -290,15 +290,18 @@ class Timeline(object):
                  count=None,
                  interpolate=INTERPOLATION_NONE,
                  output_device=None,
-                 remove_when_done=True):
+                 remove_when_done=True,
+                 name=None,
+                 replace=False):
         """
         Schedule a new track within this Timeline.
 
         Args:
             params (dict):           Event dictionary. Keys are generally EVENT_* values, defined in constants.py.
                                      If params is None, a new empty Track will be scheduled and returned.
-                                     This can be updated with Track.update() to begin generating events.
+                                     This can be updated with Track.update().
                                      params can alternatively be a Pattern that generates a dict output.
+            name (str):              Optional name for the track.
             quantize (float):        Quantize level, in beats. For example, 1.0 will begin executing the
                                      events on the next whole beats.
             delay (float):           Delay time, in beats, before events should be executed.
@@ -310,6 +313,10 @@ class Timeline(object):
             remove_when_done (bool): If True, removes the Track from the Timeline when it is finished.
                                      Otherwise, retains the Track, so update() can later be called to schedule
                                      additional events on it.
+            name (str):              Optional name to identify the Track. If given, can be used to update the track's
+                                     parameters in future calls to schedule() by specifying replace=True.
+            replace (bool):          Must be used in conjunction with the `name` parameter. Instead of scheduling a
+                                     new Track, this updates the parameters of an existing track with the same name.
 
         Returns:
             The new `Track` object.
@@ -325,6 +332,18 @@ class Timeline(object):
             if not self.output_devices:
                 self.add_output_device(MidiOutputDevice())
             output_device = self.output_devices[0]
+
+        #--------------------------------------------------------------------------------
+        # If replace=True is specified, updated the params of any existing track
+        # with the same name. If none exists, proceed to create it as usual.
+        #--------------------------------------------------------------------------------
+        if replace:
+            if name is None:
+                raise ValueError("Must specify a track name if `replace` is specified")
+            for existing_track in self.tracks:
+                if existing_track.name == name:
+                    existing_track.update(params)
+                    return
 
         if self.max_tracks and len(self.tracks) >= self.max_tracks:
             raise TrackLimitReachedException("Timeline: Refusing to schedule track (hit limit of %d)" % self.max_tracks)
@@ -343,8 +362,13 @@ class Timeline(object):
             #--------------------------------------------------------------------------------
             # Take a copy of params to avoid modifying the original
             #--------------------------------------------------------------------------------
-            track = Track(self, copy.copy(params), max_event_count=count, interpolate=interpolate,
-                          output_device=output_device, remove_when_done=remove_when_done)
+            track = Track(self,
+                          copy.copy(params),
+                          max_event_count=count,
+                          interpolate=interpolate,
+                          output_device=output_device,
+                          remove_when_done=remove_when_done,
+                          name=name)
 
         if quantize is None:
             quantize = self.defaults.quantize

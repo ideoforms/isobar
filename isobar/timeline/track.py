@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 class Track:
     def __init__(self, timeline, events, max_event_count=None, interpolate=INTERPOLATION_NONE,
-                 output_device=None, remove_when_done=True):
+                 output_device=None, remove_when_done=True, name=None):
         #--------------------------------------------------------------------------------
         # Ensure that events is a pattern that generates a dict when it is iterated.
         #--------------------------------------------------------------------------------
@@ -22,6 +22,7 @@ class Track:
         self.next_event_time = 0
         self.max_event_count = max_event_count
         self.current_event_count = 0
+        self.name = name
 
         self.update(events)
         self.current_event = None
@@ -81,7 +82,10 @@ class Track:
         self.event_stream = events
 
     def __str__(self):
-        return "Track (pos = %d)" % self.current_time
+        if self.name:
+            return "Track: %s (pos = %d)" % (self.name, self.current_time)
+        else:
+            return "Track (pos = %d)" % self.current_time
 
     @property
     def tick_duration(self):
