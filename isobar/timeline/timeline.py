@@ -342,7 +342,7 @@ class Timeline(object):
                 raise ValueError("Must specify a track name if `replace` is specified")
             for existing_track in self.tracks:
                 if existing_track.name == name:
-                    existing_track.update(params)
+                    existing_track.update(params, quantize=quantize)
                     return
 
         if self.max_tracks and len(self.tracks) >= self.max_tracks:
