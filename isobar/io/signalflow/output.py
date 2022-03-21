@@ -36,7 +36,7 @@ class SignalFlowOutputDevice(OutputDevice):
 
         self.patches = []
 
-    def create(self, patch_spec, patch_params):
+    def create(self, patch_spec, patch_params, output=None):
         #--------------------------------------------------------------------------------
         # Create a Patch, passing all params as keyword args
         #--------------------------------------------------------------------------------
@@ -45,7 +45,11 @@ class SignalFlowOutputDevice(OutputDevice):
         elif isinstance(patch_spec, sf.PatchSpec):
             patch = sf.Patch(patch_spec, patch_params)
         patch.auto_free = True
-        self.graph.play(patch)
+        if output:
+            output.add_input(patch)
+            patch.add_to_graph()
+        else:
+            self.graph.play(patch)
 
     def trigger(self, patch, patch_params):
         patch.trigger()
