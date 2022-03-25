@@ -400,11 +400,30 @@ class Timeline(object):
     sched = schedule
 
     def unschedule(self, track):
+        """
+        Remove a track from playback.
+
+        Args:
+            track: The Track object.
+            
+        Raises:
+            TrackNotFoundException: If the track is not playing.
+        """
         if track not in self.tracks:
             raise TrackNotFoundException("Track is not currently scheduled")
         self.tracks.remove(track)
 
     def get_track(self, track_id):
+        """
+        Get the Track corresponding to the given track_id.
+        track_id can be a numeric index, or the name corresponding to a track.
+
+        Args:
+            track_id: An index or name
+
+        Returns:
+            The Track object, or None if not found.
+        """
         if isinstance(track_id, int):
             return self.tracks[track_id]
         elif isinstance(track_id, str):
