@@ -317,22 +317,22 @@ class Track:
             else:
                 self.output_device.create(event.patch, params, output=event.output)
 
-        elif event.type == EVENT_TYPE_PATCH_SET:
+        elif event.type == EVENT_TYPE_PATCH_SET or event.type == EVENT_TYPE_PATCH_TRIGGER:
             #------------------------------------------------------------------------
-            # Action: Set patch's input(s)
+            # Action: Set patch's input(s) and/or trigger an event
             #------------------------------------------------------------------------
             for key, value in event.params.items():
                 value = Pattern.value(value)
                 event.patch.set_input(key, value)
 
-        elif event.type == EVENT_TYPE_PATCH_TRIGGER:
-            #------------------------------------------------------------------------
-            # Action: Trigger a patch
-            #------------------------------------------------------------------------
-            if not hasattr(self.output_device, "trigger"):
-                raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
-            params = dict((key, Pattern.value(value)) for key, value in event.params.items())
-            self.output_device.trigger(event.patch, params)
+            if event.type == EVENT_TYPE_PATCH_TRIGGER:
+                #------------------------------------------------------------------------
+                # Action: Trigger a patch
+                #------------------------------------------------------------------------
+                if not hasattr(self.output_device, "trigger"):
+                    raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
+                params = dict((key, Pattern.value(value)) for key, value in event.params.items())
+                self.output_device.trigger(event.patch, params)
 
         #------------------------------------------------------------------------
         # Note: Classic MIDI note
