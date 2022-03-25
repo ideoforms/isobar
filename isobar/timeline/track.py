@@ -308,7 +308,14 @@ class Track:
             if not hasattr(self.output_device, "create"):
                 raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
             params = dict((key, Pattern.value(value)) for key, value in event.params.items())
-            self.output_device.create(event.patch, params)
+            if hasattr(event, "note"):
+                notes = event.note if hasattr(event.note, '__iter__') else [event.note]
+                from ..util import midi_note_to_frequency
+                for note in notes:
+                    params["frequency"] = midi_note_to_frequency(note)
+                    self.output_device.create(event.patch, params, output=event.output)
+            else:
+                self.output_device.create(event.patch, params, output=event.output)
 
         elif event.type == EVENT_TYPE_PATCH_SET:
             #------------------------------------------------------------------------

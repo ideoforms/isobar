@@ -125,6 +125,9 @@ class Event:
             if EVENT_PATCH_PARAMS in event_values:
                 self.params = event_values[EVENT_PATCH_PARAMS]
 
+            if EVENT_NOTE in event_values:
+                self.note = event_values[EVENT_NOTE]
+
         elif EVENT_CONTROL in event_values:
             self.type = EVENT_TYPE_CONTROL
             self.control = event_values[EVENT_CONTROL]
