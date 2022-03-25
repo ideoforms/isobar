@@ -404,6 +404,17 @@ class Timeline(object):
             raise TrackNotFoundException("Track is not currently scheduled")
         self.tracks.remove(track)
 
+    def get_track(self, track_id):
+        if isinstance(track_id, int):
+            return self.tracks[track_id]
+        elif isinstance(track_id, str):
+            for track in self.tracks:
+                if track.name == track_id:
+                    return track
+            return None
+        else:
+            raise TypeError("Invalid type for track_id (must be an int or str)")
+
     def clear(self):
         for track in self.tracks[:]:
             self.unschedule(track)
