@@ -88,6 +88,12 @@ def midi_note_to_frequency(note):
         return None
     return 440.0 * pow(2, (note - 69.0) / 12)
 
+def midi_semitones_to_frequency_ratio(semitones):
+    return pow(2, semitones / 12.0)
+
+def frequency_ratio_to_midi_semitones(frequency_ratio):
+    return int(round(math.log2(frequency_ratio) * 12))
+
 def bipolar_diverge(maximum):
     """ Returns [0, 1, -1, ...., maximum, -maximum ] """
     sequence = list(sum(list(zip(list(range(maximum + 1)), list(range(0, -maximum - 1, -1)))), ()))
@@ -110,7 +116,7 @@ def make_clock_multiplier(output_clock_rate, input_clock_rate):
     multiple = 1.0
     if output_clock_rate and input_clock_rate:
         multiple = output_clock_rate / input_clock_rate
-    if (multiple > 1 and int(multiple) != multiple) or (multiple < 1 and 1/multiple != int(1/multiple)):
+    if (multiple > 1 and int(multiple) != multiple) or (multiple < 1 and 1 / multiple != int(1 / multiple)):
         raise ClockException("Cannot sync output device (clock rates must integer multiples of each other)")
 
     pos = 1
