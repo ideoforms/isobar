@@ -3,7 +3,7 @@ import copy
 import random
 
 from .core import Pattern
-from ..util import wnchoice
+from ..util import wnchoice, scale_lin_exp
 
 class PStochasticPattern(Pattern):
     """
@@ -433,3 +433,33 @@ class PSwitchOne(PStochasticPattern):
         rv = self.values[self.pos]
         self.pos += 1
         return rv
+
+class PRandomExponential(PStochasticPattern):
+    """ PRandomExponential: Random uniform on exponential curve between `min` and `max`,
+                            both of which must be strictly positive.
+        If values are given as floats, output values are also floats < max.
+        If values are ints, output values are ints <= max (as random.randint)
+
+        >>> PRandomExponential(1, 100).nextn(16)
+        [3, 2, 12, 1, 6, 13, 14, 25, 78, 78, 4, 49, 5, 97, 69, 12]
+
+        >>> PRandomExponential(1.0, 100.0).nextn(16)
+        [54.84880471711992, 89.53150541306805, 2.4077905492103318, ... ]
+        """
+
+    def __init__(self, min=1.0, max=10.0):
+        super().__init__()
+
+        self.min = min
+        self.max = max
+
+    def __next__(self):
+        min = Pattern.value(self.min)
+        max = Pattern.value(self.max)
+
+        norm = self.rng.uniform(0, 1)
+        rv = scale_lin_exp(norm, 0, 1, min, max)
+        if type(min) == float:
+            return rv
+        else:
+            return int(rv)

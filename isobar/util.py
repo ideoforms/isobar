@@ -94,6 +94,17 @@ def midi_semitones_to_frequency_ratio(semitones):
 def frequency_ratio_to_midi_semitones(frequency_ratio):
     return int(round(math.log2(frequency_ratio) * 12))
 
+def scale_lin_exp(value, from_min=0, from_max=1, to_min=1, to_max=10):
+    if value < from_min:
+        return to_min
+    if value > from_max:
+        return to_max
+    return ((to_max / to_min) ** ((value - from_min) / (from_max - from_min))) * to_min
+
+def scale_lin_lin(value, from_min=0, from_max=1, to_min=0, to_max=1):
+    norm = float(value - from_min) / (from_max - from_min)
+    return norm * float(to_max - to_min) + to_min
+
 def bipolar_diverge(maximum):
     """ Returns [0, 1, -1, ...., maximum, -maximum ] """
     sequence = list(sum(list(zip(list(range(maximum + 1)), list(range(0, -maximum - 1, -1)))), ()))
