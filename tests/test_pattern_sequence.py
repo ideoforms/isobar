@@ -49,9 +49,9 @@ def test_pcreep():
     assert list(b) == [1, 2, 3, 1, 2, 3, 2, 3, 4, 2, 3, 4, 3, 4, 5, 3, 4, 5]
 
 def test_pstutter():
-    a = iso.PSequence([1, 2, 3], 1)
-    b = iso.PStutter(a, 3)
-    assert list(b) == [1, 1, 1, 2, 2, 2, 3, 3, 3]
+    a = iso.PSequence([1, 2, 3, 4], 1)
+    b = iso.PStutter(a, iso.PSequence([2, 3]))
+    assert b.nextn(16) == [1, 1, 2, 2, 2, 3, 3, 4, 4, 4]
 
 def test_psubsequence():
     a = iso.PSeries()

@@ -343,8 +343,8 @@ class PStutter(Pattern):
     def __init__(self, pattern, count=2):
         self.pattern = pattern
         self.count = count
-        self.count_current = Pattern.value(count)
-        self.pos = self.count_current
+        self.count_current = 0
+        self.pos = 0
         self.value = 0
 
     def __next__(self):
