@@ -10,8 +10,10 @@ class PTri(Pattern):
         [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 0.8, 0.6, 0.4, 0.2]
         """
 
-    def __init__(self, length=10):
+    def __init__(self, length=10, min=0.0, max=1.0):
         self.length = length
+        self.min = min
+        self.max = max
         self.reset()
 
     def reset(self):
@@ -19,12 +21,15 @@ class PTri(Pattern):
 
     def __next__(self):
         length = Pattern.value(self.length)
+        min = Pattern.value(self.min)
+        max = Pattern.value(self.max)
 
         norm_phase = float(self.phase) / length
         if norm_phase < 0.5:
             rv = norm_phase * 2.0
         else:
             rv = 1.0 - (norm_phase - 0.5) * 2.0
+        rv = min + (max - min) * rv
 
         self.phase += 1
         if self.phase > length:
