@@ -39,15 +39,15 @@ class PStochasticPattern(Pattern):
 
 class PWhite(PStochasticPattern):
     """ PWhite: White noise between `min` and `max`.
-       If values are given as floats, output values are also floats < max.
-       If values are ints, output values are ints <= max (as random.randint)
+        If values are given as floats, output values are also floats < max.
+        If values are ints, output values are ints <= max (as random.randint)
 
         >>> PWhite(0, 10).nextn(16)
         [8, 10, 8, 1, 7, 3, 1, 9, 9, 3, 2, 10, 7, 5, 10, 4]
 
         >>> PWhite(0.0, 10.0).nextn(16)
         [3.6747936220022082, 0.61313530428271923, 9.1515368696591555, ... 6.2963694390145974 ]
-       """
+        """
 
     def __init__(self, min=0.0, max=1.0):
         super().__init__()
@@ -337,22 +337,22 @@ class PShuffleInput(PStochasticPattern):
         return rv
 
 class PSkip(PStochasticPattern):
-    """ PSkip: Skip events with some probability, 1 - <play>.
-               Set <regularise> to True to skip events regularly.
+    """ PSkip: Skip events with some probability, 1 - `play`.
+               Set <regular> to True to skip events regularly.
         """
 
-    def __init__(self, pattern, play, regularise=False):
+    def __init__(self, pattern, play, regular=False):
         super().__init__()
         self.pattern = pattern
         self.play = play
-        self.regularise = regularise
+        self.regular = regular
         self.pos = 0.0
 
     def __next__(self):
         value = Pattern.value(self.pattern)
         play = Pattern.value(self.play)
 
-        if self.regularise:
+        if self.regular:
             self.pos += play
             if self.pos >= 1:
                 self.pos -= 1
@@ -463,3 +463,84 @@ class PRandomExponential(PStochasticPattern):
             return rv
         else:
             return int(rv)
+
+class PRandomImpulseSequence(PStochasticPattern):
+    """ PRandomImpulseSequence: Random sequence of impulses with probability `probability`.
+
+        >>> PRandomImpulseSequence(0.3, 16).nextn(16)
+        [...]
+
+        """
+
+    def __init__(self, probability=0.0, length=8):
+        super().__init__()
+
+        self.probability = probability
+        self.length = length
+        self.current_length = 0
+        self.values = []
+        self.pos = 0
+        self.every(0)
+
+    def generate(self):
+        probability = Pattern.value(self.probability)
+        self.current_length = Pattern.value(self.length)
+        self.values = [int(self.rng.uniform(0, 1) < probability) for _ in range(self.current_length)]
+        self.pos = 0
+
+    def every(self, n, action=None):
+        if action == "explore":
+            self.every_action = lambda: self.explore()
+        elif action == "reset":
+            self.every_action = lambda: self.reset()
+        elif action == "generate":
+            self.every_action = lambda: self.generate()
+        else:
+            self.every_action = action
+        self.every_count = n
+        self.every_index = 0
+
+    def explore(self):
+        # TODO: Merge function with PExplorer
+        P_SWITCH = 0
+        P_MUTATE = 1
+        P_ROTATE = 2
+        op = self.rng.choice([P_SWITCH, P_MUTATE, P_ROTATE])
+        if op == P_SWITCH:
+            indices = list(range(len(self.values)))
+            self.rng.shuffle(indices)
+            self.values[indices[0]], self.values[indices[1]] = self.values[indices[1]], self.values[indices[0]]
+        elif op == P_MUTATE:
+            index = random.randrange(len(self.values))
+            self.values[index] = 1 - self.values[index]
+        elif op == P_ROTATE:
+            direction_right = self.rng.uniform(0, 1) < 0.5
+            if direction_right:
+                self.values = [self.values[-1]] + self.values[:-1]
+            else:
+                self.values = self.values[1:] + [self.values[0]]
+
+    def __next__(self):
+        if self.every_action:
+            if self.every_index == self.every_count:
+                self.every_action()
+                self.every_index = 0
+            self.every_index += 1
+
+        if self.pos >= len(self.values):
+            self.pos = 0
+            self.current_length = Pattern.value(self.length)
+            #--------------------------------------------------------------------------------
+            # Each time through the cycle, check if the length input has changed.
+            # If yes, change the loop length by appending or trimming.
+            #--------------------------------------------------------------------------------
+            if self.current_length > len(self.values):
+                probability = Pattern.value(self.probability)
+                range_diff = self.current_length - len(self.values)
+                self.values += [int(self.rng.uniform(0, 1) < probability) for _ in range(range_diff)]
+            if self.current_length < len(self.values):
+                self.values = self.values[:self.current_length]
+
+        rv = self.values[self.pos]
+        self.pos += 1
+        return rv
