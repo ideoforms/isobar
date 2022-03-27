@@ -44,7 +44,9 @@ class SignalFlowOutputDevice(OutputDevice):
             patch = patch_spec(**patch_params)
         elif isinstance(patch_spec, sf.PatchSpec):
             patch = sf.Patch(patch_spec, patch_params)
-        patch.auto_free = True
+
+        patch.set_auto_free(True)
+
         if output:
             output.add_input(patch)
             patch.add_to_graph()
