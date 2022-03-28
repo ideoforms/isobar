@@ -312,8 +312,10 @@ class Track:
                 notes = event.note if hasattr(event.note, '__iter__') else [event.note]
                 from ..util import midi_note_to_frequency
                 for note in notes:
-                    params["frequency"] = midi_note_to_frequency(note)
-                    self.output_device.create(event.patch, params, output=event.output)
+                    if note > 0:
+                        # TODO: Should use None to denote rests
+                        params["frequency"] = midi_note_to_frequency(note)
+                        self.output_device.create(event.patch, params, output=event.output)
             else:
                 self.output_device.create(event.patch, params, output=event.output)
 
