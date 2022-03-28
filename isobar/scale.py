@@ -26,6 +26,9 @@ class Scale(object):
     def __contains__(self, semitone):
         return (semitone % self.scale.octave_size) in self.semitones
 
+    def __hash__(self):
+        return hash(tuple((tuple(self.semitones), tuple(self.weights), self.name, self.octave_size)))
+
     def get(self, n):
         """ Retrieve the n'th degree of this scale. """
         if n is None:

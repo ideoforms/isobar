@@ -10,7 +10,13 @@ class Key:
 
     def __init__(self, tonic=0, scale=Scale.major):
         if type(tonic) == str:
-            tonic = note_name_to_midi_note(tonic)
+            # TODO unit test for this
+            if " " in tonic:
+                tonic_str, scale_str = tuple(tonic.split(" "))
+                tonic = note_name_to_midi_note(tonic_str)
+                scale = Scale.byname(scale_str)
+            else:
+                tonic = note_name_to_midi_note(tonic)
         if type(scale) == str:
             scale = Scale.byname(scale)
 
@@ -25,6 +31,9 @@ class Key:
 
     def __repr__(self):
         return 'Key(%s, "%s")' % (self.tonic, self.scale.name)
+
+    def __hash__(self):
+        return hash((self.tonic, hash(self.scale)))
 
     def get(self, degree):
         """ Returns the <degree>th semitone within this key. """
