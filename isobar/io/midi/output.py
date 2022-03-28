@@ -90,5 +90,9 @@ class MidiOutputDevice (OutputDevice):
         msg = mido.Message('pitchwheel', pitch=int(pitch), channel=int(channel))
         self.midi.send(msg)
 
+    def set_song_pos(self, pos=0):
+        msg = mido.Message('songpos', pos=pos)
+        self.midi.send(msg)
+
     def __del__(self):
         del self.midi
