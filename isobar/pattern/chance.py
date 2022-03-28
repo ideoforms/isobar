@@ -500,6 +500,10 @@ class PRandomImpulseSequence(PStochasticPattern):
         self.every_count = n
         self.every_index = 0
 
+        # return self so this can be used in scheduling:
+        # "active": PRandomImpulseSequence(0.3, 8).every(8, "explore"),
+        return self
+
     def explore(self):
         # TODO: Merge function with PExplorer
         P_SWITCH = 0
