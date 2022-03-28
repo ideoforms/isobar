@@ -429,13 +429,13 @@ class PDictKey(Pattern):
     """ PDictKey: Request a specified key from a dictionary.
         """
 
-    def __init__(self, key, dict):
-        self.key = key
+    def __init__(self, dict, key):
         self.dict = dict
+        self.key = key
 
     def __next__(self):
-        vkey = Pattern.value(self.key)
         vdict = Pattern.value(self.dict)
+        vkey = Pattern.value(self.key)
         return vdict[vkey]
 
 class PConcatenate(Pattern):

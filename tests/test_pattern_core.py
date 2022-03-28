@@ -61,7 +61,7 @@ def test_pdictkey():
     d1 = {"foo": "bar", "baz": "buzz"}
     d2 = {"foo": "boo", "baz": "bez"}
     a = iso.PSequence(["foo", "baz"], 1)
-    b = iso.PDictKey(a, iso.PSequence([d1, d2]))
+    b = iso.PDictKey(iso.PSequence([d1, d2]), a)
     assert list(b) == ["bar", "bez"]
 
 def test_pconcatenate():
