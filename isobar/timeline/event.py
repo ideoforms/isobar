@@ -51,6 +51,8 @@ class Event:
                 event_values[EVENT_NOTE] = None
             else:
                 key = event_values[EVENT_KEY]
+                if isinstance(key, str):
+                    key = Key(key)
 
                 #----------------------------------------------------------------------
                 # handle lists of notes (eg chords).
