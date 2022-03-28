@@ -8,6 +8,9 @@ class Globals:
 
     For example,
     """
+    dict = {}
+    on_change_callback = None
+
     @classmethod
     def get(cls, key):
         """
@@ -21,20 +24,39 @@ class Globals:
         Raises:
             KeyError: If the key does not exist in the globals dict.
         """
-        if key not in PGlobals.dict:
+        if key not in Globals.dict:
             raise KeyError("Global variable does not exist: %s" % key)
-        value = PGlobals.dict[key]
+        value = Globals.dict[key]
         return Pattern.value(value)
 
     @classmethod
-    def set(cls, key, value):
-        PGlobals.dict[key] = value
+    def set(cls, key, value=None):
+        """
+        Set global parameters.
+        Can either be used to set a single parameter or, if `key` is a dict, a dict of multiple
+        parameters concurrently.
+
+        Args:
+            key: A key name, or a dict of key-value pairs.
+            value: The value to set the key to
+        """
+        if isinstance(key, dict):
+            for key, value in key.items():
+                Globals.dict[key] = value
+                if Globals.on_change_callback:
+                    Globals.on_change_callback(key, value)
+        else:
+            Globals.dict[key] = value
+            if Globals.on_change_callback:
+                Globals.on_change_callback(key, value)
+
+    @classmethod
+    def on_change(self, callback):
+        Globals.on_change_callback = callback
 
 class PGlobals (Pattern):
     """ PGlobals: Static global value identified by a string.
     """
-    dict = {}
-
     def __init__(self, name):
         self.name = name
 
