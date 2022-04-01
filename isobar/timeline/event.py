@@ -113,15 +113,17 @@ class Event:
             #----------------------------------------------------------------------
             self.patch = event_values[EVENT_PATCH]
             self.output = None
+
             if EVENT_TYPE in event_values:
                 self.type = event_values[EVENT_TYPE]
             else:
                 if type(self.patch).__name__ == "PatchSpec" or isinstance(self.patch, type):
                     self.type = EVENT_TYPE_PATCH_CREATE
-                    if EVENT_PATCH_OUTPUT in event_values:
-                        self.output = event_values[EVENT_PATCH_OUTPUT]
                 else:
                     self.type = EVENT_TYPE_PATCH_SET
+
+            if EVENT_PATCH_OUTPUT in event_values:
+                self.output = event_values[EVENT_PATCH_OUTPUT]
 
             self.params = {}
             if EVENT_PATCH_PARAMS in event_values:
