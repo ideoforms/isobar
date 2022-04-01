@@ -25,7 +25,7 @@ if not args.markdown:
 
 files = [ "core", "scalar", "sequence", "chance", "tonal", "static", "fade", "markov", "lsystem", "warp" ]
 regexp = '^\s+""" ?(P\w+): (.+?)(\s*"""\s*)?$'
-fmt = "    %-20s - %s\n"
+fmt = "    %-24s - %s\n"
 
 for prefix in files:
 	contents = open("isobar/pattern/%s.py" % prefix, "r").readlines()
