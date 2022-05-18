@@ -59,6 +59,7 @@ def note_name_to_midi_note(name):
         octave = 0
 
     try:
+        # TODO: Fix such that note names can be lowercase (must also work with e.g. Bb)
         index = note_names.index([nameset for nameset in note_names if name in nameset][0])
     except IndexError:
         raise UnknownNoteName("Unknown note name: %s" % name)
@@ -90,6 +91,9 @@ def midi_note_to_frequency(note):
 
 def midi_semitones_to_frequency_ratio(semitones):
     return pow(2, semitones / 12.0)
+
+def note_name_to_frequency(note_name):
+    return midi_note_to_frequency(note_name_to_midi_note(note_name))
 
 def frequency_ratio_to_midi_semitones(frequency_ratio):
     return int(round(math.log2(frequency_ratio) * 12))
