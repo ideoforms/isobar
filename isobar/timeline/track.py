@@ -327,6 +327,10 @@ class Track:
                 value = Pattern.value(value)
                 event.patch.set_input(key, value)
 
+            if hasattr(event, "note"):
+                from ..util import midi_note_to_frequency
+                event.patch.set_input("frequency", midi_note_to_frequency(event.note))
+
             if event.type == EVENT_TYPE_PATCH_TRIGGER:
                 #------------------------------------------------------------------------
                 # Action: Trigger a patch
@@ -393,6 +397,9 @@ class Track:
                         self.schedule_note_off(self.current_time + note_dur, note, channel)
         else:
             raise InvalidEventException("Invalid event type: %s" % event.type)
+
+        if self.timeline.on_event_callback:
+            self.timeline.on_event_callback(self, event)
 
     def schedule_note_off(self, time, note, channel):
         self.note_offs.append([time, note, channel])

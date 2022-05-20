@@ -56,6 +56,11 @@ class Timeline(object):
 
         self.defaults = EventDefaults()
 
+        #--------------------------------------------------------------------------------
+        # Optional callback to trigger each time an event is performed.
+        #--------------------------------------------------------------------------------
+        self.on_event_callback = None
+
     def get_clock_source(self):
         return self._clock_source
 

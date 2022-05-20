@@ -108,6 +108,9 @@ class Clock:
     def unwarp(self, warper):
         self.warpers.remove(warper)
 
+    def rewind(self):
+        self.clock_target.set_song_pos(0)
+
 class DummyClock (Clock):
     """
     Clock subclass used in testing, which ticks at the highest rate possible.
