@@ -17,8 +17,12 @@ class NetworkClockSender:
     def tick(self):
         self.osc_client.send_message("/clock/tick", [])
 
+    def reset(self):
+        self.osc_client.send_message("/clock/reset", [])
+
 if __name__ == "__main__":
     sender = NetworkClockSender("127.0.0.1")
+    sender.reset()
     while True:
-        time.sleep(0.5)
+        time.sleep(0.1)
         sender.tick()

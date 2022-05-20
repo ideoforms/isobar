@@ -17,7 +17,8 @@ class NetworkClockReceiver:
         self.clock_target = clock_target
 
         dispatcher = Dispatcher()
-        dispatcher.map("/clock/tick", self.clock_handler)
+        dispatcher.map("/clock/tick", self.on_clock_tick)
+        dispatcher.map("/clock/reset", self.on_clock_reset)
 
         server = BlockingOSCUDPServer(("127.0.0.1", port), dispatcher)
         self.thread = threading.Thread(target=server.serve_forever)
@@ -30,9 +31,13 @@ class NetworkClockReceiver:
         while True:
             time.sleep(0.1)
 
-    def clock_handler(self, address, *args):
+    def on_clock_tick(self, address, *args):
         if self.clock_target:
             self.clock_target.tick()
+
+    def on_clock_reset(self, address, *args):
+        if self.clock_target:
+            self.clock_target.reset()
 
 if __name__ == "__main__":
     class DummyClockTarget:
