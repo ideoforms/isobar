@@ -19,8 +19,9 @@ class NetworkClockReceiver:
         dispatcher = Dispatcher()
         dispatcher.map("/clock/tick", self.on_clock_tick)
         dispatcher.map("/clock/reset", self.on_clock_reset)
+        dispatcher.map("/clock/sync/beat", self.on_clock_sync_beat)
 
-        server = BlockingOSCUDPServer(("127.0.0.1", port), dispatcher)
+        server = BlockingOSCUDPServer(("0.0.0.0", port), dispatcher)
         self.thread = threading.Thread(target=server.serve_forever)
         self.thread.daemon = True
         self.thread.start()
@@ -38,6 +39,10 @@ class NetworkClockReceiver:
     def on_clock_reset(self, address, *args):
         if self.clock_target:
             self.clock_target.reset()
+
+    def on_clock_sync_beat(self, address, *args):
+        if self.clock_target:
+            self.clock_target.reset_to_beat()
 
 if __name__ == "__main__":
     class DummyClockTarget:

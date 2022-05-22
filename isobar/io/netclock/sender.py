@@ -20,6 +20,9 @@ class NetworkClockSender:
     def reset(self):
         self.osc_client.send_message("/clock/reset", [])
 
+    def sync_beat(self):
+        self.osc_client.send_message("/clock/sync/beat", [])
+
 if __name__ == "__main__":
     sender = NetworkClockSender("127.0.0.1")
     sender.reset()
