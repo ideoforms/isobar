@@ -12,18 +12,24 @@ class NetworkGlobalsReceiver:
 
     TODO: Integrate with NetworkClockReceiver
     """
-    def __init__(self, port=8193):
-        dispatcher = Dispatcher()
-        dispatcher.map("/globals/set", self.on_globals_set)
 
-        server = BlockingOSCUDPServer(("0.0.0.0", port), dispatcher)
-        self.thread = threading.Thread(target=server.serve_forever)
+    def __init__(self, port=8193):
+        self.dispatcher = Dispatcher()
+        self.dispatcher.map("/globals/set", self.on_globals_set)
+        self.port = port
+        self.server = None
+        self.running = False
+
+    def start(self):
+        self.server = BlockingOSCUDPServer(("0.0.0.0", self.port), self.dispatcher)
+        self.thread = threading.Thread(target=self.server.serve_forever)
         self.thread.daemon = True
         self.thread.start()
+        self.running = True
 
-    def run(self):
-        while True:
-            time.sleep(0.1)
+    def stop(self):
+        self.server.shutdown()
+        self.running = False
 
     def on_globals_set(self, address, *args):
         key = args[0]
