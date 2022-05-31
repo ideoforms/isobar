@@ -135,6 +135,10 @@ class Pattern:
         """ Less than or equal """
         return PLessThanOrEqual(self, operand)
 
+    def __and__(self, operand):
+        """ And """
+        return PAnd(self, operand)
+
     def __iter__(self):
         return self
 
@@ -661,3 +665,14 @@ class PLessThanOrEqual(PBinOp):
         a = Pattern.value(self.a)
         b = Pattern.value(self.b)
         return None if a is None or b is None else a <= b
+
+class PAnd(PBinOp):
+    """ PAnd: Return True if a and b, False otherwise (shorthand: patternA & patternB) """
+
+    def __str__(self):
+        return "%s & %s" % (self.a, self.b)
+
+    def __next__(self):
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
+        return True if a and b else False
