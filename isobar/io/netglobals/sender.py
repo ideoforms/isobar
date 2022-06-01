@@ -1,5 +1,6 @@
 from pythonosc.udp_client import SimpleUDPClient
 import time
+import pickle
 from isobar.pattern.static import Globals
 
 class NetworkGlobalsSender:
@@ -17,7 +18,10 @@ class NetworkGlobalsSender:
         Globals.on_change_callback = self.on_globals_change
 
     def on_globals_change(self, key, value):
-        self.osc_client.send_message("/globals/set", [key, value])
+        if isinstance(value, (float, int, str, bool)):
+            self.osc_client.send_message("/globals/set", [key, value])
+        else:
+            self.osc_client.send_message("/globals/set", [key, pickle.dumps(value)])
 
 if __name__ == "__main__":
     import random

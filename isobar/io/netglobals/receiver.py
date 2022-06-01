@@ -1,6 +1,7 @@
 from pythonosc.dispatcher import Dispatcher
 from pythonosc.osc_server import BlockingOSCUDPServer
 import threading
+import pickle
 import time
 
 from isobar.pattern.static import Globals
@@ -34,10 +35,14 @@ class NetworkGlobalsReceiver:
     def on_globals_set(self, address, *args):
         key = args[0]
         value = args[1]
-        Globals.set(key, value)
+        try:
+            Globals.set(key, pickle.loads(value))
+        except:
+            Globals.set(key, value)
 
 if __name__ == "__main__":
     receiver = NetworkGlobalsReceiver()
+    receiver.start()
     Globals.set("test", 0.0)
     while True:
         time.sleep(1.0)
