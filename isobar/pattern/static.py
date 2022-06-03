@@ -5,11 +5,9 @@ class Globals:
     The Globals class encapsulates a namespace of global variables that can be accessed
     throughout isobar. This is particularly useful to alter parameters shared across the
     composition, which can then be accessed in patterns using the PGlobals class.
-
-    For example,
     """
     dict = {}
-    on_change_callback = None
+    on_change_callbacks = []
 
     @classmethod
     def get(cls, key):
@@ -43,16 +41,16 @@ class Globals:
         if isinstance(key, dict):
             for key, value in key.items():
                 Globals.dict[key] = value
-                if Globals.on_change_callback:
-                    Globals.on_change_callback(key, value)
+                for callback in Globals.on_change_callbacks:
+                    callback(key, value)
         else:
             Globals.dict[key] = value
-            if Globals.on_change_callback:
-                Globals.on_change_callback(key, value)
+            for callback in Globals.on_change_callbacks:
+                callback(key, value)
 
     @classmethod
-    def on_change(self, callback):
-        Globals.on_change_callback = callback
+    def add_on_change_callback(self, callback):
+        Globals.on_change_callbacks.append(callback)
 
 class PGlobals (Pattern):
     """ PGlobals: Static global value identified by a string.
