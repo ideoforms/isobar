@@ -54,9 +54,9 @@ Patterns can be combined and modified using standard Python arithmetic operators
 12
 
 >>> multiplied = iso.PSequence([ 1, 2, 3 ]) * 4
->>> next(added)
+>>> next(multiplied)
 4
->>> next(added)
+>>> next(multiplied)
 8
 
 >>> inverted = 12 - iso.PSequence([ 1, 2, 3 ])
