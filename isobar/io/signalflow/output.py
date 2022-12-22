@@ -53,6 +53,10 @@ class SignalFlowOutputDevice(OutputDevice):
         else:
             self.graph.play(patch)
 
-    def trigger(self, patch, patch_params):
-        patch.trigger()
-
+    def trigger(self, patch, trigger_name=None, trigger_value=None):
+        if trigger_name is not None and trigger_value is not None:
+            patch.trigger(trigger_name, trigger_value)
+        elif trigger_name is not None:
+            patch.trigger(trigger_name)
+        else:
+            patch.trigger()

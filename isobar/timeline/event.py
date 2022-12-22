@@ -132,6 +132,14 @@ class Event:
             if EVENT_NOTE in event_values:
                 self.note = event_values[EVENT_NOTE]
 
+            # TODO: Different kinds of event should really be different classes
+            self.trigger_name = None
+            self.trigger_value = None
+            if EVENT_TRIGGER_NAME in event_values:
+                self.trigger_name = event_values[EVENT_TRIGGER_NAME]
+            if EVENT_TRIGGER_VALUE in event_values:
+                self.trigger_value = event_values[EVENT_TRIGGER_VALUE]
+
         elif EVENT_CONTROL in event_values:
             self.type = EVENT_TYPE_CONTROL
             self.control = event_values[EVENT_CONTROL]

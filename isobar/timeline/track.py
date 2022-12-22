@@ -6,6 +6,7 @@ from .event import Event
 from ..pattern import Pattern, PSequence, PDict, PInterpolate
 from ..constants import *
 from ..exceptions import InvalidEventException
+from ..util import midi_note_to_frequency
 import logging
 
 log = logging.getLogger(__name__)
@@ -310,7 +311,7 @@ class Track:
             params = dict((key, Pattern.value(value)) for key, value in event.params.items())
             if hasattr(event, "note"):
                 notes = event.note if hasattr(event.note, '__iter__') else [event.note]
-                from ..util import midi_note_to_frequency
+
                 for note in notes:
                     if note > 0:
                         # TODO: Should use None to denote rests
@@ -328,7 +329,6 @@ class Track:
                 event.patch.set_input(key, value)
 
             if hasattr(event, "note"):
-                from ..util import midi_note_to_frequency
                 event.patch.set_input("frequency", midi_note_to_frequency(event.note))
 
             if event.type == EVENT_TYPE_PATCH_TRIGGER:
@@ -338,7 +338,7 @@ class Track:
                 if not hasattr(self.output_device, "trigger"):
                     raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
                 params = dict((key, Pattern.value(value)) for key, value in event.params.items())
-                self.output_device.trigger(event.patch, params)
+                self.output_device.trigger(event.patch, event.trigger_name, event.trigger_value)
 
         #------------------------------------------------------------------------
         # Note: Classic MIDI note
