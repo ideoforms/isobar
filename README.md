@@ -1,6 +1,6 @@
 # isobar
 
-![ci](https://github.com/ideoforms/isobar/workflows/ci/badge.svg)
+![ci](https://github.com/ideoforms/isobar/workflows/ci/badge.svg) [![stability-mature](https://img.shields.io/badge/stability-mature-008000.svg)](https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md#mature)
 
 isobar is a Python library for creating and manipulating musical patterns, designed for use in algorithmic composition, generative music and sonification. It makes it quick and easy to express complex musical ideas, and can send and receive events from various different sources including MIDI, MIDI files, and OSC.
 
