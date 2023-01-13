@@ -9,7 +9,7 @@ Two classes are available for MIDI I/O:
 Sends note and control events to a MIDI device. isobar can also act as the clock out, so that external MIDI devices follow isobar's internal clock.  
 
 !!! info "Virtual MIDI devices" 
-    To control a MIDI device on the same computer that is running isobar, you will need to create a [virtual MIDI bus](https://help.ableton.com/hc/en-us/articles/209774225-How-to-setup-a-virtual-MIDI-bus).
+    To control a MIDI device on the same computer that is running isobar, you will need to create a [virtual MIDI bus](virtual-midi-devices.md).
 
 ```python
 name = "My MIDI Device Name"

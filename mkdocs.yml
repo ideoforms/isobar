@@ -34,5 +34,6 @@ nav:
  - Devices and I/O:
    - Devices and I/O: devices/index.md
    - MIDI: devices/midi.md
+   - Virtual MIDI devices: devices/virtual-midi-devices.md
    - MIDI files: devices/midifile.md
    - OSC: devices/osc.md
