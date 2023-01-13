@@ -4,7 +4,7 @@ isobar is a Python library for creating and manipulating musical patterns, desig
 
 ### What isobar does
 
-The core objective of isobar is to provide a framework for sequencing and triggering events, which may be MIDI messages, OSC triggers, triggers for third-party DSP engines such as SuperCollider, or even Python functions. ([What types of event are supported?](events/index.md#event-types)) 
+The core objective of isobar is to provide a framework for sequencing and triggering events, which may be MIDI messages, OSC events, triggers for third-party DSP engines such as [SuperCollider](https://supercollider.github.io/), or even Python functions. ([What types of event are supported?](events/index.md#event-types)) 
 
 It can be used to trigger events in real time, or to generate patterns that can be serialised as MIDI files and loaded into a DAW.
 

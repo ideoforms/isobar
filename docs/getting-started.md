@@ -32,7 +32,7 @@ pip3 install .
 
 The example scripts are based on sending MIDI to a DAW or MIDI-compatible hardware instrument.
 By default, isobar uses the system's default MIDI output as its output device.
-If you want to specify a non-standard MIDI output, you can specify it using an environmental variable:
+If you want to specify a non-standard MIDI output, you can [specify the name of the MIDI device when creating the Timeline](devices/midi.md), or set a global default output device by using an environmental variable:
 
 ```python
 export ISOBAR_DEFAULT_MIDI_OUT="Prophet 6"
