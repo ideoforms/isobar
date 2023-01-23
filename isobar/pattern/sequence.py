@@ -588,12 +588,20 @@ class PArpeggiator(PStochasticPattern):
     CONVERGE = 2
     DIVERGE = 3
     RANDOM = 4
+    # Abnormal length patterns
+    __LONGPATTERNS = 5
+    UPDOWN = 6
+    DOWNUP = 7
+    BUILD = 8
+    BREAK = 9
+    PINGPONG = 10
 
-    def __init__(self, chord=Chord.major, type=UP):
+    def __init__(self, chord=Chord.major, type=UP, loop=False):
         super().__init__()
 
         self.chord = chord
         self.type = type
+        self.loop = loop
         self.pos = 0
         self.offsets = []
 
@@ -637,6 +645,43 @@ class PArpeggiator(PStochasticPattern):
         elif self.type == PArpeggiator.RANDOM:
             self.offsets = list(range(len(self._notes)))
             self.rng.shuffle(self.offsets)
+        #------------------------------------------------------------------------
+        # Abnormal length patterns
+        #------------------------------------------------------------------------
+        elif self.type == PArpeggiator.UPDOWN:
+            # Min length (for loop): 2
+            self.offsets = list(range(len(self._notes)))[:-1] + list(reversed(list(range(len(self._notes)))))
+            if (self.loop and len(self._notes) > 1):
+                # Remove the last element to prevent double notes
+                self.offsets = self.offsets[:-1]
+        elif self.type == PArpeggiator.DOWNUP:
+            # Min length (for loop): 2
+            self.offsets = list(reversed(list(range(len(self._notes)))))[:-1] + list(range(len(self._notes)))
+            if (self.loop and len(self._notes) > 1):
+                self.offsets = self.offsets[:-1]
+        elif self.type == PArpeggiator.BUILD:
+            # 0, 0, 1, 0, 1, 2, 0, 1, 2, 3, ...
+            # Min length: 2
+            if (len(self._notes) < 2):
+                raise ValueError("Arpeggiator type BUILD requires at least 2 notes")
+            self.offsets = list(itertools.chain.from_iterable([range(0,n + 1) for n in range(len(self._notes))]))
+        elif self.type == PArpeggiator.BREAK:
+            # n, n, n-1, n, n-1, n-2, n, n-1, n-2, n-3, ...
+            # Min length: 2
+            if (len(self._notes) < 2):
+                raise ValueError("Arpeggiator type BREAK requires at least 2 notes")
+            self.offsets = list(itertools.chain.from_iterable([range(n - 1, -1, -1) for n in range(len(self._notes), -1, -1)]))
+        elif self.type == PArpeggiator.PINGPONG:
+            # 0, 1, 0, 2, ..., 0, n, 0, n - 1, ..., 0, 2, 0, 1, 0
+            # Min length: 3
+            if (len(self._notes) < 3):
+                raise ValueError("Arpeggiator type PINGPONG requires at least 3 notes")
+            self.offsets = list(range(len(self._notes)))[1:-1] + list(reversed(list(range(len(self._notes)))))[:-1]
+            # Put a 0 in between every element of an UPDOWN pattern
+            for n in range(0, len(self.offsets) * 2 + 1, 2): self.offsets.insert(n, 0)
+            if (self.loop):
+                # Remove the last three elements for a smooth loop
+                self.offsets = self.offsets[:-3]
         else:
             raise ValueError("Invalid Arpeggiator type: %s" % self.type)
 
@@ -651,16 +696,16 @@ class PArpeggiator(PStochasticPattern):
 
         pos = self.value(self.pos)
 
-        if pos < len(self.offsets) and pos < len(self._notes):
+        if pos < len(self.offsets) and (pos < len(self._notes) or self.type > self.__LONGPATTERNS):
             offset = self.offsets[pos]
             rv = self._notes[offset]
             self.pos = pos + 1
             return rv
+        elif self.loop:
+            self.pos = 0
+            self.reset()
+            return next(self)
         else:
-            # self.pos = 0
-            # self.restart()
-            # return next(self)
-            # TODO: Looping arpeggiator
             raise StopIteration
 
 class PEuclidean(Pattern):
