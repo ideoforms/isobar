@@ -15,7 +15,7 @@ class Chord:
             Chord.dict[name] = self
 
     def __str__(self):
-        return "%s %s%s" % (self.name, self.semitones(), (" + %d" % self.root) if self.root > 0 else "")
+        return "%s [%s]" % (self.name, ",".join(str(n) for n in self.semitones))
 
     @property
     def semitones(self):
@@ -46,7 +46,7 @@ class Chord:
                 break
             intervals.append(interval)
 
-        return Chord(intervals, 0, name if name else "chord", random.randint(0, 12))
+        return Chord(intervals, 0, name)
 
 
 Chord.major = Chord([4, 3, 5], 0, "major")
