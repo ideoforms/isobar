@@ -594,7 +594,7 @@ class PArpeggiator(PStochasticPattern):
     DOWNUP = 7
     BUILD = 8
     BREAK = 9
-    PINGPONG = 10
+    ROOTBOUNCE = 10
 
     def __init__(self, chord=Chord.major, type=UP, loop=False):
         super().__init__()
@@ -671,11 +671,11 @@ class PArpeggiator(PStochasticPattern):
             if (len(self._notes) < 2):
                 raise ValueError("Arpeggiator type BREAK requires at least 2 notes")
             self.offsets = list(itertools.chain.from_iterable([range(n - 1, -1, -1) for n in range(len(self._notes), -1, -1)]))
-        elif self.type == PArpeggiator.PINGPONG:
+        elif self.type == PArpeggiator.ROOTBOUNCE:
             # 0, 1, 0, 2, ..., 0, n, 0, n - 1, ..., 0, 2, 0, 1, 0
             # Min length: 3
             if (len(self._notes) < 3):
-                raise ValueError("Arpeggiator type PINGPONG requires at least 3 notes")
+                raise ValueError("Arpeggiator type ROOTBOUNCE requires at least 3 notes")
             self.offsets = list(range(len(self._notes)))[1:-1] + list(reversed(list(range(len(self._notes)))))[:-1]
             # Put a 0 in between every element of an UPDOWN pattern
             for n in range(0, len(self.offsets) * 2 + 1, 2): self.offsets.insert(n, 0)
