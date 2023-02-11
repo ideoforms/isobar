@@ -472,7 +472,7 @@ class PAbs(Pattern):
     """ PAbs: Absolute value of `input` """
 
     def __init__(self, input):
-        self.input = input
+        self.input = copy.copy(input)
 
     def __next__(self):
         next = Pattern.value(self.input)
@@ -484,7 +484,7 @@ class PInt(Pattern):
     """ PInt: Integer value of `input` """
 
     def __init__(self, input):
-        self.input = input
+        self.input = copy.copy(input)
 
     def __next__(self):
         next = Pattern.value(self.input)

@@ -1,3 +1,5 @@
+import copy
+
 from .core import Pattern
 
 import math
@@ -16,7 +18,7 @@ class PWInterpolate(PWarp):
 
     def __init__(self, pattern, length=1):
         self.length = length
-        self.pattern = pattern
+        self.pattern = copy.copy(pattern)
         self.pos = self.length
         self.value = 0.0
         self.dv = 0.0

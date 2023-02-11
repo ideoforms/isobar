@@ -1,3 +1,5 @@
+import copy
+
 from . import Pattern
 
 class Globals:
@@ -65,7 +67,7 @@ class PGlobals (Pattern):
 
 class PStaticPattern(Pattern):
     def __init__(self, pattern, element_duration):
-        self.pattern = pattern
+        self.pattern = copy.copy(pattern)
         self.value = None
         self.element_duration = element_duration
         self.current_element_start_time = None

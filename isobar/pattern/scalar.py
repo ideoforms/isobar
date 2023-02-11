@@ -1,3 +1,5 @@
+import copy
+
 from .core import Pattern
 from .sequence import PSeries
 from ..util import scale_lin_exp, scale_lin_lin
@@ -39,7 +41,7 @@ class PDiff(Pattern):
         """
 
     def __init__(self, source):
-        self.source = source
+        self.source = copy.copy(source)
         self.current = Pattern.value(self.source)
 
     def reset(self):
@@ -60,7 +62,7 @@ class PSkipIf(Pattern):
         """
 
     def __init__(self, pattern, skip):
-        self.pattern = pattern
+        self.pattern = copy.copy(pattern)
         self.skip = skip
 
     def __next__(self):
@@ -78,7 +80,7 @@ class PNormalise(Pattern):
         """
 
     def __init__(self, input):
-        self.input = input
+        self.input = copy.copy(input)
 
         self.lower = None
         self.upper = None
@@ -117,7 +119,7 @@ class PMap(Pattern):
         """
 
     def __init__(self, input, operator, *args, **kwargs):
-        self.input = input
+        self.input = copy.copy(input)
         self.operator = operator
         self.args = args
         self.kwargs = kwargs
