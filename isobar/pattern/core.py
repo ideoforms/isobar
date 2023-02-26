@@ -321,7 +321,7 @@ class PArrayIndex(Pattern):
         self.index = index
 
     def __repr__(self):
-        return ("PArrayIndex(%s, %s)" % self.list, self.index)
+        return ("PArrayIndex(%s, %s)" % (self.list, self.index))
 
     def __next__(self):
         list = Pattern.value(self.list)
@@ -347,7 +347,7 @@ class PDict(Pattern):
         Thanks to Dan Stowell <http://www.mcld.co.uk/>
         """
 
-    def __init__(self, value:iter=None):
+    def __init__(self, value:dict=None):
         from .sequence import PSequence
 
         self.dict = {}
@@ -370,7 +370,7 @@ class PDict(Pattern):
                 pass
 
     def __repr__(self):
-        return ("PDict(%s)" % self.dict)
+        return ("PDict(%s)" % repr(self.dict))
 
     def __getitem__(self, key):
         return self.dict[key]
@@ -452,7 +452,7 @@ class PDictKey(Pattern):
         self.key = key
 
     def __repr__(self):
-        return ("PDictKey(%s,%s)" % self.dict, self.key)
+        return ("PDictKey(%s, %s)" % (repr(self.dict), repr(self.key)))
 
     def __next__(self):
         vdict = Pattern.value(self.dict)
@@ -495,7 +495,7 @@ class PAbs(Pattern):
         self.input = input
 
     def __repr__(self):
-        return ("PAbs(%s)" % self.input)
+        return ("PAbs(%s)" % repr(self.input))
 
     def __next__(self):
         next = Pattern.value(self.input)
