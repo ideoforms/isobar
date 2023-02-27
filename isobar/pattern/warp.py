@@ -1,3 +1,4 @@
+from __future__ import annotations
 from .core import Pattern
 
 import math
@@ -14,12 +15,15 @@ class PWInterpolate(PWarp):
         >>> p = PWInterpolate(PWhite(-0.5, 0.5), 8)
         """
 
-    def __init__(self, pattern, length=1):
+    def __init__(self, pattern:iter, length:int=1):
         self.length = length
         self.pattern = pattern
         self.pos = self.length
         self.value = 0.0
         self.dv = 0.0
+
+    def __repr__(self):
+        return ("PWInterpolate(%s, %s)" % (repr(self.pattern), self.length))
 
     def __next__(self):
         rv = self.value
@@ -50,10 +54,13 @@ class PWSine(PWarp):
         >>> p = PWAmp(8, 0.5)
         """
 
-    def __init__(self, length=1, amp=0.5):
+    def __init__(self, length:int=1, amp:float=0.5):
         self.length = length
         self.amp = amp
         self.pos = 0.0
+
+    def __repr__(self):
+        return ("PWSine(%s, %s)" % (self.length, self.amp))
 
     def __next__(self):
         self.pos += self.timeline.tick_duration
@@ -73,13 +80,16 @@ class PWRallantando(PWarp):
         >>> p = PWRallantando(8, 0.5)
         """
 
-    def __init__(self, length=1, amp=0.5):
+    def __init__(self, length:int=1, amp:float=0.5):
         self.length = length
         self.amp = amp
         self.pos = 0.0
         self.value = 1.0
         self.length_cur = -1.0
         self.dv = None
+
+    def __repr__(self):
+        return ("PWRallantando(%s, %s)" % (self.length, self.amp))
 
     def __next__(self):
         rv = self.value

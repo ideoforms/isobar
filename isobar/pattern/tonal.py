@@ -1,3 +1,4 @@
+from __future__ import annotations
 from .core import Pattern
 from ..scale import Scale
 from ..util import midi_note_to_frequency
@@ -12,9 +13,12 @@ class PDegree(Pattern):
         [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26]
         """
 
-    def __init__(self, degree, scale=Scale.major):
+    def __init__(self, degree:iter, scale:Scale=Scale.major):
         self.degree = degree
         self.scale = scale
+
+    def __repr__(self):
+        return ("PDegree(%s, %s)" % (repr(self.degree), repr(self.scale)))
 
     def __next__(self):
         degree = Pattern.value(self.degree)
@@ -37,9 +41,12 @@ class PFilterByKey(Pattern):
         [0, None, 2, None, 4, 5, None, 7, None, 9, None, 11, 12, None, 14, None]
         """
 
-    def __init__(self, pattern, key):
+    def __init__(self, pattern:iter, key:iter):
         self.pattern = pattern
         self.key = key
+
+    def __repr__(self):
+        return ("PFilterByKey(%s, %s)" % (repr(self.pattern), repr(self.key)))
 
     def __next__(self):
         note = Pattern.value(self.pattern)
@@ -56,9 +63,12 @@ class PNearestNoteInKey(Pattern):
         >>> p.nextn(16)
         [0, 0, 2, 2, 4, 5, 5, 7, 7, 9, 9, 11, 12, 12, 14, 14]
         """
-    def __init__(self, pattern, key):
+    def __init__(self, pattern:iter, key:iter):
         self.pattern = pattern
         self.key = key
+
+    def __repr__(self):
+        return ("PNearestNoteInKey(%s, %s)" % (repr(self.pattern), repr(self.key)))
 
     def __next__(self):
         note = Pattern.value(self.pattern)
@@ -71,6 +81,9 @@ class PMidiNoteToFrequency(Pattern):
 
     def __init__(self, input):
         self.input = input
+
+    def __repr__(self):
+        return ("PMidiNoteToFrequency(%s)" % repr(self.input))
 
     def __next__(self):
         note = Pattern.value(self.input)
