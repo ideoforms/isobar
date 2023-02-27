@@ -1,3 +1,4 @@
+from __future__ import annotations
 from .core import Pattern
 from .sequence import PSeries
 from ..util import scale_lin_exp, scale_lin_lin
@@ -12,9 +13,12 @@ class PChanged(Pattern):
         [1, 1, 1, 0, 0, 1, 1, 0, 1]
         """
 
-    def __init__(self, source):
+    def __init__(self, source:Pattern):
         self.source = source
         self.current = Pattern.value(self.source)
+
+    def __repr__(self):
+        return ("PChanged(%s)" % repr(self.source))
 
     def reset(self):
         super().reset()
@@ -38,9 +42,12 @@ class PDiff(Pattern):
         [-1, 1, 1, 0, 0, -1, -1, 0, 1]
         """
 
-    def __init__(self, source):
+    def __init__(self, source:Pattern):
         self.source = source
         self.current = Pattern.value(self.source)
+
+    def __repr__(self):
+        return ("PDiff(%s)" % repr(self.source))
 
     def reset(self):
         super().reset()
@@ -59,9 +66,12 @@ class PSkipIf(Pattern):
     """ PSkipIf: If `skip` is false, returns `input`; otherwise, returns None.
         """
 
-    def __init__(self, pattern, skip):
+    def __init__(self, pattern:Pattern, skip:bool):
         self.pattern = pattern
         self.skip = skip
+
+    def __repr__(self):
+        return ("PSkipIf(%s, %s)" % (repr(self.pattern), self.skip))
 
     def __next__(self):
         rv = Pattern.value(self.pattern)
@@ -77,12 +87,15 @@ class PNormalise(Pattern):
         If you know the output range ahead of time, use `PScaleLinLin`.
         """
 
-    def __init__(self, input):
+    def __init__(self, input:iter):
         self.input = input
 
         self.lower = None
         self.upper = None
         self.history = []
+
+    def __repr__(self):
+        return ("PNormalise(%s)" % repr(self.input))
 
     def __next__(self):
         value = Pattern.value(self.input)
@@ -116,11 +129,14 @@ class PMap(Pattern):
         [1, 1, 4, 27, 256, 3125, 46656, 823543, 16777216, 387420489, 10000000000, ... ]
         """
 
-    def __init__(self, input, operator, *args, **kwargs):
+    def __init__(self, input:iter, operator:function, *args, **kwargs):
         self.input = input
         self.operator = operator
         self.args = args
         self.kwargs = kwargs
+
+    def __repr__(self):
+        return ("PMap(%s, %s, %s, %s)" % (repr(self.input), repr(self.operator), repr(self.args), repr(self.kwargs)))
 
     def reset(self):
         super().reset()
@@ -146,8 +162,12 @@ class PMapEnumerated(PMap):
         """
 
     def __init__(self, *args):
+        self.args = args
         PMap.__init__(self, *args)
         self.counter = PSeries()
+
+    def __repr__(self):
+        return ("PMapEnumerated(%s)" % repr(self.args))
 
     def __next__(self):
         args = [Pattern.value(value) for value in self.args]
@@ -164,7 +184,7 @@ class PScaleLinLin(PMap):
         [-34.434991496625955, -33.38823791706497, 42.153457333940267, 16.692545937573783, ... -48.850511242044604 ]
         """
 
-    def __init__(self, input, *args):
+    def __init__(self, input:iter, *args):
         super().__init__(input, scale_lin_lin, *args)
 
 class PScaleLinExp(PMap):
@@ -175,7 +195,7 @@ class PScaleLinExp(PMap):
         [946.888, 282.944, 2343.145, 634.637, 218.844, 19687.330, 4457.627, 172.419, 934.666, ... 46.697 ]
         """
 
-    def __init__(self, input, *args):
+    def __init__(self, input:iter, *args):
         super().__init__(input, scale_lin_exp, *args)
 
 class PRound(PMap):
@@ -205,7 +225,7 @@ class PScalar(PMap):
         [1, 2.5, 5, None, 7]
         """
 
-    def scalar(self, pattern, method):
+    def scalar(self, pattern: Pattern, method: str):
         value = Pattern.value(pattern)
         try:
             values = list(value)
@@ -221,7 +241,7 @@ class PScalar(PMap):
         except TypeError:
             return value
 
-    def __init__(self, pattern, method="mean"):
+    def __init__(self, pattern: Pattern, method:str="mean"):
         """
         Args:
             input (Pattern): Input pattern
@@ -238,10 +258,13 @@ class PWrap(Pattern):
         [5, 8, 1, 4, 7, 0, 3, 6, 9, 2, 5, 8, 1, 4, 7, 0]
         """
 
-    def __init__(self, pattern, min=40, max=80):
+    def __init__(self, pattern:Pattern, min:int=40, max:int=80):
         self.pattern = pattern
         self.min = min
         self.max = max
+
+    def __repr__(self):
+        return ("PWrap(%s, %s, %s)" % (repr(self.pattern), self.min, self.max))
 
     def __next__(self):
         value = next(self.pattern)
@@ -259,9 +282,12 @@ class PIndexOf(Pattern):
         [8, 18, 14, 1, 0, 17, 8, 18, 14, 1, 0, 17, 8, 18, 14, 1]
         """
 
-    def __init__(self, list, item):
+    def __init__(self, list:iter, item):
         self.list = list
         self.item = item
+
+    def __repr__(self):
+        return ("PIndexOf(%s, %s)" % (repr(self.list), repr(self.item)))
 
     def __next__(self):
         list = Pattern.value(self.list)

@@ -1,4 +1,6 @@
+from __future__ import annotations
 from .chance import PStochasticPattern
+from core import Pattern
 
 import os
 
@@ -6,7 +8,7 @@ class PMarkov(PStochasticPattern):
     """ PMarkov: First-order Markov chain generator.
     """
 
-    def __init__(self, nodes=None):
+    def __init__(self, nodes:iter=None):
         """ Create a new Markov chain. 'nodes' can be either be:
          * an ordered sequence of notes (which will be used to infer the
            probabilities of transitioning between notes), or
@@ -40,6 +42,9 @@ class PMarkov(PStochasticPattern):
             self.nodes = {}
 
         self.node = None
+
+    def __repr__(self):
+        return ("PMarkov(%s)" % repr(nodes))
 
     def randomize(self):
         """ Uses the existing set of nodes but randomizes their connections. """
@@ -87,7 +92,10 @@ class MarkovLearner:
         self.markov = PMarkov()
         self.last = None
 
-    def learn_pattern(self, pattern):
+    def __repr__(self):
+        return ("MarkovLearner()")
+
+    def learn_pattern(self, pattern:Pattern):
         """ Learns the sequence described in this pattern. """
         for value in pattern:
             self.register(value)
@@ -100,15 +108,18 @@ class MarkovLearner:
         self.last = value
 
 class MarkovParallelLearners:
-    def __init__(self, count):
+    def __init__(self, count:int):
         self.count = count
         self.learners = [MarkovLearner() for _ in range(count)]
 
-    def register(self, list):
+    def __repr__(self):
+        return ("MarkovParallelLearners(%s)" % self.count)
+
+    def register(self, list:iter):
         for n in range(self.count):
             self.learners[n].register(list[n])
 
-    def chains(self):
+    def chains(self) -> list:
         return [learner.markov for learner in self.learners]
 
 class MarkovGrapher:
@@ -118,7 +129,10 @@ class MarkovGrapher:
     def __init__(self):
         self.pen_width_max = 3.0
 
-    def render(self, markov, filename="markov.pdf", name_map=None):
+    def __repr__(self):
+        return "MarkovGrapher()"
+
+    def render(self, markov, filename:str="markov.pdf", name_map=None):
         """ Graphs the network described by 'markov'.
         If name_map is specified, apply this function to each node value
         to obtain its name.
