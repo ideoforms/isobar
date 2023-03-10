@@ -11,7 +11,7 @@ import argparse
 
 def main(args):
     class_data = parse_class_data(args)
-    if args.generate_index:
+    if args.generate_markdown:
         generate_index(class_data)
     else:
         for file_dict in class_data:
@@ -114,8 +114,8 @@ def parse_class_data(args):
 if __name__ == "__main__":
     # Look for arguments to output as markdown
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--markdown", action="store_true")
-    parser.add_argument("--generate-index", action="store_true")
+    parser.add_argument("--generate-markdown", action="store_true", help="Generate and write markdown files per pattern")
+    parser.add_argument("--generate-readme", action="store_true", help="Generate and output text for README")
     args = parser.parse_args()
 
     main(args)
