@@ -48,13 +48,11 @@ def parse_class_data(args):
 
     for fname in pattern_files:
         basename = os.path.basename(fname)
-        if args.markdown:
+        if args.generate_markdown:
             # Check if folder exists
             if not os.path.exists("docs/patterns/%s" % basename[:-3].title()):
-                # Make the folder
+                # Make the folder if not
                 os.mkdir("docs/patterns/%s" % basename[:-3].title())
-            #print("## %s" % basename[:-3].title())
-            #print("View source: [%s](https://github.com/ideoforms/isobar/tree/master/isobar/pattern/%s)\n" % (basename, basename))
         else:
             print("    %s (%s)" % (basename[:-3].title(), basename))
 
@@ -72,11 +70,23 @@ def parse_class_data(args):
         # Loop through for each class in the file
         while cmatch != None:
             name = re.search('(?<=class\s)[^(:]+', cmatch.group(), re.S).group()
-            desc = re.search('(?<=""")((?!""").)*', cmatch.group(), re.S).group()
+            desc = re.search('(?<=""")((?!""").)*', cmatch.group(), re.S).group().strip()
             # Format whitespace for easier output
+            # Get first line for short description
+            desc = desc.split("\n",1)
+            shortdesc = desc[0]
+            # Get the rest before code for a long description (if available)
+            longdesc = None
             output = None
-            desc = re.sub("\n[^\S\r\n]+", " ", desc)
-            desc = re.sub("\n\s","\n", desc).strip()
+            if (len(desc) > 1):
+                desc = desc[1]
+                desc = desc.split(">>>",1)
+                longdesc = desc[0].strip()
+                # See if there is output to fetch from
+                if (len(desc) > 1):
+                    output = (">>>%s\n" % desc[1])
+                    # Remove spaces
+                    output = re.sub("\n\s+", "\n", output)
 
             # Strip out class
             contents = contents[cmatch.end():]
@@ -90,13 +100,13 @@ def parse_class_data(args):
                 cmatch = re.search('^\s*""".+?"""', contents, re.S)
                 if (cmatch):
                     # Arg comments found, format
-                    arguments = cmatch.group()
+                    arguments = re.search('(?<=""")((?!""").)*', cmatch.group(), re.S).group().strip()
 
             # Gather all information into dict
             classDict = {
                 "classname" : name,
-                "short_description" : desc,
-                "long_description" : desc,
+                "short_description" : shortdesc,
+                "long_description" : longdesc,
                 "example_output" : output,
                 "arguments" : arguments
             }
