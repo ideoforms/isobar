@@ -12,7 +12,8 @@ import argparse
 def main(args):
     class_data = parse_class_data(args)
     if args.generate_markdown:
-        generate_index(class_data)
+        #generate_index(class_data)
+        generate_class_pages(class_data)
     else:
         for file_dict in class_data:
             print(file_dict["name"])
@@ -39,6 +40,29 @@ def generate_index(class_data):
                                                class_dict["short_description"])
         contents += "|-|-|\n"
     print(contents)
+
+def generate_class_pages(class_data):
+    for file_dict in class_data:
+        # Check if folder exists
+        if not os.path.exists("docs/patterns/%s" % file_dict['name'].title()):
+            # Make the folder if not
+            os.mkdir("docs/patterns/%s" % file_dict['name'].title())
+        for class_dict in file_dict['classes']:
+            # Format the file text into a list per line
+            class_content = []
+            class_content.append("#%s" % class_dict['classname'])
+            class_content.append(class_dict['short_description'])
+            if (class_dict['long_description']):
+                class_content.append("##Description")
+                class_content.append(class_dict['long_description'])
+            if (class_dict['arguments']):
+                class_content.append("##Arguments")
+                class_content.append(class_dict['arguments'])
+            if (class_dict['example_output']):
+                class_content.append("##Example Output")
+                class_content.append(class_dict['example_output'])
+            # Output to the proper file (TODO)
+            print("\n\n".join(class_content))
 
 def parse_class_data(args):
     # Get all pattern files, excluding __init__'s
