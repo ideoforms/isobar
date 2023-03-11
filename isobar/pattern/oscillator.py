@@ -11,7 +11,7 @@ class PTri(Pattern):
         [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 0.8, 0.6, 0.4, 0.2]
         """
 
-    def __init__(self, length:int=10, min:float=0.0, max:float=1.0):
+    def __init__(self, length: int = 10, min: float = 0.0, max: float = 1.0):
         self.length = length
         self.min = min
         self.max = max

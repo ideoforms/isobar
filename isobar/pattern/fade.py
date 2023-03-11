@@ -31,7 +31,7 @@ class PFade(Pattern):
 class PFadeNotewise(PFade):
     """ PFadeNotewise: Fade a pattern in/out by introducing notes at a gradual rate. """
 
-    def __init__(self, pattern:Pattern, rate_min:int=1, rate_max:int=1, repeats:int=1, repeats_postfade:int=1):
+    def __init__(self, pattern: Pattern, rate_min: int = 1, rate_max: int = 1, repeats: int = 1, repeats_postfade: int = 1):
         PFade.__init__(self)
 
         self.pattern = pattern

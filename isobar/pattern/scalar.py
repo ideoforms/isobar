@@ -3,6 +3,8 @@ from .core import Pattern
 from .sequence import PSeries
 from ..util import scale_lin_exp, scale_lin_lin
 
+from typing import Iterable, Callable
+
 class PChanged(Pattern):
     """ PChanged: Outputs a 1 if the value of the input pattern has changed,
         or 0 otherwise.
@@ -13,7 +15,7 @@ class PChanged(Pattern):
         [1, 1, 1, 0, 0, 1, 1, 0, 1]
         """
 
-    def __init__(self, source:Pattern):
+    def __init__(self, source: Pattern):
         self.source = source
         self.current = Pattern.value(self.source)
 
@@ -42,7 +44,7 @@ class PDiff(Pattern):
         [-1, 1, 1, 0, 0, -1, -1, 0, 1]
         """
 
-    def __init__(self, source:Pattern):
+    def __init__(self, source: Pattern):
         self.source = source
         self.current = Pattern.value(self.source)
 
@@ -66,7 +68,7 @@ class PSkipIf(Pattern):
     """ PSkipIf: If `skip` is false, returns `input`; otherwise, returns None.
         """
 
-    def __init__(self, pattern:Pattern, skip:bool):
+    def __init__(self, pattern: Pattern, skip: bool):
         self.pattern = pattern
         self.skip = skip
 
@@ -87,7 +89,7 @@ class PNormalise(Pattern):
         If you know the output range ahead of time, use `PScaleLinLin`.
         """
 
-    def __init__(self, input:iter):
+    def __init__(self, input: Iterable):
         self.input = input
 
         self.lower = None
@@ -129,7 +131,7 @@ class PMap(Pattern):
         [1, 1, 4, 27, 256, 3125, 46656, 823543, 16777216, 387420489, 10000000000, ... ]
         """
 
-    def __init__(self, input:iter, operator:function, *args, **kwargs):
+    def __init__(self, input: Iterable, operator: Callable, *args, **kwargs):
         self.input = input
         self.operator = operator
         self.args = args
@@ -184,7 +186,7 @@ class PScaleLinLin(PMap):
         [-34.434991496625955, -33.38823791706497, 42.153457333940267, 16.692545937573783, ... -48.850511242044604 ]
         """
 
-    def __init__(self, input:iter, *args):
+    def __init__(self, input: Iterable, *args):
         super().__init__(input, scale_lin_lin, *args)
 
 class PScaleLinExp(PMap):
@@ -195,7 +197,7 @@ class PScaleLinExp(PMap):
         [946.888, 282.944, 2343.145, 634.637, 218.844, 19687.330, 4457.627, 172.419, 934.666, ... 46.697 ]
         """
 
-    def __init__(self, input:iter, *args):
+    def __init__(self, input: Iterable, *args):
         super().__init__(input, scale_lin_exp, *args)
 
 class PRound(PMap):
@@ -241,7 +243,7 @@ class PScalar(PMap):
         except TypeError:
             return value
 
-    def __init__(self, pattern: Pattern, method:str="mean"):
+    def __init__(self, pattern: Pattern, method: str = "mean"):
         """
         Args:
             input (Pattern): Input pattern
@@ -258,7 +260,7 @@ class PWrap(Pattern):
         [5, 8, 1, 4, 7, 0, 3, 6, 9, 2, 5, 8, 1, 4, 7, 0]
         """
 
-    def __init__(self, pattern:Pattern, min:int=40, max:int=80):
+    def __init__(self, pattern: Pattern, min: int = 40, max: int = 80):
         self.pattern = pattern
         self.min = min
         self.max = max
@@ -282,7 +284,7 @@ class PIndexOf(Pattern):
         [8, 18, 14, 1, 0, 17, 8, 18, 14, 1, 0, 17, 8, 18, 14, 1]
         """
 
-    def __init__(self, list:iter, item):
+    def __init__(self, list: Iterable, item):
         self.list = list
         self.item = item
 

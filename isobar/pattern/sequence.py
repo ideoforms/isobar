@@ -4,6 +4,7 @@ import math
 import copy
 import random
 import itertools
+from typing import Iterable, Callable
 
 from .core import Pattern
 from ..chord import Chord
@@ -24,7 +25,7 @@ class PSequence(Pattern):
         [1, 2, 3, 5, 1, 2, 3, 5, 1, 2, 3, 5, 1, 2, 3, 5]
         """
 
-    def __init__(self, sequence:iter=[], repeats:int=sys.maxsize):
+    def __init__(self, sequence: Iterable = [], repeats: int = sys.maxsize):
         #------------------------------------------------------------------------
         # take a copy of the list to avoid changing the original
         #------------------------------------------------------------------------
@@ -70,7 +71,7 @@ class PSeries(Pattern):
         [3, 12, 21, 30, 39, 48, 57, 66, 75, 84, 93, 102, 111, 120, 129, 138]
         """
 
-    def __init__(self, start:float=0, step:float=1, length:int=sys.maxsize):
+    def __init__(self, start: float = 0, step: float = 1, length: int = sys.maxsize):
         self.start = start
         self.value = start
         self.step = step
@@ -105,7 +106,7 @@ class PRange(Pattern):
         [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
         """
 
-    def __init__(self, start:float=0, end:float=128, step=1):
+    def __init__(self, start: float = 0, end: float = 128, step=1):
         """
         Args:
             start (int or float): Start value
@@ -143,7 +144,7 @@ class PGeom(Pattern):
         [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768]
         """
 
-    def __init__(self, start:float=1, multiply:float=2, length:int=sys.maxsize):
+    def __init__(self, start: float = 1, multiply: float = 2, length: int = sys.maxsize):
         self.start = start
         self.value = start
         self.multiply = multiply
@@ -177,7 +178,7 @@ class PImpulse(Pattern):
         [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
         """
 
-    def __init__(self, period:int):
+    def __init__(self, period: int):
         self.period = period
         self.pos = 0
 
@@ -213,7 +214,7 @@ class PLoop(Pattern):
         [1, 4, 9, 1, 4, 9, 1, 4, 9, 1, 4, 9, 1, 4, 9, 1]
         """
 
-    def __init__(self, pattern:iter, count:int=sys.maxsize):
+    def __init__(self, pattern: Iterable, count: int = sys.maxsize):
         self.pattern = pattern
         self.count = count
         self.pos = 0
@@ -258,7 +259,7 @@ class PPingPong(Pattern):
         [1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4]
         """
 
-    def __init__(self, pattern:iter, count:int=1):
+    def __init__(self, pattern: Iterable, count: int = 1):
         self.pattern = pattern
         self.count = count
         self.reset()
@@ -296,7 +297,7 @@ class PCreep(Pattern):
         [0, 1, 2, 0, 1, 2, 1, 2, 3, 1, 2, 3, 2, 3, 4, 2]
         """
 
-    def __init__(self, pattern:iter, length:int=4, creep:int=1, repeats:int=1, prob:float=1):
+    def __init__(self, pattern: Iterable, length: int = 4, creep: int = 1, repeats: int = 1, prob: float = 1):
         self.pattern = pattern
         self.length = length
         self.creep = creep
@@ -365,7 +366,7 @@ class PStutter(Pattern):
         [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7]
         """
 
-    def __init__(self, pattern:iter, count:int=2):
+    def __init__(self, pattern: Iterable, count: int = 2):
         self.pattern = pattern
         self.count = count
         self.count_current = 0
@@ -390,13 +391,13 @@ class PSubsequence(Pattern):
         >>> p.nextn(16)
         """
 
-    def __init__(self, pattern:iter, offset:int, length:int):
+    def __init__(self, pattern: Iterable, offset: int, length: int):
         self.pattern = pattern
         self.offset = offset
         self.length = length
         self.pos = 0
         self.values = []
-        
+
     def __repr__(self):
         return ("PSubsequence(%s, %s, %s)" % (repr(self.pattern), self.offset, self.length))
 
@@ -420,7 +421,7 @@ class PSubsequence(Pattern):
         return rv
 
 class PInterpolate(Pattern):
-    def __init__(self, pattern:iter, steps:int, interpolation:str=INTERPOLATION_LINEAR):
+    def __init__(self, pattern: Iterable, steps: int, interpolation: str = INTERPOLATION_LINEAR):
         self.pattern = pattern
         self.steps = steps
         self.interpolation = interpolation
@@ -471,7 +472,7 @@ class PInterpolate(Pattern):
 class PReverse(Pattern):
     """ PReverse: Reverses a finite sequence. """
 
-    def __init__(self, input:iter):
+    def __init__(self, input: Iterable):
         self.input = input
         self.reset()
 
@@ -493,7 +494,7 @@ class PReset(Pattern):
         [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
         """
 
-    def __init__(self, pattern:iter, trigger):
+    def __init__(self, pattern: Iterable, trigger):
         self.pattern = pattern
         self.trigger = trigger
 
@@ -569,7 +570,7 @@ class PPad(Pattern):
     """ PPad: Pad `pattern` with rests until it reaches length `length`.
         """
 
-    def __init__(self, pattern:iter, length:int):
+    def __init__(self, pattern: Iterable, length: int):
         self.pattern = pattern
         self.length = length
         self.reset()
@@ -599,7 +600,7 @@ class PPadToMultiple(Pattern):
         Useful to create patterns which occupy a whole number of bars.
         """
 
-    def __init__(self, pattern:iter, multiple:float, minimum_pad:int=0):
+    def __init__(self, pattern: Iterable, multiple: float, minimum_pad: int = 0):
         self.pattern = pattern
         self.multiple = multiple
         self.minimum_pad = minimum_pad
@@ -644,7 +645,7 @@ class PArpeggiator(PStochasticPattern):
     DIVERGE = 3
     RANDOM = 4
 
-    def __init__(self, chord:Chord=Chord.major, type:int=UP):
+    def __init__(self, chord: Chord = Chord.major, type: int = UP):
         super().__init__()
 
         self.chord = chord
@@ -671,7 +672,7 @@ class PArpeggiator(PStochasticPattern):
     def get_notes(self):
         return self._notes
 
-    def set_notes(self, notes:iter):
+    def set_notes(self, notes: Iterable):
         self._notes = list(sorted(notes))
 
     notes = property(get_notes, set_notes)
@@ -731,7 +732,7 @@ class PEuclidean(Pattern):
         [1, None, 1, 1, None, 1, 1, None]
         """
 
-    def __init__(self, mod:int, length:int, phase:int=0):
+    def __init__(self, mod: int, length: int, phase: int = 0):
         self.mod = mod
         self.length = length
         self.sequence = []
@@ -796,7 +797,7 @@ class PEuclidean(Pattern):
         return reduce(lambda a, b: a + b, seqs + remainder)
 
 class PExplorer(Pattern):
-    def __init__(self, density:float=0.5, length:int=4, length_min:int=2, length_max:int=6, value_max:int=12, jump_max:int=4, loop:float=None):
+    def __init__(self, density: float = 0.5, length: int = 4, length_min: int = 2, length_max: int = 6, value_max: int = 12, jump_max: int = 4, loop: float = None):
         self.density = density
         self.length = length
         self.length_min = length_min
@@ -948,7 +949,7 @@ class PPermut(Pattern):
         [1, 11, 111, 1111, 1, 11, 1111, 111, 1, 111, 11, 1111, 1, 111, 1111, 11]
         """
 
-    def __init__(self, input:iter, count:int=8):
+    def __init__(self, input: Iterable, count: int = 8):
         if not hasattr(input, "__next__"):
             raise ValueError("Input to PPermut must be a Pattern or other iterator")
         self.input = input
@@ -1000,7 +1001,7 @@ class PPatternGeneratorAction(Pattern):
         >>>
         """
 
-    def __init__(self, fn:function):
+    def __init__(self, fn: Callable):
         self.fn = fn
         self.pattern = self.fn()
 
@@ -1028,7 +1029,7 @@ class PSequenceAction(Pattern):
         >>>
         """
 
-    def __init__(self, list:iter, fn:function, repeats:int=sys.maxsize):
+    def __init__(self, list: Iterable, fn: Callable, repeats: int = sys.maxsize):
         self.list = list
         self.list_orig = list
         self.sequence = PSequence(self.list, 1)
@@ -1058,7 +1059,7 @@ class PSequenceAction(Pattern):
             return next(self)
 
 class PMetropolis(Pattern):
-    def __init__(self, notes:iter, repeats:int, rests:int):
+    def __init__(self, notes: Iterable, repeats: int, rests: int):
         self.notes = notes
         self.repeats = repeats
         self.rests = rests
@@ -1090,4 +1091,3 @@ class PMetropolis(Pattern):
 
         self.note_offset += 1
         return rv
-

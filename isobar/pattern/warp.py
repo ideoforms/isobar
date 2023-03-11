@@ -2,6 +2,7 @@ from __future__ import annotations
 from .core import Pattern
 
 import math
+from typing import Iterable
 
 class PWarp(Pattern):
     pass
@@ -15,7 +16,7 @@ class PWInterpolate(PWarp):
         >>> p = PWInterpolate(PWhite(-0.5, 0.5), 8)
         """
 
-    def __init__(self, pattern:iter, length:int=1):
+    def __init__(self, pattern: Iterable, length: int = 1):
         self.length = length
         self.pattern = pattern
         self.pos = self.length
@@ -54,7 +55,7 @@ class PWSine(PWarp):
         >>> p = PWAmp(8, 0.5)
         """
 
-    def __init__(self, length:int=1, amp:float=0.5):
+    def __init__(self, length: int = 1, amp: float = 0.5):
         self.length = length
         self.amp = amp
         self.pos = 0.0
@@ -80,7 +81,7 @@ class PWRallantando(PWarp):
         >>> p = PWRallantando(8, 0.5)
         """
 
-    def __init__(self, length:int=1, amp:float=0.5):
+    def __init__(self, length: int = 1, amp: float = 0.5):
         self.length = length
         self.amp = amp
         self.pos = 0.0

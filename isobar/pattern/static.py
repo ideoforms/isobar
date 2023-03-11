@@ -1,5 +1,6 @@
 from __future__ import annotations
 from . import Pattern
+from typing import Iterable
 
 class Globals:
     """
@@ -56,7 +57,8 @@ class Globals:
 class PGlobals (Pattern):
     """ PGlobals: Static global value identified by a string.
     """
-    def __init__(self, name:str):
+
+    def __init__(self, name: str):
         self.name = name
 
     def __repr__(self):
@@ -68,7 +70,7 @@ class PGlobals (Pattern):
         return Pattern.value(value)
 
 class PStaticPattern(Pattern):
-    def __init__(self, pattern:iter, element_duration):
+    def __init__(self, pattern: Iterable, element_duration: float):
         self.pattern = pattern
         self.value = None
         self.element_duration = element_duration

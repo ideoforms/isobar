@@ -4,6 +4,7 @@ from ..scale import Scale
 from ..util import midi_note_to_frequency
 
 import typing
+from typing import Iterable
 
 class PDegree(Pattern):
     """ PDegree: Map scale index <degree> to MIDI notes in <scale>.
@@ -13,7 +14,7 @@ class PDegree(Pattern):
         [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26]
         """
 
-    def __init__(self, degree:iter, scale:Scale=Scale.major):
+    def __init__(self, degree: Iterable, scale: Scale = Scale.major):
         self.degree = degree
         self.scale = scale
 
@@ -41,7 +42,7 @@ class PFilterByKey(Pattern):
         [0, None, 2, None, 4, 5, None, 7, None, 9, None, 11, 12, None, 14, None]
         """
 
-    def __init__(self, pattern:iter, key:iter):
+    def __init__(self, pattern: Iterable, key: Iterable):
         self.pattern = pattern
         self.key = key
 
@@ -63,7 +64,8 @@ class PNearestNoteInKey(Pattern):
         >>> p.nextn(16)
         [0, 0, 2, 2, 4, 5, 5, 7, 7, 9, 9, 11, 12, 12, 14, 14]
         """
-    def __init__(self, pattern:iter, key:iter):
+
+    def __init__(self, pattern: Iterable, key: Iterable):
         self.pattern = pattern
         self.key = key
 

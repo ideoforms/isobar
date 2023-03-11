@@ -3,7 +3,7 @@ from .core import Pattern
 import random
 
 class LSystem:
-    def __init__(self, rule:str="N[-N++N]-N", seed="N"):
+    def __init__(self, rule: str = "N[-N++N]-N", seed="N"):
         self.rule = rule
         self.seed = seed
         self.string = seed
@@ -18,7 +18,7 @@ class LSystem:
         self.stack = []
         self.state = 0
 
-    def iterate(self, count:int=3):
+    def iterate(self, count: int = 3):
         if self.rule.count("[") != self.rule.count("]"):
             raise ValueError("Imbalanced brackets in rule string: %s" % self.rule)
 
@@ -54,7 +54,7 @@ class LSystem:
 class PLSystem(Pattern):
     """ PLSystem: integer sequence derived from Lindenmayer systems """
 
-    def __init__(self, rule:str, depth:int=3, loop:bool=True):
+    def __init__(self, rule: str, depth: int = 3, loop: bool = True):
         self.rule = rule
         self.depth = depth
         self.loop = loop
