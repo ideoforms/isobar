@@ -70,7 +70,7 @@ class PGlobals (Pattern):
         return Pattern.value(value)
 
 class PStaticPattern(Pattern):
-    def __init__(self, pattern: Iterable, element_duration: float):
+    def __init__(self, pattern: Pattern, element_duration: float):
         self.pattern = pattern
         self.value = None
         self.element_duration = element_duration

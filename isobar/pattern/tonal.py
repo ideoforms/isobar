@@ -42,7 +42,7 @@ class PFilterByKey(Pattern):
         [0, None, 2, None, 4, 5, None, 7, None, 9, None, 11, 12, None, 14, None]
         """
 
-    def __init__(self, pattern: Iterable, key: Iterable):
+    def __init__(self, pattern: Pattern, key: Iterable):
         self.pattern = pattern
         self.key = key
 
@@ -65,7 +65,7 @@ class PNearestNoteInKey(Pattern):
         [0, 0, 2, 2, 4, 5, 5, 7, 7, 9, 9, 11, 12, 12, 14, 14]
         """
 
-    def __init__(self, pattern: Iterable, key: Iterable):
+    def __init__(self, pattern: Pattern, key: Iterable):
         self.pattern = pattern
         self.key = key
 

@@ -16,7 +16,7 @@ class PWInterpolate(PWarp):
         >>> p = PWInterpolate(PWhite(-0.5, 0.5), 8)
         """
 
-    def __init__(self, pattern: Iterable, length: int = 1):
+    def __init__(self, pattern: Pattern, length: int = 1):
         self.length = length
         self.pattern = pattern
         self.pos = self.length

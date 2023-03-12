@@ -214,7 +214,7 @@ class PLoop(Pattern):
         [1, 4, 9, 1, 4, 9, 1, 4, 9, 1, 4, 9, 1, 4, 9, 1]
         """
 
-    def __init__(self, pattern: Iterable, count: int = sys.maxsize):
+    def __init__(self, pattern: Pattern, count: int = sys.maxsize):
         self.pattern = pattern
         self.count = count
         self.pos = 0
@@ -259,7 +259,7 @@ class PPingPong(Pattern):
         [1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4, 1, 4, 9, 4]
         """
 
-    def __init__(self, pattern: Iterable, count: int = 1):
+    def __init__(self, pattern: Pattern, count: int = 1):
         self.pattern = pattern
         self.count = count
         self.reset()
@@ -297,7 +297,7 @@ class PCreep(Pattern):
         [0, 1, 2, 0, 1, 2, 1, 2, 3, 1, 2, 3, 2, 3, 4, 2]
         """
 
-    def __init__(self, pattern: Iterable, length: int = 4, creep: int = 1, repeats: int = 1, prob: float = 1):
+    def __init__(self, pattern: Pattern, length: int = 4, creep: int = 1, repeats: int = 1, prob: float = 1):
         self.pattern = pattern
         self.length = length
         self.creep = creep
@@ -366,7 +366,7 @@ class PStutter(Pattern):
         [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7]
         """
 
-    def __init__(self, pattern: Iterable, count: int = 2):
+    def __init__(self, pattern: Pattern, count: int = 2):
         self.pattern = pattern
         self.count = count
         self.count_current = 0
@@ -391,7 +391,7 @@ class PSubsequence(Pattern):
         >>> p.nextn(16)
         """
 
-    def __init__(self, pattern: Iterable, offset: int, length: int):
+    def __init__(self, pattern: Pattern, offset: int, length: int):
         self.pattern = pattern
         self.offset = offset
         self.length = length
@@ -421,7 +421,7 @@ class PSubsequence(Pattern):
         return rv
 
 class PInterpolate(Pattern):
-    def __init__(self, pattern: Iterable, steps: int, interpolation: str = INTERPOLATION_LINEAR):
+    def __init__(self, pattern: Pattern, steps: int, interpolation: str = INTERPOLATION_LINEAR):
         self.pattern = pattern
         self.steps = steps
         self.interpolation = interpolation
@@ -494,7 +494,7 @@ class PReset(Pattern):
         [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
         """
 
-    def __init__(self, pattern: Iterable, trigger):
+    def __init__(self, pattern: Pattern, trigger):
         self.pattern = pattern
         self.trigger = trigger
 
@@ -570,7 +570,7 @@ class PPad(Pattern):
     """ PPad: Pad `pattern` with rests until it reaches length `length`.
         """
 
-    def __init__(self, pattern: Iterable, length: int):
+    def __init__(self, pattern: Pattern, length: int):
         self.pattern = pattern
         self.length = length
         self.reset()
@@ -600,7 +600,7 @@ class PPadToMultiple(Pattern):
         Useful to create patterns which occupy a whole number of bars.
         """
 
-    def __init__(self, pattern: Iterable, multiple: float, minimum_pad: int = 0):
+    def __init__(self, pattern: Pattern, multiple: float, minimum_pad: int = 0):
         self.pattern = pattern
         self.multiple = multiple
         self.minimum_pad = minimum_pad
