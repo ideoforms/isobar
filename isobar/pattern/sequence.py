@@ -472,7 +472,7 @@ class PInterpolate(Pattern):
 class PReverse(Pattern):
     """ PReverse: Reverses a finite sequence. """
 
-    def __init__(self, input: Iterable):
+    def __init__(self, input: Pattern):
         self.input = input
         self.reset()
 
@@ -949,7 +949,7 @@ class PPermut(Pattern):
         [1, 11, 111, 1111, 1, 11, 1111, 111, 1, 111, 11, 1111, 1, 111, 1111, 11]
         """
 
-    def __init__(self, input: Iterable, count: int = 8):
+    def __init__(self, input: Pattern, count: int = 8):
         if not hasattr(input, "__next__"):
             raise ValueError("Input to PPermut must be a Pattern or other iterator")
         self.input = input

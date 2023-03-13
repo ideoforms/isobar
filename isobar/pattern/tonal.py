@@ -14,7 +14,7 @@ class PDegree(Pattern):
         [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26]
         """
 
-    def __init__(self, degree: Iterable, scale: Scale = Scale.major):
+    def __init__(self, degree: Pattern, scale: Scale = Scale.major):
         self.degree = degree
         self.scale = scale
 

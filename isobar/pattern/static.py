@@ -1,6 +1,5 @@
 from __future__ import annotations
 from . import Pattern
-from typing import Iterable
 
 class Globals:
     """

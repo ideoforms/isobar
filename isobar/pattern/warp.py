@@ -2,7 +2,6 @@ from __future__ import annotations
 from .core import Pattern
 
 import math
-from typing import Iterable
 
 class PWarp(Pattern):
     pass

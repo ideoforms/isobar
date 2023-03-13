@@ -204,7 +204,7 @@ class Pattern:
                     if isinstance(item, Pattern):
                         item.reset()
 
-    def append(self, other: Iterable) -> PConcatenate:
+    def append(self, other: Pattern) -> PConcatenate:
         """
         Returns a new pattern with the contents of `other` appended to the contents of `self`.
         """
