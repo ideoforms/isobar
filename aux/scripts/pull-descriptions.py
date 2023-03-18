@@ -12,7 +12,7 @@ import argparse
 def main(args):
     class_data = parse_class_data(args)
     if args.generate_markdown:
-        #generate_index(class_data)
+        generate_index(class_data)
         generate_class_pages(class_data)
     else:
         for file_dict in class_data:
@@ -30,7 +30,7 @@ def generate_index(class_data):
     contents = ""
     for file_dict in class_data:
         contents += "## %s\n" % file_dict["name"].title()
-        contents += "View source: [%s.py](https://github.com/ideoforms/isobar/tree/master/isobar/pattern/%s.py)\n" % (
+        contents += "View source: [%s.py](https://github.com/ideoforms/isobar/tree/master/isobar/pattern/%s.py)\n\n" % (
             file_dict["name"], file_dict["name"])
         contents += "| Class | Function |\n"
         contents += "|-|-|\n"
@@ -39,15 +39,18 @@ def generate_index(class_data):
                                                        file_dict["name"],
                                                        class_dict["classname"].lower(),
                                                        class_dict["short_description"])
-        contents += "|-|-|\n"
-    print(contents)
+        contents += "\n\n"
+    # Output to library.md
+    f = open("docs/patterns/library.md", "w")
+    f.write(contents)
+    f.close()
 
 def generate_class_pages(class_data):
     for file_dict in class_data:
         # Check if folder exists
-        if not os.path.exists("docs/patterns/%s" % file_dict['name'].title()):
+        if not os.path.exists("docs/patterns/%s" % file_dict['name'].lower()):
             # Make the folder if not
-            os.mkdir("docs/patterns/%s" % file_dict['name'].title())
+            os.mkdir("docs/patterns/%s" % file_dict['name'].lower())
         for class_dict in file_dict['classes']:
             # Format the file text into a list per line
             class_content = []
@@ -63,7 +66,7 @@ def generate_class_pages(class_data):
                 class_content.append("## Example Output")
                 class_content.append("```py\n%s```" % class_dict['example_output'])
             # Output to the proper file
-            fname = ("docs/patterns/%s/%s.md" % (file_dict['name'].title(), class_dict['classname']))
+            fname = ("docs/patterns/%s/%s.md" % (file_dict['name'].lower(), class_dict['classname'].lower()))
             f = open(fname, "w")
             f.write("\n\n".join(class_content))
             f.close()
@@ -76,13 +79,6 @@ def parse_class_data(args):
 
     for fname in pattern_files:
         basename = os.path.basename(fname)
-        if args.generate_markdown:
-            # Check if folder exists
-            if not os.path.exists("docs/patterns/%s" % basename[:-3].title()):
-                # Make the folder if not
-                os.mkdir("docs/patterns/%s" % basename[:-3].title())
-        else:
-            print("    %s (%s)" % (basename[:-3].title(), basename))
 
         # Make a new dict for this file
         fileDict = {
@@ -129,6 +125,17 @@ def parse_class_data(args):
                 if (cmatch):
                     # Arg comments found, format
                     arguments = re.search('(?<=""")((?!""").)*', cmatch.group(), re.S).group().strip()
+                    # Remove the first line stating it is the argument
+                    arguments = arguments.split("\n")[1:]
+                    i = 0
+                    for l in arguments:
+                        # Format a code block around the name of the arg
+                        l = "`%s" % l.strip()
+                        l = re.sub(":", "`:", l, 1)
+                        arguments[i] = l
+                        i += 1
+                    print(arguments)
+                    arguments = "\n\n".join(arguments)
 
             # Gather all information into dict
             classDict = {
