@@ -53,8 +53,12 @@ def note_name_to_midi_note(name):
     """ Maps a MIDI note name (D3, C#6) to a value.
     Assumes that middle C is C4. """
     if name[-1].isdigit():
-        octave = int(name[-1])
-        name = name[:-1]
+        sign = -1 if name[-2] == '-' else 1
+        octave = sign*int(name[-1])
+        if sign == 1:
+            name = name[:-1]
+        else:
+            name = name[:-2]
     else:
         octave = 0
 
