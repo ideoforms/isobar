@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.1.2](https://github.com/ideoforms/isobar/tree/v0.1.1) (2023-05-28)
+
+- Added `SignalFlowOutputDevice` and `CVOutputDevice`
+- Added `NetworkClockSender` / `NetworkClockReceiver`, and `NetworkGlobalsSender` / `NetworkGlobalsReceiver`
+- Added new stochastic patterns: `PCoin`, `PRandomImpulseSequence`, `PRandomExponential`, `PMetropolis`
+
 ## [v0.1.1](https://github.com/ideoforms/isobar/tree/v0.1.0) (2020-10-07)
 
 Major overhaul and refactor.
