@@ -50,15 +50,20 @@ class Event:
             if degree is None:
                 event_values[EVENT_NOTE] = None
             else:
+                #--------------------------------------------------------------------------------
+                # Tolerate float degrees.
+                # This may need revisiting for tunings that permit sub-semitone values.
+                #--------------------------------------------------------------------------------
+                degree = int(degree)
                 key = event_values[EVENT_KEY]
                 if isinstance(key, str):
                     key = Key(key)
 
-                #----------------------------------------------------------------------
-                # handle lists of notes (eg chords).
+                #--------------------------------------------------------------------------------
+                # Handle lists of notes (eg chords).
                 # TODO: create a class which allows for scalars and arrays to handle
-                # addition transparently
-                #----------------------------------------------------------------------
+                #       addition transparently
+                #--------------------------------------------------------------------------------
                 try:
                     event_values[EVENT_NOTE] = [key[n] for n in degree]
                 except TypeError:
@@ -88,11 +93,11 @@ class Event:
                 # for example.
                 #----------------------------------------------------------------------
                 try:
-                    event_values[EVENT_NOTE] = [note +
-                                                event_values[EVENT_OCTAVE] * 12 +
-                                                event_values[EVENT_TRANSPOSE] for note in event_values[EVENT_NOTE]]
+                    event_values[EVENT_NOTE] = [int(note) +
+                                                int(event_values[EVENT_OCTAVE]) * 12 +
+                                                int(event_values[EVENT_TRANSPOSE]) for note in event_values[EVENT_NOTE]]
                 except TypeError:
-                    event_values[EVENT_NOTE] += event_values[EVENT_OCTAVE] * 12 + event_values[EVENT_TRANSPOSE]
+                    event_values[EVENT_NOTE] += int(event_values[EVENT_OCTAVE]) * 12 + int(event_values[EVENT_TRANSPOSE])
 
         #----------------------------------------------------------------------
         # Classify the event type.
