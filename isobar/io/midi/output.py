@@ -95,4 +95,5 @@ class MidiOutputDevice (OutputDevice):
         self.midi.send(msg)
 
     def __del__(self):
-        del self.midi
+        if hasattr(self, "midi"):
+            del self.midi
