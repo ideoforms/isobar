@@ -297,7 +297,8 @@ class Timeline(object):
                  output_device=None,
                  remove_when_done=True,
                  name=None,
-                 replace=False):
+                 replace=False,
+                 track_index=None):
         """
         Schedule a new track within this Timeline.
 
@@ -322,6 +323,9 @@ class Timeline(object):
                                      parameters in future calls to schedule() by specifying replace=True.
             replace (bool):          Must be used in conjunction with the `name` parameter. Instead of scheduling a
                                      new Track, this updates the parameters of an existing track with the same name.
+            track_index (int):       When specified, inserts the Track at the given index.
+                                     This can be used to set the priority of an event and ensure that it happens
+                                     before another Track is evaluted, used in (e.g.) Track.update().
 
         Returns:
             The new `Track` object.
@@ -329,7 +333,6 @@ class Timeline(object):
         Raises:
             TrackLimitReachedException: If `max_tracks` has been reached.
         """
-
         if not output_device:
             #--------------------------------------------------------------------------------
             # If no output device exists, send to the system default MIDI output.
@@ -353,11 +356,14 @@ class Timeline(object):
         if self.max_tracks and len(self.tracks) >= self.max_tracks:
             raise TrackLimitReachedException("Timeline: Refusing to schedule track (hit limit of %d)" % self.max_tracks)
 
-        def start_track(track):
+        def add_track(track):
             #--------------------------------------------------------------------------------
             # Add a new track.
             #--------------------------------------------------------------------------------
-            self.tracks.append(track)
+            if track_index is not None:
+                self.tracks.insert(track_index, track)
+            else:
+                self.tracks.append(track)
             log.info("Timeline: Scheduled new track (total tracks: %d)" % len(self.tracks))
 
         if isinstance(params, Track):
@@ -368,7 +374,7 @@ class Timeline(object):
             # Take a copy of params to avoid modifying the original
             #--------------------------------------------------------------------------------
             track = Track(self,
-                          copy.copy(params),
+                          events=copy.copy(params),
                           max_event_count=count,
                           interpolate=interpolate,
                           output_device=output_device,
@@ -389,13 +395,13 @@ class Timeline(object):
 
             self.events.append({
                 EVENT_TIME: scheduled_time,
-                EVENT_ACTION: lambda: start_track(track)
+                EVENT_ACTION: lambda: add_track(track)
             })
         else:
             #--------------------------------------------------------------------------------
             # Begin events on this track right away.
             #--------------------------------------------------------------------------------
-            start_track(track)
+            add_track(track)
 
         return track
 

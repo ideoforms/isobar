@@ -12,8 +12,27 @@ import logging
 log = logging.getLogger(__name__)
 
 class Track:
-    def __init__(self, timeline, events, max_event_count=None, interpolate=INTERPOLATION_NONE,
-                 output_device=None, remove_when_done=True, name=None):
+    def __init__(self,
+                 timeline,
+                 events,
+                 max_event_count=None,
+                 interpolate=INTERPOLATION_NONE,
+                 output_device=None,
+                 remove_when_done=True,
+                 name=None):
+        """
+
+        Args:
+            timeline: A Timeline object
+            events: A dict, a PDict, or a Pattern that generates dicts.
+            max_event_count: Optionally, the maximum number of events that will be executed.
+                             The Track will finish automatically once this number of events is complete.
+            interpolate: Optional interpolation to impose on values, particularly for control tracks.
+            output_device: Optional output device. Defaults to the Timeline's default_output_device.
+            remove_when_done: If True, removes the Track from the Timeline when it finishes.
+            name: Optional name for the track. If specified, can be used to update tracks in place by specifying
+                  its name when scheduling events on the Timeline.
+        """
         #--------------------------------------------------------------------------------
         # Ensure that events is a pattern that generates a dict when it is iterated.
         #--------------------------------------------------------------------------------
@@ -25,7 +44,7 @@ class Track:
         self.current_event_count = 0
         self.name = name
 
-        self.update(events)
+        self._update(events)
         self.current_event = None
         self.next_event = None
         self.interpolating_event = PSequence([], 0)
@@ -60,27 +79,41 @@ class Track:
         else:
             super().__delattr__(item)
 
-    def update(self, events, quantize=None):
-        """
-        Update the events that this Track produces.
-
-        Args:
-            events: A dict, a PDict, or a Pattern that generates dicts.
-        """
+    def _update(self, events):
         if events is None:
             events = {}
         if isinstance(events, dict):
             events = PDict(events)
 
+        self.next_event_time = self.current_time
+        self.event_stream = events
+
+    def update(self,
+               events,
+               quantize=None):
+        """
+        Update the events that this Track produces.
+
+        Args:
+            events: A dict, a PDict, or a Pattern that generates dicts.
+            quantize: An optional float that specifies the quantization that the update() should follow.
+                      quantize == 1 means that the update should happen on the next beat boundary.
+        """
+
         if quantize is None:
             quantize = self.timeline.defaults.quantize
 
-        if quantize:
-            self.next_event_time = quantize * math.ceil(float(self.current_time) / quantize)
+        if quantize is None:
+            self._update(events)
         else:
-            self.next_event_time = self.current_time
-
-        self.event_stream = events
+            #--------------------------------------------------------------------------------
+            # Schedule update event, with priority=0 to ensure that the action
+            # happens before the track's tick() event is called.
+            #--------------------------------------------------------------------------------
+            self.timeline.schedule({
+                EVENT_TYPE: EVENT_TYPE_ACTION,
+                EVENT_ACTION: lambda: self._update(events)
+            }, quantize=quantize, count=1, track_index=0)
 
     def __str__(self):
         if self.name:
