@@ -265,15 +265,11 @@ def test_timeline_running(dummy_timeline):
     # TODO
     pass
 
-def test_timeline_tick_events(dummy_timeline):
+def test_timeline_tick_actions(dummy_timeline):
     dummy_timeline.done = False
     def callback():
         dummy_timeline.done = True
-    event = {
-        iso.EVENT_TIME: dummy_timeline.tick_duration,
-        iso.EVENT_ACTION: callback
-    }
-    dummy_timeline.events.append(event)
+    dummy_timeline._schedule_action(callback, delay=dummy_timeline.tick_duration)
     dummy_timeline.tick()
     with pytest.raises(StopIteration):
         dummy_timeline.tick()

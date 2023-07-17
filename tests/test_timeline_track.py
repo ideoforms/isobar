@@ -20,14 +20,24 @@ def test_track_update(dummy_timeline):
     # Test that a track can be updated properly.
     #  - Track should continue playing its current events until precisely the
     #    quantized time of the update.
-    #  - Should also catch the edge case in which the current event stream finishes
+    #  - Should also catch the case in which the current event stream finishes
     #    at exactly the scheduled time, to ensure that the track does not mistakenly
     #    set its `is_finished` flag and terminate.
+    #  - Should also catch the case in which two updates are scheduled for the same
+    #    tick, in which the last update takes precedence
     #--------------------------------------------------------------------------------
     track = dummy_timeline.schedule({
         iso.EVENT_NOTE: iso.PSequence([50], 4),
     }, count=20)
     dummy_timeline.tick()
+
+    # This update is later obsoleted
+    track.update({
+        iso.EVENT_NOTE: iso.PSequence([70], 4),
+    }, quantize=4)
+    dummy_timeline.tick()
+
+    # This update takes precedence over the previous update
     track.update({
         iso.EVENT_NOTE: iso.PSequence([60], 4),
     }, quantize=4)

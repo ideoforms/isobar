@@ -110,10 +110,8 @@ class Track:
             # Schedule update event, with priority=0 to ensure that the action
             # happens before the track's tick() event is called.
             #--------------------------------------------------------------------------------
-            self.timeline.schedule({
-                EVENT_TYPE: EVENT_TYPE_ACTION,
-                EVENT_ACTION: lambda: self._update(events)
-            }, quantize=quantize, count=1, track_index=0)
+            self.timeline._schedule_action(function=lambda: self._update(events),
+                                           quantize=quantize)
 
     def __str__(self):
         if self.name:

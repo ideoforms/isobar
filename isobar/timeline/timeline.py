@@ -1,6 +1,8 @@
 import math
 import copy
 import threading
+from typing import Callable
+from dataclasses import dataclass
 
 from .track import Track
 from .clock import Clock
@@ -15,7 +17,12 @@ import logging
 
 log = logging.getLogger(__name__)
 
-class Timeline(object):
+@dataclass
+class Action:
+    time: float
+    function: Callable
+
+class Timeline:
     """
     A Timeline object encapsulates a number of Tracks, each of which
     represents a sequence of note or control events.
@@ -50,7 +57,7 @@ class Timeline(object):
 
         self.thread = None
         self.stop_when_done = False
-        self.events = []
+        self.actions = []
         self.running = False
         self.ignore_exceptions = False
 
@@ -127,15 +134,15 @@ class Timeline(object):
         #--------------------------------------------------------------------------------
         if round(self.current_time, 8) % 1 == 0:
             log.debug("--------------------------------------------------------------------------------")
-            log.debug("Tick (%d active tracks, %d pending events)" % (len(self.tracks), len(self.events)))
+            log.debug("Tick (%d active tracks, %d pending actions)" % (len(self.tracks), len(self.actions)))
 
         #--------------------------------------------------------------------------------
-        # Copy self.events because removing from it whilst using it = bad idea.
-        # Perform events before tracks are executed because an event might
+        # Copy self.actions because removing from it whilst using it = bad idea.
+        # Perform actions before tracks are executed because an event might
         # include scheduling a quantized track, which should then be
         # immediately evaluated.
         #--------------------------------------------------------------------------------
-        for event in self.events[:]:
+        for action in self.actions[:]:
             #--------------------------------------------------------------------------------
             # The only event we currently get in a Timeline are add_track events
             #  -- which have a function object associated with them.
@@ -143,9 +150,9 @@ class Timeline(object):
             # Round to work around rounding errors.
             # http://docs.python.org/tutorial/floatingpoint.html
             #--------------------------------------------------------------------------------
-            if round(event[EVENT_TIME], 8) <= round(self.current_time, 8):
-                event[EVENT_ACTION]()
-                self.events.remove(event)
+            if round(action.time, 8) <= round(self.current_time, 8):
+                action.function()
+                self.actions.remove(action)
 
         #--------------------------------------------------------------------------------
         # Copy self.tracks because removing from it whilst using it = bad idea
@@ -165,7 +172,7 @@ class Timeline(object):
         #--------------------------------------------------------------------------------
         # If we've run out of notes, raise a StopIteration.
         #--------------------------------------------------------------------------------
-        if len(self.tracks) == 0 and len(self.events) == 0 and self.stop_when_done:
+        if len(self.tracks) == 0 and len(self.actions) == 0 and self.stop_when_done:
             # TODO: Don't do this if we've never played any events, e.g.
             #       right after calling timeline.background(). Should at least
             #       wait for some events to happen first.
@@ -388,15 +395,9 @@ class Timeline(object):
             # We don't want to begin events right away -- either wait till
             # the next beat boundary (quantize), or delay a number of beats.
             #--------------------------------------------------------------------------------
-            scheduled_time = self.current_time
-            if quantize:
-                scheduled_time = quantize * math.ceil(float(self.current_time) / quantize)
-            scheduled_time += delay
-
-            self.events.append({
-                EVENT_TIME: scheduled_time,
-                EVENT_ACTION: lambda: add_track(track)
-            })
+            self._schedule_action(function=lambda: add_track(track),
+                                  quantize=quantize,
+                                  delay=delay)
         else:
             #--------------------------------------------------------------------------------
             # Begin events on this track right away.
@@ -423,6 +424,14 @@ class Timeline(object):
         if track not in self.tracks:
             raise TrackNotFoundException("Track is not currently scheduled")
         self.tracks.remove(track)
+
+    def _schedule_action(self, function, quantize=0.0, delay=0.0):
+        scheduled_time = self.current_time
+        if quantize:
+            scheduled_time = quantize * math.ceil(float(self.current_time) / quantize)
+        scheduled_time += delay
+        action = Action(scheduled_time, function)
+        self.actions.append(action)
 
     def get_track(self, track_id):
         """
