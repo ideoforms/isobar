@@ -1,7 +1,7 @@
 import math
 import copy
 import threading
-from typing import Callable
+from typing import Callable, Any
 from dataclasses import dataclass
 
 from .track import Track
@@ -36,10 +36,10 @@ class Timeline:
     """
 
     def __init__(self,
-                 tempo=DEFAULT_TEMPO,
-                 output_device=None,
-                 clock_source=None,
-                 ticks_per_beat=DEFAULT_TICKS_PER_BEAT):
+                 tempo: float = DEFAULT_TEMPO,
+                 output_device: Any = None,
+                 clock_source: Any = None,
+                 ticks_per_beat: int = DEFAULT_TICKS_PER_BEAT):
         """ Expect to receive one tick per beat, generate events at 120bpm """
         self._clock_source = None
         if clock_source is None:
