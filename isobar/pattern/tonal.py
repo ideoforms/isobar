@@ -1,3 +1,5 @@
+import copy
+
 from .core import Pattern
 from ..scale import Scale
 from ..util import midi_note_to_frequency
@@ -38,7 +40,7 @@ class PFilterByKey(Pattern):
         """
 
     def __init__(self, pattern, key):
-        self.pattern = pattern
+        self.pattern = copy.copy(pattern)
         self.key = key
 
     def __next__(self):
@@ -57,7 +59,7 @@ class PNearestNoteInKey(Pattern):
         [0, 0, 2, 2, 4, 5, 5, 7, 7, 9, 9, 11, 12, 12, 14, 14]
         """
     def __init__(self, pattern, key):
-        self.pattern = pattern
+        self.pattern = copy.copy(pattern)
         self.key = key
 
     def __next__(self):

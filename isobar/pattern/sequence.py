@@ -198,7 +198,7 @@ class PLoop(Pattern):
         """
 
     def __init__(self, pattern, count=sys.maxsize):
-        self.pattern = pattern
+        self.pattern = copy(pattern)
         self.count = count
         self.pos = 0
         self.loop_index = 0
@@ -240,7 +240,7 @@ class PPingPong(Pattern):
         """
 
     def __init__(self, pattern, count=1):
-        self.pattern = pattern
+        self.pattern = copy.copy(pattern)
         self.count = count
         self.reset()
 
@@ -275,7 +275,7 @@ class PCreep(Pattern):
         """
 
     def __init__(self, pattern, length=4, creep=1, repeats=1, prob=1):
-        self.pattern = pattern
+        self.pattern = copy.copy(pattern)
         self.length = length
         self.creep = creep
         self.repeats = repeats
@@ -341,7 +341,7 @@ class PStutter(Pattern):
         """
 
     def __init__(self, pattern, count=2):
-        self.pattern = pattern
+        self.pattern = copy.copy(pattern)
         self.count = count
         self.count_current = 0
         self.pos = 0
@@ -363,7 +363,7 @@ class PSubsequence(Pattern):
         """
 
     def __init__(self, pattern, offset, length):
-        self.pattern = pattern
+        self.pattern = copy.copy(pattern)
         self.offset = offset
         self.length = length
         self.pos = 0
@@ -390,7 +390,7 @@ class PSubsequence(Pattern):
 
 class PInterpolate(Pattern):
     def __init__(self, pattern, steps, interpolation=INTERPOLATION_LINEAR):
-        self.pattern = pattern
+        self.pattern = copy.copy(pattern)
         self.steps = steps
         self.interpolation = interpolation
         self.reset()
@@ -457,7 +457,7 @@ class PReset(Pattern):
         """
 
     def __init__(self, pattern, trigger):
-        self.pattern = pattern
+        self.pattern = copy.copy(pattern)
         self.trigger = trigger
 
     def __next__(self):
@@ -521,7 +521,7 @@ class PPad(Pattern):
         """
 
     def __init__(self, pattern, length):
-        self.pattern = pattern
+        self.pattern = copy.copy(pattern)
         self.length = length
         self.reset()
 
@@ -548,7 +548,7 @@ class PPadToMultiple(Pattern):
         """
 
     def __init__(self, pattern, multiple, minimum_pad=0):
-        self.pattern = pattern
+        self.pattern = copy.copy(pattern)
         self.multiple = multiple
         self.minimum_pad = minimum_pad
         self.count = 0
