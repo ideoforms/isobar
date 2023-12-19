@@ -1,6 +1,3 @@
-__version__ = "0"
-__author__ = "Daniel Jones <http://www.erase.net/>"
-
 from .output import OutputDevice
 from .dummy import DummyOutputDevice
 from .midi import MidiInputDevice, MidiOutputDevice, get_midi_output_names, get_midi_input_names
