@@ -39,7 +39,6 @@ class PMarkov(PStochasticPattern):
         else:
             self.nodes = {}
 
-        self.node = None
         self.reset()
 
     def randomize(self):
@@ -52,10 +51,12 @@ class PMarkov(PStochasticPattern):
 
     def reset(self):
         super().reset()
-        if len(self.nodes) > 0:
-            self.node = self.rng.choice(list(self.nodes.keys()))
+        self.node = None
 
     def __next__(self):
+        if self.node is None and len(self.nodes) > 0:
+            self.node = self.rng.choice(list(self.nodes.keys()))
+
         #------------------------------------------------------------------------
         # Returns the next value according to our internal statistical model.
         #------------------------------------------------------------------------
