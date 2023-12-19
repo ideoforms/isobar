@@ -25,7 +25,9 @@ class EventDefaults:
             setattr(self, key, value)
 
 class Event:
-    def __init__(self, event_values, defaults=EventDefaults()):
+    def __init__(self, event_values, defaults=EventDefaults(), track=None):
+        self.track = track
+
         for key in event_values.keys():
             if key not in ALL_EVENT_PARAMETERS:
                 raise ValueError("Invalid key for event: %s" % (key))
@@ -125,7 +127,10 @@ class Event:
                 if type(self.patch).__name__ == "PatchSpec" or isinstance(self.patch, type):
                     self.type = EVENT_TYPE_PATCH_CREATE
                 else:
-                    self.type = EVENT_TYPE_PATCH_SET
+                    if hasattr(self.patch, "trigger_node") and self.patch.trigger_node is not None:
+                        self.type = EVENT_TYPE_PATCH_TRIGGER
+                    else:
+                        self.type = EVENT_TYPE_PATCH_SET
 
             if EVENT_PATCH_OUTPUT in event_values:
                 self.output = event_values[EVENT_PATCH_OUTPUT]

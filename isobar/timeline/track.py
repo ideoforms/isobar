@@ -55,6 +55,7 @@ class Track:
         self.note_offs = []
         self.is_finished = False
         self.remove_when_done = remove_when_done
+        self.on_event_callbacks = []
 
     def __getattr__(self, item):
         return self.event_stream[item]
@@ -167,7 +168,7 @@ class Track:
                 #--------------------------------------------------------------------------------
                 try:
                     interpolated_values = next(self.interpolating_event)
-                    interpolated_event = Event(interpolated_values, self.timeline.defaults)
+                    interpolated_event = Event(interpolated_values, self.timeline.defaults, track=self)
                     self.perform_event(interpolated_event)
                 except StopIteration:
                     is_first_event = False
@@ -214,7 +215,7 @@ class Track:
                     self.interpolating_event = PDict(interpolating_event_fields)
                     if not is_first_event:
                         next(self.interpolating_event)
-                    event = Event(next(self.interpolating_event), self.timeline.defaults)
+                    event = Event(next(self.interpolating_event), self.timeline.defaults, track=self)
                     self.perform_event(event)
 
         except StopIteration:
@@ -266,7 +267,7 @@ class Track:
         event_values = next(self.event_stream)
         event_values = copy.copy(event_values)
 
-        event = Event(event_values, self.timeline.defaults)
+        event = Event(event_values, self.timeline.defaults, track=self)
         self.current_event_count += 1
 
         return event
@@ -432,8 +433,23 @@ class Track:
         if self.timeline.on_event_callback:
             self.timeline.on_event_callback(self, event)
 
+        if self.on_event_callbacks:
+            for callback in self.on_event_callbacks:
+                callback(event)
+
     def schedule_note_off(self, time, note, channel):
         self.note_offs.append([time, note, channel])
 
     def stop(self):
         self.timeline.unschedule(self)
+
+    def add_event_callback(self, callback):
+        """
+        Callback to trigger when an event takes place.
+        Useful for displaying GUI changes to reflect underlying events.
+        """
+        self.on_event_callbacks.append(callback)
+
+    def remove_event_callback(self, callback):
+        self.on_event_callbacks.remove(callback)
+
