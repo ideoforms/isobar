@@ -2,6 +2,7 @@ from ..constants import DEFAULT_TEMPO, DEFAULT_TICKS_PER_BEAT, MIN_CLOCK_DELAY_W
 from ..util import make_clock_multiplier
 
 import time
+import random
 import logging
 import threading
 from typing import Any
@@ -46,6 +47,7 @@ class Clock:
         self.accelerate = 1.0
         self.thread = None
         self.running = False
+        self.jitter = 0.0
 
         target_ticks_per_beat = self.clock_target.ticks_per_beat if self.clock_target else ticks_per_beat
         self.clock_multiplier = make_clock_multiplier(target_ticks_per_beat, self.ticks_per_beat)
@@ -89,9 +91,13 @@ class Clock:
             if clock1 - clock0 >= (2.0 * self.tick_duration_seconds):
                 delay_time = (clock1 - clock0 - self.tick_duration_seconds * 2)
                 if delay_time > MIN_CLOCK_DELAY_WARNING_TIME:
-                    logger.warning("Clock: Timer overflowed (late by %.3fs)" % delay_time)
+                    logger.info("Clock: Timer overflowed (late by %.3fs)" % delay_time)
 
-            while clock1 - clock0 >= self.tick_duration_seconds:
+            next_tick_duration = self.tick_duration_seconds
+            if self.jitter > 0:
+                next_tick_jitter = self.tick_duration_seconds * random.uniform(0, self.jitter)
+                next_tick_duration += next_tick_jitter
+            while clock1 - clock0 >= next_tick_duration:
                 #------------------------------------------------------------------------
                 # Time for a tick.
                 # Use while() because multiple ticks might need to be processed if the
