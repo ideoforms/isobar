@@ -1,19 +1,20 @@
 import math
 import copy
+import time
+import logging
 import threading
-from typing import Callable, Any
+import traceback
+from typing import Callable, Any, Optional
 from dataclasses import dataclass
 
 from .track import Track
 from .clock import Clock
 from .event import EventDefaults
-from ..key import Key
 from ..io import MidiOutputDevice
 from ..constants import DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO
-from ..constants import EVENT_TIME, EVENT_ACTION, INTERPOLATION_NONE
+from ..constants import INTERPOLATION_NONE
 from ..exceptions import TrackLimitReachedException, TrackNotFoundException
 from ..util import make_clock_multiplier
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -162,7 +163,9 @@ class Timeline:
                 track.tick()
             except Exception as e:
                 if self.ignore_exceptions:
-                    print("*** Exception in track: %s" % e)
+                    tb = traceback.format_exc()
+                    log.warning("*** Exception in track: %s" % tb)
+                    self.tracks.remove(track)
                 else:
                     raise
             if track.is_finished and track.remove_when_done:
@@ -296,16 +299,16 @@ class Timeline:
         self.clock_multipliers[output_device] = make_clock_multiplier(output_device.ticks_per_beat, self.ticks_per_beat)
 
     def schedule(self,
-                 params=None,
-                 quantize=None,
-                 delay=0,
-                 count=None,
-                 interpolate=INTERPOLATION_NONE,
-                 output_device=None,
-                 remove_when_done=True,
-                 name=None,
-                 replace=False,
-                 track_index=None):
+                 params: dict = None,
+                 quantize: float = None,
+                 delay: float = 0,
+                 count: Optional[int] = None,
+                 interpolate: str = INTERPOLATION_NONE,
+                 output_device: Any = None,
+                 remove_when_done: bool = True,
+                 name: Optional[str] = None,
+                 replace: bool = False,
+                 track_index: Optional[int] = None) -> Track:
         """
         Schedule a new track within this Timeline.
 
@@ -358,7 +361,8 @@ class Timeline:
             for existing_track in self.tracks:
                 if existing_track.name == name:
                     existing_track.update(params, quantize=quantize)
-                    return
+                    # TODO: Add unit test around this
+                    return existing_track
 
         if self.max_tracks and len(self.tracks) >= self.max_tracks:
             raise TrackLimitReachedException("Timeline: Refusing to schedule track (hit limit of %d)" % self.max_tracks)
@@ -457,3 +461,7 @@ class Timeline:
     def clear(self):
         for track in self.tracks[:]:
             self.unschedule(track)
+
+    def wait(self):
+        while self.running:
+            time.sleep(0.1)
