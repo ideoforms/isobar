@@ -1,23 +1,24 @@
 from ..io.midi import MidiOutputDevice
 from ..timeline import Timeline
+from ..exceptions import DeviceNotFoundException
 from .. import ALL_EVENT_PARAMETERS
-
-midi_output_device = MidiOutputDevice()
-timeline = Timeline(120, midi_output_device)
-timeline.add_output_device(midi_output_device)
 
 try:
     from signalflow import *
     from ..io.signalflow import SignalFlowOutputDevice
+
+    midi_output_device = MidiOutputDevice()
+    timeline = Timeline(120, midi_output_device)
+    timeline.add_output_device(midi_output_device)
     graph = AudioGraph()
     signalflow_output_device = SignalFlowOutputDevice(graph)
     signalflow_output_device.added_latency_seconds = 0.05
-except ModuleNotFoundError:
+    timeline.ignore_exceptions = True
+    timeline.background()
+
+except (ModuleNotFoundError, DeviceNotFoundException):
     graph = None
-
-
-timeline.ignore_exceptions = True
-timeline.background()
+    timeline = None
 
 
 def track(name, **kwargs):
