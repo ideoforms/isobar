@@ -9,6 +9,7 @@ class DummyOutputDevice(OutputDevice):
         """
         Dummy output device.
         """
+        super().__init__()
         self.current_time = 0.0
         self.events = []
 

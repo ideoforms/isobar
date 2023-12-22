@@ -54,12 +54,15 @@ class Timeline:
 
         self.current_time = 0
         self.max_tracks = 0
-        self.tracks = []
+        self.tracks: list[Track] = []
 
         self.thread = None
         self.stop_when_done = False
         self.actions = []
         self.running = False
+
+        # If ignore_exceptions is True, exceptions do not halt the timeline,
+        # instead simply generate a warning.
         self.ignore_exceptions = False
 
         self.defaults = EventDefaults()
@@ -360,7 +363,7 @@ class Timeline:
                 raise ValueError("Must specify a track name if `replace` is specified")
             for existing_track in self.tracks:
                 if existing_track.name == name:
-                    existing_track.update(params, quantize=quantize)
+                    existing_track.update(params, quantize=quantize, delay=delay)
                     # TODO: Add unit test around this
                     return existing_track
 
@@ -394,6 +397,7 @@ class Timeline:
 
         if quantize is None:
             quantize = self.defaults.quantize
+        delay = delay + self.seconds_to_beats(output_device.added_latency_seconds)
         if quantize or delay:
             #--------------------------------------------------------------------------------
             # We don't want to begin events right away -- either wait till

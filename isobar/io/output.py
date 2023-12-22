@@ -4,7 +4,7 @@ log = logging.getLogger(__name__)
 
 class OutputDevice:
     def __init__(self):
-        pass
+        self.added_latency_seconds = 0.0
 
     @property
     def ticks_per_beat(self):

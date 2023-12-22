@@ -7,6 +7,7 @@ from ..pattern import Pattern, PSequence, PDict, PInterpolate
 from ..constants import *
 from ..exceptions import InvalidEventException
 from ..util import midi_note_to_frequency
+from ..io.output import OutputDevice
 import logging
 
 log = logging.getLogger(__name__)
@@ -49,10 +50,11 @@ class Track:
         self.next_event = None
         self.interpolating_event = PSequence([], 0)
 
-        self.output_device = output_device
+        self.output_device: OutputDevice = output_device
         self.interpolate = interpolate
 
         self.note_offs = []
+        self.is_muted = False
         self.is_finished = False
         self.remove_when_done = remove_when_done
         self.on_event_callbacks = []
@@ -91,7 +93,8 @@ class Track:
 
     def update(self,
                events,
-               quantize=None):
+               quantize=None,
+               delay=None):
         """
         Update the events that this Track produces.
 
@@ -99,12 +102,16 @@ class Track:
             events: A dict, a PDict, or a Pattern that generates dicts.
             quantize: An optional float that specifies the quantization that the update() should follow.
                       quantize == 1 means that the update should happen on the next beat boundary.
+            delay: Optional float specifying delay time applied to quantization
         """
 
         if quantize is None:
             quantize = self.timeline.defaults.quantize
+        if delay is None:
+            delay = 0.0
+        delay += self.timeline.seconds_to_beats(self.output_device.added_latency_seconds)
 
-        if quantize is None:
+        if quantize is None and delay == 0.0:
             self._update(events)
         else:
             #--------------------------------------------------------------------------------
@@ -112,7 +119,8 @@ class Track:
             # happens before the track's tick() event is called.
             #--------------------------------------------------------------------------------
             self.timeline._schedule_action(function=lambda: self._update(events),
-                                           quantize=quantize)
+                                           quantize=quantize,
+                                           delay=delay)
 
     def __str__(self):
         if self.name:
@@ -274,6 +282,8 @@ class Track:
 
     def perform_event(self, event):
         if not event.active:
+            return
+        if self.is_muted:
             return
 
         #------------------------------------------------------------------------
@@ -442,6 +452,9 @@ class Track:
 
     def stop(self):
         self.timeline.unschedule(self)
+
+    def mute(self):
+        self.is_muted = True
 
     def add_event_callback(self, callback):
         """

@@ -33,6 +33,7 @@ class CVOutputDevice(OutputDevice):
                                To query possible names, call get_cv_output_devices().
             sample_rate (int): Audio sample rate to use.
         """
+        super().__init__()
         try:
             self.stream = sounddevice.OutputStream(device=device_name,
                                                    samplerate=sample_rate,
