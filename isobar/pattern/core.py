@@ -234,7 +234,10 @@ class Pattern:
         Resolve a pattern to a scalar value (that is, the next item in this
         pattern, recursively).
         """
-        return Pattern.value(next(v)) if isinstance(v, Pattern) else v
+        if isinstance(v, Pattern):
+            return Pattern.value(next(v))
+        else:
+            return v
 
     @staticmethod
     def pattern(v):
@@ -243,12 +246,18 @@ class Pattern:
         to obtain its next value.
 
         Pattern subclasses remain untouched.
-        Scalars and other objects are turned into PConst objects. """
+        Scalars and other objects are turned into PConstant objects. """
 
         if isinstance(v, Pattern):
             return v
         elif isinstance(v, dict):
             return isobar.PDict(v)
+        elif isinstance(v, str):
+            from isobar.shorthand.notation import parse_notation
+            try:
+                return parse_notation(v)
+            except ValueError:
+                return isobar.PConstant(v)
         else:
             return isobar.PConstant(v)
 
