@@ -1,15 +1,21 @@
-from signalflow import *
 from ..io.midi import MidiOutputDevice
-from ..io.signalflow import SignalFlowOutputDevice
 from ..timeline import Timeline
 from .. import ALL_EVENT_PARAMETERS
 
-graph = AudioGraph()
-signalflow_output_device = SignalFlowOutputDevice(graph)
-signalflow_output_device.added_latency_seconds = 0.05
-timeline = Timeline(120, signalflow_output_device)
 midi_output_device = MidiOutputDevice()
+timeline = Timeline(120, midi_output_device)
 timeline.add_output_device(midi_output_device)
+
+try:
+    from signalflow import *
+    from ..io.signalflow import SignalFlowOutputDevice
+    graph = AudioGraph()
+    signalflow_output_device = SignalFlowOutputDevice(graph)
+    signalflow_output_device.added_latency_seconds = 0.05
+except ModuleNotFoundError:
+    graph = None
+
+
 timeline.ignore_exceptions = True
 timeline.background()
 

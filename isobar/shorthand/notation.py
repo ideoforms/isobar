@@ -10,7 +10,7 @@ def _parser_push(obj, sequence: PSequence, depth: int):
         sequence = sequence[-1]
         depth -= 1
 
-    sequence.append(obj)
+    sequence.sequence.append(obj)
 
 def _parser_get_next_token(string: str):
     """
