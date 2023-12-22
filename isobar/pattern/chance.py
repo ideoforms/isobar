@@ -128,17 +128,34 @@ class PCoin(PStochasticPattern):
         [1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1]
        """
 
-    def __init__(self, probability=0.5):
+    def __init__(self, probability=0.5, regular=False):
         super().__init__()
-        self.probability = probability
+        self.probability = Pattern.pattern(probability)
+        self.regular = regular
+
+        self.current_value = 0.0
+        if regular:
+            # Initialise current_value to 1 in order to immediately trigger
+            # coin() if regular is True
+            self.current_value = 1.0
 
     def __next__(self):
         probability = Pattern.value(self.probability)
+        regular = Pattern.value(self.regular)
 
-        if self.rng.uniform(0, 1) < probability:
-            return 1
+        if regular:
+            if self.current_value >= 1:
+                self.current_value -= 1
+                rv = 1
+            else:
+                rv = 0
+            self.current_value += probability
+            return rv
         else:
-            return 0
+            if self.rng.uniform(0, 1) < probability:
+                return 1
+            else:
+                return 0
 
 
 class PRandomWalk(PStochasticPattern):
