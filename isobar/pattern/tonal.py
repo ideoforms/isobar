@@ -1,6 +1,6 @@
 from .core import Pattern
 from ..scale import Scale
-from ..util import midi_note_to_frequency
+from ..util import midi_note_to_frequency, midi_semitones_to_frequency_ratio
 
 import typing
 
@@ -77,3 +77,19 @@ class PMidiNoteToFrequency(Pattern):
         if note is None:
             return None
         return midi_note_to_frequency(note)
+
+class PMidiSemitonesToFrequencyRatio(Pattern):
+    """ PMidiSemitonesToFrequencyRatio: Map a MIDI offet in semitones to a frequency ratio.
+        e.g. 0 -> 1.0
+             12 -> 2.0
+             7 -> 1.5
+        """
+
+    def __init__(self, input):
+        self.input = input
+
+    def __next__(self):
+        note = Pattern.value(self.input)
+        if note is None:
+            return None
+        return midi_semitones_to_frequency_ratio(note)
