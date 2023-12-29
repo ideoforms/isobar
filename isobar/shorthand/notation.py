@@ -17,7 +17,7 @@ def _parser_get_next_token(string: str):
     Return the next token in the string.
     This may be a number (integer/float) or a note name (e.g. c#4).
     """
-    note_pattern = r"([0-9]+(\.[0-9]+)?|[a-g]#?[0-9])\b"
+    note_pattern = r"(-?[0-9]+(\.[0-9]+)?|[a-g]#?[0-9])\b"
     if string[0] in '[]':
         return string[0]
     else:
