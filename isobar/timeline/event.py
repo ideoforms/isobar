@@ -19,7 +19,8 @@ class EventDefaults:
             EVENT_OCTAVE: DEFAULT_EVENT_OCTAVE,
             EVENT_TRANSPOSE: DEFAULT_EVENT_TRANSPOSE,
             EVENT_KEY: Key("C", Scale.default),
-            EVENT_QUANTIZE: DEFAULT_EVENT_QUANTIZE
+            EVENT_QUANTIZE: DEFAULT_EVENT_QUANTIZE,
+            EVENT_PITCHBEND: None,
         }
         for key, value in default_values.items():
             setattr(self, key, value)
@@ -185,6 +186,7 @@ class Event:
             self.amplitude = event_values[EVENT_AMPLITUDE]
             self.gate = event_values[EVENT_GATE]
             self.channel = event_values[EVENT_CHANNEL]
+            self.pitchbend = event_values[EVENT_PITCHBEND]
 
         else:
             possible_event_types = [EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL,

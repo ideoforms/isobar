@@ -437,6 +437,8 @@ class Track:
 
                         note_dur = event.duration * gate
                         self.schedule_note_off(self.current_time + note_dur, note, channel)
+                if event.pitchbend is not None:
+                    self.output_device.pitch_bend(event.pitchbend, channel)
         else:
             raise InvalidEventException("Invalid event type: %s" % event.type)
 
