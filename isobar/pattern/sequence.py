@@ -23,6 +23,8 @@ class PSequence(Pattern):
         [1, 2, 3, 5, 1, 2, 3, 5, 1, 2, 3, 5, 1, 2, 3, 5]
         """
 
+    abbreviation = "pseq"
+
     def __init__(self, sequence=None, repeats=sys.maxsize):
         #------------------------------------------------------------------------
         # take a copy of the list to avoid changing the original
@@ -605,6 +607,8 @@ class PArpeggiator(PStochasticPattern):
     CONVERGE = 2
     DIVERGE = 3
     RANDOM = 4
+
+    abbreviation = "parp"
 
     def __init__(self, chord=Chord.major, type=UP):
         super().__init__()

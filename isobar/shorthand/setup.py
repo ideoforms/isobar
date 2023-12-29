@@ -12,7 +12,7 @@ try:
     timeline.add_output_device(midi_output_device)
     graph = AudioGraph()
     signalflow_output_device = SignalFlowOutputDevice(graph)
-    signalflow_output_device.added_latency_seconds = 0.05
+    signalflow_output_device.added_latency_seconds = 0.04
     timeline.ignore_exceptions = True
     timeline.background()
 

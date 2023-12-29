@@ -463,6 +463,8 @@ class PRandomExponential(PStochasticPattern):
         >>> PRandomExponential(1.0, 100.0).nextn(16)
         [54.84880471711992, 89.53150541306805, 2.4077905492103318, ... ]
         """
+    
+    abbreviation = "prandexp"
 
     def __init__(self, min=1.0, max=10.0):
         super().__init__()
@@ -488,6 +490,8 @@ class PRandomImpulseSequence(PStochasticPattern):
         [...]
 
         """
+    
+    abbreviation = "prandimpseq"
 
     def __init__(self, probability=0.0, length=8):
         super().__init__()

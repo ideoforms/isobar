@@ -56,6 +56,9 @@ class PNearestNoteInKey(Pattern):
         >>> p.nextn(16)
         [0, 0, 2, 2, 4, 5, 5, 7, 7, 9, 9, 11, 12, 12, 14, 14]
         """
+
+    abbreviation = "pnearestnote"
+
     def __init__(self, pattern, key):
         self.pattern = pattern
         self.key = key
@@ -68,6 +71,8 @@ class PNearestNoteInKey(Pattern):
 class PMidiNoteToFrequency(Pattern):
     """ PMidiNoteToFrequency: Map MIDI note to frequency value.
         """
+    
+    abbreviation = "pnotetofreq"
 
     def __init__(self, input):
         self.input = input
@@ -84,6 +89,8 @@ class PMidiSemitonesToFrequencyRatio(Pattern):
              12 -> 2.0
              7 -> 1.5
         """
+    
+    abbreviation = "psemistofreq"
 
     def __init__(self, input):
         self.input = input
