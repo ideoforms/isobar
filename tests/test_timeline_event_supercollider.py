@@ -6,6 +6,7 @@ from . import dummy_timeline
 
 class DummySuperColliderOutputDevice(iso.OutputDevice):
     def __init__(self):
+        super().__init__()
         self.events = []
 
     def create(self, name, params):
