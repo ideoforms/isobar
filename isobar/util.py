@@ -64,7 +64,7 @@ def note_name_to_midi_note(name):
     except IndexError:
         raise UnknownNoteName("Unknown note name: %s" % name)
 
-    return octave * 12 + index
+    return (octave+1) * 12 + index
 
 def midi_note_to_note_name(note):
     """
