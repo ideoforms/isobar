@@ -50,13 +50,21 @@ def wnchoice(array, weights, rng=random):
     return array[index]
 
 def note_name_to_midi_note(name):
-    """ Maps a MIDI note name (D3, C#6) to a value.
-    Assumes that middle C is C4. """
+    """
+    Maps a MIDI note name (D3, C#6) to a MIDI note value.
+    Uses a convention of middle C (60) is represented as C4.
+
+    If no octave is given, a note value between 0..11 is returned.
+    """
     if name[-1].isdigit():
-        octave = int(name[-1])
-        name = name[:-1]
+        sign = -1 if name[-2] == '-' else 1
+        octave = sign * int(name[-1])
+        if sign == 1:
+            name = name[:-1]
+        else:
+            name = name[:-2]
     else:
-        octave = 0
+        octave = -1
 
     try:
         # TODO: Fix such that note names can be lowercase (must also work with e.g. Bb)
@@ -64,7 +72,7 @@ def note_name_to_midi_note(name):
     except IndexError:
         raise UnknownNoteName("Unknown note name: %s" % name)
 
-    return (octave+1) * 12 + index
+    return (octave + 1) * 12 + index
 
 def midi_note_to_note_name(note):
     """
