@@ -14,6 +14,7 @@ from .warp import *
 from .static import *
 from .tonal import *
 from .fade import *
+from .midi import *
 
 __all__ = []
 key = value = None

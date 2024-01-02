@@ -42,7 +42,7 @@ class PMarkov(PStochasticPattern):
         else:
             self.nodes = {}
 
-        self.node = None
+        self.reset()
 
     def __repr__(self):
         return ("PMarkov(%s)" % repr(nodes))
@@ -55,19 +55,26 @@ class PMarkov(PStochasticPattern):
                 prob = self.rng.randint(0, 10)
                 self.nodes[node] += [other] * prob
 
+    def reset(self):
+        super().reset()
+        self.node = None
+
     def __next__(self):
+        if self.node is None and len(self.nodes) > 0:
+            self.node = self.rng.choice(list(self.nodes.keys()))
+
         #------------------------------------------------------------------------
         # Returns the next value according to our internal statistical model.
         #------------------------------------------------------------------------
-        if self.node is None and len(self.nodes) > 0:
-            self.node = self.rng.choice(list(self.nodes.keys()))
-        else:
-            try:
-                self.node = self.rng.choice(self.nodes[self.node])
-            except IndexError:
-                self.node = self.rng.choice(list(self.nodes.keys()))
-            except KeyError:
-                print("No such node: %s" % self.node)
+        if self.node not in self.nodes or len(self.nodes[self.node]) == 0:
+            raise StopIteration
+
+        try:
+            self.node = self.rng.choice(self.nodes[self.node])
+        except IndexError:
+            raise StopIteration
+        except KeyError:
+            print("No such node: %s" % self.node)
 
         if self.node is None:
             #--------------------------------------------------------------------------------

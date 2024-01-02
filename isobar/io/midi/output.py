@@ -20,6 +20,7 @@ class MidiOutputDevice (OutputDevice):
             send_clock (bool): Whether to send clock sync/reset messages.
             virtual (bool):    Whether to create a "virtual" rtmidi device.
         """
+        super().__init__()
         try:
             if device_name is None:
                 device_name = os.getenv("ISOBAR_DEFAULT_MIDI_OUT")
@@ -95,4 +96,5 @@ class MidiOutputDevice (OutputDevice):
         self.midi.send(msg)
 
     def __del__(self):
-        del self.midi
+        if hasattr(self, "midi"):
+            del self.midi

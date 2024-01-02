@@ -24,14 +24,20 @@ class PSequence(Pattern):
         >>> p.nextn(10)
         [1, 2, 3, 5, 1, 2, 3, 5, 1, 2, 3, 5, 1, 2, 3, 5]
         """
+    
+    abbreviation = "pseq"
 
-    def __init__(self, sequence: Iterable = [], repeats: int = sys.maxsize):
+    def __init__(self, sequence: Iterable = None, repeats: int = sys.maxsize):
         #------------------------------------------------------------------------
         # take a copy of the list to avoid changing the original
         #------------------------------------------------------------------------
         if not hasattr(sequence, "__getitem__"):
             raise ValueError("Sequence must take a list argument")
-        self.sequence = copy.copy(sequence)
+        if sequence is None:
+            sequence = []
+        elif isinstance(sequence, str):
+            sequence = Pattern.pattern(sequence).sequence
+        self.sequence = sequence
         self.repeats = repeats
 
         self.reset()
@@ -46,8 +52,8 @@ class PSequence(Pattern):
 
     def __next__(self):
         # support for pattern arguments
-        sequence = self.value(self.sequence)
-        repeats = self.value(self.repeats)
+        sequence = Pattern.value(self.sequence)
+        repeats = Pattern.value(self.repeats)
 
         if len(sequence) == 0 or self.rcount >= repeats:
             raise StopIteration
@@ -59,6 +65,19 @@ class PSequence(Pattern):
             self.rcount += 1
 
         return rv
+
+    def __getitem__(self, item):
+        """
+        Implementing subscript operator allows a PSequence to be used as if it were a list.
+        Useful for convenience, and utilised in the string notation parser.
+
+        Args:
+            item: Index of item to return
+
+        Returns:
+            The item in the sequence at the specified index
+        """
+        return self.sequence[item]
 
 # Backwards-compatbility
 PSeq = PSequence
@@ -367,7 +386,7 @@ class PStutter(Pattern):
         """
 
     def __init__(self, pattern: Pattern, count: int = 2):
-        self.pattern = pattern
+        self.pattern = Pattern.pattern(pattern)
         self.count = count
         self.count_current = 0
         self.pos = 0
@@ -644,6 +663,7 @@ class PArpeggiator(PStochasticPattern):
     CONVERGE = 2
     DIVERGE = 3
     RANDOM = 4
+    abbreviation = "parp"
 
     def __init__(self, chord: Chord = Chord.major, type: int = UP):
         super().__init__()

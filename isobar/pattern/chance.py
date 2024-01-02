@@ -138,20 +138,37 @@ class PCoin(PStochasticPattern):
         [1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1]
        """
 
-    def __init__(self, probability: float = 0.5):
+    def __init__(self, probability: float = 0.5, regular:bool = False):
         super().__init__()
-        self.probability = probability
+        self.probability = Pattern.pattern(probability)
+        self.regular = regular
+
+        self.current_value = 0.0
+        if regular:
+            # Initialise current_value to 1 in order to immediately trigger
+            # coin() if regular is True
+            self.current_value = 1.0
 
     def __repr__(self):
         return ("PCoin(%s)" % self.probability)
 
     def __next__(self):
         probability = Pattern.value(self.probability)
+        regular = Pattern.value(self.regular)
 
-        if self.rng.uniform(0, 1) < probability:
-            return 1
+        if regular:
+            if self.current_value >= 1:
+                self.current_value -= 1
+                rv = 1
+            else:
+                rv = 0
+            self.current_value += probability
+            return rv
         else:
-            return 0
+            if self.rng.uniform(0, 1) < probability:
+                return 1
+            else:
+                return 0
 
 class PRandomWalk(PStochasticPattern):
     """ PWalk: Random walk around list.
@@ -479,6 +496,8 @@ class PRandomExponential(PStochasticPattern):
         >>> PRandomExponential(1.0, 100.0).nextn(16)
         [54.84880471711992, 89.53150541306805, 2.4077905492103318, ... ]
         """
+    
+    abbreviation = "prandexp"
 
     def __init__(self, min: float = 1.0, max: float = 10.0):
         super().__init__()
@@ -507,6 +526,8 @@ class PRandomImpulseSequence(PStochasticPattern):
         [...]
 
         """
+    
+    abbreviation = "prandimpseq"
 
     def __init__(self, probability: float = 0.0, length: int = 8):
         super().__init__()

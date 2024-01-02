@@ -1,6 +1,7 @@
 from ..output import OutputDevice
 
 try:
+    import numpy as np
     import sounddevice
 except ModuleNotFoundError:
     pass
@@ -32,6 +33,7 @@ class CVOutputDevice(OutputDevice):
                                To query possible names, call get_cv_output_devices().
             sample_rate (int): Audio sample rate to use.
         """
+        super().__init__()
         try:
             self.stream = sounddevice.OutputStream(device=device_name,
                                                    samplerate=sample_rate,
@@ -40,18 +42,18 @@ class CVOutputDevice(OutputDevice):
             self.stream.start()
 
         except NameError:
-            raise Exception("For CV support, the sounddevice module must be installed")
+            raise Exception("For CV support, the sounddevice and numpy modules must be installed")
 
         # Expert Sleepers ES-8 supports entire -10V to +10V range
         self.output_voltage_max = 10
         self.channels = self.stream.channels
         self.channel_notes = [None] * self.channels
-        self.middle_c = 60
+        self.midi_c0 = 0
 
         print("Started CV output with %d channels" % self.channels)
 
     def _note_index_to_amplitude(self, note):
-        note_float = (note - self.middle_c) / (12 * self.output_voltage_max)
+        note_float = (note - self.midi_c0) / (12 * self.output_voltage_max)
         if note_float < -1.0 or note_float > 1.0:
             raise ValueError("Note index %d is outside the voltage range supported by this device" % note)
         print("note %d, float %f" % (note, note_float))
