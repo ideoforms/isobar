@@ -1,5 +1,6 @@
 """ oscillator.py: Regular waveforms as pattern generators. """
 
+from __future__ import annotations
 from .core import Pattern
 
 class PTri(Pattern):
@@ -10,11 +11,14 @@ class PTri(Pattern):
         [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 0.8, 0.6, 0.4, 0.2]
         """
 
-    def __init__(self, length=10, min=0.0, max=1.0):
+    def __init__(self, length: int = 10, min: float = 0.0, max: float = 1.0):
         self.length = length
         self.min = min
         self.max = max
         self.reset()
+
+    def __repr__(self):
+        return ("PTri(%s, %s, %s)" % (self.length, self.min, self.max))
 
     def reset(self):
         self.phase = 0.0
