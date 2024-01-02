@@ -397,7 +397,8 @@ class Timeline:
 
         if quantize is None:
             quantize = self.defaults.quantize
-        delay = delay + self.seconds_to_beats(output_device.added_latency_seconds)
+        if output_device.added_latency_seconds:
+            delay = delay + self.seconds_to_beats(output_device.added_latency_seconds)
         if quantize or delay:
             #--------------------------------------------------------------------------------
             # We don't want to begin events right away -- either wait till
