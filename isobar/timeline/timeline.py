@@ -230,7 +230,7 @@ class Timeline:
     def background(self):
         """ Run this Timeline in a background thread. """
         self.thread = threading.Thread(target=self.run)
-        self.thread.setDaemon(True)
+        self.thread.daemon = True
         self.thread.start()
 
     def run(self, stop_when_done=None):
