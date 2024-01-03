@@ -19,13 +19,16 @@ class EventDefaults:
             EVENT_OCTAVE: DEFAULT_EVENT_OCTAVE,
             EVENT_TRANSPOSE: DEFAULT_EVENT_TRANSPOSE,
             EVENT_KEY: Key("C", Scale.default),
-            EVENT_QUANTIZE: DEFAULT_EVENT_QUANTIZE
+            EVENT_QUANTIZE: DEFAULT_EVENT_QUANTIZE,
+            EVENT_PITCHBEND: None,
         }
         for key, value in default_values.items():
             setattr(self, key, value)
 
 class Event:
-    def __init__(self, event_values, defaults=EventDefaults()):
+    def __init__(self, event_values, defaults=EventDefaults(), track=None):
+        self.track = track
+
         for key in event_values.keys():
             if key not in ALL_EVENT_PARAMETERS:
                 raise ValueError("Invalid key for event: %s" % (key))
@@ -50,15 +53,20 @@ class Event:
             if degree is None:
                 event_values[EVENT_NOTE] = None
             else:
+                #--------------------------------------------------------------------------------
+                # Tolerate float degrees.
+                # This may need revisiting for tunings that permit sub-semitone values.
+                #--------------------------------------------------------------------------------
+                degree = int(degree)
                 key = event_values[EVENT_KEY]
                 if isinstance(key, str):
                     key = Key(key)
 
-                #----------------------------------------------------------------------
-                # handle lists of notes (eg chords).
+                #--------------------------------------------------------------------------------
+                # Handle lists of notes (eg chords).
                 # TODO: create a class which allows for scalars and arrays to handle
-                # addition transparently
-                #----------------------------------------------------------------------
+                #       addition transparently
+                #--------------------------------------------------------------------------------
                 try:
                     event_values[EVENT_NOTE] = [key[n] for n in degree]
                 except TypeError:
@@ -88,11 +96,11 @@ class Event:
                 # for example.
                 #----------------------------------------------------------------------
                 try:
-                    event_values[EVENT_NOTE] = [note +
-                                                event_values[EVENT_OCTAVE] * 12 +
-                                                event_values[EVENT_TRANSPOSE] for note in event_values[EVENT_NOTE]]
+                    event_values[EVENT_NOTE] = [int(note) +
+                                                int(event_values[EVENT_OCTAVE]) * 12 +
+                                                int(event_values[EVENT_TRANSPOSE]) for note in event_values[EVENT_NOTE]]
                 except TypeError:
-                    event_values[EVENT_NOTE] += event_values[EVENT_OCTAVE] * 12 + event_values[EVENT_TRANSPOSE]
+                    event_values[EVENT_NOTE] += int(event_values[EVENT_OCTAVE]) * 12 + int(event_values[EVENT_TRANSPOSE])
 
         #----------------------------------------------------------------------
         # Classify the event type.
@@ -120,7 +128,10 @@ class Event:
                 if type(self.patch).__name__ == "PatchSpec" or isinstance(self.patch, type):
                     self.type = EVENT_TYPE_PATCH_CREATE
                 else:
-                    self.type = EVENT_TYPE_PATCH_SET
+                    if hasattr(self.patch, "trigger_node") and self.patch.trigger_node is not None:
+                        self.type = EVENT_TYPE_PATCH_TRIGGER
+                    else:
+                        self.type = EVENT_TYPE_PATCH_SET
 
             if EVENT_PATCH_OUTPUT in event_values:
                 self.output = event_values[EVENT_PATCH_OUTPUT]
@@ -175,6 +186,7 @@ class Event:
             self.amplitude = event_values[EVENT_AMPLITUDE]
             self.gate = event_values[EVENT_GATE]
             self.channel = event_values[EVENT_CHANNEL]
+            self.pitchbend = event_values[EVENT_PITCHBEND]
 
         else:
             possible_event_types = [EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL,

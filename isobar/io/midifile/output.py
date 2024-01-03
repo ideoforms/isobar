@@ -11,6 +11,7 @@ class MidiFileOutputDevice (OutputDevice):
         """
 
     def __init__(self, filename):
+        super().__init__()
         self.filename = filename
         self.midifile = MidiFile()
         self.miditrack = MidiTrack()

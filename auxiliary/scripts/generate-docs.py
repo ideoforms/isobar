@@ -28,7 +28,8 @@ def main(args):
         contents = open("isobar/pattern/%s.py" % prefix, "r").readlines()
         if args.markdown:
             print("## %s" % prefix.title())
-            print("View source: [%s.py](https://github.com/ideoforms/isobar/tree/master/isobar/pattern/%s.py)" % (prefix, prefix))
+            print(
+                "View source: [%s.py](https://github.com/ideoforms/isobar/tree/master/isobar/pattern/%s.py)" % (prefix, prefix))
             print()
             print("| Class | Function |")
             print("|-|-|")

@@ -20,8 +20,9 @@ class SuperColliderOutputDevice (OutputDevice):
         """
         Args:
             host: Hostname to send OSC messages to
-            port: =Port number to send OSC messages to
+            port: Port number to send OSC messages to
         """
+        super().__init__()
         try:
             self.server = supercollider.Server()
 

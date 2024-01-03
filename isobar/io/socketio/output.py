@@ -10,6 +10,7 @@ class SocketIOOutputDevice (OutputDevice):
     """
 
     def __init__(self, host="localhost", port=9000):
+        super().__init__()
         import socketIO_client
         self.socket = socketIO_client.SocketIO(host, port)
 

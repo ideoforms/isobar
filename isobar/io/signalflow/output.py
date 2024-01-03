@@ -20,6 +20,7 @@ class SignalFlowOutputDevice(OutputDevice):
             device_name (str): The name of the target device to use.
                                If not specified, uses the system default.
         """
+        super().__init__()
         if graph:
             self.graph = graph
         else:

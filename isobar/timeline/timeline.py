@@ -1,21 +1,29 @@
 import math
 import copy
+import time
+import logging
 import threading
+import traceback
+from typing import Callable, Any, Optional
+from dataclasses import dataclass
 
 from .track import Track
 from .clock import Clock
 from .event import EventDefaults
-from ..key import Key
 from ..io import MidiOutputDevice
 from ..constants import DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO
-from ..constants import EVENT_TIME, EVENT_ACTION, INTERPOLATION_NONE
+from ..constants import INTERPOLATION_NONE
 from ..exceptions import TrackLimitReachedException, TrackNotFoundException
 from ..util import make_clock_multiplier
-import logging
 
 log = logging.getLogger(__name__)
 
-class Timeline(object):
+@dataclass
+class Action:
+    time: float
+    function: Callable
+
+class Timeline:
     """
     A Timeline object encapsulates a number of Tracks, each of which
     represents a sequence of note or control events.
@@ -29,10 +37,10 @@ class Timeline(object):
     """
 
     def __init__(self,
-                 tempo=DEFAULT_TEMPO,
-                 output_device=None,
-                 clock_source=None,
-                 ticks_per_beat=DEFAULT_TICKS_PER_BEAT):
+                 tempo: float = DEFAULT_TEMPO,
+                 output_device: Any = None,
+                 clock_source: Any = None,
+                 ticks_per_beat: int = DEFAULT_TICKS_PER_BEAT):
         """ Expect to receive one tick per beat, generate events at 120bpm """
         self._clock_source = None
         if clock_source is None:
@@ -46,12 +54,15 @@ class Timeline(object):
 
         self.current_time = 0
         self.max_tracks = 0
-        self.tracks = []
+        self.tracks: list[Track] = []
 
         self.thread = None
         self.stop_when_done = False
-        self.events = []
+        self.actions = []
         self.running = False
+
+        # If ignore_exceptions is True, exceptions do not halt the timeline,
+        # instead simply generate a warning.
         self.ignore_exceptions = False
 
         self.defaults = EventDefaults()
@@ -127,15 +138,15 @@ class Timeline(object):
         #--------------------------------------------------------------------------------
         if round(self.current_time, 8) % 1 == 0:
             log.debug("--------------------------------------------------------------------------------")
-            log.debug("Tick (%d active tracks, %d pending events)" % (len(self.tracks), len(self.events)))
+            log.debug("Tick (%d active tracks, %d pending actions)" % (len(self.tracks), len(self.actions)))
 
         #--------------------------------------------------------------------------------
-        # Copy self.events because removing from it whilst using it = bad idea.
-        # Perform events before tracks are executed because an event might
+        # Copy self.actions because removing from it whilst using it = bad idea.
+        # Perform actions before tracks are executed because an event might
         # include scheduling a quantized track, which should then be
         # immediately evaluated.
         #--------------------------------------------------------------------------------
-        for event in self.events[:]:
+        for action in self.actions[:]:
             #--------------------------------------------------------------------------------
             # The only event we currently get in a Timeline are add_track events
             #  -- which have a function object associated with them.
@@ -143,9 +154,9 @@ class Timeline(object):
             # Round to work around rounding errors.
             # http://docs.python.org/tutorial/floatingpoint.html
             #--------------------------------------------------------------------------------
-            if round(event[EVENT_TIME], 8) <= round(self.current_time, 8):
-                event[EVENT_ACTION]()
-                self.events.remove(event)
+            if round(action.time, 8) <= round(self.current_time, 8):
+                action.function()
+                self.actions.remove(action)
 
         #--------------------------------------------------------------------------------
         # Copy self.tracks because removing from it whilst using it = bad idea
@@ -155,7 +166,9 @@ class Timeline(object):
                 track.tick()
             except Exception as e:
                 if self.ignore_exceptions:
-                    print("*** Exception in track: %s" % e)
+                    tb = traceback.format_exc()
+                    log.warning("*** Exception in track: %s" % tb)
+                    self.tracks.remove(track)
                 else:
                     raise
             if track.is_finished and track.remove_when_done:
@@ -165,7 +178,7 @@ class Timeline(object):
         #--------------------------------------------------------------------------------
         # If we've run out of notes, raise a StopIteration.
         #--------------------------------------------------------------------------------
-        if len(self.tracks) == 0 and len(self.events) == 0 and self.stop_when_done:
+        if len(self.tracks) == 0 and len(self.actions) == 0 and self.stop_when_done:
             # TODO: Don't do this if we've never played any events, e.g.
             #       right after calling timeline.background(). Should at least
             #       wait for some events to happen first.
@@ -289,15 +302,16 @@ class Timeline(object):
         self.clock_multipliers[output_device] = make_clock_multiplier(output_device.ticks_per_beat, self.ticks_per_beat)
 
     def schedule(self,
-                 params=None,
-                 quantize=None,
-                 delay=0,
-                 count=None,
-                 interpolate=INTERPOLATION_NONE,
-                 output_device=None,
-                 remove_when_done=True,
-                 name=None,
-                 replace=False):
+                 params: dict = None,
+                 quantize: float = None,
+                 delay: float = 0,
+                 count: Optional[int] = None,
+                 interpolate: str = INTERPOLATION_NONE,
+                 output_device: Any = None,
+                 remove_when_done: bool = True,
+                 name: Optional[str] = None,
+                 replace: bool = False,
+                 track_index: Optional[int] = None) -> Track:
         """
         Schedule a new track within this Timeline.
 
@@ -322,6 +336,9 @@ class Timeline(object):
                                      parameters in future calls to schedule() by specifying replace=True.
             replace (bool):          Must be used in conjunction with the `name` parameter. Instead of scheduling a
                                      new Track, this updates the parameters of an existing track with the same name.
+            track_index (int):       When specified, inserts the Track at the given index.
+                                     This can be used to set the priority of an event and ensure that it happens
+                                     before another Track is evaluted, used in (e.g.) Track.update().
 
         Returns:
             The new `Track` object.
@@ -329,7 +346,6 @@ class Timeline(object):
         Raises:
             TrackLimitReachedException: If `max_tracks` has been reached.
         """
-
         if not output_device:
             #--------------------------------------------------------------------------------
             # If no output device exists, send to the system default MIDI output.
@@ -347,17 +363,21 @@ class Timeline(object):
                 raise ValueError("Must specify a track name if `replace` is specified")
             for existing_track in self.tracks:
                 if existing_track.name == name:
-                    existing_track.update(params, quantize=quantize)
-                    return
+                    existing_track.update(params, quantize=quantize, delay=delay)
+                    # TODO: Add unit test around this
+                    return existing_track
 
         if self.max_tracks and len(self.tracks) >= self.max_tracks:
             raise TrackLimitReachedException("Timeline: Refusing to schedule track (hit limit of %d)" % self.max_tracks)
 
-        def start_track(track):
+        def add_track(track):
             #--------------------------------------------------------------------------------
             # Add a new track.
             #--------------------------------------------------------------------------------
-            self.tracks.append(track)
+            if track_index is not None:
+                self.tracks.insert(track_index, track)
+            else:
+                self.tracks.append(track)
             log.info("Timeline: Scheduled new track (total tracks: %d)" % len(self.tracks))
 
         if isinstance(params, Track):
@@ -368,7 +388,7 @@ class Timeline(object):
             # Take a copy of params to avoid modifying the original
             #--------------------------------------------------------------------------------
             track = Track(self,
-                          copy.copy(params),
+                          events=copy.copy(params),
                           max_event_count=count,
                           interpolate=interpolate,
                           output_device=output_device,
@@ -377,25 +397,21 @@ class Timeline(object):
 
         if quantize is None:
             quantize = self.defaults.quantize
+        if output_device.added_latency_seconds:
+            delay = delay + self.seconds_to_beats(output_device.added_latency_seconds)
         if quantize or delay:
             #--------------------------------------------------------------------------------
             # We don't want to begin events right away -- either wait till
             # the next beat boundary (quantize), or delay a number of beats.
             #--------------------------------------------------------------------------------
-            scheduled_time = self.current_time
-            if quantize:
-                scheduled_time = quantize * math.ceil(float(self.current_time) / quantize)
-            scheduled_time += delay
-
-            self.events.append({
-                EVENT_TIME: scheduled_time,
-                EVENT_ACTION: lambda: start_track(track)
-            })
+            self._schedule_action(function=lambda: add_track(track),
+                                  quantize=quantize,
+                                  delay=delay)
         else:
             #--------------------------------------------------------------------------------
             # Begin events on this track right away.
             #--------------------------------------------------------------------------------
-            start_track(track)
+            add_track(track)
 
         return track
 
@@ -417,6 +433,14 @@ class Timeline(object):
         if track not in self.tracks:
             raise TrackNotFoundException("Track is not currently scheduled")
         self.tracks.remove(track)
+
+    def _schedule_action(self, function, quantize=0.0, delay=0.0):
+        scheduled_time = self.current_time
+        if quantize:
+            scheduled_time = quantize * math.ceil(float(self.current_time) / quantize)
+        scheduled_time += delay
+        action = Action(scheduled_time, function)
+        self.actions.append(action)
 
     def get_track(self, track_id):
         """
@@ -442,3 +466,7 @@ class Timeline(object):
     def clear(self):
         for track in self.tracks[:]:
             self.unschedule(track)
+
+    def wait(self):
+        while self.running:
+            time.sleep(0.1)

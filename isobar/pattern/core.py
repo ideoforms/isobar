@@ -2,8 +2,10 @@
 # isobar: a python library for expressing and manipulating musical patterns.
 #-------------------------------------------------------------------------------
 
+from __future__ import annotations
 import copy
 import inspect
+from typing import Iterable, Callable
 
 import isobar
 
@@ -21,8 +23,9 @@ class Pattern:
 
     LENGTH_MAX = 65536
 
-    def __str__(self):
-        return "Pattern (%s)" % self.__class__
+    def __repr__(self):
+        # Used in place of a common string representation
+        return "Pattern()"
 
     def __len__(self):
         # formerly defined as len(list(self)), but list(self) seemingly relies
@@ -142,7 +145,7 @@ class Pattern:
     def __iter__(self):
         return self
 
-    def nextn(self, count):
+    def nextn(self, count: int) -> list:
         """
         Returns the next `count` output values.
         If fewer than `count` values are generated, return all output values.
@@ -159,7 +162,7 @@ class Pattern:
     def __next__(self):
         raise StopIteration
 
-    def all(self, maximum=LENGTH_MAX):
+    def all(self, maximum: int = LENGTH_MAX) -> list:
         """
         Returns all output values, up to a maximum length of `maximum`.
         """
@@ -201,7 +204,7 @@ class Pattern:
                     if isinstance(item, Pattern):
                         item.reset()
 
-    def append(self, other):
+    def append(self, other: Pattern) -> PConcatenate:
         """
         Returns a new pattern with the contents of `other` appended to the contents of `self`.
         """
@@ -222,7 +225,7 @@ class Pattern:
                 if classname == "Timeline":
                     return instance
 
-    def copy(self):
+    def copy(self) -> Pattern:
         """
         Returns a copy of this Pattern.
         """
@@ -234,7 +237,10 @@ class Pattern:
         Resolve a pattern to a scalar value (that is, the next item in this
         pattern, recursively).
         """
-        return Pattern.value(next(v)) if isinstance(v, Pattern) else v
+        if isinstance(v, Pattern):
+            return Pattern.value(next(v))
+        else:
+            return v
 
     @staticmethod
     def pattern(v):
@@ -243,12 +249,18 @@ class Pattern:
         to obtain its next value.
 
         Pattern subclasses remain untouched.
-        Scalars and other objects are turned into PConst objects. """
+        Scalars and other objects are turned into PConstant objects. """
 
         if isinstance(v, Pattern):
             return v
         elif isinstance(v, dict):
             return isobar.PDict(v)
+        elif isinstance(v, str):
+            from isobar.shorthand.notation import parse_notation
+            try:
+                return parse_notation(v)
+            except ValueError:
+                return isobar.PConstant(v)
         else:
             return isobar.PConstant(v)
 
@@ -260,11 +272,11 @@ class PConstant(Pattern):
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
         """
 
-    def __init__(self, constant):
+    def __init__(self, constant: float):
         self.constant = constant
 
-    def __str__(self):
-        return "constant"
+    def __repr__(self):
+        return ("PConstant(%s)" % repr(self.constant))
 
     def __next__(self):
         return self.constant
@@ -278,10 +290,13 @@ class PRef(Pattern):
         Useful to change an inner pattern in real time.
         """
 
-    def __init__(self, pattern):
+    def __init__(self, pattern: Pattern):
         self.pattern = pattern
 
-    def set_pattern(self, pattern):
+    def __repr__(self):
+        return ("PRef(%s)" % repr(self.pattern))
+
+    def set_pattern(self, pattern: Pattern):
         """ Replace the referenced pattern with another. """
         self.pattern = pattern
 
@@ -296,8 +311,11 @@ class PFunc(Pattern):
         >>> p.nextn(16)
         [19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19]"""
 
-    def __init__(self, function):
+    def __init__(self, function: Callable):
         self.function = function
+
+    def __repr__(self):
+        return ("PFunc(%s)" % repr(self.function))
 
     def __next__(self):
         function = Pattern.value(self.function)
@@ -308,9 +326,12 @@ class PArrayIndex(Pattern):
         If the item is a Pattern, the next value from that pattern is returned.
         """
 
-    def __init__(self, list, index):
+    def __init__(self, list: Iterable, index: int):
         self.list = list
         self.index = index
+
+    def __repr__(self):
+        return ("PArrayIndex(%s, %s)" % (self.list, self.index))
 
     def __next__(self):
         list = Pattern.value(self.list)
@@ -336,7 +357,7 @@ class PDict(Pattern):
         Thanks to Dan Stowell <http://www.mcld.co.uk/>
         """
 
-    def __init__(self, value=None):
+    def __init__(self, value: dict = None):
         from .sequence import PSequence
 
         self.dict = {}
@@ -358,6 +379,9 @@ class PDict(Pattern):
             except IndexError:
                 pass
 
+    def __repr__(self):
+        return ("PDict(%s)" % repr(self.dict))
+
     def __getitem__(self, key):
         return self.dict[key]
 
@@ -370,7 +394,7 @@ class PDict(Pattern):
     def __contains__(self, key):
         return key in self.dict
 
-    def load(self, filename, quantize=None):
+    def load(self, filename: str, quantize: float = None):
         """
         Load pattern data from a MIDI file.
 
@@ -381,7 +405,7 @@ class PDict(Pattern):
         reader = MidiFileInputDevice(filename)
         self.dict = reader.read(quantize=quantize)
 
-    def save(self, filename):
+    def save(self, filename: str):
         """
         Save pattern data to a MIDI file.
 
@@ -408,13 +432,13 @@ class PDict(Pattern):
         if key not in self.dict:
             self.dict[key] = value
 
-    def keys(self):
+    def keys(self) -> list:
         return list(self.dict.keys())
 
-    def values(self):
+    def values(self) -> list:
         return list(self.dict.values())
 
-    def items(self):
+    def items(self) -> list:
         return list(self.dict.items())
 
     def __next__(self):
@@ -433,9 +457,12 @@ class PDictKey(Pattern):
     """ PDictKey: Request a specified key from a dictionary.
         """
 
-    def __init__(self, dict, key):
+    def __init__(self, dict: dict, key):
         self.dict = dict
         self.key = key
+
+    def __repr__(self):
+        return ("PDictKey(%s, %s)" % (repr(self.dict), repr(self.key)))
 
     def __next__(self):
         vdict = Pattern.value(self.dict)
@@ -449,9 +476,12 @@ class PConcatenate(Pattern):
         [1, 2, 3, 1, 2, 3, 9, 8, 7, 9, 8, 7]
         """
 
-    def __init__(self, inputs):
+    def __init__(self, inputs: list):
         self.inputs = inputs
         self.pos = 0
+
+    def __repr__(self):
+        return ("PConcatenate(%s)" % self.inputs)
 
     def __next__(self):
         try:
@@ -474,6 +504,9 @@ class PAbs(Pattern):
     def __init__(self, input):
         self.input = input
 
+    def __repr__(self):
+        return ("PAbs(%s)" % repr(self.input))
+
     def __next__(self):
         next = Pattern.value(self.input)
         if next is not None:
@@ -483,8 +516,11 @@ class PAbs(Pattern):
 class PInt(Pattern):
     """ PInt: Integer value of `input` """
 
-    def __init__(self, input):
+    def __init__(self, input: int):
         self.input = input
+
+    def __repr__(self):
+        return ("PInt(%s)" % self.input)
 
     def __next__(self):
         next = Pattern.value(self.input)
