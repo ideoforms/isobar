@@ -71,7 +71,7 @@ class Key:
             chk_semitones = self.semitones
             calc_octave = octave
             for semi in chk_semitones:
-                dist = min(abs(semi - pitch),abs(abs(semi-pitch)-12))
+                dist = min(abs(semi - pitch),abs(abs(semi-pitch)-self.scale.octave_size))
                 if nearest_dist is None or dist < nearest_dist:
                     nearest_semi = semi
                     nearest_dist = dist
