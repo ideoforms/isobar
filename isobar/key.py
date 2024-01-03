@@ -75,7 +75,7 @@ class Key:
                 if nearest_dist is None or dist < nearest_dist:
                     nearest_semi = semi
                     nearest_dist = dist
-                    if dist == abs(abs(semi-pitch)-12):
+                    if dist == abs(abs(semi-pitch)-self.scale.octave_size):
                         calc_octave = octave +1
                     else:
                         calc_octave = octave
