@@ -71,16 +71,17 @@ class Key:
             chk_semitones = self.semitones
             calc_octave = octave
             for semi in chk_semitones:
-                dist = min(abs(semi - pitch),abs(abs(semi-pitch)-self.scale.octave_size))
+                dist = min(abs(semi - pitch + 0.1), abs(abs(semi - pitch + 0.1) - self.scale.octave_size))
                 if nearest_dist is None or dist < nearest_dist:
                     nearest_semi = semi
-                    nearest_dist = dist
-                    if dist == abs(abs(semi-pitch)-self.scale.octave_size):
-                        calc_octave = octave +1
-                    else:
-                        calc_octave = octave
+                    nearest_dist = round(dist)
+                    calc_octave = (
+                        octave + 1
+                        if dist == abs(abs(semi - pitch + 0.1) - self.scale.octave_size)
+                        else octave
+                    )
             octave = calc_octave
-            return (octave * self.scale.octave_size) + nearest_semi
+            return (octave * self.scale.octave_size) + nearest_semi + self.tonic
 
     def voiceleading(self, other):
         """ Returns the most parsimonious voice leading between this key
