@@ -2,25 +2,42 @@ from ..constants import DEFAULT_TEMPO, DEFAULT_TICKS_PER_BEAT, MIN_CLOCK_DELAY_W
 from ..util import make_clock_multiplier
 
 import time
+import random
 import logging
 import threading
+from typing import Any
 
-log = logging.getLogger(__name__)
-
-#----------------------------------------------------------------------
-# A Clock is relied upon to generate accurate tick() events every
-# fraction of a note. it should handle millisecond-level jitter
-# internally - ticks should always be sent out on time!
-#
-# Period, in seconds, corresponds to a 24th crotchet (1/96th of a bar),
-# as per MIDI
-#----------------------------------------------------------------------
+logger = logging.getLogger(__name__)
 
 class Clock:
+    """
+    A Clock generates tick events at a regular interval, defined by the `ticks_per_beat` property.
+    The higher the number of ticks per beat, the finer the granularity events can be triggered.
+
+    Different clocking systems vary in their granularity, typically specified in ticks per beat (crotchet),
+    aka "pulses per quarter note", PPQN:
+     - MIDI I/O has a resolution of 24 PPQN
+     - MIDI files commonly have a resolution of 96 or 120 PPQN, but can vary by file
+
+    isobar defaults to 480 PPQN, which equates to a tick per 1.04ms. This means that events can be
+    scheduled in the Timeline with a ~1ms granularity.
+
+    Clock division is needed to interact with other clocking systems, which is handled by
+    `make_clock_multiplier`. Timeline contains logic to multiplex between multiple different clock outputs.
+    """
+
     def __init__(self,
-                 clock_target=None,
-                 tempo=DEFAULT_TEMPO,
-                 ticks_per_beat=DEFAULT_TICKS_PER_BEAT):
+                 clock_target: Any = None,
+                 tempo: float = DEFAULT_TEMPO,
+                 ticks_per_beat: int = DEFAULT_TICKS_PER_BEAT):
+        """
+        Create a new Clock.
+
+        Args:
+            clock_target: Clock target, which must have a `tick()` method and `ticks_per_beat` property.
+            tempo: Tempo, in BPM.
+            ticks_per_beat: The number of tick events generated per quarter-note.
+        """
         self.clock_target = clock_target
         self.tick_duration_seconds = None
         self.tick_duration_seconds_orig = None
@@ -30,6 +47,7 @@ class Clock:
         self.accelerate = 1.0
         self.thread = None
         self.running = False
+        self.jitter = 0.0
 
         target_ticks_per_beat = self.clock_target.ticks_per_beat if self.clock_target else ticks_per_beat
         self.clock_multiplier = make_clock_multiplier(target_ticks_per_beat, self.ticks_per_beat)
@@ -59,7 +77,7 @@ class Clock:
     def background(self):
         """ Run this Timeline in a background thread. """
         self.thread = threading.Thread(target=self.run)
-        self.thread.setDaemon(True)
+        self.thread.daemon = True
         self.thread.start()
 
     def run(self):
@@ -73,16 +91,20 @@ class Clock:
             if clock1 - clock0 >= (2.0 * self.tick_duration_seconds):
                 delay_time = (clock1 - clock0 - self.tick_duration_seconds * 2)
                 if delay_time > MIN_CLOCK_DELAY_WARNING_TIME:
-                    log.warning("Clock: Timer overflowed (late by %.3fs)" % delay_time)
+                    logger.info("Clock: Timer overflowed (late by %.3fs)" % delay_time)
 
-            while clock1 - clock0 >= self.tick_duration_seconds:
+            next_tick_duration = self.tick_duration_seconds
+            if self.jitter > 0:
+                next_tick_jitter = self.tick_duration_seconds * random.uniform(0, self.jitter)
+                next_tick_duration += next_tick_jitter
+            while clock1 - clock0 >= next_tick_duration:
                 #------------------------------------------------------------------------
                 # Time for a tick.
                 # Use while() because multiple ticks might need to be processed if the
                 # clock has overflowed.
                 #------------------------------------------------------------------------
                 ticks = next(self.clock_multiplier)
-                for tick in range(ticks):
+                for _ in range(ticks):
                     self.clock_target.tick()
 
                 clock0 += self.tick_duration_seconds
@@ -111,10 +133,11 @@ class Clock:
     def rewind(self):
         self.clock_target.set_song_pos(0)
 
-class DummyClock (Clock):
+class DummyClock(Clock):
     """
     Clock subclass used in testing, which ticks at the highest rate possible.
     """
+
     def run(self):
         while True:
             self.clock_target.tick()
