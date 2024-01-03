@@ -63,6 +63,11 @@ def test_key_nearest_note():
     assert a.nearest_note(9) == 8
     assert a.nearest_note(10) == 10
     assert a.nearest_note(11) == 10
+    
+    scale = iso.Scale.fromnotes([0, 3, 5, 7, 9])
+    b = iso.Key("C", scale)
+    assert b.nearest_note(11) == 12
+
 
 def test_key_voiceleading():
     pass
