@@ -33,42 +33,70 @@ class Timeline:
         A Timeline object encapsulates a number of Tracks, each of which
         represents a sequence of note or control events.
 
-        It has a `clock_source`, which can be a real-time Clock object, or an
-        external source such as a MIDI clock (via `isobar.io.MidiInputDevice`).
+        Timing is driven by a `clock_source`, which can be a real-time Clock object, or an
+        external source such as a `MidiInputDevice` clock.
 
         A Timeline typically runs until it is terminated by calling `stop()`.
         If you want the Timeline to terminate as soon as no more events are available,
         set `stop_when_done = True`.
         """
-        self._clock_source = None
+        self._clock_source: Optional[Clock] = None
         if clock_source is None:
             clock_source = Clock(self, tempo, ticks_per_beat)
         self.set_clock_source(clock_source)
 
-        self.output_devices = []
-        self.clock_multipliers = {}
+        self.clock_multipliers: dict[OutputDevice, Callable] = {}
+        """
+        Clock multipliers are helper generators that perform clock division/
+        multiplication so that devices with different PPQN can work together. For
+        example, isobar's default internal clock runs at 480PPQN, but a MIDI device
+        expects a 24PPQN tick, so a 20x clock divider is needed.
+        """
+
+        self.output_devices: list[OutputDevice] = []
         if output_device:
             self.add_output_device(output_device)
+        """ The output devices that the timeline is able to schedule events on. """
 
-        self.current_time = 0
-        self.max_tracks = 0
+        self.current_time: float = 0
+        """ The current time, in beats. """
+
+        self.max_tracks: int = 0
+        """ If set, limits the number of tracks that can be created.
+        Scheduling a track beyond this limit will generate an exception. """
+
         self.tracks: list[Track] = []
+        """ The list of Track objects that are currently scheduled. """
 
-        self.thread = None
         self.stop_when_done = False
-        self.actions = []
-        self.running = False
+        """ If True, stops the timeline when the last track is finished. """
 
-        # If ignore_exceptions is True, exceptions do not halt the timeline,
-        # instead simply generate a warning.
+        self.actions = []
+
+        self.running: bool = False
+        """ Indicates whether the timeline is currently running. """
+
         self.ignore_exceptions = False
+        """
+        If ignore_exceptions is True, exceptions do not halt the timeline,
+        and instead simply generate a warning. This can be useful for contexts
+        such as live performance that require a robust playback environment.
+        """
 
         self.defaults = EventDefaults()
+        """
+        Defaults can be used to automatically set the parameters of future events.
+        For example, setting defaults.quantize can be used to automatically quantize
+        all future scheduling.
+        """
 
-        #--------------------------------------------------------------------------------
-        # Optional callback to trigger each time an event is performed.
-        #--------------------------------------------------------------------------------
-        self.on_event_callback = None
+        self.on_event_callback: Optional[Callable] = None
+        """
+        Optional callback to trigger each time an event is performed.
+        Receives two parameters:
+         - the Track that the event occurred on
+         - the Event object
+        """
 
     def get_clock_source(self) -> Clock:
         """
@@ -152,15 +180,19 @@ class Timeline:
     tempo = property(get_tempo, set_tempo)
     """ The tempo of the timeline, in beats per minute. """
 
-    def seconds_to_beats(self, seconds):
+    def seconds_to_beats(self, seconds: float) -> float:
+        """ Translates a duration in seconds to a duration in beats. """
         return seconds * self.tempo / 60.0
 
-    def beats_to_seconds(self, beats):
+    def beats_to_seconds(self, beats: float) -> float:
+        """ Translates a duration in beats to a duration in seconds. """
         return beats * 60.0 / self.tempo
 
     def tick(self):
         """
-        Called once every tick to trigger new events.
+        Must be triggered once every tick to trigger new events. This is the core
+        quantum of Timeline events, and is typically triggered automatically by the
+        timeline's `clock_source`
 
         Raises:
             StopIteration: If `stop_when_done` is true and no more events are scheduled.
@@ -234,8 +266,9 @@ class Timeline:
         self.current_time += self.tick_duration
 
     def dump(self):
-        """ Output a summary of this Timeline object
-            """
+        """
+        Output a summary of this Timeline object to stdout.
+        """
         print("Timeline (clock: %s, tempo %s)" %
               (self.clock_source, self.clock_source.tempo if self.clock_source.tempo else "unknown"))
 
@@ -248,8 +281,10 @@ class Timeline:
             print(("   - %s" % tracks))
 
     def reset_to_beat(self):
-        """ Reset the timer to the last beat.
-        Useful when a MIDI Stop/Reset message is received. """
+        """
+        Reset the timer to the last beat.
+        Useful when a MIDI Stop/Reset message is received, or otherwise to re-establish beat sync.
+        """
 
         self.current_time = round(self.current_time)
         for tracks in self.tracks:
@@ -267,9 +302,9 @@ class Timeline:
         """
         Run this Timeline in a background thread.
         """
-        self.thread = threading.Thread(target=self.run)
-        self.thread.daemon = True
-        self.thread.start()
+        thread = threading.Thread(target=self.run)
+        thread.daemon = True
+        thread.start()
 
     def run(self, stop_when_done: bool = None):
         """
