@@ -1,5 +1,5 @@
 from ..io.midi import MidiOutputDevice
-from ..timeline import Timeline
+from ..timelines import Timeline
 from ..exceptions import DeviceNotFoundException
 from .. import ALL_EVENT_PARAMETERS
 
