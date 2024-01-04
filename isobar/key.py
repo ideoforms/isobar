@@ -66,21 +66,14 @@ class Key:
             return note
         else:
             octave, pitch = divmod(note, self.scale.octave_size)
-            nearest_semi = None
-            nearest_dist = None
-            chk_semitones = self.semitones
-            calc_octave = octave
-            for semi in chk_semitones:
-                dist = min(abs(semi - pitch),abs(abs(semi-pitch)-self.scale.octave_size))
-                if nearest_dist is None or dist < nearest_dist:
-                    nearest_semi = semi
-                    nearest_dist = dist
-                    if dist == abs(abs(semi-pitch)-self.scale.octave_size):
-                        calc_octave = octave +1
-                    else:
-                        calc_octave = octave
-            octave = calc_octave
-            return (octave * self.scale.octave_size) + nearest_semi
+            nearest_semitone = None
+            nearest_distance = None
+            for semitone in self.semitones + [self.scale.octave_size]:
+                distance = abs(semitone - pitch)
+                if nearest_distance is None or distance < nearest_distance:
+                    nearest_semitone = semitone
+                    nearest_distance = distance
+            return (octave * self.scale.octave_size) + nearest_semitone
 
     def voiceleading(self, other):
         """ Returns the most parsimonious voice leading between this key
