@@ -29,7 +29,9 @@ def generate_index(class_data):
     """
     contents = ""
     for file_dict in class_data:
-        contents += "## %s\n" % file_dict["name"].title()
+        contents += "## [%s](%s/%s)\n" % (file_dict["name"].title(),
+                                          file_dict["name"],
+                                          "index.md")
         contents += "View source: [%s.py](https://github.com/ideoforms/isobar/tree/master/isobar/pattern/%s.py)\n\n" % (
             file_dict["name"], file_dict["name"])
         contents += "| Class | Function |\n"
@@ -52,6 +54,8 @@ def generate_class_pages(class_data):
         if not os.path.exists(os.path.join(root_dir, file_dict['name'].lower())):
             # Make the folder if not
             os.mkdir(os.path.join(root_dir, file_dict['name'].lower()))
+        # Start storing index file data
+        index_content = ["# %s\n" % file_dict["name"].title()]
         for class_dict in file_dict['classes']:
             # Format the file text into a list per line
             class_content = []
@@ -70,6 +74,15 @@ def generate_class_pages(class_data):
             fname = (os.path.join(root_dir, file_dict['name'].lower(), class_dict['classname'].lower() + ".md"))
             with open(fname, "w") as f:
                 f.write("\n\n".join(class_content))
+            # Add class data to index file
+            index_content.append("- [%s](%s.md): %s" % (class_dict["classname"],
+                                                        class_dict["classname"].lower(),
+                                                        class_dict["short_description"]))
+        # Write the index file contents for this .py file
+        fname = (os.path.join(root_dir, file_dict['name'].lower(), "index.md"))
+        with open(fname, "w") as f:
+            f.write("\n".join(index_content))
+
 
 def parse_class_data(args):
     # Get all pattern files, excluding __init__'s
