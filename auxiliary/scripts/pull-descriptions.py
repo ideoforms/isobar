@@ -46,11 +46,13 @@ def generate_index(class_data):
     f.close()
 
 def generate_class_pages(class_data):
+    # Set the root directory
+    root_dir = "docs/patterns"
     for file_dict in class_data:
         # Check if folder exists
-        if not os.path.exists("docs/patterns/%s" % file_dict['name'].lower()):
+        if not os.path.exists(os.path.join(root_dir, file_dict['name'].lower())):
             # Make the folder if not
-            os.mkdir("docs/patterns/%s" % file_dict['name'].lower())
+            os.mkdir(os.path.join(root_dir, file_dict['name'].lower()))
         for class_dict in file_dict['classes']:
             # Format the file text into a list per line
             class_content = []
@@ -65,31 +67,30 @@ def generate_class_pages(class_data):
             if (class_dict['example_output']):
                 class_content.append("## Example Output")
                 class_content.append("```py\n%s```" % class_dict['example_output'])
-            # Output to the proper file
-            fname = ("docs/patterns/%s/%s.md" % (file_dict['name'].lower(), class_dict['classname'].lower()))
-            f = open(fname, "w")
-            f.write("\n\n".join(class_content))
-            f.close()
+            # Output to the proper file (adding .md to the actual file name)
+            fname = (os.path.join(root_dir, file_dict['name'].lower(), class_dict['classname'].lower() + ".md"))
+            with open(fname, "w") as f:
+                f.write("\n\n".join(class_content))
 
 def parse_class_data(args):
     # Get all pattern files, excluding __init__'s
     pattern_files = list(sorted(glob.glob("isobar/pattern/[!_]*.py", recursive=True)))
 
-    allDicts = []
+    all_dicts = []
 
     for fname in pattern_files:
-        basename = os.path.basename(fname)
+        base_name = os.path.basename(fname)
 
         # Make a new dict for this file
-        fileDict = {
-            "name": basename[:-3],
+        file_dict = {
+            "name": os.path.splitext(base_name)[0],
             "classes": []
         }
 
         contents = open(fname, "r").read()
 
-        classregex = 'class\s[\w():\s]+"""((?!""").)*"""'
-        cmatch = re.search(classregex, contents, re.S)
+        class_regex = 'class\s[\w():\s]+"""((?!""").)*"""'
+        cmatch = re.search(class_regex, contents, re.S)
 
         # Loop through for each class in the file
         while cmatch != None:
@@ -98,14 +99,14 @@ def parse_class_data(args):
             # Format whitespace for easier output
             # Get first line for short description
             desc = desc.split("\n", 1)
-            shortdesc = desc[0]
+            short_desc = desc[0]
             # Get the rest before code for a long description (if available)
-            longdesc = None
+            long_desc = None
             output = None
             if (len(desc) > 1):
                 desc = desc[1]
                 desc = desc.split(">>>", 1)
-                longdesc = re.sub("\n\s+", "\n", desc[0].strip())
+                long_desc = re.sub("\n\s+", "\n", desc[0].strip())
                 # See if there is output to fetch from
                 if (len(desc) > 1):
                     output = (">>>%s\n" % desc[1])
@@ -138,23 +139,23 @@ def parse_class_data(args):
                     arguments = "\n\n".join(arguments)
 
             # Gather all information into dict
-            classDict = {
+            class_dict = {
                 "classname": name,
-                "short_description": shortdesc,
-                "long_description": longdesc,
+                "short_description": short_desc,
+                "long_description": long_desc,
                 "example_output": output,
                 "arguments": arguments
             }
-            fileDict["classes"].append(classDict)
+            file_dict["classes"].append(class_dict)
 
             # Crop this section out, look for a new match
-            cmatch = re.search(classregex, contents, re.S)
+            cmatch = re.search(class_regex, contents, re.S)
 
         # Append file dict to full dict list
-        allDicts.append(fileDict)
+        all_dicts.append(file_dict)
 
     # Return dict list
-    return allDicts
+    return all_dicts
 
 if __name__ == "__main__":
     # Look for arguments to output as markdown
