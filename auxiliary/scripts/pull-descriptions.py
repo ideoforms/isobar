@@ -41,9 +41,8 @@ def generate_index(class_data):
                                                        class_dict["short_description"])
         contents += "\n\n"
     # Output to library.md
-    f = open("docs/patterns/library.md", "w")
-    f.write(contents)
-    f.close()
+    with open("docs/patterns/library.md", "w") as f:
+        f.write(contents)
 
 def generate_class_pages(class_data):
     # Set the root directory
@@ -87,7 +86,8 @@ def parse_class_data(args):
             "classes": []
         }
 
-        contents = open(fname, "r").read()
+        with open(fname, "r") as f:
+            contents = f.read()
 
         class_regex = 'class\s[\w():\s]+"""((?!""").)*"""'
         cmatch = re.search(class_regex, contents, re.S)
