@@ -6,6 +6,7 @@
 dist/
 .coverage
 .idea
+.vscode
 .ipynb_checkpoints/
 dev
 audio
