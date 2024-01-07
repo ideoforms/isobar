@@ -39,6 +39,13 @@ class Timeline:
         A Timeline typically runs until it is terminated by calling `stop()`.
         If you want the Timeline to terminate as soon as no more events are available,
         set `stop_when_done = True`.
+
+        Args:
+            tempo: The initial tempo, in bpm
+            output_device: The default output device to send events to
+            clock_source: The source of clocking events. If not specified, creates an internal Clock.
+            ticks_per_beat: The timing resolution, in PPQN. Default is 480PPQN, which equates to approximately \
+                            1ms resolution at 120bpm.
         """
         self._clock_source: Optional[Clock] = None
         if clock_source is None:
@@ -112,7 +119,7 @@ class Timeline:
         Set the Clock object that will send timing ticks to this timeline.
 
         Args:
-            clock_source: The Clock.
+            clock_source: The clock source.
         """
         clock_source.clock_target = self
         self._clock_source = clock_source
@@ -133,7 +140,7 @@ class Timeline:
         else:
             return None
 
-    def set_ticks_per_beat(self, ticks_per_beat):
+    def set_ticks_per_beat(self, ticks_per_beat: int):
         """
         Set the number of ticks per beat.
 
@@ -173,7 +180,7 @@ class Timeline:
         RuntimeError is raised.
 
         Args:
-            tempo (float): Tempo, in bpm
+            tempo: Tempo, in bpm
         """
         self.clock_source.tempo = tempo
 
@@ -181,11 +188,28 @@ class Timeline:
     """ The tempo of the timeline, in beats per minute. """
 
     def seconds_to_beats(self, seconds: float) -> float:
-        """ Translates a duration in seconds to a duration in beats. """
+        """
+        Translates a duration in seconds to a duration in beats.
+
+        Args:
+            seconds: The duration to convert, in seconds.
+
+        Returns:
+            The equivalent duration, in beats.
+        """
         return seconds * self.tempo / 60.0
 
     def beats_to_seconds(self, beats: float) -> float:
-        """ Translates a duration in beats to a duration in seconds. """
+        """
+        Translates a duration in beats to a duration in seconds.
+
+
+        Args:
+            beats: The number of beats to convert.
+
+        Returns:
+            The equivalent duration, in seconds.
+        """
         return beats * 60.0 / self.tempo
 
     def tick(self):
@@ -306,14 +330,14 @@ class Timeline:
         thread.daemon = True
         thread.start()
 
-    def run(self, stop_when_done: bool = None):
+    def run(self, stop_when_done: bool = None) -> None:
         """
         Run this Timeline in the foreground.
 
-        If `stop_when_done` is set, returns when no tracks are currently
-        scheduled; otherwise, keeps running indefinitely.
+        Args:
+            stop_when_done: If set, returns when no tracks are currently \
+                            scheduled; otherwise, keeps running indefinitely.
         """
-
         if stop_when_done is not None:
             self.stop_when_done = stop_when_done
 
@@ -396,7 +420,7 @@ class Timeline:
     output_device = property(get_output_device, set_output_device)
     """ The device that events are sent to. """
 
-    def add_output_device(self, output_device: OutputDevice):
+    def add_output_device(self, output_device: OutputDevice) -> None:
         """
         Append a new output device to the timeline's device list.
         """
