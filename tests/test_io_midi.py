@@ -40,7 +40,6 @@ def test_io_midi():
 def test_io_midi_sync():
     tempo = 150
     midi_out = iso.MidiOutputDevice(VIRTUAL_DEVICE_NAME, virtual=True, send_clock=True)
-    print("Created MIDI out: %s" % midi_out)
     clock = iso.Clock(tempo=tempo, clock_target=midi_out)
 
     midi_in = iso.MidiInputDevice(VIRTUAL_DEVICE_NAME)

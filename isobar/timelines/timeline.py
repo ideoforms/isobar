@@ -207,6 +207,13 @@ class Timeline:
             log.debug("Tick (%d active tracks, %d pending actions)" % (len(self.tracks), len(self.actions)))
 
         #--------------------------------------------------------------------------------
+        # Process note-offs before scheduled actions, which may reset the timestamp
+        # of the track.
+        #--------------------------------------------------------------------------------
+        for track in self.tracks[:]:
+            track.process_note_offs()
+
+        #--------------------------------------------------------------------------------
         # Copy self.actions because removing from it whilst using it = bad idea.
         # Perform actions before tracks are executed because an event might
         # include scheduling a quantized track, which should then be

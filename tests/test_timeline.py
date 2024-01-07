@@ -136,11 +136,14 @@ def test_timeline_schedule_quantize_delay(dummy_timeline, quantize, delay):
     dummy_timeline.tick()
     dummy_timeline.stop_when_done = True
     initial_time = dummy_timeline.current_time
+    assert len(dummy_timeline.tracks) == 0
     track = dummy_timeline.schedule({
         iso.EVENT_NOTE: iso.PSequence([1], 1)
     }, quantize=quantize, delay=delay)
     assert track.timeline == dummy_timeline
+    assert len(dummy_timeline.tracks) == 1
     dummy_timeline.run()
+    assert len(dummy_timeline.tracks) == 0
     assert len(dummy_timeline.output_device.events) == 2
     #--------------------------------------------------------------------------------
     # Scheduling can only be as precise as the duration of a tick,
