@@ -228,7 +228,6 @@ def parse_class_data(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--markdown", action="store_true")
     parser.add_argument("-l", "--library", action="store_true", help="Generate pattern library documentation")
     parser.add_argument("-r", "--readme", action="store_true", help="Generate new .README text")
     parser.add_argument("-a", "--all", action="store_true", help="Generate all new documentation")
