@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import inspect
 from typing import Union, Optional, Callable, TYPE_CHECKING
+from dataclasses import dataclass
 
 from .event import Event
 if TYPE_CHECKING:
@@ -15,6 +16,12 @@ from ..io.output import OutputDevice
 import logging
 
 log = logging.getLogger(__name__)
+
+@dataclass
+class NoteOffEvent:
+    timestamp: float
+    note: int
+    channel: int
 
 class Track:
     def __init__(self,
@@ -41,7 +48,7 @@ class Track:
         #--------------------------------------------------------------------------------
         self.event_stream: Pattern = PDict({})
         self.timeline: Timeline = timeline
-        self.current_time: float = 0
+        self.current_time: float = 0.0
         self.next_event_time: float = sys.maxsize
         self.max_event_count: int = max_event_count
         self.current_event_count: int = 0
@@ -54,7 +61,7 @@ class Track:
         self.output_device: OutputDevice = output_device
         self.interpolate: bool = interpolate
 
-        self.note_offs: list[tuple] = []
+        self.note_offs: list[NoteOffEvent] = []
         self.is_muted: bool = False
         self.is_started: bool = False
         self.is_finished: bool = False
@@ -84,7 +91,14 @@ class Track:
         else:
             super().__delattr__(item)
 
-    def start(self, events):
+    def start(self, events: Union[dict, Pattern]) -> None:
+        """
+        Begin executing the events on this track.
+        Resets the track's time counter to zero.
+
+        Args:
+            events: A dict, a PDict, or a Pattern that generates dicts.
+        """
         if events is None:
             events = {}
         if isinstance(events, dict):
@@ -146,14 +160,13 @@ class Track:
         #----------------------------------------------------------------------
         # Process note_offs before we play the next note, else a repeated note
         # with gate = 1.0 will immediately be cancelled.
+        #
+        # Use round() to avoid scheduling issues arising from rounding errors.
         #----------------------------------------------------------------------
-        for n, note in enumerate(self.note_offs[:]):
-            # TODO: Use a MidiNote object to represent these note_off events
-            if round(note[0], 8) <= round(self.current_time, 8):
-                index = note[1]
-                channel = note[2]
-                self.output_device.note_off(index, channel)
-                self.note_offs.remove(note)
+        for note_off in self.note_offs[:]:
+            if round(note_off.timestamp, 8) <= round(self.current_time, 8):
+                self.output_device.note_off(note_off.note, note_off.channel)
+                self.note_offs.remove(note_off)
 
     def tick(self):
         """
@@ -244,6 +257,9 @@ class Track:
         self.current_time += self.tick_duration
 
     def reset_to_beat(self):
+        """
+        Reset the track's time to the nearest integer.
+        """
         self.current_time = round(self.current_time)
 
     def reset(self):
@@ -450,7 +466,8 @@ class Track:
 
                         note_dur = event.duration * gate
                         note_off_time = self.current_time + note_dur
-                        self.schedule_note_off(note_off_time, note, channel)
+                        note_off = NoteOffEvent(note_off_time, note, channel)
+                        self.note_offs.append(note_off)
                 if event.pitchbend is not None:
                     self.output_device.pitch_bend(event.pitchbend, channel)
         else:
@@ -462,13 +479,6 @@ class Track:
         if self.on_event_callbacks:
             for callback in self.on_event_callbacks:
                 callback(event)
-
-    def schedule_note_off(self,
-                          time: float,
-                          note: int,
-                          channel: int):
-        note_off = [time, note, channel]
-        self.note_offs.append(note_off)
 
     def stop(self):
         self.timeline.unschedule(self)
