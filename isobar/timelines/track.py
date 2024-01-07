@@ -19,7 +19,6 @@ log = logging.getLogger(__name__)
 class Track:
     def __init__(self,
                  timeline: Timeline,
-                 events: Union[dict, Pattern],
                  max_event_count: Optional[int] = None,
                  interpolate: str = INTERPOLATION_NONE,
                  output_device: Optional[OutputDevice] = None,
@@ -40,27 +39,26 @@ class Track:
         #--------------------------------------------------------------------------------
         # Ensure that events is a pattern that generates a dict when it is iterated.
         #--------------------------------------------------------------------------------
-        self.event_stream = {}
-        self.timeline = timeline
-        self.current_time = 0
-        self.next_event_time = 0
-        self.max_event_count = max_event_count
-        self.current_event_count = 0
-        self.name = name
+        self.event_stream: Pattern = PDict({})
+        self.timeline: Timeline = timeline
+        self.current_time: float = 0
+        self.next_event_time: float = sys.maxsize
+        self.max_event_count: int = max_event_count
+        self.current_event_count: int = 0
+        self.name: str = name
 
-        self._update(events)
-        self.current_event = None
-        self.next_event = None
-        self.interpolating_event = PSequence([], 0)
+        self.current_event: Optional[Event] = None
+        self.next_event: Optional[Event] = None
+        self.interpolating_event: Pattern = PSequence([], 0)
 
         self.output_device: OutputDevice = output_device
-        self.interpolate = interpolate
+        self.interpolate: bool = interpolate
 
-        self.note_offs = []
-        self.is_muted = False
-        self.is_finished = False
-        self.remove_when_done = remove_when_done
-        self.on_event_callbacks = []
+        self.note_offs: list[tuple] = []
+        self.is_muted: bool = False
+        self.is_finished: bool = False
+        self.remove_when_done: bool = remove_when_done
+        self.on_event_callbacks: list[Callable] = []
 
     def __getattr__(self, item):
         return self.event_stream[item]
@@ -107,14 +105,14 @@ class Track:
                       quantize == 1 means that the update should happen on the next beat boundary.
             delay: Optional float specifying delay time applied to quantization
         """
-
         if quantize is None:
             quantize = self.timeline.defaults.quantize
         if delay is None:
-            delay = 0.0
-        delay += self.timeline.seconds_to_beats(self.output_device.added_latency_seconds)
+            delay = self.timeline.defaults.delay
+        if self.output_device is not None and self.output_device.added_latency_seconds > 0.0:
+            delay += self.timeline.seconds_to_beats(self.output_device.added_latency_seconds)
 
-        if quantize is None and delay == 0.0:
+        if quantize == 0.0 and delay == 0.0:
             self._update(events)
         else:
             #--------------------------------------------------------------------------------
@@ -237,9 +235,11 @@ class Track:
         self.current_time = round(self.current_time)
 
     def reset(self):
+        """
+        Rewind to the beginning of the pattern.
+        """
         self.current_time = 0
-        self.next_event_duration = 0
-        self.next_event_time = 0
+        self.next_event_time = self.current_time
 
         for pattern in self.event_stream.values():
             try:
@@ -437,7 +437,8 @@ class Track:
                         self.output_device.note_on(note, amp, channel)
 
                         note_dur = event.duration * gate
-                        self.schedule_note_off(self.current_time + note_dur, note, channel)
+                        note_off_time = self.current_time + note_dur
+                        self.schedule_note_off(note_off_time, note, channel)
                 if event.pitchbend is not None:
                     self.output_device.pitch_bend(event.pitchbend, channel)
         else:

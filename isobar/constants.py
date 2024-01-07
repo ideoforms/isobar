@@ -72,6 +72,7 @@ EVENT_SUPERCOLLIDER_SYNTH_PARAMS = "params"
 # directly in the dictionary.
 #------------------------------------------------------------------------
 EVENT_QUANTIZE = "quantize"
+EVENT_DELAY = "delay"
 
 #------------------------------------------------------------------------
 # Legacy keys.
@@ -85,7 +86,7 @@ ALL_EVENT_PARAMETERS = [
     EVENT_TRANSPOSE, EVENT_EVENT, EVENT_ACTION, EVENT_ACTION_ARGS, EVENT_CONTROL,
     EVENT_OSC_ADDRESS, EVENT_OSC_PARAMS, EVENT_VALUE, EVENT_TIME, EVENT_PATCH,
     EVENT_PATCH_PARAMS, EVENT_PATCH_OUTPUT, EVENT_PROGRAM_CHANGE, EVENT_SUPERCOLLIDER_SYNTH,
-    EVENT_SUPERCOLLIDER_SYNTH_PARAMS, EVENT_QUANTIZE,
+    EVENT_SUPERCOLLIDER_SYNTH_PARAMS, EVENT_QUANTIZE, EVENT_DELAY,
     EVENT_DURATION_LEGACY, EVENT_AMPLITUDE_LEGACY,
     EVENT_TRIGGER_NAME, EVENT_TRIGGER_VALUE
 ]
@@ -114,6 +115,7 @@ DEFAULT_EVENT_AMPLITUDE = 64
 DEFAULT_EVENT_OCTAVE = 0
 DEFAULT_EVENT_TRANSPOSE = 0
 DEFAULT_EVENT_QUANTIZE = 0
+DEFAULT_EVENT_DELAY = 0
 
 #------------------------------------------------------------------------
 # Interpolation modes for continuous signals.
