@@ -10,28 +10,24 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 class Clock:
-    """
-    A Clock generates tick events at a regular interval, defined by the `ticks_per_beat` property.
-    The higher the number of ticks per beat, the finer the granularity events can be triggered.
-
-    Different clocking systems vary in their granularity, typically specified in ticks per beat (crotchet),
-    aka "pulses per quarter note", PPQN:
-     - MIDI I/O has a resolution of 24 PPQN
-     - MIDI files commonly have a resolution of 96 or 120 PPQN, but can vary by file
-
-    isobar defaults to 480 PPQN, which equates to a tick per 1.04ms. This means that events can be
-    scheduled in the Timeline with a ~1ms granularity.
-
-    Clock division is needed to interact with other clocking systems, which is handled by
-    `make_clock_multiplier`. Timeline contains logic to multiplex between multiple different clock outputs.
-    """
-
     def __init__(self,
                  clock_target: Any = None,
                  tempo: float = DEFAULT_TEMPO,
                  ticks_per_beat: int = DEFAULT_TICKS_PER_BEAT):
         """
-        Create a new Clock.
+        A Clock generates tick events at a regular interval, defined by the `ticks_per_beat` property.
+        The higher the number of ticks per beat, the finer the granularity events can be triggered.
+
+        Different clocking systems vary in their granularity, typically specified in ticks per beat (crotchet),
+        aka "pulses per quarter note", PPQN:
+         - MIDI I/O has a resolution of 24 PPQN
+         - MIDI files commonly have a resolution of 96 or 120 PPQN, but can vary by file
+
+        isobar defaults to 480 PPQN, which equates to a tick per 1.04ms. This means that events can be
+        scheduled in the Timeline with a ~1ms granularity.
+
+        Clock division is needed to interact with other clocking systems, which is handled by
+        `make_clock_multiplier`. Timeline contains logic to multiplex between multiple different clock outputs.
 
         Args:
             clock_target: Clock target, which must have a `tick()` method and `ticks_per_beat` property.
@@ -39,15 +35,15 @@ class Clock:
             ticks_per_beat: The number of tick events generated per quarter-note.
         """
         self.clock_target = clock_target
-        self.tick_duration_seconds = None
-        self.tick_duration_seconds_orig = None
-        self._tempo = tempo
-        self.ticks_per_beat = ticks_per_beat
+        self.tick_duration_seconds: float = None
+        self.tick_duration_seconds_orig: float = None
+        self._tempo: float = tempo
+        self.ticks_per_beat: int = ticks_per_beat
         self.warpers = []
-        self.accelerate = 1.0
-        self.thread = None
-        self.running = False
-        self.jitter = 0.0
+        self.accelerate: float = 1.0
+        self.thread: threading.Thread = None
+        self.running: bool = False
+        self.jitter: float = 0.0
 
         target_ticks_per_beat = self.clock_target.ticks_per_beat if self.clock_target else ticks_per_beat
         self.clock_multiplier = make_clock_multiplier(target_ticks_per_beat, self.ticks_per_beat)
@@ -56,14 +52,15 @@ class Clock:
         self.tick_duration_seconds = 60.0 / (self.tempo * self.ticks_per_beat)
         self.tick_duration_seconds_orig = self.tick_duration_seconds
 
-    def get_ticks_per_beat(self):
+    def get_ticks_per_beat(self) -> int:
         return self._ticks_per_beat
 
-    def set_ticks_per_beat(self, ticks_per_beat):
+    def set_ticks_per_beat(self, ticks_per_beat: int):
         self._ticks_per_beat = ticks_per_beat
         self._calculate_tick_duration()
 
     ticks_per_beat = property(get_ticks_per_beat, set_ticks_per_beat)
+    """ Returns the number of ticks per beat. """
 
     def get_tempo(self):
         return self._tempo
@@ -73,11 +70,12 @@ class Clock:
         self._calculate_tick_duration()
 
     tempo = property(get_tempo, set_tempo)
+    """ The tempo of this clock, in BPM. """
 
     def background(self):
         """ Run this Timeline in a background thread. """
         self.thread = threading.Thread(target=self.run)
-        self.thread.setDaemon(True)
+        self.thread.daemon = True
         self.thread.start()
 
     def run(self):

@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 import copy
-import math
 import inspect
+from typing import Union, Optional, Callable, TYPE_CHECKING
 
 from .event import Event
+if TYPE_CHECKING:
+    from .timeline import Timeline
 from ..pattern import Pattern, PSequence, PDict, PInterpolate
 from ..constants import *
 from ..exceptions import InvalidEventException
@@ -14,24 +18,23 @@ log = logging.getLogger(__name__)
 
 class Track:
     def __init__(self,
-                 timeline,
-                 events,
-                 max_event_count=None,
-                 interpolate=INTERPOLATION_NONE,
-                 output_device=None,
-                 remove_when_done=True,
-                 name=None):
+                 timeline: Timeline,
+                 events: Union[dict, Pattern],
+                 max_event_count: Optional[int] = None,
+                 interpolate: str = INTERPOLATION_NONE,
+                 output_device: Optional[OutputDevice] = None,
+                 remove_when_done: bool = True,
+                 name: Optional[str] = None):
         """
-
         Args:
-            timeline: A Timeline object
+            timeline: The Timeline object that the track inhabits
             events: A dict, a PDict, or a Pattern that generates dicts.
-            max_event_count: Optionally, the maximum number of events that will be executed.
+            max_event_count: Optionally, the maximum number of events that will be executed. \
                              The Track will finish automatically once this number of events is complete.
             interpolate: Optional interpolation to impose on values, particularly for control tracks.
             output_device: Optional output device. Defaults to the Timeline's default_output_device.
             remove_when_done: If True, removes the Track from the Timeline when it finishes.
-            name: Optional name for the track. If specified, can be used to update tracks in place by specifying
+            name: Optional name for the track. If specified, can be used to update tracks in place by specifying \
                   its name when scheduling events on the Timeline.
         """
         #--------------------------------------------------------------------------------
@@ -92,15 +95,15 @@ class Track:
         self.event_stream = events
 
     def update(self,
-               events,
-               quantize=None,
-               delay=None):
+               events: Union[dict, Pattern],
+               quantize: Optional[float] = None,
+               delay: Optional[float] = None):
         """
         Update the events that this Track produces.
 
         Args:
             events: A dict, a PDict, or a Pattern that generates dicts.
-            quantize: An optional float that specifies the quantization that the update() should follow.
+            quantize: An optional float that specifies the quantization that the update() should follow. \
                       quantize == 1 means that the update should happen on the next beat boundary.
             delay: Optional float specifying delay time applied to quantization
         """
@@ -129,15 +132,13 @@ class Track:
             return "Track (pos = %d)" % self.current_time
 
     @property
-    def tick_duration(self):
+    def tick_duration(self) -> float:
+        """ Tick duration, in beats. """
         return self.timeline.tick_duration
 
     def tick(self):
         """
         Step forward one tick.
-
-        Args:
-            tick_duration (float): Duration, in beats.
         """
 
         #----------------------------------------------------------------------
@@ -247,7 +248,7 @@ class Track:
                 # Event stream may contain constant values, in which case no reset is needed.
                 pass
 
-    def get_next_event(self):
+    def get_next_event(self) -> Event:
         """
         Retrieve the next event from the event stream dict.
 
@@ -280,7 +281,7 @@ class Track:
 
         return event
 
-    def perform_event(self, event):
+    def perform_event(self, event: Event):
         if not event.active:
             return
         if self.is_muted:
@@ -395,16 +396,16 @@ class Track:
                 d = copy.copy(event)
                 for key, value in list(d.items()):
                     #------------------------------------------------------------------------
-                    # turn non-builtin objects into their string representations.
-                    # we don't want to call repr() on numbers as it turns them into strings,
+                    # Turn non-builtin objects into their string representations.
+                    # We don't want to call repr() on numbers as it turns them into strings,
                     # which we don't want to happen in our resultant JSON.
-                    # TODO: there absolutely must be a way to do this for all objects which are
+                    # TODO: There absolutely must be a way to do this for all objects which are
                     #       non-builtins... ie, who are "class" instances rather than "type".
                     #
-                    #       we could check dir(__builtins__), but for some reason, __builtins__ is
+                    #       We could check dir(__builtins__), but for some reason, __builtins__ is
                     #       different here than it is outside of a module!?
                     #
-                    #       instead, go with the lame option of listing "primitive" types.
+                    #       Instead, go with the lame option of listing "primitive" types.
                     #------------------------------------------------------------------------
                     if type(value) not in (int, float, bool, str, list, dict, tuple):
                         value = repr(value)
@@ -449,22 +450,41 @@ class Track:
             for callback in self.on_event_callbacks:
                 callback(event)
 
-    def schedule_note_off(self, time, note, channel):
+    def schedule_note_off(self,
+                          time: float,
+                          note: int,
+                          channel: int):
         self.note_offs.append([time, note, channel])
 
     def stop(self):
         self.timeline.unschedule(self)
 
-    def mute(self):
+    def mute(self) -> None:
+        """
+        Mutes the track. Subsequent events will be silenced until an unmute() is received.
+        """
         self.is_muted = True
 
-    def add_event_callback(self, callback):
+    def unmute(self) -> None:
+        """
+        Unmutes the track.
+        """
+        self.is_muted = False
+
+    def add_event_callback(self, callback: Callable):
         """
         Callback to trigger when an event takes place.
         Useful for displaying GUI changes to reflect underlying events.
+
+        The callback recents a single arg containing the Event.
         """
         self.on_event_callbacks.append(callback)
 
-    def remove_event_callback(self, callback):
-        self.on_event_callbacks.remove(callback)
+    def remove_event_callback(self, callback: Callable):
+        """
+        Remove an event callback.
 
+        Args:
+            callback: The callback to remove.
+        """
+        self.on_event_callbacks.remove(callback)
