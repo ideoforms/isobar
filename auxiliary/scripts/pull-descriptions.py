@@ -66,7 +66,6 @@ def generate_class_pages(class_data):
             if (class_dict['arguments']):
                 class_content.append("## Arguments")
                 class_content.append(class_dict['arguments'])
-                print(class_dict['arguments'])
             if (class_dict['example_output']):
                 class_content.append("## Example Output")
                 class_content.append("```py\n%s```" % class_dict['example_output'])
@@ -82,7 +81,6 @@ def generate_class_pages(class_data):
         fname = (os.path.join(root_dir, file_dict['name'].lower(), "index.md"))
         with open(fname, "w") as f:
             f.write("\n".join(index_content))
-
 
 def parse_class_data(args):
     # Get all pattern files, excluding __init__'s
@@ -148,7 +146,6 @@ def parse_class_data(args):
                         l = re.sub(":", "`:", l, 1)
                         arguments[i] = l
                         i += 1
-                    print(arguments)
                     arguments = "\n\n".join(arguments)
 
             # Gather all information into dict
