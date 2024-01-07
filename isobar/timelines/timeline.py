@@ -231,6 +231,13 @@ class Timeline:
             log.debug("Tick (%d active tracks, %d pending actions)" % (len(self.tracks), len(self.actions)))
 
         #--------------------------------------------------------------------------------
+        # Process note-offs before scheduled actions, which may reset the timestamp
+        # of the track.
+        #--------------------------------------------------------------------------------
+        for track in self.tracks[:]:
+            track.process_note_offs()
+
+        #--------------------------------------------------------------------------------
         # Copy self.actions because removing from it whilst using it = bad idea.
         # Perform actions before tracks are executed because an event might
         # include scheduling a quantized track, which should then be
@@ -270,7 +277,7 @@ class Timeline:
         #--------------------------------------------------------------------------------
         if len(self.tracks) == 0 and len(self.actions) == 0 and self.stop_when_done:
             # TODO: Don't do this if we've never played any events, e.g.
-            #       right after calling timeline.background(). Should at least
+            #       right after calling timeline.start(). Should at least
             #       wait for some events to happen first.
             raise StopIteration
 
@@ -316,7 +323,10 @@ class Timeline:
 
     def reset(self):
         """
-        Reset the timeline to t = 0.
+        Rewind the timeline and all tracks to t = 0.
+        NOTE: This is not the same as re-initialising the timeline to its initial state
+        as it erases any differences in scheduling times between tracks. More thought may be
+        needed for different types of reset/rewind operation.
         """
         self.current_time = 0.0
         for track in self.tracks:
@@ -496,16 +506,6 @@ class Timeline:
         if self.max_tracks and len(self.tracks) >= self.max_tracks:
             raise TrackLimitReachedException("Timeline: Refusing to schedule track (hit limit of %d)" % self.max_tracks)
 
-        def add_track(track):
-            #--------------------------------------------------------------------------------
-            # Add a new track.
-            #--------------------------------------------------------------------------------
-            if track_index is not None:
-                self.tracks.insert(track_index, track)
-            else:
-                self.tracks.append(track)
-            log.info("Timeline: Scheduled new track (total tracks: %d)" % len(self.tracks))
-
         if isinstance(params, Track):
             track = params
             track.reset()
@@ -514,30 +514,28 @@ class Timeline:
             # Take a copy of params to avoid modifying the original
             #--------------------------------------------------------------------------------
             track = Track(self,
-                          events=copy.copy(params),
                           max_event_count=count,
                           interpolate=interpolate,
                           output_device=output_device,
                           remove_when_done=remove_when_done,
                           name=name)
 
-        if quantize is None:
-            quantize = self.defaults.quantize
-        if output_device.added_latency_seconds:
-            delay = delay + self.seconds_to_beats(output_device.added_latency_seconds)
-        if quantize or delay:
+            track.update(copy.copy(params), quantize=quantize, delay=delay)
+
             #--------------------------------------------------------------------------------
-            # We don't want to begin events right away -- either wait till
-            # the next beat boundary (quantize), or delay a number of beats.
+            # Add a new track.
             #--------------------------------------------------------------------------------
-            self._schedule_action(function=lambda: add_track(track),
-                                  quantize=quantize,
-                                  delay=delay)
-        else:
-            #--------------------------------------------------------------------------------
-            # Begin events on this track right away.
-            #--------------------------------------------------------------------------------
-            add_track(track)
+            if track_index is not None:
+                self.tracks.insert(track_index, track)
+            else:
+                self.tracks.append(track)
+
+            log.info("Timeline: Scheduled new track (total tracks: %d)" % len(self.tracks))
+
+            # TODO:
+            #  - Add test for added_latency_seconds
+            #  - Add test for defaults
+
 
         return track
 

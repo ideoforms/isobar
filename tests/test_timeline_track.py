@@ -9,8 +9,9 @@ def dummy_track():
     return iso.Track(output_device=iso.io.DummyOutputDevice())
 
 def test_track(dummy_timeline):
-    track = iso.Track(dummy_timeline, {
-        iso.EVENT_NOTE: iso.PSequence([], 0)
+    track = iso.Track(dummy_timeline)
+    track.update({
+        "note": iso.PSequence([], 0)
     })
     track.tick()
     assert track.is_finished
@@ -26,9 +27,11 @@ def test_track_update(dummy_timeline):
     #  - Should also catch the case in which two updates are scheduled for the same
     #    tick, in which the last update takes precedence
     #--------------------------------------------------------------------------------
+    assert len(dummy_timeline.tracks) == 0
     track = dummy_timeline.schedule({
         iso.EVENT_NOTE: iso.PSequence([50], 4),
     }, count=20)
+    assert len(dummy_timeline.tracks) == 1
     dummy_timeline.tick()
 
     # This update is later obsoleted
@@ -55,3 +58,4 @@ def test_track_update(dummy_timeline):
 
     ]
     assert track.is_finished
+    assert len(dummy_timeline.tracks) == 0

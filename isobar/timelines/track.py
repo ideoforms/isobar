@@ -19,7 +19,6 @@ log = logging.getLogger(__name__)
 class Track:
     def __init__(self,
                  timeline: Timeline,
-                 events: Union[dict, Pattern],
                  max_event_count: Optional[int] = None,
                  interpolate: str = INTERPOLATION_NONE,
                  output_device: Optional[OutputDevice] = None,
@@ -40,27 +39,27 @@ class Track:
         #--------------------------------------------------------------------------------
         # Ensure that events is a pattern that generates a dict when it is iterated.
         #--------------------------------------------------------------------------------
-        self.event_stream = {}
-        self.timeline = timeline
-        self.current_time = 0
-        self.next_event_time = 0
-        self.max_event_count = max_event_count
-        self.current_event_count = 0
-        self.name = name
+        self.event_stream: Pattern = PDict({})
+        self.timeline: Timeline = timeline
+        self.current_time: float = 0
+        self.next_event_time: float = sys.maxsize
+        self.max_event_count: int = max_event_count
+        self.current_event_count: int = 0
+        self.name: str = name
 
-        self._update(events)
-        self.current_event = None
-        self.next_event = None
-        self.interpolating_event = PSequence([], 0)
+        self.current_event: Optional[Event] = None
+        self.next_event: Optional[Event] = None
+        self.interpolating_event: Pattern = PSequence([], 0)
 
         self.output_device: OutputDevice = output_device
-        self.interpolate = interpolate
+        self.interpolate: bool = interpolate
 
-        self.note_offs = []
-        self.is_muted = False
-        self.is_finished = False
-        self.remove_when_done = remove_when_done
-        self.on_event_callbacks = []
+        self.note_offs: list[tuple] = []
+        self.is_muted: bool = False
+        self.is_started: bool = False
+        self.is_finished: bool = False
+        self.remove_when_done: bool = remove_when_done
+        self.on_event_callbacks: list[Callable] = []
 
     def __getattr__(self, item):
         return self.event_stream[item]
@@ -85,14 +84,16 @@ class Track:
         else:
             super().__delattr__(item)
 
-    def _update(self, events):
+    def start(self, events):
         if events is None:
             events = {}
         if isinstance(events, dict):
             events = PDict(events)
-
-        self.next_event_time = self.current_time
         self.event_stream = events
+
+        self.is_started = True
+        self.current_time = 0.0
+        self.next_event_time = self.current_time
 
     def update(self,
                events: Union[dict, Pattern],
@@ -107,21 +108,26 @@ class Track:
                       quantize == 1 means that the update should happen on the next beat boundary.
             delay: Optional float specifying delay time applied to quantization
         """
-
         if quantize is None:
             quantize = self.timeline.defaults.quantize
         if delay is None:
-            delay = 0.0
-        delay += self.timeline.seconds_to_beats(self.output_device.added_latency_seconds)
+            delay = self.timeline.defaults.delay
+        if self.output_device is not None and self.output_device.added_latency_seconds > 0.0:
+            delay += self.timeline.seconds_to_beats(self.output_device.added_latency_seconds)
 
-        if quantize is None and delay == 0.0:
-            self._update(events)
+        #--------------------------------------------------------------------------------
+        # Don't assign to events immediately, because in the case of quantized
+        # updates, the existing stream should keep playing up until the moment
+        # the track is updated.
+        #--------------------------------------------------------------------------------
+        if quantize == 0.0 and delay == 0.0:
+            self.start(events)
         else:
             #--------------------------------------------------------------------------------
-            # Schedule update event, with priority=0 to ensure that the action
-            # happens before the track's tick() event is called.
+            # Schedule update event. Actions scheduled with schedule_action take place
+            # before the track's tick() event is called.
             #--------------------------------------------------------------------------------
-            self.timeline._schedule_action(function=lambda: self._update(events),
+            self.timeline._schedule_action(function=lambda: self.start(events),
                                            quantize=quantize,
                                            delay=delay)
 
@@ -136,11 +142,7 @@ class Track:
         """ Tick duration, in beats. """
         return self.timeline.tick_duration
 
-    def tick(self):
-        """
-        Step forward one tick.
-        """
-
+    def process_note_offs(self):
         #----------------------------------------------------------------------
         # Process note_offs before we play the next note, else a repeated note
         # with gate = 1.0 will immediately be cancelled.
@@ -152,6 +154,14 @@ class Track:
                 channel = note[2]
                 self.output_device.note_off(index, channel)
                 self.note_offs.remove(note)
+
+    def tick(self):
+        """
+        Step forward one tick.
+        """
+
+        if not self.is_started:
+            return
 
         try:
             if self.interpolate is INTERPOLATION_NONE:
@@ -237,9 +247,11 @@ class Track:
         self.current_time = round(self.current_time)
 
     def reset(self):
+        """
+        Rewind to the beginning of the pattern.
+        """
         self.current_time = 0
-        self.next_event_duration = 0
-        self.next_event_time = 0
+        self.next_event_time = self.current_time
 
         for pattern in self.event_stream.values():
             try:
@@ -309,7 +321,7 @@ class Track:
             except StopIteration:
                 raise StopIteration()
             except Exception as e:
-                print(("Exception when handling scheduled action: %s" % e))
+                print("Exception when handling scheduled action: %s" % e)
                 import traceback
                 traceback.print_exc()
                 pass
@@ -437,7 +449,8 @@ class Track:
                         self.output_device.note_on(note, amp, channel)
 
                         note_dur = event.duration * gate
-                        self.schedule_note_off(self.current_time + note_dur, note, channel)
+                        note_off_time = self.current_time + note_dur
+                        self.schedule_note_off(note_off_time, note, channel)
                 if event.pitchbend is not None:
                     self.output_device.pitch_bend(event.pitchbend, channel)
         else:
@@ -454,7 +467,8 @@ class Track:
                           time: float,
                           note: int,
                           channel: int):
-        self.note_offs.append([time, note, channel])
+        note_off = [time, note, channel]
+        self.note_offs.append(note_off)
 
     def stop(self):
         self.timeline.unschedule(self)

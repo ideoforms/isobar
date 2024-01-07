@@ -136,11 +136,14 @@ def test_timeline_schedule_quantize_delay(dummy_timeline, quantize, delay):
     dummy_timeline.tick()
     dummy_timeline.stop_when_done = True
     initial_time = dummy_timeline.current_time
-    stream = dummy_timeline.schedule({
+    assert len(dummy_timeline.tracks) == 0
+    track = dummy_timeline.schedule({
         iso.EVENT_NOTE: iso.PSequence([1], 1)
     }, quantize=quantize, delay=delay)
-    assert stream.timeline == dummy_timeline
+    assert track.timeline == dummy_timeline
+    assert len(dummy_timeline.tracks) == 1
     dummy_timeline.run()
+    assert len(dummy_timeline.tracks) == 0
     assert len(dummy_timeline.output_device.events) == 2
     #--------------------------------------------------------------------------------
     # Scheduling can only be as precise as the duration of a tick,
@@ -191,18 +194,6 @@ def test_timeline_schedule_default_quantize_override(dummy_timeline):
     assert dummy_timeline.output_device.events[0] == [pytest.approx(dummy_timeline.tick_duration, abs=dummy_timeline.tick_duration), "note_on", 1, 64, 0]
     assert dummy_timeline.output_device.events[1] == [pytest.approx(1 + dummy_timeline.tick_duration, abs=dummy_timeline.tick_duration), "note_off", 1, 0]
 
-@pytest.mark.skip
-def test_timeline_schedule_time(dummy_timeline):
-    dummy_timeline.schedule({
-        iso.EVENT_NOTE: iso.PSequence([1], 1),
-        iso.EVENT_DURATION: 1
-    }, time=1.25)
-    dummy_timeline.run()
-    assert len(dummy_timeline.output_device.events) == 2
-    assert dummy_timeline.output_device.events[0] == [pytest.approx(1.25, abs=dummy_timeline.tick_duration), "note_on", 1, 64, 0]
-    assert dummy_timeline.output_device.events[1] == [pytest.approx(2.25, abs=dummy_timeline.tick_duration), "note_off", 1, 0]
-
-@pytest.mark.skip
 def test_timeline_schedule_count(dummy_timeline):
     dummy_timeline.schedule({
         iso.EVENT_NOTE: iso.PSeries(0, 1),

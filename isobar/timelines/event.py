@@ -20,6 +20,7 @@ class EventDefaults:
             EVENT_TRANSPOSE: DEFAULT_EVENT_TRANSPOSE,
             EVENT_KEY: Key("C", Scale.default),
             EVENT_QUANTIZE: DEFAULT_EVENT_QUANTIZE,
+            EVENT_DELAY: DEFAULT_EVENT_DELAY,
             EVENT_PITCHBEND: None,
         }
         for key, value in default_values.items():
