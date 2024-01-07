@@ -108,6 +108,14 @@ def midi_note_to_frequency(note: float) -> float:
         return None
     return 440.0 * pow(2, (note - 69.0) / 12)
 
+def midi_note_to_frequency_just_intonation(note):
+    note_ratios = [1/1, 256/243, 9/8, 32/27, 81/64, 4/3, 729/512, 3/2, 128/81, 27/16, 16/9, 243/128]
+    octave = note // 12
+    octave_note = note % 12
+    octave_base_frequency = midi_note_to_frequency(octave * 12)
+    octave_note_frequency = octave_base_frequency * note_ratios[octave_note]
+    return octave_note_frequency
+
 def note_name_to_frequency(note_name: str) -> float:
     """
     Returns the frequency corresponding to the given MIDI note name.
