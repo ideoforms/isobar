@@ -64,7 +64,7 @@ def update_readme(class_data: list[dict]):
         for class_dict in file_dict['classes']:
             # Add their names and descriptions with a set spacer on the name
             pattern_classes.append(f"\t{class_dict['classname']:<25}- {class_dict['short_description']}\n")
-            logger.info("Adding class %s" % class_dict['class_name'])
+            logger.info("Adding class %s" % class_dict['classname'])
         pattern_classes.append("\n")
 
     # Get current README file data
