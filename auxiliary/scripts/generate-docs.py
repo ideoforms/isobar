@@ -8,10 +8,21 @@ import re
 import os
 import glob
 import argparse
+import logging
+
+logger = logging.getLogger(__name__)
 
 def main(args):
+    """
+    Main document generating file. Will automatically regenerate all pattern file and
+    pattern class documentation pages, and update README examples and pattern classes
+    in-place. Runs automatically when running the file with command line arguments
+
+    Args:
+        args: Command line arguments; -l/--library for pattern files, -r/--readme for README, -a/--all for both
+    """
     # Get data from pattern files
-    class_data = parse_class_data(args)
+    class_data = parse_class_data()
     if args.library or args.all:
         # Output pattern index file and individual class files
         generate_index(class_data)
@@ -20,7 +31,18 @@ def main(args):
         # Update the README file, specifically just the table
         update_readme(class_data)
 
-def update_readme(class_data):
+def update_readme(class_data: list[dict]):
+    """
+    Update the README example and pattern classes sections from currently existing files
+    and classes in the examples and isobar/pattern folders. Updates in place using section
+    headers as anchors
+
+    Args:
+        class_data: List of pattern file dictionaries, each holding a list of their respective
+        class dictionaries with their names, descriptions, and arguments and code examples if 
+        available
+    """
+    logger.info("Updating README.md")
     # Get all example files
     example_files = list(sorted(glob.glob("examples/*ex-*.py")))
 
@@ -29,16 +51,20 @@ def update_readme(class_data):
     for example in example_files:
         example = os.path.basename(example)
         v_examples.append("* [%s](examples/%s)\n" % (example, example))
+        logger.info("Adding example file %s" % example)
 
     # Also store a list of all files and classes
     pattern_classes = []
     for file_dict in class_data:
         # Add in the file name
         pattern_classes.append("\t%s (%s)\n" % (file_dict['name'].upper(), file_dict['name'] + ".py"))
+        logger.info("Adding classes from file %s.py" % file_dict['name'])
+
         # Parse through all classes in file
         for class_dict in file_dict['classes']:
             # Add their names and descriptions with a set spacer on the name
             pattern_classes.append(f"\t{class_dict['classname']:<25}- {class_dict['short_description']}\n")
+            logger.info("Adding class %s" % class_dict['class_name'])
         pattern_classes.append("\n")
 
     # Get current README file data
@@ -79,13 +105,19 @@ def update_readme(class_data):
     # Output this all to README
     with open("README.md", "w") as f:
         f.write("".join(lines))
+    logger.info("Output changes to README.md")
 
-
-def generate_index(class_data):
+def generate_index(class_data: list[dict]):
     """
-    Iterates over each of the source files indexed in `class_data`, and outputs
+    Iterates over each of the pattern files indexed in `class_data` and outputs
     a single page of Markdown which is the documentation index.
+
+    Args:
+        class_data: List of pattern file dictionaries, each holding a list of their respective
+        class dictionaries with their names, descriptions, and arguments and code examples if 
+        available
     """
+    logger.info("Generating pattern folder index")
     contents = ""
     for file_dict in class_data:
         contents += "## [%s](%s/%s)\n" % (file_dict["name"].title(),
@@ -104,14 +136,26 @@ def generate_index(class_data):
     # Output to library.md
     with open("docs/patterns/library.md", "w") as f:
         f.write(contents)
+    logger.info("Pattern folder index %s written" % "docs/patterns/library.md")
 
-def generate_class_pages(class_data):
+def generate_class_pages(class_data: list[dict]):
+    """
+    Iterates over each of the pattern files indexed in `class_data` and outputs a page for
+    each file as an index, and each class with its respective data.
+
+    Args:
+        class_data: List of pattern file dictionaries, each holding a list of their respective
+        class dictionaries with their names, descriptions, and arguments and code examples if 
+        available
+    """
+    logger.info("Generating pattern file documentation")
     # Set the root directory
     root_dir = "docs/patterns"
     for file_dict in class_data:
         # Check if folder exists
         if not os.path.exists(os.path.join(root_dir, file_dict['name'].lower())):
             # Make the folder if not
+            logger.info("Directory made @ %s" % os.path.join(root_dir, file_dict['name'].lower()))
             os.mkdir(os.path.join(root_dir, file_dict['name'].lower()))
         # Start storing index file data
         index_content = ["# %s\n" % file_dict["name"].title()]
@@ -132,16 +176,27 @@ def generate_class_pages(class_data):
             fname = (os.path.join(root_dir, file_dict['name'].lower(), class_dict['classname'].lower() + ".md"))
             with open(fname, "w") as f:
                 f.write("\n\n".join(class_content))
+            logger.info("Class info %s written" % fname)
             # Add class data to index file
             index_content.append("- [%s](%s.md): %s" % (class_dict["classname"],
                                                         class_dict["classname"].lower(),
                                                         class_dict["short_description"]))
+
         # Write the index file contents for this .py file
         fname = (os.path.join(root_dir, file_dict['name'].lower(), "index.md"))
         with open(fname, "w") as f:
             f.write("\n".join(index_content))
+        logger.info("Pattern index %s written" % fname)
 
-def parse_class_data(args):
+def parse_class_data():
+    """
+    Iterates through each file in isobar/pattern and stores all file and class data
+    in a dictionary and sublist structure
+
+    Returns:
+        list[dict]: List of pattern file dictionaries, each storing their own list of class dictionaries 
+    """
+    logger.info("Parsing pattern files")
     # Get all pattern files, excluding __init__'s
     pattern_files = list(sorted(glob.glob("isobar/pattern/[!_]*.py", recursive=True)))
 
