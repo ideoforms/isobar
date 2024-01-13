@@ -22,7 +22,7 @@ timeline.schedule({
 
 For more complex functions, custom named keyword arguments can be passed to the function using the `args` property
 
-This executes an action every 4 beats to change the global key of the piece, using the [Globals](/patterns/#globals) variables:  
+This executes an action every 4 beats to change the global key of the piece, using the [Globals](../patterns/index.md#globals) variables:  
 
 ```python
 def set_key(k):

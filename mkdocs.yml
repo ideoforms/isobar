@@ -1,4 +1,4 @@
-site_name: isobar-ext
+site_name: isobar-ext (from ideoforms/isobar)
 theme:
   name: material
   features:
@@ -6,6 +6,8 @@ theme:
 
 repo_name: piotereks/isobar-ext
 repo_url: https://github.com/piotereks/isobar-ext
+
+
 
 markdown_extensions:
  - markdown.extensions.admonition
@@ -16,6 +18,7 @@ nav:
  - Home:
    - Home: index.md
    - Getting started: getting-started.md
+   - Example: example.md
    - Examples: examples.md
    - Source code: source-code.md
    - About the project: about.md
@@ -37,3 +40,5 @@ nav:
    - Virtual MIDI devices: devices/virtual-midi-devices.md
    - MIDI files: devices/midifile.md
    - OSC: devices/osc.md
+   - Signal Flow: devices/signalflow.md
+   - SuperCollider: devices/supercollider.md
