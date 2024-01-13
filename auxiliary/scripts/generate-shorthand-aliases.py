@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import re
-import isobar
+import isobar_ext
 
 def main():
 	classes = vars(isobar)

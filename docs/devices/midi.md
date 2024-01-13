@@ -1,12 +1,12 @@
 # MIDI
 
-isobar's MIDI support is based on the excellent [mido](https://mido.readthedocs.io/en/latest/) library. 
+isobar-ext's MIDI support is based on the excellent [mido](https://mido.readthedocs.io/en/latest/) library. 
 
 Two classes are available for MIDI I/O:
 
 ## MidiOutputDevice
 
-Sends note and control events to a MIDI device. isobar can also act as the clock out, so that external MIDI devices follow isobar's internal clock.  
+Sends note and control events to a MIDI device. isobar-ext can also act as the clock out, so that external MIDI devices follow isobar's internal clock.  
 
 !!! info "Virtual MIDI devices" 
     To control a MIDI device on the same computer that is running isobar, you will need to create a [virtual MIDI bus](virtual-midi-devices.md).

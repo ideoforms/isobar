@@ -1,10 +1,10 @@
-# isobar
+# isobar-ext
 
-isobar is a Python library for creating and manipulating musical patterns, designed for use in algorithmic composition, generative music and sonification. It makes it quick and easy to express complex musical ideas, and can send and receive events from various different sources: MIDI, OSC, SocketIO, and .mid files.
+isobar-ext is a Python library for creating and manipulating musical patterns, designed for use in algorithmic composition, generative music and sonification. It makes it quick and easy to express complex musical ideas, and can send and receive events from various different sources: MIDI, OSC, SocketIO, and .mid files.
 
-### What isobar does
+### What isobar-ext does
 
-The core objective of isobar is to provide a framework for sequencing and triggering events, which may be MIDI messages, OSC events, triggers for third-party DSP engines such as [SuperCollider](https://supercollider.github.io/), or even Python functions. ([What types of event are supported?](events/index.md#event-types)) 
+The core objective of isobar-ext is to provide a framework for sequencing and triggering events, which may be MIDI messages, OSC events, triggers for third-party DSP engines such as [SuperCollider](https://supercollider.github.io/), or even Python functions. ([What types of event are supported?](events/index.md#event-types)) 
 
 It can be used to trigger events in real time, or to generate patterns that can be serialised as MIDI files and loaded into a DAW.
 
@@ -12,7 +12,7 @@ It can sync to external clocks, or act as a clock source to external devices.
 
 It can also load patterns serialised in MIDI files for processing.
 
-### What isobar doesn't do
+### What isobar-ext doesn't do
 
 isobar does not generate any audio on its own. It must be configured to send events to an output device which is responsible for sound synthesis.
 

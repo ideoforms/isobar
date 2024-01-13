@@ -1,11 +1,11 @@
 # Source code
 
-The source code for isobar is hosted on GitHub:
+The source code for isobar-ext is hosted on GitHub:
 
-[github.com/ideoforms/isobar](https://github.com/ideoforms/isobar)
+[github.com/piotereks/isobar-ext](https://github.com/piotereks/isobar-ext)
 
 To clone the latest version:
 
 ```
-git clone https://github.com/ideoforms/isobar.git
+git clone https://github.com/piotereks/isobar-ext.git
 ```

@@ -72,7 +72,7 @@ timeline.schedule({
 
 ## Clock resolution and accuracy
 
-isobar's internal clock by default has a resolution of 480 ticks per beat (PPQN), which equates to a timing precision of 1ms at 120bpm.
+isobar-ext's internal clock by default has a resolution of 480 ticks per beat (PPQN), which equates to a timing precision of 1ms at 120bpm.
 
 High-precision scheduling in Python is inherently limited by Python's global interpreter lock (GIL), which means that sub-millisecond accuracy is unfortunately not possible. The good news is that, when using Python 3+, jitter is pretty low: the unit test suite verifies that the host device is able to keep time to +/- 1ms, and passes on Linux and macOS. 
 
