@@ -14,7 +14,7 @@ The above example sets control index `0` to a value drawn from a uniformly distr
 
 ## Interpolation
 
-To transmit smooth control curves, isobar can interpolate between control values. The resulting interpolated value is sent continuously to the output device.
+To transmit smooth control curves, isobar-ext can interpolate between control values. The resulting interpolated value is sent continuously to the output device.
 
 ```python
 # Apply linear interpolation to smoothly fade between values.

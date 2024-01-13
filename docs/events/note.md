@@ -2,7 +2,7 @@
 
 ## Notes and names
 
-A common approach to composition in isobar is building up patterns of notes, which correspond to the standard MIDI note range (0..127, with 60 = middle C) and velocity range (0..127).
+A common approach to composition in isobar-ext is building up patterns of notes, which correspond to the standard MIDI note range (0..127, with 60 = middle C) and velocity range (0..127).
 
 ```python
 timeline.schedule({

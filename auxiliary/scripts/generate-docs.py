@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #------------------------------------------------------------------------
-# Generate isobar README from template and current class docstrings
+# Generate isobar-ext README from template and current class docstrings
 #------------------------------------------------------------------------
 
 import re
@@ -123,7 +123,7 @@ def generate_index(class_data: list[dict]):
         contents += "## [%s](%s/%s)\n" % (file_dict["name"].title(),
                                           file_dict["name"],
                                           "index.md")
-        contents += "View source: [%s.py](https://github.com/ideoforms/isobar/tree/master/isobar/pattern/%s.py)\n\n" % (
+        contents += "View source: [%s.py](https://github.com/piotereks/isobar-ext/tree/master/isobar/pattern/%s.py)\n\n" % (
             file_dict["name"], file_dict["name"])
         contents += "| Class | Function |\n"
         contents += "|-|-|\n"

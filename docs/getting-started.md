@@ -2,9 +2,9 @@
 
 ## Requirements
 
-isobar has been tested on Linux (Ubuntu, Raspberry Pi OS) and macOS. It has not been officially tested on Windows, although third-party contributions of support and QA efforts would be welcomed.
+isobar-ext has been tested on Linux (Ubuntu, Raspberry Pi OS) and macOS. It has not been officially tested on Windows, although third-party contributions of support and QA efforts would be welcomed. (to be verified)
 
-It requires Python 3.5 or above. 
+It requires Python 3.5 or above. (to be verified rather 3.9+)
 
 On Linux, the `libasound` and `libjack-dev` packages are also required:
 
@@ -12,26 +12,26 @@ On Linux, the `libasound` and `libjack-dev` packages are also required:
 apt install libasound2-dev libjack-dev
 ```
 
-### 1. Install isobar
+### 1. Install isobar-ext
 
 The simplest way to install isobar is via `pip`:
 
 ```python
-pip3 install isobar
+pip3 install isobar-ext
 ```
 
 To download the examples, you will need to clone the repo and install from source:
 
 ```python
-git clone https://github.com/ideoforms/isobar.git
-cd isobar
+git clone https://github.com/pioteresk/isobar-ext.git
+cd isobar-ext
 pip3 install .
 ```
 
 ### 2. Set up an output device
 
 The example scripts are based on sending MIDI to a DAW or MIDI-compatible hardware instrument.
-By default, isobar uses the system's default MIDI output as its output device.
+By default, isobar-ext uses the system's default MIDI output as its output device.
 If you want to specify a non-standard MIDI output, you can [specify the name of the MIDI device when creating the Timeline](devices/midi.md), or set a global default output device by using an environmental variable:
 
 ```python
@@ -61,5 +61,5 @@ The script will print the default MIDI driver to screen, and begin triggering no
 
 ## Next steps
 
-- [Code examples](https://github.com/ideoforms/isobar/tree/master/examples)
+- [Code examples](https://github.com/piotereks/isobar-ext/tree/master/examples)
 - Read about [Patterns](patterns/index.md), [Timelines](timelines/index.md), [Events](events/index.md) and [Devices](devices/index.md),
