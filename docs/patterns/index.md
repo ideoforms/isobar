@@ -25,7 +25,7 @@ StopIteration
 
 Note that this means that patterns can't seek backwards in time. Their only concern is generating the next event.
 
-By assigning patterns to properties of [events](/events/), you can specify sequences of values to control any aspect of the control output: pitch, velocity, duration, etc.    
+By assigning patterns to properties of [events](../events/index.md), you can specify sequences of values to control any aspect of the control output: pitch, velocity, duration, etc.    
 
 Patterns can be finite, such as the example above, or infinite, in which case they will keep generating new values forever.
 

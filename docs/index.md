@@ -32,5 +32,5 @@ There are a few key components in isobar.
 ## Documentation
 
 - [Getting started](getting-started.md)
-- [Code examples](https://github.com/ideoforms/isobar/tree/master/examples)
+- [Code examples](https://github.com/piotereks/isobar-ext/tree/master/examples)
 - [Pattern library reference](patterns/library.md)
