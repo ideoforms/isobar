@@ -97,8 +97,9 @@ class Scale(object):
 
 Scale.chromatic = Scale([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "chromatic")
 Scale.major = Scale([0, 2, 4, 5, 7, 9, 11], "major")
-Scale.maj7 = Scale([0, 2, 4, 5, 7, 9, 10], "maj7")
+# Scale.maj7 = Scale([0, 2, 4, 5, 7, 9, 10], "maj7")  # no such scale
 Scale.minor = Scale([0, 2, 3, 5, 7, 8, 10], "minor")
+Scale.minor_harm = Scale([0, 2, 3, 5, 7, 8, 11], "minor harmonic")
 Scale.pureminor = Scale([0, 3, 7], "pureminor")
 Scale.puremajor = Scale([0, 4, 7], "puremajor")
 Scale.minorPenta = Scale([0, 3, 5, 7, 10], "minorPenta")
@@ -109,10 +110,10 @@ Scale.augmented = Scale([0, 3, 4, 7, 8, 11], "augmented")
 Scale.augmented2 = Scale([0, 1, 4, 5, 8, 9], "augmented 2")
 Scale.wholetone = Scale([0, 2, 4, 6, 8, 10], "wholetone")
 
-Scale.ionian = Scale([0, 2, 4, 5, 7, 9, 11], "ionian")
-Scale.dorian = Scale([0, 2, 3, 5, 7, 9, 10], "dorian")
+Scale.ionian = Scale([0, 2, 4, 5, 7, 9, 11], "ionian")  # equivalent to major
 Scale.phrygian = Scale([0, 1, 3, 5, 7, 8, 10], "phrygian")
 Scale.lydian = Scale([0, 2, 4, 6, 7, 9, 11], "lydian")
+
 Scale.mixolydian = Scale([0, 2, 4, 5, 7, 9, 10], "mixolydian")
 Scale.aeolian = Scale([0, 2, 3, 5, 7, 8, 10], "aeolian")
 Scale.locrian = Scale([0, 1, 3, 5, 6, 8, 10], "locrian")
