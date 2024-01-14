@@ -1,3 +1,5 @@
+import os
+import platform
 import isobar as iso
 from isobar.io.midi import MidiInputDevice, MidiOutputDevice
 import pytest
@@ -13,6 +15,7 @@ except iso.DeviceNotFoundException:
     no_midi = True
 
 @pytest.mark.skipif(no_midi, reason="Device does not have MIDI support")
+@pytest.mark.skipif(platform.system() == "Windows", reason="Test not supported on Windows")
 def test_io_midi():
     """
     Send a MIDI message through a virtual loopback device.
@@ -37,6 +40,7 @@ def test_io_midi():
     assert len(events) == 1
 
 @pytest.mark.skipif(no_midi, reason="Device does not have MIDI support")
+@pytest.mark.skipif(platform.system() == "Windows", reason="Test not supported on Windows")
 def test_io_midi_sync():
     tempo = 150
     midi_out = iso.MidiOutputDevice(VIRTUAL_DEVICE_NAME, virtual=True, send_clock=True)
