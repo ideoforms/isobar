@@ -63,7 +63,9 @@ def note_name_to_midi_note(name):
     Maps a MIDI note name (D3, C#6) to a MIDI note value.
     Uses a convention of middle C (60) is represented as C4.
 
-    If no octave is given, a note value between 0..11 is returned.
+    If no octave is given, octave 0 is considered
+    so e.g. C->C0, E->E0
+    a note value between 12..23 is returned.
     """
     if name[-1].isdigit():
         sign = -1 if name[-2] == '-' else 1
@@ -81,7 +83,7 @@ def note_name_to_midi_note(name):
     except IndexError:
         raise UnknownNoteName("Unknown note name: %s" % name)
 
-    return (octave + 1) * 12 + index
+    return (octave+1) * 12 + index
 
 def midi_note_to_note_name(note: float) -> str:
     """
