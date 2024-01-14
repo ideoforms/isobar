@@ -34,9 +34,10 @@ class Event:
             if key not in ALL_EVENT_PARAMETERS:
                 raise ValueError(f"Invalid key for event: {key}")
 
-        parm = list({EVENT_NOTE, EVENT_ACTION, EVENT_DEGREE} & set(event_values))
-        if len(parm) >= 2:
-            raise InvalidEventException(f"Cannot specify both '{parm[0]}' 'and '{parm[1]}'")
+        # temporary blocked to be verified in #35
+        # parm = list({EVENT_NOTE, EVENT_ACTION, EVENT_DEGREE} & set(event_values))
+        # if len(parm) >= 2:
+        #     raise InvalidEventException(f"Cannot specify both '{parm[0]}' 'and '{parm[1]}'")
 
         if EVENT_DURATION_LEGACY in event_values:
             event_values[EVENT_DURATION] = event_values[EVENT_DURATION_LEGACY]
