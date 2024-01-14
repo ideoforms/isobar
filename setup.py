@@ -3,12 +3,12 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='isobar-ext',
+    name='isobar_ext',
     version='0.1.2',
-    description='A Python library to express and manipulate musical patterns',
+    description='A Python library to express and manipulate musical patterns extending original isobar library.',
     long_description = open("README.md", "r").read(),
     long_description_content_type = "text/markdown",
-    author='Daniel Jones',
+    author='Piotr Sakowski',
     author_email='piotereks@gmail.com',
     url='https://github.com/piotereks/isobar-ext',
     packages=find_packages(),
