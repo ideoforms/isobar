@@ -32,7 +32,11 @@ class Event:
 
         for key in event_values.keys():
             if key not in ALL_EVENT_PARAMETERS:
-                raise ValueError("Invalid key for event: %s" % (key))
+                raise ValueError(f"Invalid key for event: {key}")
+
+        parm = list({EVENT_NOTE, EVENT_ACTION, EVENT_DEGREE} & set(event_values))
+        if len(parm) >= 2:
+            raise InvalidEventException(f"Cannot specify both '{parm[0]}' 'and '{parm[1]}'")
 
         if EVENT_DURATION_LEGACY in event_values:
             event_values[EVENT_DURATION] = event_values[EVENT_DURATION_LEGACY]
@@ -86,7 +90,7 @@ class Event:
                 #----------------------------------------------------------------------
                 event_values[EVENT_NOTE] = 0
                 event_values[EVENT_AMPLITUDE] = 0
-                event_values[EVENT_GATE] = 0
+                # event_values[EVENT_GATE] = 0  # prevents cutting off rests
             else:
                 #----------------------------------------------------------------------
                 # Handle lists of notes (eg chords).
@@ -111,7 +115,10 @@ class Event:
             self.action = event_values[EVENT_ACTION]
             self.args = {}
             if EVENT_ACTION_ARGS in event_values:
-                self.args = dict((key, Pattern.value(value)) for key, value in event_values[EVENT_ACTION_ARGS].items())
+                self.args = {
+                    key: Pattern.value(value)
+                    for key, value in event_values[EVENT_ACTION_ARGS].items()
+                }
 
         elif EVENT_PATCH in event_values:
             #----------------------------------------------------------------------
@@ -125,14 +132,12 @@ class Event:
 
             if EVENT_TYPE in event_values:
                 self.type = event_values[EVENT_TYPE]
-            else:
-                if type(self.patch).__name__ == "PatchSpec" or isinstance(self.patch, type):
+            elif type(self.patch).__name__ == "PatchSpec" or isinstance(self.patch, type):
                     self.type = EVENT_TYPE_PATCH_CREATE
-                else:
-                    if hasattr(self.patch, "trigger_node") and self.patch.trigger_node is not None:
-                        self.type = EVENT_TYPE_PATCH_TRIGGER
-                    else:
-                        self.type = EVENT_TYPE_PATCH_SET
+            elif hasattr(self.patch, "trigger_node") and self.patch.trigger_node is not None:
+                self.type = EVENT_TYPE_PATCH_TRIGGER
+            else:
+            	self.type = EVENT_TYPE_PATCH_SET
 
             if EVENT_PATCH_OUTPUT in event_values:
                 self.output = event_values[EVENT_PATCH_OUTPUT]
@@ -192,7 +197,9 @@ class Event:
         else:
             possible_event_types = [EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL,
                                     EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS]
-            raise InvalidEventException("No event type specified (must provide one of %s)" % possible_event_types)
+            raise InvalidEventException(
+                f"No event type specified (must provide one of {possible_event_types})"
+            )
 
         self.duration = event_values[EVENT_DURATION]
         self.active = event_values[EVENT_ACTIVE]
