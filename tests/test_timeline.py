@@ -119,6 +119,7 @@ def test_timeline_schedule_real_clock():
     timeline.stop_when_done = True
     def record_time():
         times.append(time.time())
+    # temporary blocked to be verified in #35
     timeline.schedule({
         iso.EVENT_NOTE: iso.PSequence([1, 1], 1),
         iso.EVENT_ACTION: record_time,
