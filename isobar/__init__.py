@@ -1,16 +1,16 @@
 """
-isobar
+isobar-ext
 ~~~~~~
 
 A Python library for algorithmic composition by expressing and constructing musical patterns.
 
 For documentation, please see:
 
-    https://github.com/ideoforms/isobar
+    https://github.com/piotereks/isobar-ext
 
 For a full list of all Pattern classes:
 
-    pydoc3 isobar.pattern
+    pydoc3 isobar-ext.pattern
 
 """
 # flake8: noqa

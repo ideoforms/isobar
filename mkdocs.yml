@@ -1,4 +1,4 @@
-site_name: isobar-ext (from ideoforms/isobar)
+site_name: isobar-ext
 theme:
   name: material
   features:

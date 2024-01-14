@@ -1,6 +1,6 @@
 # isobar-ext
    <span class="text-small lh-condensed-ultra no-wrap mt-1" data-repository-hovercards-enabled="">
-      forked from <a data-hovercard-type="repository" data-hovercard-url="/ideoforms/isobar/hovercard" class="Link--inTextBlock" href="https://github.com/ideoforms/isobar">ideoforms/isobar</a>
+      forked from <a data-hovercard-type="repository" data-hovercard-url="/piotereks/isobar-ext/hovercard" class="Link--inTextBlock" href="https://github.com/ideoforms/isobar">ideoforms/isobar</a>
     </span>
 
 ![ci](https://github.com/piotereks/isobar-ext/workflows/ci/badge.svg) [![stability-mature](https://img.shields.io/badge/stability-mature-008000.svg)](https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md#mature)

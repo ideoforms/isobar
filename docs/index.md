@@ -1,5 +1,6 @@
 # isobar-ext
-
+<sub><sup> isobar-ext is forked from <a data-hovercard-type="repository" data-hovercard-url="/piotereks/isobar-ext/hovercard" class="Link--inTextBlock" href="https://github.com/ideoforms/isobar">ideoforms/isobar</a>  
+</sup></sub>
 isobar-ext is a Python library for creating and manipulating musical patterns, designed for use in algorithmic composition, generative music and sonification. It makes it quick and easy to express complex musical ideas, and can send and receive events from various different sources: MIDI, OSC, SocketIO, and .mid files.
 
 ### What isobar-ext does
