@@ -91,7 +91,9 @@ class Track:
         else:
             super().__delattr__(item)
 
-    def start(self, events: Union[dict, Pattern]) -> None:
+    def start(self,
+              events: Union[dict, Pattern],
+              interpolate: Optional[str] = None) -> None:
         """
         Begin executing the events on this track.
         Resets the track's time counter to zero.
@@ -108,11 +110,14 @@ class Track:
         self.is_started = True
         self.current_time = 0.0
         self.next_event_time = self.current_time
+        if interpolate is not None:
+            self.interpolate = interpolate
 
     def update(self,
                events: Union[dict, Pattern],
                quantize: Optional[float] = None,
-               delay: Optional[float] = None):
+               delay: Optional[float] = None,
+               interpolate: Optional[str] = None):
         """
         Update the events that this Track produces.
 
@@ -121,6 +126,7 @@ class Track:
             quantize: An optional float that specifies the quantization that the update() should follow. \
                       quantize == 1 means that the update should happen on the next beat boundary.
             delay: Optional float specifying delay time applied to quantization
+            interpolate: Optional interpolation mode
         """
         if quantize is None:
             quantize = self.timeline.defaults.quantize
@@ -135,13 +141,13 @@ class Track:
         # the track is updated.
         #--------------------------------------------------------------------------------
         if quantize == 0.0 and delay == 0.0:
-            self.start(events)
+            self.start(events, interpolate=interpolate)
         else:
             #--------------------------------------------------------------------------------
             # Schedule update event. Actions scheduled with schedule_action take place
             # before the track's tick() event is called.
             #--------------------------------------------------------------------------------
-            self.timeline._schedule_action(function=lambda: self.start(events),
+            self.timeline._schedule_action(function=lambda: self.start(events, interpolate=interpolate),
                                            quantize=quantize,
                                            delay=delay)
 
@@ -177,7 +183,7 @@ class Track:
             return
 
         try:
-            if self.interpolate is INTERPOLATION_NONE:
+            if self.interpolate is None or self.interpolate == INTERPOLATION_NONE:
                 if round(self.current_time, 8) >= round(self.next_event_time, 8):
                     while round(self.current_time, 8) >= round(self.next_event_time, 8):
                         #--------------------------------------------------------------------------------

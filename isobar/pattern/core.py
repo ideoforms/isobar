@@ -256,7 +256,8 @@ class Pattern:
         elif isinstance(v, dict):
             return isobar.PDict(v)
         elif isinstance(v, str):
-            from isobar.shorthand.notation import parse_notation
+            from isobar.notation import parse_notation
+
             try:
                 return parse_notation(v)
             except ValueError:

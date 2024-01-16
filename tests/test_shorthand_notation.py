@@ -1,5 +1,5 @@
 from isobar.pattern import PSequence
-from isobar.shorthand.notation import parse_notation
+from isobar.notation import parse_notation
 
 def test_shorthand_notation_parser():
     seq = parse_notation('1 -2 [10 11] [c#4 [30.1 -30.2 30.3]]')
