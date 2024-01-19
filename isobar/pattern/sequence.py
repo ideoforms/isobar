@@ -406,8 +406,9 @@ class PStutter(Pattern):
 class PSubsequence(Pattern):
     """ PSubsequence: Returns a finite subsequence of an input pattern.
 
-        >>> p = PSubsequence(...)
+        >>> p = PSubsequence(PSeries(0, 1), 2, 4)
         >>> p.nextn(16)
+        [2, 3, 4, 5]
         """
 
     def __init__(self, pattern: Pattern, offset: int, length: int):
