@@ -145,6 +145,37 @@ class Pattern:
     def __iter__(self):
         return self
 
+    def poll(self, on: bool = True) -> object:
+        """
+        If set, causes the Pattern object to output its value to stdout each time
+        its __next__() method is called.
+
+        Returns the Pattern object, useful when scheduling like so:
+
+        timeline.schedule({
+            "note": pattern.poll(),
+            ...
+        })
+
+        Args:
+            on: Whether to poll the Pattern's output.
+
+        Returns:
+            The Pattern.
+        """
+        if not hasattr(self.__class__, "__next_orig__"):
+            self.__class__.__next_orig__ = self.__class__.__next__
+
+        def _get_and_print_next(self):
+            value = self.__next_orig__()
+            if hasattr(self, "_poll") and self._poll:
+                print("%s: %s" % (self.__class__.__name__, value))
+            return value
+
+        self.__class__.__next__ = _get_and_print_next
+        self._poll = on
+        return self
+
     def nextn(self, count: int) -> list:
         """
         Returns the next `count` output values.
