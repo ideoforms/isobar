@@ -91,7 +91,7 @@ class Event:
                 #----------------------------------------------------------------------
                 event_values[EVENT_NOTE] = 0
                 event_values[EVENT_AMPLITUDE] = 0
-                # event_values[EVENT_GATE] = 0  # prevents cutting off rests
+                event_values[EVENT_GATE] = 0
             else:
                 #----------------------------------------------------------------------
                 # Handle lists of notes (eg chords).
