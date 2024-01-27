@@ -445,7 +445,8 @@ class Track:
             #----------------------------------------------------------------------
             # note_on: Standard (MIDI) type of device
             #----------------------------------------------------------------------
-            if type(event.amplitude) is tuple or event.amplitude > 0:
+            # if type(event.amplitude) is tuple or event.amplitude > 0:
+            if type(event.amplitude) is tuple or True:
                 # TODO: pythonic duck-typing approach might be better
                 # TODO: doesn't handle arrays of amp, channel event, etc
                 notes = event.note if hasattr(event.note, '__iter__') else [event.note]
@@ -461,7 +462,8 @@ class Track:
                     gate = event.gate[index] if isinstance(event.gate, tuple) else event.gate
                     # TODO: Add an EVENT_SUSTAIN that allows absolute note lengths to be specified
 
-                    if (amp is not None and amp > 0) and (gate is not None and gate > 0):
+                    # if (amp is not None and amp > 0) and (gate is not None and gate > 0):
+                    if (amp is not None) and (gate is not None):
                         self.output_device.note_on(note, amp, channel)
 
                         note_dur = event.duration * gate

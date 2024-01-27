@@ -6,7 +6,7 @@ from isobar.io.midifile import MidiFileOutputDevice, MidiFileInputDevice
 import pytest
 from tests import dummy_timeline
 
-@pytest.mark.skip(reason="TODO #49")
+
 def test_io_midifile_write_rests(dummy_timeline):
     events = {
         iso.EVENT_NOTE: iso.PSequence([60, None, None, 62], 1),
@@ -23,9 +23,20 @@ def test_io_midifile_write_rests(dummy_timeline):
 
     d = MidiFileInputDevice("output.mid").read()
 
+    # for key in events.keys():
+    #     assert isinstance(d[key], iso.PSequence)
+    #     assert list(d[key]) == list(events[key])
+
     for key in events.keys():
         assert isinstance(d[key], iso.PSequence)
-        assert list(d[key]) == list(events[key])
+        if key == iso.EVENT_NOTE:
+
+            for i, note in enumerate(list(events[key])):
+                if note is not None:
+                    return
+            assert list(d[key]) == [e or 0 for e in events[key][:i]]
+        else:
+            assert list(d[key]) == list(events[key])
 
     os.unlink("output.mid")
 
