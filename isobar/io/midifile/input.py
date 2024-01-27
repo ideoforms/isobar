@@ -30,7 +30,7 @@ class MidiFileInputDevice:
         notes = []
         offset = 0
         for event in track:
-            if event.type == 'note_on' and event.velocity > 0:
+            if event.type == 'note_on' and (event.velocity > 0 or event.note == 0):
                 #------------------------------------------------------------------------
                 # Found a note_on event.
                 #------------------------------------------------------------------------
@@ -44,12 +44,18 @@ class MidiFileInputDevice:
                 offset += event.time / midi_reader.ticks_per_beat
                 note = MidiNote(event.note, event.velocity, offset)
                 notes.append(note)
-            elif event.type == 'note_off' or (event.type == 'note_on' and event.velocity == 0):
-                #------------------------------------------------------------------------
+            elif event.type == 'note_off' or (event.type == 'note_on'):
+                # ------------------------------------------------------------------------
                 # Found a note_off event.
-                #------------------------------------------------------------------------
+                # ------------------------------------------------------------------------
+                # filter note_off fake marker
+                fake_note_off = {'type': 'note_off', 'note': 0, 'velocity': 64, 'channel': 0}
+                if {k: v for (k, v) in event.__dict__.items() if k in fake_note_off} == fake_note_off:
+                    continue
                 offset += event.time / midi_reader.ticks_per_beat
                 for note in reversed(notes):
+                    if not isinstance(note, MidiNote):
+                        continue
                     if note.pitch == event.note and note.duration is None:
                         note.duration = offset - note.location
                         break
@@ -68,8 +74,12 @@ class MidiFileInputDevice:
         #------------------------------------------------------------------------
         notes_by_time = {}
         for note in notes:
-            log.debug(" - MIDI event (t = %.2f): Note %d, velocity %d, duration %.3f" %
-                      (note.location, note.pitch, note.velocity, note.duration))
+            if isinstance(note, MidiNote):
+                if not note.duration:
+                    note.duration = 1
+                log.debug(" - MIDI event (t = %.2f): Note %d, velocity %d, duration %.3f" %
+                          (note.location, note.pitch, note.velocity, note.duration))
+
             location = note.location
             if location in notes_by_time:
                 notes_by_time[location].append(note)
