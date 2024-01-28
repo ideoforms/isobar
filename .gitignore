@@ -14,3 +14,4 @@ midi
 build
 TODO.md
 /.pypirc
+/tests/wrk/
