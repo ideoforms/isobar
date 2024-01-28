@@ -5,6 +5,7 @@ from ..constants import *
 from ..exceptions import InvalidEventException
 import logging
 from typing import Iterable
+import warnings
 
 log = logging.getLogger(__name__)
 
@@ -34,10 +35,14 @@ class Event:
             if key not in ALL_EVENT_PARAMETERS:
                 raise ValueError(f"Invalid key for event: {key}")
 
-        # temporary blocked to be verified in #35
-        # parm = list({EVENT_NOTE, EVENT_ACTION, EVENT_DEGREE} & set(event_values))
-        # if len(parm) >= 2:
-        #     raise InvalidEventException(f"Cannot specify both '{parm[0]}' 'and '{parm[1]}'")
+        parm = list({EVENT_NOTE, EVENT_ACTION, EVENT_DEGREE} & set(event_values))
+        if len(parm) >= 2:
+            warning_msg = f"Cannot specify both '{parm[0]}' and '{parm[1]}.'"
+            if EVENT_ACTION in (parm):
+                warning_msg +="\nEVENT_ACTION disables EVENT_NOTE and EVENT_DEGREE.\n" +\
+                              "Use separate timeline.schedule for EVENT_ACTION" +\
+                              " and separate for EVENT_NOTE or EVENT_DEGREE"
+            warnings.warn(warning_msg, Warning)
 
         if EVENT_DURATION_LEGACY in event_values:
             event_values[EVENT_DURATION] = event_values[EVENT_DURATION_LEGACY]
