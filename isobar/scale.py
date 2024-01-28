@@ -1,11 +1,16 @@
 from .util import normalize
 from .exceptions import UnknownScaleName
 import random
+import json
+from pathlib import Path
 
 class Scale(object):
     dict = {}
+    # _scales = []
 
-    def __init__(self, semitones=[0, 2, 4, 5, 7, 9, 11], name="unnamed scale", octave_size=12):
+    def __init__(self, semitones=None, name="unnamed scale", octave_size=12):
+        if semitones is None:
+            semitones = [0, 2, 4, 5, 7, 9, 11]
         self.semitones = semitones
         """ For polymorphism with WeightedScale -- assume all notes equally weighted. """
         self.weights = [1.0 / len(self.semitones) for _ in range(len(self.semitones))]
@@ -13,6 +18,11 @@ class Scale(object):
         self.octave_size = octave_size
         if name not in Scale.dict:
             Scale.dict[name] = self
+
+
+    @classmethod
+    def create_scale(cls, semitones, name):
+        return cls(semitones=semitones, name=name)
 
     def __str__(self):
         return "%s %s" % (self.name, self.semitones)
@@ -95,33 +105,29 @@ class Scale(object):
         key = random.choice(list(Scale.dict.keys()))
         return Scale.dict[key]
 
-Scale.chromatic = Scale([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "chromatic")
-Scale.major = Scale([0, 2, 4, 5, 7, 9, 11], "major")
-# Scale.maj7 = Scale([0, 2, 4, 5, 7, 9, 10], "maj7")  # no such scale
-Scale.minor = Scale([0, 2, 3, 5, 7, 8, 10], "minor")
-Scale.minor_harm = Scale([0, 2, 3, 5, 7, 8, 11], "minor harmonic")
-Scale.pureminor = Scale([0, 3, 7], "pureminor")
-Scale.puremajor = Scale([0, 4, 7], "puremajor")
-Scale.minorPenta = Scale([0, 3, 5, 7, 10], "minorPenta")
-Scale.majorPenta = Scale([0, 2, 4, 7, 9], "majorPenta")
-Scale.ritusen = Scale([0, 2, 5, 7, 9], "ritusen")
-Scale.pelog = Scale([0, 1, 3, 7, 8], "pelog")
-Scale.augmented = Scale([0, 3, 4, 7, 8, 11], "augmented")
-Scale.augmented2 = Scale([0, 1, 4, 5, 8, 9], "augmented 2")
-Scale.wholetone = Scale([0, 2, 4, 6, 8, 10], "wholetone")
+    @classmethod
+    def create_scale(cls, semitones, name, octave_size=12):
+        scale_instance = cls(semitones=semitones, name=name, octave_size=octave_size)
+        # cls._scales.append(scale_instance)
+        setattr(cls, name, scale_instance)
+        cls.dict[name] = scale_instance
+        return scale_instance
 
-Scale.ionian = Scale([0, 2, 4, 5, 7, 9, 11], "ionian")  # equivalent to major
-Scale.phrygian = Scale([0, 1, 3, 5, 7, 8, 10], "phrygian")
-Scale.lydian = Scale([0, 2, 4, 6, 7, 9, 11], "lydian")
+current_directory = Path(__file__).resolve().parent
+config_file = current_directory / 'scales.json'
 
-Scale.mixolydian = Scale([0, 2, 4, 5, 7, 9, 10], "mixolydian")
-Scale.aeolian = Scale([0, 2, 3, 5, 7, 8, 10], "aeolian")
-Scale.locrian = Scale([0, 1, 3, 5, 6, 8, 10], "locrian")
-Scale.fourths = Scale([0, 2, 5, 7], "fourths")
+with open(config_file, 'r') as file:
+    scales = json.load(file)
+
+    for scale in scales['scales']:
+        for name in scale["name"]:
+            Scale.create_scale(semitones=scale["semitones"], name=name, octave_size=scale.get('octave_size', 12))
 
 #------------------------------------------------------------------------
 # Use major scale as a global default. This can be overriden by user.
 #------------------------------------------------------------------------
+Scale.chromatic = Scale([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "chromatic")
+Scale.major = Scale([0, 2, 4, 5, 7, 9, 11], "major")
 Scale.default = Scale.major
 
 class WeightedScale(Scale):
