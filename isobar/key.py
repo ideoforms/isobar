@@ -61,19 +61,76 @@ class Key:
         semitones.sort()
         return semitones
 
-    def nearest_note(self, note):
+    def xnearest_note(self, note):
         if note in self:
             return note
         else:
             octave, pitch = divmod(note, self.scale.octave_size)
-            nearest_semitone = None
-            nearest_distance = None
-            for semitone in self.semitones + [self.scale.octave_size]:
-                distance = abs(semitone - pitch)
-                if nearest_distance is None or distance < nearest_distance:
-                    nearest_semitone = semitone
-                    nearest_distance = distance
-            return (octave * self.scale.octave_size) + nearest_semitone
+            nearest_semi = None
+            nearest_dist = None
+            chk_semitones = self.semitones
+            calc_octave = octave
+            for semi in chk_semitones:
+                dist = min(abs(semi - pitch + 0.1), abs(abs(semi - pitch + 0.1) - self.scale.octave_size))
+                if nearest_dist is None or dist < nearest_dist:
+                    nearest_semi = semi
+                    nearest_dist = round(dist)
+                    calc_octave = (
+                        octave + 1
+                        if dist == abs(abs(semi - pitch + 0.1) - self.scale.octave_size)
+                        else octave
+                    )
+            octave = calc_octave
+            return (octave * self.scale.octave_size) + nearest_semi + self.tonic
+
+    def nearest_note(self, *args, **kwargs):
+        """ Return the index of the given note within this scale. """
+        parms = {"note": None,
+                 "scale_down": False}
+        if hasattr(self, 'scale_down'):
+            parms['scale_down'] = self.scale_down
+        for idx, arg in enumerate(args):
+            parms[list(parms.keys())[idx]] = arg
+        if kwargs is not None:
+            parms |= kwargs
+
+        note = parms.get('note')
+
+        scale_down = parms.get('scale_down')
+        if scale_down and hasattr(self.scale, 'semitones_down') and self.scale.semitones_down:
+            semitones = self.scale.semitones_down
+        else:
+            semitones = self.scale.semitones
+            # snoop.pp(self, note, scale_down)
+        # if self.__contains__(semitone=note, scale_down=scale_down):
+        if self.__contains__(semitone=note):
+            return note
+        else:
+            return self._extracted_from_nearest_note(note, semitones)
+
+    def _extracted_from_nearest_note(self, note, semitones):
+        note_denominated = note - self.tonic
+        octave, pitch = divmod(note_denominated, self.scale.octave_size)
+        nearest_semi = None
+        nearest_dist = None
+        calc_octave = octave
+        for semi in semitones:
+            """ 
+                0.1 is amendment allowing priority of selecting nearest note from 
+                below when 2 nearest notes are possible (from below and from above)
+                """
+            dist = min(abs(semi - pitch + 0.1), abs(abs(semi - pitch + 0.1) - self.scale.octave_size))
+            if nearest_dist is None or dist < nearest_dist:
+                nearest_semi = semi
+                nearest_dist = round(dist)
+                calc_octave = (
+                    octave + 1
+                    if dist == abs(abs(semi - pitch + 0.1) - self.scale.octave_size)
+                    else octave
+                )
+        octave = calc_octave
+        return (octave * self.scale.octave_size) + nearest_semi + self.tonic
+
 
     def voiceleading(self, other):
         """ Returns the most parsimonious voice leading between this key

@@ -72,7 +72,8 @@ def test_key_nearest_note():
     assert a.nearest_note(61) == 60
 
     a = iso.Key("F#", "major")
-    assert a.nearest_note(0) == 1
+    # assert a.nearest_note(0) == 1
+    assert a.nearest_note(0) == -1  #  Preference is on lower note if distance is the same
     assert a.nearest_note(6) == 6
     assert a.nearest_note(17) == 17
     assert a.nearest_note(18) == 18
