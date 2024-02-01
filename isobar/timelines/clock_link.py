@@ -13,7 +13,6 @@ try:
     sys.path.insert(0, lib_dir_abs)
     import link
 except ModuleNotFoundError as e:
-    print(e)
     pass
 
 class AbletonLinkClock (Clock):
