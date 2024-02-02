@@ -14,9 +14,25 @@ class PDegree(Pattern):
         [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26]
         """
 
-    def __init__(self, degree: Pattern, scale: Scale = Scale.major):
+    def __init__(self, degree, scale=Scale.major):
+        dg_list = list(degree.copy())
+
+        if dg_list != [None]:
+            dg_list = self._replace_none_with_zero(dg_list)
+            dg_list = [dg for dg in dg_list if dg is not None]
+            scale_down = dg_list[0] > dg_list[-1]
+        else:
+            scale_down = False
+
+        self.scale_down = scale_down
         self.degree = degree
         self.scale = scale
+
+    def _replace_none_with_zero(self, lst):
+        return [
+            self._replace_none_with_zero(item) if isinstance(item, list) else 0 if item is None else item
+            for item in lst
+        ]
 
     def __repr__(self):
         return ("PDegree(%s, %s)" % (repr(self.degree), repr(self.scale)))
@@ -28,9 +44,9 @@ class PDegree(Pattern):
             return None
 
         if isinstance(degree, typing.Iterable):
-            return tuple(scale[degree] for degree in degree)
+            return tuple(scale.get(degree, scale_down=self.scale_down) for degree in degree)
         else:
-            return scale[degree]
+            return scale.get(degree,scale_down=self.scale_down)
 
 class PFilterByKey(Pattern):
     """ PFilterByKey: Filter notes based on their presence in <key>.

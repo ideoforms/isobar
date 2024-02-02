@@ -8,10 +8,13 @@ class Scale(object):
     dict = {}
     # _scales = []
 
-    def __init__(self, semitones=None, name="unnamed scale", octave_size=12):
+    def __init__(self, semitones=None, name="unnamed scale", octave_size=12, semitones_down=None):
+        self.scale_down = False
+
         if semitones is None:
             semitones = [0, 2, 4, 5, 7, 9, 11]
         self.semitones = semitones
+        self.semitones_down = semitones_down
         """ For polymorphism with WeightedScale -- assume all notes equally weighted. """
         self.weights = [1.0 / len(self.semitones) for _ in range(len(self.semitones))]
         self.name = name
@@ -39,16 +42,29 @@ class Scale(object):
     def __hash__(self):
         return hash(tuple((tuple(self.semitones), tuple(self.weights), self.name, self.octave_size)))
 
-    def get(self, n):
+    def get(self, *args, **kwargs):
         """ Retrieve the n'th degree of this scale. """
+        parameters = {"n": None,
+                      "scale_down": False}
+        if hasattr(self, 'scale_down'):
+            parameters['scale_down'] = self.scale_down
+        for idx, arg in enumerate(args):
+            parameters[list(parameters.keys())[idx]] = arg
+        if kwargs is not None:
+            parameters |= kwargs
+        n = parameters['n']
+        scale_down = parameters['scale_down']
         if n is None:
             return None
+        semitones_down = None
+        if hasattr(self, 'semitones_down'):
+            semitones_down = self.semitones_down
 
-        octave = n // len(self.semitones)
-        degree = n % len(self.semitones)
-        semitone = self.semitones[degree]
-        note = (self.octave_size * octave) + semitone
-        return note
+        semitones = semitones_down if scale_down and semitones_down is not None else self.semitones
+        octave = n // len(semitones)
+        degree = n % len(semitones)
+        semitone = semitones[degree]
+        return (self.octave_size * octave) + semitone
 
     def copy(self):
         other = Scale(self.semitones, self.name)
@@ -68,14 +84,31 @@ class Scale(object):
         random.shuffle(self.semitones)
         return self
 
-    def indexOf(self, note):
+    def indexOf(self, *args, **kwargs):
         """ Return the index of the given note within this scale. """
-        octave = int(note / self.octave_size)
-        index = octave * len(self.semitones)
-        note -= octave * self.octave_size
+        parameters = {"note": None,
+                      "scale_down": False}
+        if hasattr(self, 'scale_down'):
+            parameters['scale_down'] = self.scale_down
+        for idx, arg in enumerate(args):
+            parameters[list(parameters.keys())[idx]] = arg
+        if kwargs is not None:
+            parameters |= kwargs
+        scale_down = parameters.get('scale_down')
+        if scale_down and hasattr(self, 'semitones_down') and self.semitones_down:
+            semitones = self.semitones_down
+        else:
+            semitones = self.semitones
+
+        note = parameters.get('note')
+        # octave = int(note / self.octave_size)
+        octave = note // self.octave_size
+        index = octave * len(semitones)
+        # note -= octave * self.octave_size
+        note %= self.octave_size
         degree = 0
 
-        while note > self.semitones[degree] and degree < len(self.semitones) - 1:
+        while note > semitones[degree] and degree < len(semitones) - 1:
             degree += 1
 
         index += degree

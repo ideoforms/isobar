@@ -4,23 +4,24 @@ from .util import midi_note_to_note_name, note_name_to_midi_note
 
 import random
 
+
 class Key:
     """ Represents a harmonic structure, containing a tonic and scale.
     """
 
     def __init__(self, tonic=0, scale=Scale.major):
-        if type(tonic) == str:
-            #--------------------------------------------------------------------------------
+        if isinstance(tonic, str):
+            # --------------------------------------------------------------------------------
             # Constructor specifies a note name and a scale name (e.g, "C# minor")
             # TODO unit test for this
-            #--------------------------------------------------------------------------------
+            # --------------------------------------------------------------------------------
             if " " in tonic:
                 tonic_str, scale_str = tuple(tonic.split(" "))
                 tonic = note_name_to_midi_note(tonic_str)
                 scale = Scale.byname(scale_str)
             else:
                 tonic = note_name_to_midi_note(tonic)
-        if type(scale) == str:
+        if isinstance(scale, str):
             scale = Scale.byname(scale)
 
         self.tonic = tonic
@@ -38,22 +39,47 @@ class Key:
     def __hash__(self):
         return hash((self.tonic, hash(self.scale)))
 
-    def get(self, degree):
+    def get(self, *args, **kwargs):
         """ Returns the <degree>th semitone within this key. """
+        params = {"degree": None,
+                  "scale_down": False}
+        for idx, arg in enumerate(args):
+            params[list(params.keys())[idx]] = arg
+        if kwargs is not None:
+            params |= kwargs
+        degree = params['degree']
+        scale_down = params['scale_down']
         if degree is None:
             return None
 
-        semitone = self.scale[degree]
+        semitone = self.scale.get(degree, scale_down=scale_down)
         return semitone + self.tonic
 
     def __getitem__(self, degree):
         return self.get(degree)
 
-    def __contains__(self, semitone):
+    def __contains__(self, *args, **kwargs):
+        """ Return the index of the given note within this scale. """
+        params = {"semitone": None,
+                  "scale_down": False}
+        if hasattr(self, 'scale_down'):
+            params['scale_down'] = self.scale_down
+        for idx, arg in enumerate(args):
+            params[list(params.keys())[idx]] = arg
+        if kwargs is not None:
+            params |= kwargs
+
+        semitone = params.get('semitone')
+        # semitone -= self.tonic
+        scale_down = params.get('scale_down')
+        if scale_down and hasattr(self.scale, 'semitones_down') and self.scale.semitones_down:
+            semitones = self.semitones_down
+        else:
+            semitones = self.semitones
         # Always return true if None (rest) is queried.
         if semitone is None:
             return True
-        return (semitone % self.scale.octave_size) in self.semitones
+        return (semitone % self.scale.octave_size) in semitones
 
     @property
     def semitones(self):
@@ -61,27 +87,11 @@ class Key:
         semitones.sort()
         return semitones
 
-    def xnearest_note(self, note):
-        if note in self:
-            return note
-        else:
-            octave, pitch = divmod(note, self.scale.octave_size)
-            nearest_semi = None
-            nearest_dist = None
-            chk_semitones = self.semitones
-            calc_octave = octave
-            for semi in chk_semitones:
-                dist = min(abs(semi - pitch + 0.1), abs(abs(semi - pitch + 0.1) - self.scale.octave_size))
-                if nearest_dist is None or dist < nearest_dist:
-                    nearest_semi = semi
-                    nearest_dist = round(dist)
-                    calc_octave = (
-                        octave + 1
-                        if dist == abs(abs(semi - pitch + 0.1) - self.scale.octave_size)
-                        else octave
-                    )
-            octave = calc_octave
-            return (octave * self.scale.octave_size) + nearest_semi + self.tonic
+    @property
+    def semitones_down(self):
+        semitones_down = [(n + self.tonic) % self.scale.octave_size for n in self.scale.semitones_down]
+        semitones_down.sort()
+        return semitones_down
 
     def nearest_note(self, *args, **kwargs):
         """ Return the index of the given note within this scale. """
@@ -101,9 +111,7 @@ class Key:
             semitones = self.scale.semitones_down
         else:
             semitones = self.scale.semitones
-            # snoop.pp(self, note, scale_down)
-        # if self.__contains__(semitone=note, scale_down=scale_down):
-        if self.__contains__(semitone=note):
+        if self.__contains__(semitone=note, scale_down=scale_down):
             return note
         else:
             return self._extracted_from_nearest_note(note, semitones)
@@ -130,7 +138,6 @@ class Key:
                 )
         octave = calc_octave
         return (octave * self.scale.octave_size) + nearest_semi + self.tonic
-
 
     def voiceleading(self, other):
         """ Returns the most parsimonious voice leading between this key
@@ -192,5 +199,6 @@ class Key:
     @staticmethod
     def all():
         return [Key(note, scale) for note in Note.all() for scale in Scale.all()]
+
 
 Key.default = Key("C", "major")
