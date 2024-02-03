@@ -1,8 +1,8 @@
 """ Unit tests for Key """
 
 import os
-import isobar as iso
-from isobar.io.midifile import MidiFileOutputDevice, MidiFileInputDevice
+import isobar_ext as iso
+from isobar_ext.io.midifile import MidiFileOutputDevice, MidiFileInputDevice
 import pytest
 from tests import dummy_timeline
 

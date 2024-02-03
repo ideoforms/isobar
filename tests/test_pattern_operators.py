@@ -1,6 +1,6 @@
 """ Unit tests for iso """
 
-import isobar as iso
+import isobar_ext as iso
 
 def test_pattern_add():
     p1 = iso.PSequence([1, 2, 3], 1)

@@ -1,0 +1,274 @@
+{
+"scales": [
+{
+  "name": [	"chromatic"],
+  "semitones": [0,1,2,3,4,5,6,7,8,9,10,11]
+},
+{
+  "name": [	"major", "mode_1"],
+  "semitones": [0,2,4,5,7,9,11]
+},
+{
+  "name": [	"minor", "minor_natural", "aeolian", "mode_6", "geez"],
+  "semitones": [0,2,3,5,7,8,10]
+},
+{
+  "name": [	"pureminor"],
+  "semitones": [0,3,7]
+},
+{
+  "name": [	"puremajor"],
+  "semitones": [0,4,7]
+},
+{
+  "name": [	"minor_penta"],
+  "semitones": [0,3,5,7,10]
+},
+{
+  "name": [	"major_penta", "chinese_mongolian"],
+  "semitones": [0,2,4,7,9]
+},
+{
+  "name": [	"penta_sus", "m2_major_penta", "egyptian"],
+  "semitones": [0,2,5,7,10]
+},
+{
+  "name": [	"ritusen", "yo_jap"],
+  "semitones": [0,2,5,7,9]
+},
+{
+  "name": [	"pelog", "balinese"],
+  "semitones": [0,1,3,7,8]
+},
+{
+  "name": [	"augmented"],
+  "semitones": [0,3,4,7,8,11]
+},
+{
+  "name": [	"augmented_2", "prometheus_liszt"],
+  "semitones": [0,1,4,5,8,9]
+},
+{
+  "name": [	"wholetone"],
+  "semitones": [0,2,4,6,8,10]
+},
+{
+  "name": [	"dorian", "mod_2"],
+  "semitones": [0,2,3,5,7,9,10]
+},
+{
+  "name": [	"phrygian", "mod_3"],
+  "semitones": [0,1,3,5,7,8,10]
+},
+{
+  "name": [	"lydian"],
+  "semitones": [0,2,4,6,7,9,11]
+},
+{
+  "name": [	"lydian_augmented"],
+  "semitones": [0,2,4,6,8,9,10]
+},
+{
+  "name": [	"mixolydian", "mod_5", "min_mel_mod_5", "hindu_1"],
+  "semitones": [0,2,4,5,7,9,10]
+},
+{
+  "name": [	"locrian", "mod_7"],
+  "semitones": [0,1,3,5,6,8,10]
+},
+{
+  "name": [	"locrian_2", "min_mel_mod_6"],
+  "semitones": [0,2,3,5,6,8,10]
+},
+{
+  "name": [	"fourths"],
+  "semitones": [0,2,5,7]
+},
+{
+  "name": [	"major_soft", "indian", "aeolian_dominant"],
+  "semitones": [0,2,4,5,7,8,10]
+},
+{
+  "name": [	"hawaian"],
+  "semitones": [0,2,3,5,7,9,11]
+},
+{
+  "name": [	"minor_melodic_up_down"],
+  "semitones": [0,2,3,5,7,9,11],
+  "semitones_down": [0,2,3,5,7,8,10]
+},
+{
+  "name": [	"minor_harmonic", "mohammedan"],
+  "semitones": [0,2,3,5,7,8,11]
+},
+{
+  "name": [	"spanish", "min_harm_mod_5", "phrygian_dominant", "spanish_phrygian", "spanish_gypsy", "jewish"],
+  "semitones": [0,1,4,5,7,8,10]
+},
+{
+  "name": [	"lydian_dominant", "highlander", "lydian_b7", "min_mel_mod_4"],
+  "semitones": [0,2,4,6,7,9,10]
+},
+{
+  "name": [	"pentatonic_halftone_hemitonic"],
+  "semitones": [0,2,6,7,9,11]
+},
+{
+  "name": [	"pentatonic_halftone_diatonic"],
+  "semitones": [0,1,5,7,8]
+},
+{
+  "name": [	"blues_minor"],
+  "semitones": [0,3,5,6,7,10,11]
+},
+{
+  "name": [	"blues"],
+  "semitones": [0,3,5,6,7,10]
+},
+{
+  "name": [	"altered", "super_locrian"],
+  "semitones": [0,1,3,4,6,8,10]
+},
+{
+  "name": [	"major_harmonic"],
+  "semitones": [0,2,4,5,7,8,11]
+},
+{
+  "name": [	"wholetone_halftone", "wh_ht", "oct_diminished"],
+  "semitones": [0,2,3,5,6,8,9,11]
+},
+{
+  "name": [	"half_tone_whole_tone", "hw_wt", "oct_dominant_dim"],
+  "semitones": [0,1,3,4,6,7,9,10]
+},
+{
+  "name": [	"diminished"],
+  "semitones": [0,3,6,9]
+},
+{
+  "name": [	"blues_major"],
+  "semitones": [0,2,3,4,7,8,9]
+},
+{
+  "name": [	"arabic", "maj_locrian"],
+  "semitones": [0,2,4,5,6,8,10]
+},
+{
+  "name": [	"gypsy_1"],
+  "semitones": [0,2,3,6,7,11]
+},
+{
+  "name": [	"gypsy_2", "arabic", "byzantine", "double_harm"],
+  "semitones": [0,1,4,5,7,8,11]
+},
+{
+  "name": [	"hun_gypsy", "hung_min"],
+  "semitones": [0,2,3,6,7,8,11]
+},
+{
+  "name": [	"oriental"],
+  "semitones": [0,1,4,5,6,9,10]
+},
+{
+  "name": [	"iwato"],
+  "semitones": [0,1,5,6,10]
+},
+{
+  "name": [	"prometheus"],
+  "semitones": [0,2,4,6,9,10]
+},
+{
+  "name": [	"prometheus_neapol"],
+  "semitones": [0,1,4,6,9,10]
+},
+{
+  "name": [	"romanian_min"],
+  "semitones": [0,2,3,6,7,9,10]
+},
+{
+  "name": [	"iberian_hexa"],
+  "semitones": [0,1,4,5,7,10]
+},
+{
+  "name": [	"harioji"],
+  "semitones": [0,2,3,7,8]
+},
+{
+  "name": [	"chinese_2"],
+  "semitones": [0,4,6,7,11]
+},
+{
+  "name": [	"algerian_short"],
+  "semitones": [0,4,6,7,11]
+},
+{
+  "name": [	"algerian_long"],
+  "semitones": [0,2,3,5,6,7,8,11,12,14,15],
+  "octave_size":17    },
+{
+  "name": [	"hawaian_2"],
+  "semitones": [0,2,3,7,9]
+},
+{
+  "name": [	"japanese_yo_up_down"],
+  "semitones": [0,1,5,7,8],
+  "semitones_down": [0,1,5,7,10]
+},
+{
+  "name": [	"japanese_insen"],
+  "semitones": [0,1,5,7,10]
+},
+{
+  "name": [	"phrygian", "mod_6", "jawaian", "min_harm_mod_2"],
+  "semitones": [0,1,3,5,7,9,10]
+},
+{
+  "name": [	"neapolitian", "neapolitan_min"],
+  "semitones": [0,1,3,5,7,8,11]
+},
+{
+  "name": [	"neapolitan_maj"],
+  "semitones": [0,1,3,5,7,9,11]
+},
+{
+  "name": [	"enigmatic_up_down"],
+  "semitones": [0,1,4,6,8,10,11],
+  "semitones_down": [0,1,4,5,8,10,11]
+},
+{
+  "name": [	"spanish_8_tones"],
+  "semitones": [0,1,3,4,5,6,8,10]
+},
+{
+  "name": [	"persian"],
+  "semitones": [0,1,4,5,6,8,11]
+},
+{
+  "name": [	"hungarian","hung_major"],
+  "semitones": [0,3,4,6,7,9,10]
+},
+{
+  "name": [	"woloska"],
+  "semitones": [0,2,3,6,7,9]
+},
+{
+  "name": [	"bebop_major"],
+  "semitones": [0,2,4,5,7,8,9,11]
+},
+{
+  "name": [	"bebop_dominant"],
+  "semitones": [0,2,4,5,7,9,10,11]
+},
+{
+  "name": [	"bebop_dorian", "bebop_minor"],
+  "semitones": [0,2,3,4,5,7,9,10]
+},
+{
+  "name": [	"bebop_minor"],
+  "semitones": [0,2,3,5,7,8,9,11]
+},
+{
+  "name": [	"bebop_locrian"],
+  "semitones": [0,1,3,5,6,7,8,10]
+}]
+}

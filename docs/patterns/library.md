@@ -1,5 +1,5 @@
 ## Core
-View source: [core.py](https://github.com/piotereks/isobar-ext/tree/master/isobar/pattern/core.py)
+View source: [core.py](https://github.com/piotereks/isobar-ext/tree/master/isobar_ext/pattern/core.py)
 
 | Class | Function |
 |-|-|
@@ -30,7 +30,7 @@ View source: [core.py](https://github.com/piotereks/isobar-ext/tree/master/isoba
 | PLessThanOrEqual | Return 1 if a <= b, 0 otherwise (shorthand: patternA <= patternB) |
 
 ## Scalar
-View source: [scalar.py](https://github.com/piotereks/isobar-ext/tree/master/isobar/pattern/scalar.py)
+View source: [scalar.py](https://github.com/piotereks/isobar-ext/tree/master/isobar_ext/pattern/scalar.py)
 
 | Class | Function |
 |-|-|
@@ -48,7 +48,7 @@ View source: [scalar.py](https://github.com/piotereks/isobar-ext/tree/master/iso
 | PIndexOf | Find index of items from `pattern` in <list> |
 
 ## Sequence
-View source: [sequence.py](https://github.com/piotereks/isobar-ext/tree/master/isobar/pattern/sequence.py)
+View source: [sequence.py](https://github.com/piotereks/isobar-ext/tree/master/isobar_ext/pattern/sequence.py)
 
 | Class | Function |
 |-|-|
@@ -75,7 +75,7 @@ View source: [sequence.py](https://github.com/piotereks/isobar-ext/tree/master/i
 | PSequenceAction | Iterate over an array, perform a function, and repeat. |
 
 ## Chance
-View source: [chance.py](https://github.com/piotereks/isobar-ext/tree/master/isobar/pattern/chance.py)
+View source: [chance.py](https://github.com/piotereks/isobar-ext/tree/master/isobar_ext/pattern/chance.py)
 
 | Class | Function |
 |-|-|
@@ -92,7 +92,7 @@ View source: [chance.py](https://github.com/piotereks/isobar-ext/tree/master/iso
 | PSwitchOne | Capture `length` input values; loop, repeatedly switching two adjacent values. |
 
 ## Tonal
-View source: [tonal.py](https://github.com/piotereks/isobar-ext/tree/master/isobar/pattern/tonal.py)
+View source: [tonal.py](https://github.com/piotereks/isobar-ext/tree/master/isobar_ext/pattern/tonal.py)
 
 | Class | Function |
 |-|-|
@@ -102,7 +102,7 @@ View source: [tonal.py](https://github.com/piotereks/isobar-ext/tree/master/isob
 | PMidiNoteToFrequency | Map MIDI note to frequency value. |
 
 ## Static
-View source: [static.py](https://github.com/piotereks/isobar-ext/tree/master/isobar/pattern/static.py)
+View source: [static.py](https://github.com/piotereks/isobar-ext/tree/master/isobar_ext/pattern/static.py)
 
 | Class | Function |
 |-|-|
@@ -110,7 +110,7 @@ View source: [static.py](https://github.com/piotereks/isobar-ext/tree/master/iso
 | PCurrentTime | Returns the position (in beats) of the current timeline. |
 
 ## Fade
-View source: [fade.py](https://github.com/piotereks/isobar-ext/tree/master/isobar/pattern/fade.py)
+View source: [fade.py](https://github.com/piotereks/isobar-ext/tree/master/isobar_ext/pattern/fade.py)
 
 | Class | Function |
 |-|-|
@@ -118,21 +118,21 @@ View source: [fade.py](https://github.com/piotereks/isobar-ext/tree/master/isoba
 | PFadeNotewiseRandom | Fade a pattern in/out by gradually introducing random notes. |
 
 ## Markov
-View source: [markov.py](https://github.com/piotereks/isobar-ext/tree/master/isobar/pattern/markov.py)
+View source: [markov.py](https://github.com/piotereks/isobar-ext/tree/master/isobar_ext/pattern/markov.py)
 
 | Class | Function |
 |-|-|
 | PMarkov | First-order Markov chain generator. |
 
 ## Lsystem
-View source: [lsystem.py](https://github.com/piotereks/isobar-ext/tree/master/isobar/pattern/lsystem.py)
+View source: [lsystem.py](https://github.com/piotereks/isobar-ext/tree/master/isobar_ext/pattern/lsystem.py)
 
 | Class | Function |
 |-|-|
 | PLSystem | integer sequence derived from Lindenmayer systems |
 
 ## Warp
-View source: [warp.py](https://github.com/piotereks/isobar-ext/tree/master/isobar/pattern/warp.py)
+View source: [warp.py](https://github.com/piotereks/isobar-ext/tree/master/isobar_ext/pattern/warp.py)
 
 | Class | Function |
 |-|-|

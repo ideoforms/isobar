@@ -1,5 +1,5 @@
 import pytest
-import isobar as iso
+import isobar_ext as iso
 
 def test_psequence_ints():
     a = iso.PSequence([1, 2, 3], 1)
