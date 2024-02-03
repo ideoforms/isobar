@@ -1,5 +1,5 @@
 import pytest
-import isobar as iso
+import isobar_ext as iso
 
 @pytest.fixture()
 def dummy_timeline():

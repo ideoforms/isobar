@@ -1,11 +1,11 @@
-""" Unit tests for isobar """
+""" Unit tests for isobar_ext """
 
-import isobar as iso
+import isobar_ext as iso
 import pytest
 import time
-from isobar.io import DummyOutputDevice, MidiOutputDevice
+from isobar_ext.io import DummyOutputDevice, MidiOutputDevice
 from . import dummy_timeline
-from isobar.exceptions import InvalidEventException
+from isobar_ext.exceptions import InvalidEventException
 
 def test_timeline_tempo():
     timeline = iso.Timeline(100)
@@ -119,6 +119,7 @@ def test_timeline_schedule_real_clock():
     timeline.stop_when_done = True
     def record_time():
         times.append(time.time())
+    # temporary blocked to be verified in #35
     timeline.schedule({
         iso.EVENT_NOTE: iso.PSequence([1, 1], 1),
         iso.EVENT_ACTION: record_time,

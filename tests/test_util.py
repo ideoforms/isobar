@@ -1,6 +1,7 @@
 """ Unit tests for Utils """
 
-import isobar as iso
+import isobar_ext as iso
+
 
 def test_util_midi_note_to_note_name():
     assert iso.midi_note_to_note_name(60 - 60) == 'C-1'
@@ -16,6 +17,7 @@ def test_util_midi_note_to_note_name():
     assert iso.midi_note_to_note_name(60 + 36) == 'C7'
     assert iso.midi_note_to_note_name(60 + 48) == 'C8'
     assert iso.midi_note_to_note_name(60 + 60) == 'C9'
+
 
 def test_util_note_name_to_midi_note():
     assert iso.note_name_to_midi_note('C-1') == 60 - 60

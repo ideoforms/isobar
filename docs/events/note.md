@@ -2,7 +2,7 @@
 
 ## Notes and names
 
-A common approach to composition in isobar is building up patterns of notes, which correspond to the standard MIDI note range (0..127, with 60 = middle C) and velocity range (0..127).
+A common approach to composition in isobar-ext is building up patterns of notes, which correspond to the standard MIDI note range (0..127, with 60 = middle C) and velocity range (0..127).
 
 ```python
 timeline.schedule({
@@ -67,8 +67,8 @@ timeline.schedule({
 
 isobar has builtin objects representing musical keys and scales.
 
-- [Scale](https://github.com/ideoforms/isobar/blob/master/isobar/scale.py) encapsulates an ordered set of semitones. Named scales are [defined](https://github.com/ideoforms/isobar/blob/master/isobar/scale.py) corresponding to commonly-used scales (`major`, `minor`, `chromatic`, `aeolian`, etc).
-- [Key](https://github.com/ideoforms/isobar/blob/master/isobar/key.py) encapsulates a Scale with a specified tonic.
+- [Scale](https://github.com/piotereks/isobar-ext/blob/master/isobar_ext/scale.py) encapsulates an ordered set of semitones. Named scales are [defined](https://github.com/piotereks/isobar-ext/blob/master/isobar_ext/scale.py) corresponding to commonly-used scales (`major`, `minor`, `chromatic`, `aeolian`, etc).
+- [Key](https://github.com/piotereks/isobar-ext/blob/master/isobar_ext/key.py) encapsulates a Scale with a specified tonic.
 
 !!! warning
     isobar currently only supports equal temperament tuning. 

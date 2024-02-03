@@ -5,7 +5,7 @@
 To run a style check with flake8:
 
 ```
-flake8 isobar
+flake8 isobar-ext
 ```
 
 ## Testing
@@ -20,7 +20,7 @@ To generate a unit test coverage report:
 
 ```
 pip3 install pytest-cov
-pytest --cov=isobar tests
+pytest --cov=isobar-ext tests
 ```
 
 To automatically run unit tests on commit:
@@ -56,4 +56,4 @@ To push to PyPi:
 * increment version in `setup.py`
 * `git tag vx.y.z`, `git push --tags`, and create GitHub release
 * `python3 setup.py sdist`
-* `twine upload dist/isobar-x.y.z.tar.gz`
+* `twine upload dist/isobar-ext-x.y.z.tar.gz`

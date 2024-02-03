@@ -1,6 +1,6 @@
 """ Unit tests for events """
 
-import isobar as iso
+import isobar_ext as iso
 import pytest
 from . import dummy_timeline
 
@@ -16,6 +16,7 @@ def test_event_degree(dummy_timeline):
         [1, 'note_on', 14, 64, 0], [2, 'note_off', 14, 0],
         [2, 'note_on', 16, 64, 0], [3, 'note_off', 16, 0],
         [3, 'note_on', 17, 64, 0], [4, 'note_off', 17, 0],
+        [4, 'note_on', 0, 0, 0],   [4.00208333, 'note_off', 0, 0],  # test case needed for Rest/None
         [5, 'note_on', 24, 64, 0], [6, 'note_off', 24, 0],
         [6, 'note_on', 11, 64, 0], [7, 'note_off', 11, 0]
     ]

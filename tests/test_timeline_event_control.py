@@ -1,6 +1,6 @@
 """ Unit tests for events """
 
-import isobar as iso
+import isobar_ext as iso
 import pytest
 import math
 from . import dummy_timeline

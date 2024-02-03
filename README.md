@@ -1,17 +1,20 @@
-# isobar
+# isobar-ext
+   <span class="text-small lh-condensed-ultra no-wrap mt-1" data-repository-hovercards-enabled="">
+      forked from <a data-hovercard-type="repository" data-hovercard-url="/piotereks/isobar-ext/hovercard" class="Link--inTextBlock" href="https://github.com/ideoforms/isobar">ideoforms/isobar</a>
+    </span>
 
-![ci](https://github.com/ideoforms/isobar/workflows/ci/badge.svg) [![stability-mature](https://img.shields.io/badge/stability-mature-008000.svg)](https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md#mature)
+![ci](https://github.com/piotereks/isobar-ext/workflows/ci/badge.svg) [![stability-mature](https://img.shields.io/badge/stability-mature-008000.svg)](https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md#mature)
 
-isobar is a Python library for creating and manipulating musical patterns, designed for use in algorithmic composition, generative music and sonification. It makes it quick and easy to express complex musical ideas, and can send and receive events from various different sources including MIDI, MIDI files, and OSC.
+isobar-ext is a Python library for creating and manipulating musical patterns, designed for use in algorithmic composition, generative music and sonification. It makes it quick and easy to express complex musical ideas, and can send and receive events from various different sources including MIDI, MIDI files, and OSC.
 
-The core element is a Timeline, which can control its own tempo or sync to an external clock. Onto this, you can schedule Patterns, which can be note sequences, control events, program changes, or other arbitrary events via lambda functions. Pattern are used as templates to generate Events, which trigger notes or control changes on an OutputDevice (Check out a [diagrammatic overview](http://ideoforms.github.io/isobar/#flow-diagram).)
+The core element is a Timeline, which can control its own tempo or sync to an external clock. Onto this, you can schedule Patterns, which can be note sequences, control events, program changes, or other arbitrary events via lambda functions. Pattern are used as templates to generate Events, which trigger notes or control changes on an OutputDevice (Check out a [diagrammatic overview](http://piotereks.github.io/isobar-ext/#flow-diagram).)
 
-isobar includes a large array of basic compositional building blocks (see [Pattern Classes](#pattern-classes)), plus some advanced pattern generators for more sophisticated operations (arpeggiators, Euclidean rhythms, L-systems, Markov chains).
+isobar-ext includes a large array of basic compositional building blocks (see [Pattern Classes](#pattern-classes)), plus some advanced pattern generators for more sophisticated operations (arpeggiators, Euclidean rhythms, L-systems, Markov chains).
 
 ## Usage
 
 ```python
-import isobar as iso
+import isobar_ext as iso
 
 #------------------------------------------------------------------------
 # Create a geometric series on a minor scale.
@@ -53,13 +56,13 @@ timeline.run()
 
 ## Installation
 
-The short answer: `pip3 install isobar`
+The short answer: `pip3 install isobar-ext` (not yet on PyPl)
 
-The long answer: [isobar Getting Started guide](http://ideoforms.github.io/isobar/getting-started/)
+The long answer: [isobar-ext Getting Started guide](http://piotereks.github.io/isobar-ext/getting-started/)
 
 ## Documentation
 
-For complete documentation, see [ideoforms.github.io/isobar](http://ideoforms.github.io/isobar/).
+For complete documentation, see [piotereks.github.io/isobar-ext](http://piotereks.github.io/isobar-ext/).
 
 ## Examples
 

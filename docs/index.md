@@ -1,10 +1,11 @@
-# isobar
+# isobar-ext
+<sub><sup> isobar-ext is forked from <a data-hovercard-type="repository" data-hovercard-url="/piotereks/isobar-ext/hovercard" class="Link--inTextBlock" href="https://github.com/ideoforms/isobar">ideoforms/isobar</a>  
+</sup></sub>
+isobar-ext is a Python library for creating and manipulating musical patterns, designed for use in algorithmic composition, generative music and sonification. It makes it quick and easy to express complex musical ideas, and can send and receive events from various different sources: MIDI, OSC, SocketIO, and .mid files.
 
-isobar is a Python library for creating and manipulating musical patterns, designed for use in algorithmic composition, generative music and sonification. It makes it quick and easy to express complex musical ideas, and can send and receive events from various different sources: MIDI, OSC, SocketIO, and .mid files.
+### What isobar-ext does
 
-### What isobar does
-
-The core objective of isobar is to provide a framework for sequencing and triggering events, which may be MIDI messages, OSC events, triggers for third-party DSP engines such as [SuperCollider](https://supercollider.github.io/), or even Python functions. ([What types of event are supported?](events/index.md#event-types)) 
+The core objective of isobar-ext is to provide a framework for sequencing and triggering events, which may be MIDI messages, OSC events, triggers for third-party DSP engines such as [SuperCollider](https://supercollider.github.io/), or even Python functions. ([What types of event are supported?](events/index.md#event-types)) 
 
 It can be used to trigger events in real time, or to generate patterns that can be serialised as MIDI files and loaded into a DAW.
 
@@ -12,7 +13,7 @@ It can sync to external clocks, or act as a clock source to external devices.
 
 It can also load patterns serialised in MIDI files for processing.
 
-### What isobar doesn't do
+### What isobar-ext doesn't do
 
 isobar does not generate any audio on its own. It must be configured to send events to an output device which is responsible for sound synthesis.
 
@@ -32,5 +33,5 @@ There are a few key components in isobar.
 ## Documentation
 
 - [Getting started](getting-started.md)
-- [Code examples](https://github.com/ideoforms/isobar/tree/master/examples)
+- [Code examples](https://github.com/piotereks/isobar-ext/tree/master/examples)
 - [Pattern library reference](patterns/library.md)

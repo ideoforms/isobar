@@ -22,7 +22,7 @@ timeline.schedule({
 
 For more complex functions, custom named keyword arguments can be passed to the function using the `args` property
 
-This executes an action every 4 beats to change the global key of the piece, using the [Globals](/patterns/#globals) variables:  
+This executes an action every 4 beats to change the global key of the piece, using the [Globals](../patterns/index.md#globals) variables:  
 
 ```python
 def set_key(k):
@@ -40,5 +40,64 @@ timeline.schedule({
     "key": iso.PGlobals("key"),
     "octave": 4
 })
+```
+### Do not mix EVENT_ACTION and EVENT_NOTE or EVENT_DEGREE
+Following code:
+```python
+def record_time():
+    times.append(time.time())
+
+events = {
+    iso.EVENT_NOTE: iso.PSequence([1, 1], 1),
+    iso.EVENT_ACTION: record_time,
+    iso.EVENT_DURATION: 0.1
+}
+timeline.schedule(events, delay=0.1)
+t0 = time.time()
+timeline.run()
+```
+Gives in result empty track.
+```python
+>>> timeline.output_device.miditrack
+MidiTrack()
+```
+
+While removing EVENT_ACTION events
+```python
+events = {
+    iso.EVENT_NOTE: iso.PSequence([1, 1], 1),
+    iso.EVENT_DURATION: 0.1
+}
+```
+Program returns:
+```python
+>>> timeline.output_device.miditrack
+MidiTrack([
+  Message('note_on', channel=0, note=1, velocity=64, time=48),
+  Message('note_off', channel=0, note=1, velocity=64, time=48),
+  Message('note_on', channel=0, note=1, velocity=64, time=0),
+  Message('note_off', channel=0, note=1, velocity=64, time=48)])
+
+```
+
+Workaround for this is to use 2 separate schedules.
+```python
+def record_time():
+    times.append(time.time())
+
+events_action = {
+    iso.EVENT_ACTION: record_time,
+    iso.EVENT_DURATION: 0.1
+}
+events_notes = {
+    iso.EVENT_NOTE: iso.PSequence([1, 1], 1),
+    iso.EVENT_DURATION: 0.1
+}
+
+timeline.schedule(events_action, delay=0.1)
+timeline.schedule(events_notes, delay=0.1)
+t0 = time.time()
+timeline.run()
+
 ```
 

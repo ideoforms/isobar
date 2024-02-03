@@ -1,6 +1,6 @@
-# isobar
+# isobar-ext
 
-isobar is a Python library for creating and manipulating musical patterns, designed for use in algorithmic composition, generative music and sonification. It makes it quick and easy to express complex musical ideas, and can send and receive events from various different sources: MIDI, OSC, SocketIO, and .mid files.
+isobar-ext is a Python library for creating and manipulating musical patterns, designed for use in algorithmic composition, generative music and sonification. It makes it quick and easy to express complex musical ideas, and can send and receive events from various different sources: MIDI, OSC, SocketIO, and .mid files.
 
 ## Documentation
 

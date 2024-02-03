@@ -4,7 +4,7 @@
 
 Writing MIDI files is done by setting the output device of a Timeline to a `MidiFileOutputDevice`
 
-isobar normally generates events in real-time according to the tempo of the Timeline. To batch process events instantaneously, set the tempo of the timeline to `iso.MAX_CLOCK_RATE`. 
+isobar-ext normally generates events in real-time according to the tempo of the Timeline. To batch process events instantaneously, set the tempo of the timeline to `iso.MAX_CLOCK_RATE`. 
 
 ```
 filename = "output.mid"

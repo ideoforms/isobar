@@ -1,6 +1,6 @@
-""" Unit tests for isobar """
+""" Unit tests for isobar_ext """
 
-import isobar as iso
+import isobar_ext as iso
 import pytest
 import time
 
