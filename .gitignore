@@ -10,7 +10,6 @@ dist/
 .ipynb_checkpoints/
 dev
 audio
-midi
 build
 TODO.md
 /.pypirc
