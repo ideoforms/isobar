@@ -1,7 +1,6 @@
 from ..output import OutputDevice
 
 try:
-    import numpy as np
     import sounddevice
 except ModuleNotFoundError:
     pass

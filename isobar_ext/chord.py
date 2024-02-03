@@ -20,7 +20,7 @@ class Chord:
     @property
     def semitones(self):
         semitones = [self.root] + [
-            sum(self.intervals[0 : n + 1], self.root)
+            sum(self.intervals[0: n + 1], self.root)
             for n in range(len(self.intervals))
         ]
         return semitones

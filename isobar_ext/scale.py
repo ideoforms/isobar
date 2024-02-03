@@ -26,8 +26,12 @@ class Scale(object):
             Scale.dict[name] = self
 
     @classmethod
-    def create_scale(cls, semitones, name):
-        return cls(semitones=semitones, name=name)
+    def create_scale(cls, semitones, name, octave_size=12, semitones_down=None):
+        scale_instance = cls(semitones=semitones, name=name, octave_size=octave_size, semitones_down=semitones_down)
+        # cls._scales.append(scale_instance)
+        setattr(cls, name, scale_instance)
+        cls.dict[name] = scale_instance
+        return scale_instance
 
     def __str__(self):
         return "%s %s" % (self.name, self.semitones)
@@ -153,15 +157,7 @@ class Scale(object):
         key = random.choice(list(Scale.dict.keys()))
         return Scale.dict[key]
 
-    @classmethod
-    def create_scale(cls, semitones, name, octave_size=12):
-        scale_instance = cls(semitones=semitones, name=name, octave_size=octave_size)
-        # cls._scales.append(scale_instance)
-        setattr(cls, name, scale_instance)
-        cls.dict[name] = scale_instance
-        return scale_instance
-
-
+# ------------------------------------------------------------------------
 current_directory = Path(__file__).resolve().parent
 config_file = current_directory / "scales.json"
 

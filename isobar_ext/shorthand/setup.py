@@ -4,7 +4,7 @@ from ..exceptions import DeviceNotFoundException
 from .. import ALL_EVENT_PARAMETERS
 
 try:
-    from signalflow import *
+    from signalflow import *  # noqa: F403
     from ..io.signalflow import SignalFlowOutputDevice
 
     midi_output_device = MidiOutputDevice()

@@ -70,9 +70,9 @@ class Key:
         # semitone -= self.tonic
         scale_down = params.get("scale_down")
         if (
-            scale_down
-            and hasattr(self.scale, "semitones_down")
-            and self.scale.semitones_down
+            scale_down and
+            hasattr(self.scale, "semitones_down") and
+            self.scale.semitones_down
         ):
             semitones = self.semitones_down
         else:
@@ -112,9 +112,9 @@ class Key:
 
         scale_down = parms.get("scale_down")
         if (
-            scale_down
-            and hasattr(self.scale, "semitones_down")
-            and self.scale.semitones_down
+            scale_down and
+            hasattr(self.scale, "semitones_down") and
+            self.scale.semitones_down
         ):
             semitones = self.scale.semitones_down
         else:

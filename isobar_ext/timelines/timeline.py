@@ -274,7 +274,7 @@ class Timeline:
         for track in self.tracks[:]:
             try:
                 track.tick()
-            except Exception as e:
+            except Exception as e:  # noqa: F841 (but we don't care if it's not used)
                 if self.ignore_exceptions:
                     tb = traceback.format_exc()
                     log.warning("*** Exception in track: %s" % tb)

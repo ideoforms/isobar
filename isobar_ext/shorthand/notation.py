@@ -69,7 +69,7 @@ def parse_notation(string: str):
                 value = _parser_token_to_value(token)
                 _parser_push(value, groups, depth)
 
-            string = string[len(token) :]
+            string = string[len(token):]
             string = string.lstrip()
 
             if len(string) == 0:

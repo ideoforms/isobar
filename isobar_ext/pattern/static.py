@@ -94,9 +94,9 @@ class PStaticPattern(Pattern):
         current_time = round(timeline.current_time, 5)
 
         while (
-            self.current_element_start_time is None
-            or current_time - self.current_element_start_time
-            >= self.current_element_duration
+            self.current_element_start_time is None or
+            current_time - self.current_element_start_time >=
+            self.current_element_duration
         ):
             self.value = Pattern.value(self.pattern)
             self.current_element_start_time = round(timeline.current_time, 5)

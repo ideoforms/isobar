@@ -1,7 +1,7 @@
 from ..pattern import Pattern
 from ..scale import Scale
 from ..key import Key
-from ..constants import *
+from ..constants import *  # noqa: F403
 from ..exceptions import InvalidEventException
 import logging
 from typing import Iterable
@@ -42,9 +42,9 @@ class Event:
             warning_msg = f"Cannot specify both '{parm[0]}' and '{parm[1]}.'"
             if EVENT_ACTION in (parm):
                 warning_msg += (
-                    "\nEVENT_ACTION disables EVENT_NOTE and EVENT_DEGREE.\n"
-                    + "Use separate timeline.schedule for EVENT_ACTION"
-                    + " and separate for EVENT_NOTE or EVENT_DEGREE"
+                    "\nEVENT_ACTION disables EVENT_NOTE and EVENT_DEGREE.\n" +
+                    "Use separate timeline.schedule for EVENT_ACTION" +
+                    " and separate for EVENT_NOTE or EVENT_DEGREE"
                 )
             warnings.warn(warning_msg, Warning)
 
@@ -112,9 +112,9 @@ class Event:
                 # ----------------------------------------------------------------------
                 try:
                     event_values[EVENT_NOTE] = [
-                        int(note)
-                        + int(event_values[EVENT_OCTAVE]) * 12
-                        + int(event_values[EVENT_TRANSPOSE])
+                        int(note) +
+                        int(event_values[EVENT_OCTAVE]) * 12 +
+                        int(event_values[EVENT_TRANSPOSE])
                         for note in event_values[EVENT_NOTE]
                     ]
                 except TypeError:
@@ -152,8 +152,8 @@ class Event:
             ):
                 self.type = EVENT_TYPE_PATCH_CREATE
             elif (
-                hasattr(self.patch, "trigger_node")
-                and self.patch.trigger_node is not None
+                hasattr(self.patch, "trigger_node") and
+                self.patch.trigger_node is not None
             ):
                 self.type = EVENT_TYPE_PATCH_TRIGGER
             else:

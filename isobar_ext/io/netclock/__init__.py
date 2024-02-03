@@ -1,2 +1,2 @@
-from .receiver import NetworkClockReceiver
-from .sender import NetworkClockSender
+from .receiver import NetworkClockReceiver  # noqa: F401
+from .sender import NetworkClockSender  # noqa: F401

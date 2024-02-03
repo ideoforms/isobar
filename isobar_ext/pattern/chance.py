@@ -69,7 +69,7 @@ class PWhite(PStochasticPattern):
         min = Pattern.value(self.min)
         max = Pattern.value(self.max)
 
-        if type(min) == float:
+        if isinstance(min, float):
             return self.rng.uniform(min, max)
         else:
             # --------------------------------------------------------------------------------
@@ -131,7 +131,7 @@ class PBrown(PStochasticPattern):
         vmax = Pattern.value(self.max)
 
         rv = self.value
-        if type(vstep) == float:
+        if isinstance(vstep, float):
             self.value += self.rng.uniform(-vstep, vstep)
         else:
             # select new offset
@@ -553,7 +553,7 @@ class PRandomExponential(PStochasticPattern):
 
         norm = self.rng.uniform(0, 1)
         rv = scale_lin_exp(norm, 0, 1, min, max)
-        if type(min) == float:
+        if isinstance(min, float):
             return rv
         else:
             return int(rv)

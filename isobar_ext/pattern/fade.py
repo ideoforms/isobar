@@ -34,12 +34,12 @@ class PFadeNotewise(PFade):
     """PFadeNotewise: Fade a pattern in/out by introducing notes at a gradual rate."""
 
     def __init__(
-        self,
-        pattern: Pattern,
-        rate_min: int = 1,
-        rate_max: int = 1,
-        repeats: int = 1,
-        repeats_postfade: int = 1,
+            self,
+            pattern: Pattern,
+            rate_min: int = 1,
+            rate_max: int = 1,
+            repeats: int = 1,
+            repeats_postfade: int = 1,
     ):
         PFade.__init__(self)
 
@@ -104,7 +104,7 @@ class PFadeNotewise(PFade):
                 if self.fadestep == 0:
                     raise StopIteration
             elif (
-                self.direction == PFade.PEAK and self.rcounter == self.repeats_postfade
+                    self.direction == PFade.PEAK and self.rcounter == self.repeats_postfade
             ):
                 # ----------------------------------------------------------------------
                 # start fading out.
@@ -114,7 +114,7 @@ class PFadeNotewise(PFade):
                 self.fadeindex = 0
                 self.fade_out()
 
-        if type(self.notes[self.counter]) == dict:
+        if isinstance(self.notes[self.counter], dict):
             if self.on[self.counter]:
                 rv = self.notes[self.counter]
             else:
@@ -133,12 +133,12 @@ class PFadeNotewiseRandom(PFadeNotewise):
     """PFadeNotewiseRandom: Fade a pattern in/out by gradually introducing random notes."""
 
     def __init__(
-        self,
-        pattern: Pattern,
-        rate_min: int = 1,
-        rate_max: int = 1,
-        repeats: int = 1,
-        repeats_postfade: int = 1,
+            self,
+            pattern: Pattern,
+            rate_min: int = 1,
+            rate_max: int = 1,
+            repeats: int = 1,
+            repeats_postfade: int = 1,
     ):
         PFadeNotewise.__init__(
             self, pattern, rate_min, rate_max, repeats, repeats_postfade

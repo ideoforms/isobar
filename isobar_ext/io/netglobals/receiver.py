@@ -5,7 +5,7 @@ import pickle
 import time
 
 from isobar_ext.pattern.static import Globals
-from isobar_ext.constants import DEFAULT_TICKS_PER_BEAT
+from isobar_ext.constants import DEFAULT_TICKS_PER_BEAT  # noqa: F401
 
 
 class NetworkGlobalsReceiver:

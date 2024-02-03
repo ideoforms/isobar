@@ -1,6 +1,5 @@
-from signalflow import *
+from signalflow import *  # noqa: F403
 import os
-import numpy as np
 
 
 class SegmentPlayerPatch(Patch):

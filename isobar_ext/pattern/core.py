@@ -369,12 +369,12 @@ class PDict(Pattern):
 
         self.dict = {}
 
-        if type(value) == dict:
+        if isinstance(value, dict):
             # ------------------------------------------------------------------------
             # Value is a dict of arrays.
             # ------------------------------------------------------------------------
             self.dict = dict([(k, Pattern.pattern(v)) for k, v in value.items()])
-        elif type(value) == list:
+        elif isinstance(value, list):
             # ------------------------------------------------------------------------
             # Value is an array of dicts.
             # ------------------------------------------------------------------------

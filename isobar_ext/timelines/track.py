@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import copy
 import inspect
-from typing import Union, Optional, Callable, TYPE_CHECKING
 from dataclasses import dataclass
+from typing import Union, Optional, Callable, TYPE_CHECKING
 
 from .event import Event
 
 if TYPE_CHECKING:
     from .timeline import Timeline
 from ..pattern import Pattern, PSequence, PDict, PInterpolate
-from ..constants import *
+from ..constants import *  # noqa: F403
 from ..exceptions import InvalidEventException
 from ..util import midi_note_to_frequency
 from ..io.output import OutputDevice
@@ -28,13 +28,13 @@ class NoteOffEvent:
 
 class Track:
     def __init__(
-        self,
-        timeline: Timeline,
-        max_event_count: Optional[int] = None,
-        interpolate: str = INTERPOLATION_NONE,
-        output_device: Optional[OutputDevice] = None,
-        remove_when_done: bool = True,
-        name: Optional[str] = None,
+            self,
+            timeline: Timeline,
+            max_event_count: Optional[int] = None,
+            interpolate: str = INTERPOLATION_NONE,
+            output_device: Optional[OutputDevice] = None,
+            remove_when_done: bool = True,
+            name: Optional[str] = None,
     ):
         """
         Args:
@@ -86,9 +86,9 @@ class Track:
         # of key-value pairs (rather than a pattern that will itself generate dicts.)
         # --------------------------------------------------------------------------------
         if (
-            item != "event_stream"
-            and isinstance(self.event_stream, PDict)
-            and item in ALL_EVENT_PARAMETERS
+                item != "event_stream" and
+                isinstance(self.event_stream, PDict) and
+                item in ALL_EVENT_PARAMETERS
         ):
             self.event_stream[item] = value
         else:
@@ -96,9 +96,9 @@ class Track:
 
     def __delattr__(self, item):
         if (
-            item != "event_stream"
-            and isinstance(self.event_stream, PDict)
-            and item in ALL_EVENT_PARAMETERS
+                item != "event_stream" and
+                isinstance(self.event_stream, PDict) and
+                item in ALL_EVENT_PARAMETERS
         ):
             del self.event_stream[item]
         else:
@@ -123,10 +123,10 @@ class Track:
         self.next_event_time = self.current_time
 
     def update(
-        self,
-        events: Union[dict, Pattern],
-        quantize: Optional[float] = None,
-        delay: Optional[float] = None,
+            self,
+            events: Union[dict, Pattern],
+            quantize: Optional[float] = None,
+            delay: Optional[float] = None,
     ):
         """
         Update the events that this Track produces.
@@ -142,8 +142,8 @@ class Track:
         if delay is None:
             delay = self.timeline.defaults.delay
         if (
-            self.output_device is not None
-            and self.output_device.added_latency_seconds > 0.0
+                self.output_device is not None and
+                self.output_device.added_latency_seconds > 0.0
         ):
             delay += self.timeline.seconds_to_beats(
                 self.output_device.added_latency_seconds
@@ -243,15 +243,15 @@ class Track:
                     # events from the pattern.
                     # --------------------------------------------------------------------------------
                     while (
-                        int(self.current_event.duration * self.timeline.ticks_per_beat)
-                        <= 0
+                            int(self.current_event.duration * self.timeline.ticks_per_beat) <=
+                            0
                     ):
                         self.current_event = self.next_event
                         self.next_event = self.get_next_event()
 
                     if (
-                        self.current_event.type != EVENT_TYPE_CONTROL
-                        or self.next_event.type != EVENT_TYPE_CONTROL
+                            self.current_event.type != EVENT_TYPE_CONTROL or
+                            self.next_event.type != EVENT_TYPE_CONTROL
                     ):
                         raise InvalidEventException(
                             "Interpolation is only valid for control event"
@@ -332,8 +332,8 @@ class Track:
             raise StopIteration
 
         if (
-            self.max_event_count is not None
-            and self.current_event_count >= self.max_event_count
+                self.max_event_count is not None and
+                self.current_event_count >= self.max_event_count
         ):
             raise StopIteration
 
@@ -452,7 +452,7 @@ class Track:
                 self.output_device.create(event.patch, params, output=event.output)
 
         elif (
-            event.type == EVENT_TYPE_PATCH_SET or event.type == EVENT_TYPE_PATCH_TRIGGER
+                event.type == EVENT_TYPE_PATCH_SET or event.type == EVENT_TYPE_PATCH_TRIGGER
         ):
             # ------------------------------------------------------------------------
             # Action: Set patch's input(s) and/or trigger an event
@@ -490,7 +490,7 @@ class Track:
             #        register for this behaviour rather than happening magically...)
             # ----------------------------------------------------------------------
             if hasattr(self.output_device, "event") and callable(
-                getattr(self.output_device, "event")
+                    getattr(self.output_device, "event")
             ):
                 d = copy.copy(event)
                 for key, value in list(d.items()):

@@ -1,7 +1,7 @@
 from __future__ import annotations
 import sys
 import math
-import copy
+import copy  # noqa: F401
 import random
 import itertools
 from typing import Iterable, Callable
@@ -841,8 +841,8 @@ class PArpeggiator(PStochasticPattern):
                     "Arpeggiator type ROOTBOUNCE requires at least 3 notes"
                 )
             self.offsets = (
-                list(range(len(self._notes)))[1:-1]
-                + list(reversed(list(range(len(self._notes)))))[:-1]
+                list(range(len(self._notes)))[1:-1] +
+                list(reversed(list(range(len(self._notes)))))[:-1]
             )
             # Put a 0 in between every element of an UPDOWN pattern
             for n in range(0, len(self.offsets) * 2 + 1, 2):
@@ -932,9 +932,9 @@ class PEuclidean(Pattern):
         ([ab, ab, ab, a])
         """
         if len(a) < len(b):
-            return [a[n] + b[n] for n in range(len(a))] + b[len(a) - len(b) :]
+            return [a[n] + b[n] for n in range(len(a))] + b[len(a) - len(b):]
         elif len(b) < len(a):
-            return [a[n] + b[n] for n in range(len(b))] + a[len(b) - len(a) :]
+            return [a[n] + b[n] for n in range(len(b))] + a[len(b) - len(a):]
         else:
             return [a[n] + b[n] for n in range(len(b))]
 

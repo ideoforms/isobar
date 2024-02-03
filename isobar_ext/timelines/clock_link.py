@@ -1,4 +1,4 @@
-from ..constants import (
+from ..constants import (   # noqa: F401
     DEFAULT_TEMPO,
     DEFAULT_TICKS_PER_BEAT,
     MIN_CLOCK_DELAY_WARNING_TIME,
