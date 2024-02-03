@@ -1,4 +1,4 @@
-import isobar as iso
+import isobar_ext as iso
 
 def test_pmarkov():
     a = iso.PMarkov([1, 1, 2, 3, 1])

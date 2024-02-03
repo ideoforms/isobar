@@ -1,5 +1,5 @@
 import pytest
-import isobar as iso
+import isobar_ext as iso
 
 def test_pdegree():
     a = iso.PDegree(iso.PSequence([0, 1, -1, None, 7], 1))

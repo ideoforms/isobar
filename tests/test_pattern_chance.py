@@ -1,5 +1,5 @@
 import pytest
-import isobar as iso
+import isobar_ext as iso
 
 @pytest.fixture(autouse=True)
 def test_seed_random():

@@ -1,4 +1,4 @@
-import isobar as iso
+import isobar_ext as iso
 
 def test_plsystem():
     a = iso.PLSystem("N[-N++N]-N", 1)

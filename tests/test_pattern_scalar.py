@@ -1,5 +1,5 @@
 import pytest
-import isobar as iso
+import isobar_ext as iso
 
 def test_pchanged():
     a = iso.PSequence([1, 1, 2, 3, 3, "a", "a", "b", None, None, 1], 1)

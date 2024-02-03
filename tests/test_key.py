@@ -1,6 +1,6 @@
 """ Unit tests for Key """
 
-import isobar as iso
+import isobar_ext as iso
 import pytest
 
 def test_key_defaults():

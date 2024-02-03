@@ -1,7 +1,7 @@
 import os
 import platform
-import isobar as iso
-from isobar.io.midi import MidiInputDevice, MidiOutputDevice
+import isobar_ext as iso
+from isobar_ext.io.midi import MidiInputDevice, MidiOutputDevice
 import pytest
 import time
 from . import dummy_timeline

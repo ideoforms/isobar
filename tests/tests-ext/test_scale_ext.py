@@ -1,4 +1,4 @@
-import isobar as iso
+import isobar_ext as iso
 
 
 def test_scale_get():
