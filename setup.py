@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='isobar_ext',
-    version='0.5.0',
+    version='v0.5.1',
     description='A Python library to express and manipulate musical patterns extending original isobar library.',
     long_description = open("README.md", "r").read(),
     long_description_content_type = "text/markdown",
