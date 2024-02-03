@@ -219,10 +219,6 @@
   "semitones": [0,1,5,7,10]
 },
 {
-  "name": [	"old_japanese_up_down"],
-  "semitones": [0,1,5,7,8,10]
-},
-{
   "name": [	"phrygian", "mod_6", "jawaian", "min_harm_mod_2"],
   "semitones": [0,1,3,5,7,9,10]
 },

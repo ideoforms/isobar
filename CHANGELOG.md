@@ -1,5 +1,17 @@
 # Changelog
+# isobar-ext exclusive releases
+## [v0.5.0](https://github.com/piotereks/isobar-ext/tree/0.5.1) (2024-02-03)
 
+- Added numerous of exotic scales and their definition extracted to `scales.json`
+- Added support for scales that are different when melody inclines and different when declines: `minorc melodic`, `japanese yoyo`, `enigmatic`
+- Numerous fixes
+  - nearest note calculation (in case of tie lower note taken when melody goes up, and higher when melody goes down)
+  - for 'Scale', 'Key' - correction for considering tonic in re-calculations 
+  - midi to notename fix
+  - warning when EVENT_ACTION is used together with EVENT_NOTE or EVENT_DEGREE. EVENT_ACTION absorbs EVENT_NOTE or EVENT_DEGREE.
+  - problem with detection rests and proper detection of note_offs
+  
+# Original isobar releases
 ## [v0.1.2](https://github.com/ideoforms/isobar/tree/v0.1.1) (2023-05-28)
 
 - Added `SignalFlowOutputDevice` and `CVOutputDevice`
