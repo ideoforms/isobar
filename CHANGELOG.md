@@ -1,6 +1,6 @@
 # Changelog
 # isobar-ext exclusive releases
-## [v0.5.1](https://github.com/piotereks/isobar-ext/tree/v0.5.1) (2024-02-03)
+## [0.5.1](https://github.com/piotereks/isobar-ext/tree/v0.5.1) (2024-02-03)
 
 - Added numerous of exotic scales and their definition extracted to `scales.json`
 - Added support for scales that are different when melody inclines and different when declines: `minorc melodic`, `japanese yoyo`, `enigmatic`
