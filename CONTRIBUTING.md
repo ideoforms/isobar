@@ -50,10 +50,21 @@ auxiliary/scripts/generate-docs.py
 ```
 
 ## Distribution
+Before pushing to pypl install Poetry is a tool for dependency management and packaging in Python
+* `pip install poetry`
+* add test pypi repository `poetry config repositories.test-pypi https://test.pypi.org/legacy/`
+* add your test.pypl token `poetry config pypi-token.test-pypi  pypi-YYYYYYYY`
+* add your pypl token `poetry config pypi-token.pypi pypi-XXXXXXXX`  
+note: twine, setuptools, wheel packages are not needed
+
 
 To push to PyPi:
 
-* increment version in `setup.py`
+* bump version  (e.g. `poetry version patch`)  
+    details about rule applied for this command: https://python-poetry.org/docs/cli/#version
+* check version `poetry verson` e.g. `x.y.z`
 * `git tag vx.y.z`, `git push --tags`, and create GitHub release
-* `python3 setup.py sdist`
+* `poetry build`
+* `poetry publish -r test-pypi` to publish to test-pypl and check if results are satisfactory
+* `poetry publish` to publish to pypl when you are satisfied with test-pypl
 * `twine upload dist/isobar-ext-x.y.z.tar.gz`
