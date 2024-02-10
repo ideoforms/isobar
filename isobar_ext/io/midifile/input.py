@@ -1,9 +1,13 @@
+import logging
+from collections.abc import Iterable
+
+import mido
+
+from ..midimessages import (MidiMessageControl, MidiMessageProgram, MidiMessagePitch, MidiMessagePoly, MidiMessageAfter,
+                            MidiMetaMessageTempo)
 from ..midinote import MidiNote
 from ...constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_GATE
 from ...pattern import PSequence
-
-import mido
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -14,6 +18,46 @@ class MidiFileInputDevice:
 
     def __init__(self, filename):
         self.filename = filename
+        self.midi_reader = mido.MidiFile(self.filename)
+
+    # def set_tempo_callback(self, tempo):
+    def set_tempo_callback(self, *args, **kwargs):
+        pass
+
+    def midi_message_obj(self, timeline_inner, objects=None, track_idx=0):
+
+        if not isinstance(objects, Iterable):
+            objects = [objects]
+        text = [(type(o), o.__dict__) for o in objects]
+        midi_track0 = timeline_inner.output_device.miditrack[0]
+
+        for obj in objects:
+            if isinstance(obj, MidiMetaMessageTempo):
+                timeline_inner.set_tempo(int(mido.tempo2bpm(obj.tempo)))
+                self.set_tempo_callback(int(mido.tempo2bpm(obj.tempo)))
+                msg = mido.MetaMessage('text', text=f"tempo:{int(mido.tempo2bpm(obj.tempo))}")
+                midi_track0.append(msg)
+            elif isinstance(obj, MidiMessageControl):
+                timeline_inner.output_device.control(control=obj.cc, value=obj.value, channel=obj.channel,
+                                                     track_idx=track_idx)
+            elif isinstance(obj, MidiMessageProgram):
+                timeline_inner.output_device.program_change(program=obj.program, channel=obj.channel,
+                                                            track_idx=track_idx)
+            elif isinstance(obj, MidiMessagePitch):
+                timeline_inner.output_device.pitch_bend(self, pitch=obj.pitch, channel=obj.channel,
+                                                        track_idx=track_idx)
+            elif isinstance(obj, MidiMessageAfter):
+                timeline_inner.output_device.aftertouch(self, value=obj.value,
+                                                        channel=obj.channel, track_idx=track_idx)
+            elif isinstance(obj, MidiMessagePoly):
+                timeline_inner.output_device.polytouch(self, note=obj.note, value=obj.value,
+                                                       channel=obj.channel, track_idx=track_idx)
+
+            if midi_track0 is not None and hasattr(obj, 'to_meta_message'):
+                channel_param = obj.channel if hasattr(obj, 'channel') else None
+                new_track_idx = timeline_inner.output_device.get_channel_track(channel=channel_param,
+                                                                               src_track_idx=track_idx)
+                timeline_inner.output_device.miditrack[new_track_idx].append(obj.to_meta_message())
 
     def read(self, quantize=None):
         midi_reader = mido.MidiFile(self.filename)
