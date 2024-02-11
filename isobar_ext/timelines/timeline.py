@@ -6,12 +6,16 @@ import threading
 import traceback
 from typing import Callable, Any, Optional, Union
 from dataclasses import dataclass
+from functools import partial
+from collections.abc import Iterable
 
 from .track import Track
 from .clock import Clock
 from .event import EventDefaults
 from ..io import MidiOutputDevice, OutputDevice
-from ..constants import DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO
+from ..pattern import PSequence
+from ..constants import (DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO, EVENT_ACTION, EVENT_ACTION_ARGS, EVENT_DURATION,
+                         EVENT_TIME)
 from ..constants import INTERPOLATION_NONE
 from ..exceptions import (
     TrackLimitReachedException,
@@ -31,11 +35,11 @@ class Action:
 
 class Timeline:
     def __init__(
-        self,
-        tempo: float = DEFAULT_TEMPO,
-        output_device: Any = None,
-        clock_source: Any = None,
-        ticks_per_beat: int = DEFAULT_TICKS_PER_BEAT,
+            self,
+            tempo: float = DEFAULT_TEMPO,
+            output_device: Any = None,
+            clock_source: Any = None,
+            ticks_per_beat: int = DEFAULT_TICKS_PER_BEAT,
     ):
         """
         A Timeline object encapsulates a number of Tracks, each of which
@@ -256,7 +260,7 @@ class Timeline:
         # include scheduling a quantized track, which should then be
         # immediately evaluated.
         # --------------------------------------------------------------------------------
-        for action in self.actions[:]:
+        for idx, action in enumerate(self.actions[:]):
             # --------------------------------------------------------------------------------
             # The only event we currently get in a Timeline are add_track events
             #  -- which have a function object associated with them.
@@ -264,6 +268,9 @@ class Timeline:
             # Round to work around rounding errors.
             # http://docs.python.org/tutorial/floatingpoint.html
             # --------------------------------------------------------------------------------
+            if isinstance(action, dict):
+                action = Action(*action.values())
+                self.actions[idx] = action
             if round(action.time, 8) <= round(self.current_time, 8):
                 action.function()
                 self.actions.remove(action)
@@ -304,7 +311,7 @@ class Timeline:
             clock_multiplier = self.clock_multipliers[device]
             ticks = next(clock_multiplier)
 
-            for tick in range(ticks):
+            for _ in range(ticks):
                 device.tick()
 
         # --------------------------------------------------------------------------------
@@ -369,6 +376,7 @@ class Timeline:
             stop_when_done: If set, returns when no tracks are currently \
                             scheduled; otherwise, keeps running indefinitely.
         """
+
         if stop_when_done is not None:
             self.stop_when_done = stop_when_done
 
@@ -458,23 +466,21 @@ class Timeline:
         Append a new output device to the timeline's device list.
         """
         self.output_devices.append(output_device)
-        self.clock_multipliers[output_device] = make_clock_multiplier(
-            output_device.ticks_per_beat, self.ticks_per_beat
-        )
+        self.clock_multipliers[output_device] = make_clock_multiplier(output_device.ticks_per_beat, self.ticks_per_beat)
 
-    def schedule(
-        self,
-        params: dict = None,
-        quantize: float = None,
-        delay: float = 0,
-        count: Optional[int] = None,
-        interpolate: str = INTERPOLATION_NONE,
-        output_device: Any = None,
-        remove_when_done: bool = True,
-        name: Optional[str] = None,
-        replace: bool = False,
-        track_index: Optional[int] = None,
-    ) -> Track:
+    def schedule(self,
+                 params: dict = None,
+                 quantize: float = None,
+                 delay: float = 0,
+                 count: Optional[int] = None,
+                 interpolate: str = INTERPOLATION_NONE,
+                 output_device: Any = None,
+                 remove_when_done: bool = True,
+                 name: Optional[str] = None,
+                 replace: bool = False,
+                 track_index: Optional[int] = None,
+                 sel_track_idx: Optional[int] = None
+                 ) -> Track:
         """
         Schedule a new track within this Timeline.
 
@@ -502,7 +508,7 @@ class Timeline:
             track_index (int):       When specified, inserts the Track at the given index.
                                      This can be used to set the priority of an event and ensure that it happens
                                      before another Track is evaluted, used in (e.g.) Track.update().
-
+            sel_track_idx (int):     Track index to use for event arguments (default: None). This says about midinote track schedule us assigned to
         Returns:
             The new `Track` object.
 
@@ -518,59 +524,161 @@ class Timeline:
             output_device = self.output_devices[0]
 
         # --------------------------------------------------------------------------------
+        # This is to ensure EVENT_ACTION split 1 element [1:]
+        # --------------------------------------------------------------------------------
+        if not params:
+            params_list = [{}]
+        elif isinstance(params, list):
+            params_list = params
+        else:
+            params_list = [params]
+
+        tracks_list = []
+        params_list2 = []
+        event_args = {}
+        for param in params_list:
+            if not isinstance(param, dict) and not isinstance(param, Iterable):
+                param = dict(param)
+            if not isinstance(param, Iterable):
+                action_fun = param.get(EVENT_ACTION, None)
+                event_args = param.get(EVENT_ACTION_ARGS, {})
+            else:
+                action_fun, event_args = None, {}
+
+            if action_fun and isinstance(action_fun, Iterable):
+                attributes1 = vars(action_fun)
+                # Get the attributes used by the class constructor
+                constructor_attributes = list(PSequence.__init__.__code__.co_varnames[1:])
+
+                # Filter the modified attributes to include only those used by the constructor
+                attributes = {k: v for k, v in attributes1.copy().items() if
+                              k in constructor_attributes}
+                attributes2 = {k: v for k, v in attributes1.copy().items() if
+                               k in constructor_attributes}
+                action_fun2 = [
+                                  partial(f, self) if isinstance(f, partial) else f
+                                  for f in copy.copy(action_fun)
+                              ][:1]
+                attributes2['sequence'] = action_fun2
+                action_fun2 = PSequence(**attributes2)
+                params2 = copy.copy(param)
+                params2[EVENT_ACTION] = action_fun2
+                if bool(event_args):
+                    params2[EVENT_ACTION_ARGS] = event_args
+                dur2 = list(params2.pop(EVENT_DURATION, None))
+
+                if dur2:
+                    params2[EVENT_DURATION] = PSequence(dur2[:1], repeats=1)
+                params_list2.append(params2)
+
+                action_fun = [partial(f, self) if isinstance(f, partial) else f for f in copy.copy(action_fun)][1:]
+                attributes['sequence'] = action_fun
+                action_fun = PSequence(**attributes)
+                param[EVENT_ACTION] = action_fun
+                if event_args:
+                    param[EVENT_ACTION_ARGS] = event_args
+
+                dur = list(param.pop(EVENT_DURATION, None))
+
+                if dur:
+                    param["delay"] = dur[0]
+                    param[EVENT_DURATION] = PSequence(dur[1:], repeats=1)
+
+            elif action_fun:
+                param[EVENT_ACTION] = action_fun
+                if bool(event_args):
+                    param[EVENT_ACTION_ARGS] = event_args
+
+            params_list2.append(param)
+
+
+        # --------------------------------------------------------------------------------
         # If replace=True is specified, updated the params of any existing track
         # with the same name. If none exists, proceed to create it as usual.
         # --------------------------------------------------------------------------------
-        if replace:
-            if name is None:
-                raise ValueError("Must specify a track name if `replace` is specified")
-            for existing_track in self.tracks:
-                if existing_track.name == name:
-                    existing_track.update(params, quantize=quantize, delay=delay)
-                    # TODO: Add unit test around this
-                    return existing_track
-
-        if self.max_tracks and len(self.tracks) >= self.max_tracks:
-            raise TrackLimitReachedException(
-                "Timeline: Refusing to schedule track (hit limit of %d)"
-                % self.max_tracks
-            )
-
-        if isinstance(params, Track):
-            track = params
-            track.reset()
-        else:
-            # --------------------------------------------------------------------------------
-            # Take a copy of params to avoid modifying the original
-            # --------------------------------------------------------------------------------
-            track = Track(
-                self,
-                max_event_count=count,
-                interpolate=interpolate,
-                output_device=output_device,
-                remove_when_done=remove_when_done,
-                name=name,
-            )
-
-            track.update(copy.copy(params), quantize=quantize, delay=delay)
-
-            # --------------------------------------------------------------------------------
-            # Add a new track.
-            # --------------------------------------------------------------------------------
-            if track_index is not None:
-                self.tracks.insert(track_index, track)
+        for param in params_list2:
+            if isinstance(param, dict):
+                extra_delay = param.pop("delay", None)
             else:
-                self.tracks.append(track)
+                extra_delay = None
+            if replace:
+                if name is None:
+                    raise ValueError("Must specify a track name if `replace` is specified")
+                for existing_track in self.tracks:
+                    if existing_track.name == name:
+                        existing_track.update(param, quantize=quantize)
+                        return  # TODO - review this return in multi track case
 
-            log.info(
-                "Timeline: Scheduled new track (total tracks: %d)" % len(self.tracks)
-            )
+            if self.max_tracks and len(self.tracks) >= self.max_tracks:
+                raise TrackLimitReachedException(
+                    "Timeline: Refusing to schedule track (hit limit of %d)" % self.max_tracks)
 
-            # TODO:
-            #  - Add test for added_latency_seconds
-            #  - Add test for defaults
+            def start_track(track_int):
+                # --------------------------------------------------------------------------------
+                # Add a new track.
+                # --------------------------------------------------------------------------------
+                if track_index is not None:
+                    self.tracks.insert(track_index, track_int)
+                else:
+                    self.tracks.append(track_int)
+                log.info("Timeline: Scheduled new track (total tracks: %d)" % len(self.tracks))
 
-        return track
+            if not bool(event_args) and sel_track_idx:
+            # if not bool(event_args):
+                event_args = {"track_idx": sel_track_idx}
+                if not bool(param.get(EVENT_ACTION_ARGS, {})):
+                    param[EVENT_ACTION_ARGS] = event_args
+
+            if isinstance(param, Track):
+                track = param
+                track.reset()
+            else:
+                # --------------------------------------------------------------------------------
+                # Take a copy of params to avoid modifying the original
+                # --------------------------------------------------------------------------------
+                track = Track(
+                    self,
+                    max_event_count=count,
+                    interpolate=interpolate,
+                    output_device=output_device,
+                    remove_when_done=remove_when_done,
+                    name=name
+                )
+
+                track.update(copy.copy(param), quantize=quantize, delay=delay)
+            tracks_list.append(track)
+
+            if quantize is None:
+                quantize = self.defaults.quantize
+            if quantize or delay or extra_delay:
+                # if quantize or delay:
+                # --------------------------------------------------------------------------------
+                # We don't want to begin events right away -- either wait till
+                # the next beat boundary (quantize), or delay a number of beats.
+                # --------------------------------------------------------------------------------
+                scheduled_time = self.current_time
+                if quantize:
+                    scheduled_time = quantize * math.ceil(float(self.current_time) / quantize)
+                scheduled_time += delay or extra_delay or 0
+                # scheduled_time += delay
+                self.actions.append({
+                    EVENT_TIME: scheduled_time,
+                    EVENT_ACTION: lambda t=track: start_track(t)
+                })
+            else:
+                # --------------------------------------------------------------------------------
+                # Begin events on this track right away.
+                # --------------------------------------------------------------------------------
+                start_track(track)
+
+            if len(tracks_list) > 1:
+                track = tracks_list
+            elif len(tracks_list) == 1:
+                track = tracks_list[0]
+            else:
+                track = None
+
+            return track
 
     # --------------------------------------------------------------------------------
     # Backwards-compatibility
@@ -592,7 +700,7 @@ class Timeline:
         self.tracks.remove(track)
 
     def _schedule_action(
-        self, function: Callable, quantize: float = 0.0, delay: float = 0.0
+            self, function: Callable, quantize: float = 0.0, delay: float = 0.0
     ) -> None:
         """
         Schedule a function to be called at the given time offset.

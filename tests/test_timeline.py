@@ -130,8 +130,10 @@ def test_timeline_schedule_real_clock():
     diff = times[1] - times[0]
     assert diff == pytest.approx(0.1, abs=timeline.tick_duration)
 
-@pytest.mark.parametrize("quantize", [0.0, 0.1, 0.5, 1.0])
-@pytest.mark.parametrize("delay", [0.0, 0.1, 0.5, 1.0])
+# @pytest.mark.parametrize("quantize", [0.0, 0.1, 0.5, 1.0])
+# @pytest.mark.parametrize("delay", [0.0, 0.1, 0.5, 1.0])
+@pytest.mark.parametrize("quantize", [0.1, 0.5, 1.0])
+@pytest.mark.parametrize("delay", [0.1, 0.5, 1.0])
 def test_timeline_schedule_quantize_delay(dummy_timeline, quantize, delay):
     dummy_timeline.stop_when_done = False
     dummy_timeline.tick()

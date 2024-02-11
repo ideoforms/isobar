@@ -416,7 +416,11 @@ class MidiFileInputDevice:
 
         if single_track_flag:
             track = next(t for t in tracks_note_dict if t.get(EVENT_NOTE, None))
-            track.pop('track_idx', None)
+            if EVENT_ACTION_ARGS in  track:
+                track[EVENT_ACTION_ARGS].pop('track_idx', None)
+                if not bool(track[EVENT_ACTION_ARGS]):
+                    track.pop(EVENT_ACTION_ARGS, None)
+
             return track
 
         return sorted(tracks_note_dict, key=lambda t: 0 if t.get(EVENT_ACTION, None) else 1)
