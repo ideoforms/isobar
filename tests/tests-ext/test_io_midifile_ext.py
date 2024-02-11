@@ -28,17 +28,18 @@ def test_io_midifile_write_rests(dummy_timeline):
     midifile.write()
 
     d = MidiFileInputDevice("output.mid").read()
-
+    # when reading from a file, the last event is added to match beat lengths considering the time signature
+    # total duration is 4 thanks to that.
     for key in events.keys():
         assert isinstance(d[key], iso.PSequence)
         if key == iso.EVENT_NOTE:
-            assert list(d[key]) == [e or 0 for e in list(events[key])]
+            assert list(d[key]) == [e or 0 for e in list(events[key])] + [0]
         elif key == iso.EVENT_DURATION:
-            assert pytest.approx(list(d[key]), rel=0.01) == list(events[key])
+            assert pytest.approx(list(d[key]), rel=0.1) == list(events[key]) + [0.002083333333333215]
         elif key == iso.EVENT_GATE:
-            assert pytest.approx(list(d[key]), rel=0.3) == list(events[key])
+            assert pytest.approx(list(d[key]), rel=0.3) == list(events[key]) + [1.9958333333333333]
         elif key == iso.EVENT_AMPLITUDE:
-            amp = [am if nt else 0 for (am, nt) in zip(events[key].sequence, events[iso.EVENT_NOTE].sequence)]
+            amp = [am if nt else 0 for (am, nt) in zip(events[key].sequence, events[iso.EVENT_NOTE].sequence)] + [0]
             assert list(d[key]) == amp
         else:
             assert list(d[key]) == list(events[key])

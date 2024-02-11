@@ -326,6 +326,7 @@ class MidiMessageAfter:
             raise ValueError("Invalid track_idx value. Must be a non-negative integer.")
         self._track_idx = value
 
+
 class MidiMetaMessageTempo(MetaMessageInterface):
     def __init__(self, tempo: int, location, type='set_tempo', time=0, track_idx=0):
         #   0..16777215

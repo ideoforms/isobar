@@ -1,5 +1,5 @@
 class MidiNote:
-    def __init__(self, pitch, velocity, location, duration=None, channel=0):
+    def __init__(self, pitch, velocity, location, channel=0, duration=None):
         # channel = 0..15
         self.channel = channel
         # pitch = MIDI 0..127

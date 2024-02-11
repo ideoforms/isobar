@@ -304,16 +304,16 @@ class PIndexOf(Pattern):
     [8, 18, 14, 1, 0, 17, 8, 18, 14, 1, 0, 17, 8, 18, 14, 1]
     """
 
-    def __init__(self, list: Pattern, item):
-        self.list = list
+    def __init__(self, lst: Pattern, item):
+        self.lst = lst
         self.item = item
 
     def __repr__(self):
-        return "PIndexOf(%s, %s)" % (repr(self.list), repr(self.item))
+        return "PIndexOf(%s, %s)" % (repr(self.lst), repr(self.item))
 
     def __next__(self):
-        list = Pattern.value(self.list)
+        lst = Pattern.value(self.lst)
         item = Pattern.value(self.item)
-        if list is None or item is None or item not in list:
+        if lst is None or item is None or item not in lst:
             return None
-        return list.index(item)
+        return lst.index(item)

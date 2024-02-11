@@ -4,7 +4,7 @@ import math
 import copy  # noqa: F401
 import random
 import itertools
-from typing import Iterable, Callable
+from typing import Iterable, Callable, List
 
 from .core import Pattern
 from ..chord import Chord
@@ -38,7 +38,7 @@ class PSequence(Pattern):
             sequence = []
         elif isinstance(sequence, str):
             sequence = Pattern.pattern(sequence).sequence
-        self.sequence = sequence
+        self.sequence: List = list(sequence)
         self.repeats = repeats
 
         self.reset()
@@ -1229,25 +1229,25 @@ class PSequenceAction(Pattern):
     >>>
     """
 
-    def __init__(self, list: Iterable, fn: Callable, repeats: int = sys.maxsize):
-        self.list = list
-        self.list_orig = list
-        self.sequence = PSequence(self.list, 1)
+    def __init__(self, lst: Iterable, fn: Callable, repeats: int = sys.maxsize):
+        self.lst = lst
+        self.list_orig = lst
+        self.sequence = PSequence(self.lst, 1)
         self.fn = fn
         self.repeats = repeats
         self.repeat_counter = 0
 
     def __repr__(self):
         return "PSequenceAction(%s, %s, %s)" % (
-            repr(self.list),
+            repr(self.lst),
             repr(self.fn),
             self.repeats,
         )
 
     def reset(self):
         super().reset()
-        self.list = self.list_orig
-        self.sequence = PSequence(self.list, 1)
+        self.lst = self.list_orig
+        self.sequence = PSequence(self.lst, 1)
         self.repeat_counter = 0
 
     def __next__(self):
@@ -1258,8 +1258,8 @@ class PSequenceAction(Pattern):
             self.repeat_counter += 1
             if self.repeat_counter >= repeats:
                 raise StopIteration
-            self.list = self.fn(self.list)
-            self.sequence = PSequence(self.list, 1)
+            self.lst = self.fn(self.lst)
+            self.sequence = PSequence(self.lst, 1)
             return next(self)
 
 

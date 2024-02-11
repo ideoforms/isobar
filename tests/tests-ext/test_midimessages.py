@@ -12,25 +12,25 @@ from isobar_ext.io.midinote import MidiNote
 
 
 # Test MidiNote initialization and attributes
-@pytest.mark.parametrize("test_id, pitch, velocity, location, duration, channel", [
+@pytest.mark.parametrize("test_id, pitch, velocity, location, channel, duration", [
     ("happy_path_1", 60, 100, 0, 1, 1),
-    ("happy_path_2", 127, 127, 10, 0.5, 0),
-    ("edge_case_min_values", 0, 0, 0, None, 0),
-    ("edge_case_max_values", 15, 127, 127, 1000, 10),
+    ("happy_path_2", 127, 127, 10, 0, 0.5),
+    ("edge_case_min_values", 0, 0, 0, 0, None),
+    ("edge_case_max_values", 15, 127, 127, 10, 1000),
     ("error_case_invalid_pitch", 128, 100, 0, 1, 1),
     ("error_case_invalid_velocity", 60, 128, 0, 1, 1),
-    ("error_case_negative_channel", 60, 128, 0, 1, -1),
-    ("error_case_channel_over_15", 60, 128, 0, 1, 16),
+    ("error_case_negative_channel", 60, 128, 0, -1, 1),
+    ("error_case_channel_over_15", 60, 128, 0, 16, 1),
 ])
-def test_cust_midi_note(test_id, pitch, velocity, location, duration, channel):
+def test_cust_midi_note(test_id, pitch, velocity, location, channel, duration):
     # Arrange
     if "error_case" in test_id:
         with pytest.raises(ValueError):
             # Act
-            MidiNote(pitch, velocity, location, duration, channel)
+            MidiNote(pitch, velocity, location, channel, duration)
     else:
         # Act
-        note = MidiNote(pitch, velocity, location, duration, channel)
+        note = MidiNote(pitch, velocity, location, channel, duration)
 
         # Assert
         assert note.channel == channel
