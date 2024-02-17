@@ -260,6 +260,7 @@ class Timeline:
         # include scheduling a quantized track, which should then be
         # immediately evaluated.
         # --------------------------------------------------------------------------------
+        aligned_actions = []
         for idx, action in enumerate(self.actions[:]):
             # --------------------------------------------------------------------------------
             # The only event we currently get in a Timeline are add_track events
@@ -270,11 +271,13 @@ class Timeline:
             # --------------------------------------------------------------------------------
             if isinstance(action, dict):
                 action = Action(*action.values())
-                self.actions[idx] = action
+                # self.actions[idx] = action
             if round(action.time, 8) <= round(self.current_time, 8):
                 action.function()
-                self.actions.remove(action)
-
+            else:
+                aligned_actions.append(action)
+                # self.actions.remove(action)
+        self.actions = aligned_actions
         # --------------------------------------------------------------------------------
         # Copy self.tracks because removing from it whilst using it = bad idea
         # --------------------------------------------------------------------------------
@@ -648,28 +651,29 @@ class Timeline:
                 track.update(copy.copy(param), quantize=quantize, delay=delay)
             tracks_list.append(track)
 
-            if quantize is None:
-                quantize = self.defaults.quantize
-            if quantize or delay or extra_delay:
-                # if quantize or delay:
-                # --------------------------------------------------------------------------------
-                # We don't want to begin events right away -- either wait till
-                # the next beat boundary (quantize), or delay a number of beats.
-                # --------------------------------------------------------------------------------
-                scheduled_time = self.current_time
-                if quantize:
-                    scheduled_time = quantize * math.ceil(float(self.current_time) / quantize)
-                scheduled_time += delay or extra_delay or 0
-                # scheduled_time += delay
-                self.actions.append({
-                    EVENT_TIME: scheduled_time,
-                    EVENT_ACTION: lambda t=track: start_track(t)
-                })
-            else:
+            # if quantize is None:
+            #     quantize = self.defaults.quantize
+            # if quantize or delay or extra_delay:
+            #     # if quantize or delay:
+            #     # --------------------------------------------------------------------------------
+            #     # We don't want to begin events right away -- either wait till
+            #     # the next beat boundary (quantize), or delay a number of beats.
+            #     # --------------------------------------------------------------------------------
+            #     scheduled_time = self.current_time
+            #     if quantize:
+            #         scheduled_time = quantize * math.ceil(float(self.current_time) / quantize)
+            #     scheduled_time += delay or extra_delay or 0
+            #     # scheduled_time += delay
+            #     self.actions.append({
+            #         EVENT_TIME: scheduled_time,
+            #         EVENT_ACTION: lambda t=track: start_track(t)
+            #     })
+            # else:
+            #     pass
                 # --------------------------------------------------------------------------------
                 # Begin events on this track right away.
                 # --------------------------------------------------------------------------------
-                start_track(track)
+            start_track(track)
 
             if len(tracks_list) > 1:
                 track = tracks_list
