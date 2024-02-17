@@ -461,7 +461,9 @@ class PDict(Pattern):
         rv = dict([(k, Pattern.value(vdict[k])) for k in vdict])
 
         return rv
+    def get(self, key, default=None):
 
+        return self.__getitem__(key) if key in self else default
 
 class PDictKey(Pattern):
     """PDictKey: Request a specified key from a dictionary."""
