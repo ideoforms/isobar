@@ -21,15 +21,15 @@ class DummyOutputDevice(OutputDevice):
     def tick(self):
         self.current_time += 1.0 / self.ticks_per_beat
 
-    def note_on(self, note=60, velocity=64, channel=0):
+    def note_on(self, note=60, velocity=64, channel=0, track_idx=0):
         self.events.append(
-            [round(self.current_time, 8), "note_on", note, velocity, channel]
+            [round(self.current_time, 8), "note_on", note, velocity, channel, track_idx]
         )
 
-    def note_off(self, note=60, channel=0):
-        self.events.append([round(self.current_time, 8), "note_off", note, channel])
+    def note_off(self, note=60, channel=0, track_idx=0):
+        self.events.append([round(self.current_time, 8), "note_off", note, channel, track_idx])
 
-    def control(self, control=0, value=0, channel=0):
+    def control(self, control=0, value=0, channel=0, track_idx=0):
         self.events.append(
-            [round(self.current_time, 8), "control", control, value, channel]
+            [round(self.current_time, 8), "control", control, value, channel, track_idx]
         )
