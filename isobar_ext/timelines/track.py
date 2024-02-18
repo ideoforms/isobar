@@ -207,14 +207,14 @@ class Track:
             if self.event_stream.get('args', {}).get('track_idx', {}).get('constant') is not None:
                 track_idx = self.event_stream['args']['track_idx'].constant
 
+
         for n, note in enumerate(self.note_offs[:]):
-            if round(note[0], 8) <= round(self.current_time, 8):
-                index = note[1]
-                channel = note[2]
+            if round(note.timestamp, 8) <= round(self.current_time, 8):
+                index = note.note
+                channel = note.channel
                 self.output_device.note_off(index, channel, track_idx=track_idx)
                 # if self.note_offs:
                 self.note_offs.remove(note)
-
         try:
             if self.interpolate is INTERPOLATION_NONE:
                 if round(self.current_time, 8) >= round(self.next_event_time, 8):
