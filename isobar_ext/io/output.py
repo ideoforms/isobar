@@ -36,3 +36,7 @@ class OutputDevice:
 
     def program_change(self, program=0, channel=0, track_idx=0):
         pass
+
+    def create(self, patch_spec, patch_params, output=None):
+        pass
+

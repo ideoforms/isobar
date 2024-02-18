@@ -663,7 +663,7 @@ class Track:
         # SuperCollider synth
         # ------------------------------------------------------------------------
         elif event.type == EVENT_TYPE_SUPERCOLLIDER:
-            self.output_device.create(event.synth_name, event.synth_params, track_idx=track_idx)
+            self.output_device.create(event.synth_name, event.synth_params)
 
         # ------------------------------------------------------------------------
         # SignalFlow patch
