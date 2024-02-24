@@ -72,13 +72,93 @@ def test_io_midifile_write_multi(dummy_timeline, tmp_path):
     midi_file_in = MidiFileInputDevice(filename)
     d = midi_file_in.read(multi_track_file=True)
 
+    filename2 = tmp_path / "output.mid"
+    midifile2 = MidiFileOutputDevice(filename2)
+    dummy_timeline.output_device = midifile2
+    dummy_timeline.schedule(d)
+    dummy_timeline.run()
+    midifile2.write()
+    midi_file_in2 = MidiFileInputDevice(filename2)
+    d2 = midi_file_in2.read(multi_track_file=True)
+
     for key in events1.keys():
-        assert isinstance(d[key], iso.PSequence)
-        assert list(d[key]) == list(events1[key])
+        assert isinstance(d[0][key], iso.PSequence)
+        if key == iso.EVENT_NOTE:
+            assert list(d[0][key]) == [e or 0 for e in list(events1[key])] + [0]
+        elif key == iso.EVENT_DURATION:
+            assert list(d[0][key]) == list(events1[key])+[1.5]
+        # elif key == iso.EVENT_GATE:
+        #     assert pytest.approx(list(d[0][key]), rel=0.3) == list(events1[key]) + [1.9958333333333333]
+        elif key == iso.EVENT_AMPLITUDE:
+            amp = [am if nt else 0 for (am, nt) in zip(events1[key].sequence, events1[iso.EVENT_NOTE].sequence)] + [0]
+            assert list(d[0][key]) == amp
+        else:
+            assert list(d[0][key]) == [events1[key]] * 4
 
     for key in events2.keys():
-        assert isinstance(d[key], iso.PSequence)
-        assert list(d[key]) == list(events2[key])
+        if isinstance(d[1][key], dict):
+            assert d[1][key].get('track_idx') == 1
+        else:
+            assert isinstance(d[1][key], iso.PSequence)
+            if key == iso.EVENT_NOTE:
+                assert list(d[1][key]) == [e or 0 for e in list(events2[key])] + [0]
+            elif key == iso.EVENT_DURATION:
+                assert list(d[1][key]) == list(events2[key])+[1]
+            # elif key == iso.EVENT_GATE:
+            #     assert pytest.approx(list(d[1][key]), rel=0.3) == list(events2[key]) + [1.9958333333333333]
+            elif key == iso.EVENT_AMPLITUDE:
+                amp = [am if nt else 0 for (am, nt) in zip(events2[key].sequence, events2[iso.EVENT_NOTE].sequence)] + [0]
+                assert list(d[1][key]) == amp
+            else:
+                assert list(d[1][key]) == [events2[key]] * 4
+
+    os.unlink(filename)
+
+
+def test_io_midifile_write_multi_list(dummy_timeline, tmp_path):
+    events1 = {
+
+        iso.EVENT_NOTE: iso.PSequence(sequence=[50, 52, 55], repeats=1)
+        , iso.EVENT_DURATION: iso.PSequence(sequence=[0.5, 1, 1], repeats=1)
+        , iso.EVENT_CHANNEL: 0
+        , iso.EVENT_ACTION_ARGS: {'track_idx': 1}
+    }
+    events2 = {
+        iso.EVENT_NOTE: iso.PSequence(sequence=[75, 69, 72], repeats=1)
+        , iso.EVENT_DURATION: iso.PSequence(sequence=[1, 1, 1], repeats=1)
+        , iso.EVENT_CHANNEL: 2
+        , iso.EVENT_ACTION_ARGS : {'track_idx': 1}
+    }
+    event_list = [events1, events2]
+    filename = tmp_path/"output.mid"
+    midifile = MidiFileOutputDevice(filename)
+    dummy_timeline.output_device = midifile
+
+    dummy_timeline.schedule(event_list)
+
+    dummy_timeline.run()
+    midifile.write()
+
+    midi_file_in = MidiFileInputDevice(filename)
+    d = midi_file_in.read(multi_track_file=True)
+
+    for idx, events in enumerate(event_list):
+        for key in events.keys():
+            if isinstance(d[idx][key], dict):
+                assert d[idx][key].get('track_idx') == 0
+            else:
+                assert isinstance(d[idx][key], iso.PSequence)
+                if key == iso.EVENT_NOTE:
+                    assert list(d[idx][key]) == [e or 0 for e in list(events[key])] + [0]
+                elif key == iso.EVENT_DURATION:
+                    assert list(d[idx][key]) == list(events[key])+[1.5]
+                # elif key == iso.EVENT_GATE:
+                #     assert pytest.approx(list(d[idx][key]), rel=0.3) == list(events[key]) + [1.9958333333333333]
+                elif key == iso.EVENT_AMPLITUDE:
+                    amp = [am if nt else 0 for (am, nt) in zip(events[key].sequence, events[iso.EVENT_NOTE].sequence)] + [0]
+                    assert list(d[idx][key]) == amp
+                else:
+                    assert list(d[idx][key]) == [events[key]] * 4
 
     os.unlink(filename)
 
