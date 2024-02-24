@@ -46,15 +46,27 @@ def test_track_update(dummy_timeline):
     }, quantize=4)
 
     dummy_timeline.run()
+    # assert dummy_timeline.output_device.events == [
+    #     [0, 'note_on', 50, 64, 0], [1, 'note_off', 50, 0],
+    #     [1, 'note_on', 50, 64, 0], [2, 'note_off', 50, 0],
+    #     [2, 'note_on', 50, 64, 0], [3, 'note_off', 50, 0],
+    #     [3, 'note_on', 50, 64, 0], [4, 'note_off', 50, 0],
+    #     [4, 'note_on', 60, 64, 0], [5, 'note_off', 60, 0],
+    #     [5, 'note_on', 60, 64, 0], [6, 'note_off', 60, 0],
+    #     [6, 'note_on', 60, 64, 0], [7, 'note_off', 60, 0],
+    #     [7, 'note_on', 60, 64, 0], [8, 'note_off', 60, 0],
+    #
+    # ]
+    # extension with track_idx
     assert dummy_timeline.output_device.events == [
-        [0, 'note_on', 50, 64, 0], [1, 'note_off', 50, 0],
-        [1, 'note_on', 50, 64, 0], [2, 'note_off', 50, 0],
-        [2, 'note_on', 50, 64, 0], [3, 'note_off', 50, 0],
-        [3, 'note_on', 50, 64, 0], [4, 'note_off', 50, 0],
-        [4, 'note_on', 60, 64, 0], [5, 'note_off', 60, 0],
-        [5, 'note_on', 60, 64, 0], [6, 'note_off', 60, 0],
-        [6, 'note_on', 60, 64, 0], [7, 'note_off', 60, 0],
-        [7, 'note_on', 60, 64, 0], [8, 'note_off', 60, 0],
+        [0, 'note_on', 50, 64, 0, 0], [1, 'note_off', 50, 0, 0],
+        [1, 'note_on', 50, 64, 0, 0], [2, 'note_off', 50, 0, 0],
+        [2, 'note_on', 50, 64, 0, 0], [3, 'note_off', 50, 0, 0],
+        [3, 'note_on', 50, 64, 0, 0], [4, 'note_off', 50, 0, 0],
+        [4, 'note_on', 60, 64, 0, 0], [5, 'note_off', 60, 0, 0],
+        [5, 'note_on', 60, 64, 0, 0], [6, 'note_off', 60, 0, 0],
+        [6, 'note_on', 60, 64, 0, 0], [7, 'note_off', 60, 0, 0],
+        [7, 'note_on', 60, 64, 0, 0], [8, 'note_off', 60, 0, 0],
 
     ]
     assert track.is_finished

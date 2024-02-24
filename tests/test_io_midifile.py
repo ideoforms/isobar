@@ -20,7 +20,8 @@ def test_io_midifile_write(dummy_timeline):
     dummy_timeline.run()
     midifile.write()
 
-    d = MidiFileInputDevice("output.mid").read()
+    midi_file_in = MidiFileInputDevice("output.mid")
+    d = midi_file_in.read()
 
     for key in events.keys():
         assert isinstance(d[key], iso.PSequence)

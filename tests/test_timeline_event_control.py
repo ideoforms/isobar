@@ -18,12 +18,17 @@ def test_event_control_no_interpolation(dummy_timeline):
         iso.EVENT_CHANNEL: 9
     })
     dummy_timeline.run()
+    # assert dummy_timeline.output_device.events == [
+    #     [0, "control", 0, 1, 9],
+    #     [1, "control", 0, 3, 9],
+    #     [2, "control", 0, 5, 9]
+    # ]
+    # track_idx fix
     assert dummy_timeline.output_device.events == [
-        [0, "control", 0, 1, 9],
-        [1, "control", 0, 3, 9],
-        [2, "control", 0, 5, 9]
+        [0, "control", 0, 1, 9, 0],
+        [1, "control", 0, 3, 9, 0],
+        [2, "control", 0, 5, 9, 0]
     ]
-
 def test_event_control_linear_interpolation(dummy_timeline):
     """
     Linear interpolation between control points.

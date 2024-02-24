@@ -332,15 +332,15 @@ class PArrayIndex(Pattern):
     If the item is a Pattern, the next value from that pattern is returned.
     """
 
-    def __init__(self, list: Iterable, index: int):
-        self.list = list
+    def __init__(self, lst: Iterable, index: int):
+        self.lst = lst
         self.index = index
 
     def __repr__(self):
-        return "PArrayIndex(%s, %s)" % (self.list, self.index)
+        return "PArrayIndex(%s, %s)" % (self.lst, self.index)
 
     def __next__(self):
-        list = Pattern.value(self.list)
+        lst = Pattern.value(self.lst)
         index = Pattern.value(self.index)
 
         # ------------------------------------------------------------------
@@ -351,7 +351,7 @@ class PArrayIndex(Pattern):
             return None
         else:
             index = int(index)
-            return Pattern.value(list[index])
+            return Pattern.value(lst[index])
 
 
 class PDict(Pattern):
@@ -461,7 +461,9 @@ class PDict(Pattern):
         rv = dict([(k, Pattern.value(vdict[k])) for k in vdict])
 
         return rv
+    def get(self, key, default=None):
 
+        return self.__getitem__(key) if key in self else default
 
 class PDictKey(Pattern):
     """PDictKey: Request a specified key from a dictionary."""
