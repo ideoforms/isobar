@@ -46,6 +46,59 @@ def test_io_midifile_write_rests(dummy_timeline):
 
     os.unlink("output.mid")
 
+
+def test_io_midifile_write_multi(dummy_timeline, tmp_path):
+    events1 = {
+
+        iso.EVENT_NOTE: iso.PSequence(sequence=[50, 52, 55], repeats=1)
+        , iso.EVENT_DURATION: iso.PSequence(sequence=[0.5, 1, 1], repeats=1)
+        , iso.EVENT_CHANNEL: 0
+    }
+    events2 = {
+        iso.EVENT_NOTE: iso.PSequence(sequence=[75, 69, 72], repeats=1)
+        , iso.EVENT_DURATION: iso.PSequence(sequence=[1, 1, 1], repeats=1)
+        , iso.EVENT_CHANNEL: 2
+    }
+    filename = tmp_path/"output.mid"
+    midifile = MidiFileOutputDevice(filename)
+    dummy_timeline.output_device = midifile
+
+    dummy_timeline.schedule(events1, sel_track_idx=0)
+    dummy_timeline.schedule(events2, sel_track_idx=1)
+
+    dummy_timeline.run()
+    midifile.write()
+
+    midi_file_in = MidiFileInputDevice(filename)
+    d = midi_file_in.read(multi_track_file=True)
+
+    for key in events1.keys():
+        assert isinstance(d[key], iso.PSequence)
+        assert list(d[key]) == list(events1[key])
+
+    for key in events2.keys():
+        assert isinstance(d[key], iso.PSequence)
+        assert list(d[key]) == list(events2[key])
+
+    os.unlink(filename)
+
+def test_io_midifile_pdict_save(dummy_timeline):
+    events = {
+        iso.EVENT_NOTE: iso.PSequence([60, 62, 64, 67], 1),
+        iso.EVENT_DURATION: iso.PSequence([0.5, 1.5, 1, 1], 1),
+        iso.EVENT_GATE: iso.PSequence([2, 0.5, 1, 1], 1),
+        iso.EVENT_AMPLITUDE: iso.PSequence([64, 32, 16, 8], 1)
+    }
+    pdict = iso.PDict(events)
+    pdict.save("output.mid")
+    d = MidiFileInputDevice("output.mid").read()
+    for key in events.keys():
+        assert isinstance(d[key], iso.PSequence)
+        assert list(d[key]) == list(events[key])
+    os.unlink("output.mid")
+
+
+
 # TEST_FILENAME = "test.mid"
 #
 # # Fixture to mock mido.MidiFile

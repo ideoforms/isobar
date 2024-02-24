@@ -277,6 +277,7 @@ def test_timeline_tick_actions(dummy_timeline):
         dummy_timeline.tick()
     assert dummy_timeline.done
 
+
 def test_timeline_beats_to_seconds(dummy_timeline):
     timeline = iso.Timeline(120)
     assert timeline.beats_to_seconds(1) == pytest.approx(0.5)
