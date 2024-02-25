@@ -9,7 +9,7 @@ from .event import Event
 
 if TYPE_CHECKING:
     from .timeline import Timeline
-from ..pattern import Pattern, PSequence, PDict, PInterpolate
+from ..pattern import Pattern, PSequence, PDict, PInterpolate, PConstant
 from ..constants import *  # noqa: F403
 from ..exceptions import InvalidEventException
 from ..util import midi_note_to_frequency
@@ -26,6 +26,16 @@ class NoteOffEvent:
     channel: int
     track_idx : int
 
+
+def get_track_idx(event_obj):
+    track_idx = 0
+    if isinstance(event_obj, (dict, PDict)):
+        if trk_idx := event_obj.get('args', {}).get('track_idx', None):
+            if isinstance(trk_idx, PConstant):
+                return trk_idx.constant
+            else:
+                return trk_idx
+    return track_idx
 
 class Track:
     def __init__(
@@ -177,6 +187,8 @@ class Track:
         """Tick duration, in beats."""
         return self.timeline.tick_duration
 
+
+
     def process_note_offs(self):
         # ----------------------------------------------------------------------
         # Process note_offs before we play the next note, else a repeated note
@@ -185,11 +197,13 @@ class Track:
         # Use round() to avoid scheduling issues arising from rounding errors.
         # ----------------------------------------------------------------------
         # if self.event_stream['args']['track_idx'].constant is not None:
-        if isinstance(self.event_stream, dict) and self.event_stream.get('args', {}).get('track_idx', None) is not None:
+        # if isinstance(self.event_stream, dict) and self.event_stream.get('args', {}).get('track_idx', None) is not None:
+        #
+        #     track_idx = self.event_stream['args']['track_idx'].constant
+        # else:
+        #     track_idx = 0
 
-            track_idx = self.event_stream['args']['track_idx'].constant
-        else:
-            track_idx = 0
+        track_idx = get_track_idx(self.event_stream)
 
         for note_off in self.note_offs[:]:
             if round(note_off.timestamp, 8) <= round(self.current_time, 8):
@@ -209,12 +223,12 @@ class Track:
         # ----------------------------------------------------------------------
         # if self.event_stream['args']['track_idx'].constant is not None:
 
-        track_idx = 0
-        if isinstance(self.event_stream, PDict):
-            # if self.event_stream.get('args', {}).get('track_idx', {}).get('constant', None) is not None:
-            if self.event_stream.get('args', {}).get('track_idx', None) is not None:
-                track_idx = self.event_stream['args']['track_idx'].constant
-
+        # track_idx = 0
+        # if isinstance(self.event_stream, PDict):
+        #     # if self.event_stream.get('args', {}).get('track_idx', {}).get('constant', None) is not None:
+        #     if self.event_stream.get('args', {}).get('track_idx', None) is not None:
+        #         track_idx = self.event_stream['args']['track_idx'].constant
+        track_idx = get_track_idx(self.event_stream)
 
         for n, note in enumerate(self.note_offs[:]):
             if round(note.timestamp, 8) <= round(self.current_time, 8):
@@ -596,14 +610,15 @@ class Track:
 
         # if isinstance(self.event_stream, PDict) and self.event_stream.get('args', {}).get('track_idx', {'constant': None}).constant is not None:
         # if getattr(isinstance(self.event_stream, PDict) and self.event_stream.get('args', {}).get('track_idx'), 'constant', None) is not None:
-        if getattr(isinstance(self.event_stream, PDict) and self.event_stream.get('args', {}).get('track_idx', None), 'constant', None) is not None:
-
-            track_idx = self.event_stream['args']['track_idx'].constant
-        elif getattr(event, 'fields', {}).get('args', {}).get('track_idx') is not None:
-        # if event.fields.get('args').get('track_idx') is not None:
-            track_idx = event.fields['args']['track_idx']
-        else:
-            track_idx = 0
+        # if getattr(isinstance(self.event_stream, PDict) and self.event_stream.get('args', {}).get('track_idx', None), 'constant', None) is not None:
+        #
+        #     track_idx = self.event_stream['args']['track_idx'].constant
+        if not (track_idx := get_track_idx(self.event_stream)):
+            if getattr(event, 'fields', {}).get('args', {}).get('track_idx') is not None:
+            # if event.fields.get('args').get('track_idx') is not None:
+                track_idx = event.fields['args']['track_idx']
+        # else:
+        #     track_idx = 0
 
         if not event.active:
             return

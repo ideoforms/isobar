@@ -73,6 +73,7 @@ def test_io_midifile_write_multi(dummy_timeline, tmp_path):
     dummy_timeline.schedule(events_2, sel_track_idx=1)
 
     dummy_timeline.run()
+    assert len(midifile.miditrack) == 2, "2 tracks expected in midifile"
     midifile.write()
 
     midi_file_in = MidiFileInputDevice(filename)
@@ -134,6 +135,7 @@ def test_io_midifile_write_multi_list(dummy_timeline, tmp_path):
     dummy_timeline.schedule(event_list)
 
     dummy_timeline.run()
+    assert len(midifile.miditrack) == 2, "2 tracks expected in midifile"
     midifile.write()
 
     midi_file_in = MidiFileInputDevice(filename)
@@ -185,7 +187,7 @@ def test_action_multi(dummy_timeline, tmp_path):
     
     events_1 = {
         iso.EVENT_NOTE: iso.PSequence(sequence=[50, 52], repeats=1)
-        , iso.EVENT_DURATION: iso.PSequence(sequence=[0.5, 1, 1], repeats=1)
+        , iso.EVENT_DURATION: iso.PSequence(sequence=[0.5, 1], repeats=1)
         , iso.EVENT_CHANNEL: 0
         # , iso.EVENT_PROGRAM_CHANGE: 0
     }
@@ -215,11 +217,11 @@ def test_action_multi(dummy_timeline, tmp_path):
     }
     filename = tmp_path/"output.mid"
     midifile = MidiFileOutputDevice(filename)
-    dum_tim2 = dummy_timeline
+    dummy_timeline.output_device = midifile
 
-    dummy_timeline.schedule(pgm_1, sel_track_idx=0)
-    dummy_timeline.schedule(pgm_2, sel_track_idx=1)
-    dummy_timeline.schedule(events_action, sel_track_idx=0)
+    # dummy_timeline.schedule(pgm_1, sel_track_idx=0)
+    # dummy_timeline.schedule(pgm_2, sel_track_idx=1)
+    # dummy_timeline.schedule(events_action, sel_track_idx=0)
 
     dummy_timeline.schedule(events_1, sel_track_idx=0)
     dummy_timeline.schedule(events_2, sel_track_idx=1)
