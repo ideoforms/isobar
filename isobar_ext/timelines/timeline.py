@@ -675,14 +675,14 @@ class Timeline:
                 # --------------------------------------------------------------------------------
             start_track(track)
 
-            if len(tracks_list) > 1:
-                track = tracks_list
-            elif len(tracks_list) == 1:
-                track = tracks_list[0]
-            else:
-                track = None
+        if len(tracks_list) > 1:
+            track = tracks_list
+        elif len(tracks_list) == 1:
+            track = tracks_list[0]
+        else:
+            track = None
 
-            return track
+        return track
 
     # --------------------------------------------------------------------------------
     # Backwards-compatibility

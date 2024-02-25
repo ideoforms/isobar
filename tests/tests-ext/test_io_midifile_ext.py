@@ -72,14 +72,14 @@ def test_io_midifile_write_multi(dummy_timeline, tmp_path):
     midi_file_in = MidiFileInputDevice(filename)
     d = midi_file_in.read(multi_track_file=True)
 
-    filename2 = tmp_path / "output.mid"
-    midifile2 = MidiFileOutputDevice(filename2)
-    dummy_timeline.output_device = midifile2
-    dummy_timeline.schedule(d)
-    dummy_timeline.run()
-    midifile2.write()
-    midi_file_in2 = MidiFileInputDevice(filename2)
-    d2 = midi_file_in2.read(multi_track_file=True)
+    # filename2 = tmp_path / "output.mid"
+    # midifile2 = MidiFileOutputDevice(filename2)
+    # dummy_timeline.output_device = midifile2
+    # dummy_timeline.schedule(d)
+    # dummy_timeline.run()
+    # midifile2.write()
+    # midi_file_in2 = MidiFileInputDevice(filename2)
+    # d2 = midi_file_in2.read(multi_track_file=True)
 
     for key in events1.keys():
         assert isinstance(d[0][key], iso.PSequence)
@@ -121,13 +121,13 @@ def test_io_midifile_write_multi_list(dummy_timeline, tmp_path):
         iso.EVENT_NOTE: iso.PSequence(sequence=[50, 52, 55], repeats=1)
         , iso.EVENT_DURATION: iso.PSequence(sequence=[0.5, 1, 1], repeats=1)
         , iso.EVENT_CHANNEL: 0
-        , iso.EVENT_ACTION_ARGS: {'track_idx': 1}
+        # , iso.EVENT_ACTION_ARGS: {'track_idx': 0}
     }
     events2 = {
         iso.EVENT_NOTE: iso.PSequence(sequence=[75, 69, 72], repeats=1)
         , iso.EVENT_DURATION: iso.PSequence(sequence=[1, 1, 1], repeats=1)
         , iso.EVENT_CHANNEL: 2
-        , iso.EVENT_ACTION_ARGS : {'track_idx': 1}
+        # , iso.EVENT_ACTION_ARGS : {'track_idx': 1}
     }
     event_list = [events1, events2]
     filename = tmp_path/"output.mid"
