@@ -542,7 +542,7 @@ class Timeline:
         for param in params_list:
             if not isinstance(param, dict) and not isinstance(param, Iterable):
                 param = dict(param)
-            if not isinstance(param, Iterable):
+            if isinstance(param, dict):
                 action_fun = param.get(EVENT_ACTION, None)
                 event_args = param.get(EVENT_ACTION_ARGS, {})
             else:
@@ -626,7 +626,7 @@ class Timeline:
                     self.tracks.append(track_int)
                 log.info("Timeline: Scheduled new track (total tracks: %d)" % len(self.tracks))
 
-            if not bool(event_args) and sel_track_idx:
+            if not bool(event_args) and sel_track_idx is not None:
             # if not bool(event_args):
                 event_args = {"track_idx": sel_track_idx}
                 if not bool(param.get(EVENT_ACTION_ARGS, {})):

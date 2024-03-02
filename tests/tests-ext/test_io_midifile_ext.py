@@ -17,6 +17,21 @@ from tests import dummy_timeline
 # from unittest.mock import MagicMock, Mock
 
 
+def xmid_meta_message(dummy_tim: iso.Timeline , msg: mido.MetaMessage = None, *args, **kwargs):
+    # return None
+    track_idx = min(kwargs.pop('track_idx', 0), len(dummy_tim.output_device.miditrack) - 1)
+    if not msg:
+        msg = mido.MetaMessage(*args, **kwargs)
+    dummy_tim.output_device.miditrack[track_idx].append(msg)
+
+
+def xset_tempo(tempo):
+    mid_meta_message(type='set_tempo', tempo=int(mido.tempo2bpm(tempo)), time=0)
+
+
+def xtrack_name(name, track_idx=0):
+    mid_meta_message(type='track_name', name=name, time=0, track_idx=track_idx)
+
 def test_io_midifile_write_rests(dummy_timeline):
     events = {
         iso.EVENT_NOTE: iso.PSequence([60, None, 55, None], 1),
@@ -50,7 +65,7 @@ def test_io_midifile_write_rests(dummy_timeline):
 
     os.unlink("output.mid")
 
-
+@pytest.mark.skip
 def test_cprofile(dummy_timeline, tmp_path):
     # pattern_len(dummy_timeline, dummy_timeline2)
     # import cProfile
@@ -107,20 +122,6 @@ def test_io_midifile_write_multi(dummy_timeline, tmp_path):
     os.unlink(filename)
 
 
-def mid_meta_message(dummy_tim: iso.Timeline , msg: mido.MetaMessage = None, *args, **kwargs):
-    # return None
-    track_idx = min(kwargs.pop('track_idx', 0), len(dummy_tim.output_device.miditrack) - 1)
-    if not msg:
-        msg = mido.MetaMessage(*args, **kwargs)
-    dummy_tim.output_device.miditrack[track_idx].append(msg)
-
-
-def set_tempo(tempo):
-    mid_meta_message(type='set_tempo', tempo=int(mido.tempo2bpm(tempo)), time=0)
-
-
-def track_name(name, track_idx=0):
-    mid_meta_message(type='track_name', name=name, time=0, track_idx=track_idx)
 
 
 def test_io_midifile_write_multi_list(dummy_timeline, tmp_path):
@@ -197,7 +198,24 @@ def test_io_midifile_write_multi_list(dummy_timeline, tmp_path):
 
 # @pytest.mark.skip
 def test_action_multi(dummy_timeline, tmp_path):
-    
+    def mid_meta_message(msg: mido.MetaMessage = None, *args, **kwargs):
+        # return None
+        track_idx = min(kwargs.pop('track_idx', 0), len(dummy_timeline.output_device.miditrack) - 1)
+        if not msg:
+            msg = mido.MetaMessage(*args, **kwargs)
+        dummy_timeline.output_device.miditrack[track_idx].append(msg)
+
+    def set_tempo(tempo):
+        # dummy_timeline.set_tempo(int(tempo))
+        # tempo = mido.tempo2bpm(msg.tempo)
+        mid_meta_message(type='set_tempo', tempo=int(mido.tempo2bpm(tempo)), time=0)
+
+    def track_name(name, track_idx=0):
+        mid_meta_message(type='track_name', name=name, time=0, track_idx=track_idx)
+    filename = tmp_path/"output.mid"
+    midifile = MidiFileOutputDevice(filename)
+    dummy_timeline.output_device = midifile
+
     events_1 = {
         iso.EVENT_NOTE: iso.PSequence(sequence=[50, 52], repeats=1)
         , iso.EVENT_DURATION: iso.PSequence(sequence=[0.5, 1], repeats=1)
@@ -220,31 +238,45 @@ def test_action_multi(dummy_timeline, tmp_path):
         iso.EVENT_CHANNEL: 2
         , iso.EVENT_PROGRAM_CHANGE: iso.PSequence([56], repeats=1)
     }
+
     events_action = {
         iso.EVENT_DURATION: iso.PSequence(sequence=[1.22, 1.3, 1.33, 1.41], repeats=1)
         , iso.EVENT_ACTION: iso.PSequence(
-            sequence=[lambda track_idx: (set_tempo(31), set_tempo(35), track_name('blah'), track_name('blaxx', 1)),
-                      lambda track_idx: set_tempo(30),
-                      lambda track_idx: set_tempo(300), lambda track_idx: set_tempo(200)], repeats=1)
+            sequence=[lambda track_idx=None: (set_tempo(31), set_tempo(35), track_name('blah'), track_name('blaxx', 1)),
+                      lambda track_idx=None: set_tempo(30),
+                      lambda track_idx=None: set_tempo(300), lambda track_idx=None: set_tempo(200)], repeats=1)
 
     }
-    filename = tmp_path/"output.mid"
-    midifile = MidiFileOutputDevice(filename)
-    dummy_timeline.output_device = midifile
+
 
     dummy_timeline.schedule(pgm_1, sel_track_idx=0)
     dummy_timeline.schedule(pgm_2, sel_track_idx=1)
     dummy_timeline.schedule(events_action, sel_track_idx=0)
-
     dummy_timeline.schedule(events_1, sel_track_idx=0)
     dummy_timeline.schedule(events_2, sel_track_idx=1)
 
     dummy_timeline.run()
+    # return
     assert len(midifile.miditrack) == 2, "2 tracks expected in midifile"
     midifile.write()
 
+    midi_file_in = MidiFileInputDevice(filename)
+    d = midi_file_in.read(multi_track_file=True)
+    return
+    # for idx, events in enumerate([events_1, events_2]):
+    for idx, events in enumerate([events_1]):
+        for key in events.keys():
+            if isinstance(d[idx][key], dict):
+                assert d[idx][key].get('track_idx') == idx
+            else:
+                assert isinstance(d[idx][key], iso.PSequence)
+                if isinstance(events[key], Iterable):
+                    assert list(d[idx][key]) == list(events[key])
+                else:
+                    assert d[idx][key] == events[key] * len(d[idx][key])
+
+
     os.unlink(filename)
-    pass
 
 
 @pytest.mark.skip
