@@ -28,6 +28,8 @@ class NoteOffEvent:
 
 
 def get_track_idx(event_obj):
+    # if True:
+    #     return None
     track_idx = 0
     if isinstance(event_obj, (dict, PDict)):
         if trk_idx := event_obj.get('args', {}).get('track_idx', None):
@@ -62,6 +64,8 @@ class Track:
         # --------------------------------------------------------------------------------
         # Ensure that events is a pattern that generates a dict when it is iterated.
         # --------------------------------------------------------------------------------
+        # self.ss_track_idx = None
+        # self.track_idx = None
         self.event_stream: Pattern = PDict({})
         self.timeline: Timeline = timeline
         self.current_time: float = 0.0
@@ -84,8 +88,9 @@ class Track:
         self.remove_when_done: bool = remove_when_done
         self.on_event_callbacks: list[Callable] = []
 
-    def __getattr__(self, item):
-        return self.event_stream[item]
+    def __getattr__(self, item, default = None):
+        # return self.event_stream[item]
+        return getattr(self.event_stream, 'item', default)
 
     def __setattr__(self, item, value):
         # --------------------------------------------------------------------------------
@@ -128,6 +133,7 @@ class Track:
         if isinstance(events, dict):
             events = PDict(events)
         self.event_stream = events
+        # self.ss_track_idx = get_track_idx(self.event_stream)
 
         self.is_started = True
         self.current_time = 0.0
@@ -202,8 +208,13 @@ class Track:
         #     track_idx = self.event_stream['args']['track_idx'].constant
         # else:
         #     track_idx = 0
-
-        track_idx = get_track_idx(self.event_stream)
+        # if getattr(self, 'track_idx', None) is None:
+        if not hasattr(self, 'track_idx') or getattr(self, 'track_idx', None) == None:
+            track_idx = get_track_idx(self.event_stream)
+            self.track_idx = track_idx
+        else:
+            track_idx = self.track_idx
+        # track_idx = self.ss_track_idx
 
         for note_off in self.note_offs[:]:
             if round(note_off.timestamp, 8) <= round(self.current_time, 8):
@@ -228,7 +239,12 @@ class Track:
         #     # if self.event_stream.get('args', {}).get('track_idx', {}).get('constant', None) is not None:
         #     if self.event_stream.get('args', {}).get('track_idx', None) is not None:
         #         track_idx = self.event_stream['args']['track_idx'].constant
-        track_idx = get_track_idx(self.event_stream)
+        # if getattr(self, 'track_idx', None) is None:
+        if not hasattr(self, 'track_idx') or getattr(self, 'track_idx', None) == None:
+            track_idx = get_track_idx(self.event_stream)
+            self.track_idx = track_idx
+        else:
+            track_idx = self.track_idx
 
         for n, note in enumerate(self.note_offs[:]):
             if round(note.timestamp, 8) <= round(self.current_time, 8):
@@ -613,10 +629,18 @@ class Track:
         # if getattr(isinstance(self.event_stream, PDict) and self.event_stream.get('args', {}).get('track_idx', None), 'constant', None) is not None:
         #
         #     track_idx = self.event_stream['args']['track_idx'].constant
-        if not (track_idx := get_track_idx(self.event_stream)):
+        # if getattr(self, 'track_idx', None) is None:
+        if not hasattr(self, 'track_idx') or getattr(self, 'track_idx', None) == None:
+            track_idx = get_track_idx(self.event_stream)
+            self.track_idx = track_idx
+        else:
+            track_idx = self.track_idx
+        # if not (track_idx := get_track_idx(self.event_stream)):
+        if track_idx is None:
             if getattr(event, 'fields', {}).get('args', {}).get('track_idx') is not None:
             # if event.fields.get('args').get('track_idx') is not None:
                 track_idx = event.fields['args']['track_idx']
+                self.track_idx = track_idx
         # else:
         #     track_idx = 0
 

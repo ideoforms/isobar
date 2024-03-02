@@ -389,8 +389,9 @@ class PDict(Pattern):
     def __repr__(self):
         return "PDict(%s)" % repr(self.dict)
 
-    def __getitem__(self, key):
-        return self.dict[key]
+    def __getitem__(self, key, default = None):
+        # return self.dict[key]
+        return self.dict.get(key, default)
 
     def __setitem__(self, key, value):
         self.dict[key] = value

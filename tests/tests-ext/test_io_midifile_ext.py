@@ -51,6 +51,19 @@ def test_io_midifile_write_rests(dummy_timeline):
     os.unlink("output.mid")
 
 
+def test_cprofile(dummy_timeline, tmp_path):
+    # pattern_len(dummy_timeline, dummy_timeline2)
+    # import cProfile
+    # # cProfile.run('pattern_len(dummy_timeline, dummy_timeline2)')
+    # cProfile.runctx('test_io_midifile_write_multi(dummy_timeline, tmp_path)', globals(), locals())
+    from pyinstrument import Profiler
+    profiler = Profiler()
+    profiler.start()
+    test_io_midifile_write_multi(dummy_timeline, tmp_path)
+    profiler.stop()
+    profiler.print()
+
+
 def test_io_midifile_write_multi(dummy_timeline, tmp_path):
     events_1 = {
 
@@ -219,14 +232,15 @@ def test_action_multi(dummy_timeline, tmp_path):
     midifile = MidiFileOutputDevice(filename)
     dummy_timeline.output_device = midifile
 
-    # dummy_timeline.schedule(pgm_1, sel_track_idx=0)
-    # dummy_timeline.schedule(pgm_2, sel_track_idx=1)
-    # dummy_timeline.schedule(events_action, sel_track_idx=0)
+    dummy_timeline.schedule(pgm_1, sel_track_idx=0)
+    dummy_timeline.schedule(pgm_2, sel_track_idx=1)
+    dummy_timeline.schedule(events_action, sel_track_idx=0)
 
     dummy_timeline.schedule(events_1, sel_track_idx=0)
     dummy_timeline.schedule(events_2, sel_track_idx=1)
 
     dummy_timeline.run()
+    assert len(midifile.miditrack) == 2, "2 tracks expected in midifile"
     midifile.write()
 
     os.unlink(filename)
