@@ -648,7 +648,7 @@ class Timeline:
                     name=name
                 )
 
-                track.update(copy.copy(param), quantize=quantize, delay=delay)
+                track.update(copy.copy(param), quantize=quantize, delay=delay or extra_delay)
             tracks_list.append(track)
 
             # if quantize is None:

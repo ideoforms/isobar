@@ -196,7 +196,7 @@ def test_io_midifile_write_multi_list(dummy_timeline, tmp_path):
 
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_action_multi(dummy_timeline, tmp_path):
     def mid_meta_message(msg: mido.MetaMessage = None, *args, **kwargs):
         # return None
