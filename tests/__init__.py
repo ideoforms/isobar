@@ -1,6 +1,9 @@
 import pytest
 import isobar_ext as iso
 import mido
+import os
+
+IN_CI_CD = "GITHUB_ACTION" in os.environ
 
 @pytest.fixture()
 def dummy_timeline():

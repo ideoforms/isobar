@@ -13,7 +13,7 @@ from isobar_ext.io.midimessages import (
     MidiMessageProgram, MidiMessagePitch, MidiMessagePoly, MidiMessageAfter
 )
 import pytest
-from tests import dummy_timeline
+from tests import dummy_timeline, IN_CI_CD
 # from unittest.mock import MagicMock, Mock
 
 
@@ -196,7 +196,7 @@ def test_io_midifile_write_multi_list(dummy_timeline, tmp_path):
 
 
 
-# @pytest.mark.skip
+@pytest.mark.skipif(IN_CI_CD, reason="Skipped in CI/CD environment")
 def test_action_multi(dummy_timeline, tmp_path):
     def mid_meta_message(msg: mido.MetaMessage = None, *args, **kwargs):
         # return None
@@ -278,7 +278,7 @@ def test_action_multi(dummy_timeline, tmp_path):
 
     os.unlink(filename)
 
-
+@pytest.mark.skipif(IN_CI_CD, reason="Skipped in CI/CD environment")
 def test_action_multi1(dummy_timeline, tmp_path):
     def mid_meta_message(msg: mido.MetaMessage = None, *args, **kwargs):
         # return None
