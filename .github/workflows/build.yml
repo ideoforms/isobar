@@ -19,7 +19,6 @@ jobs:
         pip3 install pytest poetry
     - name: Python test
       run: |
-        set
         source venv/bin/activate
         poetry install
         poetry run pytest
