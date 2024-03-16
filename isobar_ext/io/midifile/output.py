@@ -14,8 +14,9 @@ log = logging.getLogger(__name__)
 class MidiFileOutputDevice(OutputDevice):
     """Write events to a MIDI file."""
 
-    def __init__(self, filename, ticks_per_beat=DEFAULT_TICKS_PER_BEAT):
-        super().__init__()
+    def __init__(self, filename, ticks_per_beat=DEFAULT_TICKS_PER_BEAT, super_init=True):
+        if super_init:
+            super().__init__()
         self.filename = filename
         self.midifile = MidiFile(ticks_per_beat=ticks_per_beat)
         self.miditrack = [MidiTrack()]
@@ -257,7 +258,7 @@ class PatternWriterMIDI:
 class FileOut(MidiFileOutputDevice, MidiOutputDevice):
 
     def __init__(self, filename, device_name, send_clock, virtual=False, ticks_per_beat=DEFAULT_TICKS_PER_BEAT):
-        MidiFileOutputDevice.__init__(self, filename=filename, ticks_per_beat=ticks_per_beat)
+        MidiFileOutputDevice.__init__(self, filename=filename, ticks_per_beat=ticks_per_beat, super_init=False)
         MidiOutputDevice.__init__(self, device_name=device_name, send_clock=send_clock, virtual=virtual)
 
     def note_off(self, note=60, channel=0, track_idx=0):
