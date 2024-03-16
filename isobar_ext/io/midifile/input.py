@@ -61,7 +61,7 @@ class MidiFileInputDevice:
                                                                                src_track_idx=track_idx)
                 timeline_inner.output_device.miditrack[new_track_idx].append(obj.to_meta_message())
 
-    def read(self, quantize=None, ms_to_filter=None, single_track_flag=True):
+    def read(self, quantize=None, ms_to_filter=None, multi_track_file=False):
         def create_lam_function(tgt_dict, messages_inner, track_idx_inner=0):
             lam_function = partial(self.midi_message_obj, objects=messages_inner, track_idx=track_idx_inner)
             tgt_dict[EVENT_ACTION].append(lam_function)
@@ -414,7 +414,7 @@ class MidiFileInputDevice:
                 if pat.get(EVENT_CHANNEL, None):
                     pat[EVENT_CHANNEL].sequence.append(pat[EVENT_CHANNEL].sequence[0])
 
-        if single_track_flag:
+        if not multi_track_file:
             track = next(t for t in tracks_note_dict if t.get(EVENT_NOTE, None))
             if EVENT_ACTION_ARGS in  track:
                 track[EVENT_ACTION_ARGS].pop('track_idx', None)
