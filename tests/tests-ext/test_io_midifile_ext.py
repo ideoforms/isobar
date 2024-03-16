@@ -411,6 +411,7 @@ def test_action_off_beat(dummy_timeline, tmp_path):
                      [1, 1, 1, 1]]
     program_nr = 99
     test_track_name = 'blah'
+    test_track_name2 = 'blah2'
     tempo = [222, 333, 444, 555, 666, 777, 888]
     action_1_list = [
         [lambda track_idx=None: (set_tempo(tempo[0]), set_tempo(tempo[1]), set_tempo(tempo[2]), track_name(test_track_name)),
@@ -474,7 +475,6 @@ def test_action_off_beat(dummy_timeline, tmp_path):
             sequence=actions_list[0], repeats=1)
 
     }
-
 
 
     dummy_timeline.schedule(pgm_1, sel_track_idx=0)
