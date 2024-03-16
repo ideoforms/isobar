@@ -63,8 +63,8 @@ To push to PyPi:
 * bump version  (e.g. `poetry version patch`)  
     details about rule applied for this command: https://python-poetry.org/docs/cli/#version
 * check version `poetry verson` e.g. `x.y.z`
-* `git tag vx.y.z`, `git push --tags`, and create GitHub release
+* `git tag vx.y.z`, `git push --tags`, and create GitHub release (you check existing tags with `git tag`)
 * `poetry build`
 * `poetry publish -r test-pypi` to publish to test-pypl and check if results are satisfactory
 * `poetry publish` to publish to pypl when you are satisfied with test-pypl
-* `twine upload dist/isobar-ext-x.y.z.tar.gz`
+

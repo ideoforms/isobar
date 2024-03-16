@@ -84,7 +84,7 @@ class MidiInputDevice:
             else:
                 log.warning("MIDI song position message received, but MIDI input cannot seek to arbitrary position")
 
-        elif message.type in ['note_on', 'note_off', 'control_change', 'pitchwheel']:
+        elif message.type in ['note_on', 'note_off', 'control_change', 'pitchwheel', 'program_change']:
             if self.callback:
                 self.callback(message)
             else:
