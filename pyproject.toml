@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "isobar_ext"
-version = "0.5.2a4"
+version = "0.5.2a5"
 description = "A Python library to express and manipulate musical patterns extending the original isobar library."
 authors = ["Piotr Sakowski <piotereks@gmail.com>"]
 readme = "README.md"

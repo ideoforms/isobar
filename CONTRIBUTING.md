@@ -65,6 +65,6 @@ To push to PyPi:
 * check version `poetry verson` e.g. `x.y.z`
 * `git tag vx.y.z`, `git push --tags`, and create GitHub release (you check existing tags with `git tag`)
 * `poetry build`
-* `poetry publish -r test-pypi` to publish to test-pypl and check if results are satisfactory
+* `poetry publish -r test-pypi` to publish to test-pypl and check if results are satisfactory (you may test your version from test with `python3 -m pip install --index-url https://test.pypi.org/simple/ isobar-ext==x.y.z`)
 * `poetry publish` to publish to pypl when you are satisfied with test-pypl
 
