@@ -13,3 +13,9 @@ The default values for unspecified parameters in an Event dict are infinite patt
 - [Note events](note.md) trigger discrete MIDI notes, with a duration and amplitude 
 - [Control events](control.md) include MIDI control change, program change and pitchwheel messages, and can apply quasi-continuous control curves
 - [Action events](action.md) call arbitrary Python functions
+
+!!! warning "Poison event types connection"
+    
+    You cannot mix Note and Degress events with Action events in the same pattern dictionary.   
+    `Action` event disables `note` and `degree` - algorithm will ignore other section of code.   
+    Use separate timeline.schedule for `action` and separate from `note` or `degree`.

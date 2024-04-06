@@ -65,3 +65,57 @@ timeline.schedule({
 })
 
 timeline.run()
+
+
+#========================================================================
+# A Timeline schedules events at a specified tempo. Events can be sent
+# to mutli track midi file.
+#------------------------------------------------------------------------
+output = iso.MidiOutputDevice()
+filename = "output.mid"
+midifile = iso.MidiFileOutputDevice(filename)
+timeline = iso.Timeline(120, midifile)
+
+#------------------------------------------------------------------------
+# Schedule events, that will be added to track 1 and track 2 of midifile.
+# This option shows 2 `schedule` functions used
+#------------------------------------------------------------------------
+timeline.schedule({
+    "note": arpeggio,
+    "duration": 0.25,
+    "amplitude": amplitude
+}, sel_track_idx=0)
+
+timeline.schedule({
+    "note": bassline,
+    "duration": 1
+}, sel_track_idx=0)
+
+timeline.run()
+
+#------------------------------------------------------------------------
+# Schedule events, that will be added to track 1 and track 2 of midifile.
+# This option shows usage of list as argument to `schedule` function.
+# Combination of channel and track_idx is used to calculate real tack idx
+# Each time specific combination is used
+# it will get the same real track idx.
+#------------------------------------------------------------------------
+
+events_1 = {
+    iso.EVENT_NOTE: iso.PSequence(sequence=[50, 52, 55, 57], repeats=1)
+    , iso.EVENT_DURATION: iso.PSequence(sequence=[0.5, 1, 1, 1.5], repeats=1)
+    , iso.EVENT_CHANNEL: 0
+    , iso.EVENT_ACTION_ARGS: {'track_idx': 0}
+}
+
+events_2 = {
+    iso.EVENT_NOTE: iso.PSequence(sequence=[75, 69, 72, 66], repeats=1)
+    , iso.EVENT_DURATION: iso.PSequence(sequence=[1, 1, 1, 1], repeats=1)
+    , iso.EVENT_CHANNEL: 2
+    , iso.EVENT_ACTION_ARGS: {'track_idx': 5}
+}
+
+event_list = [events_1.copy(), events_2.copy()]
+
+timeline.schedule(event_list)
+timeline.run()

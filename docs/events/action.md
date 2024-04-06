@@ -41,8 +41,11 @@ timeline.schedule({
     "octave": 4
 })
 ```
-### Do not mix EVENT_ACTION and EVENT_NOTE or EVENT_DEGREE
-Following code:
+### Avoid Mixing EVENT_ACTION and EVENT_NOTE or EVENT_DEGREE
+
+Mixing them incorrectly can lead to unexpected behavior. Including both EVENT_ACTION and EVENT_NOTE events in the same schedule results in an empty track.
+
+Incorrect mixing:
 ```python
 def record_time():
     times.append(time.time())
@@ -56,7 +59,7 @@ timeline.schedule(events, delay=0.1)
 t0 = time.time()
 timeline.run()
 ```
-Gives in result empty track.
+The above code results in an empty track:
 ```python
 >>> timeline.output_device.miditrack
 MidiTrack()
@@ -96,7 +99,6 @@ events_notes = {
 
 timeline.schedule(events_action, delay=0.1)
 timeline.schedule(events_notes, delay=0.1)
-t0 = time.time()
 timeline.run()
 
 ```

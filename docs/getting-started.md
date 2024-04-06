@@ -2,9 +2,9 @@
 
 ## Requirements
 
-isobar-ext has been tested on Linux (Ubuntu, Raspberry Pi OS) and macOS. It has not been officially tested on Windows, although third-party contributions of support and QA efforts would be welcomed. (to be verified)
+isobar-ext has been tested on Windows, Linux (Ubuntu, Raspberry Pi OS) and macOS. 
 
-It requires Python 3.5 or above. (to be verified rather 3.9+)
+It requires Python 3.9 or above.
 
 On Linux, the `libasound` and `libjack-dev` packages are also required:
 
@@ -23,7 +23,7 @@ pip3 install isobar-ext
 To download the examples, you will need to clone the repo and install from source:
 
 ```python
-git clone https://github.com/pioteresk/isobar-ext.git
+git clone https://github.com/piotereks/isobar-ext.git
 cd isobar-ext
 pip3 install .
 ```
