@@ -1,8 +1,9 @@
-from .util import normalize
-from .exceptions import UnknownScaleName
-import random
 import json
+import random
 from pathlib import Path
+
+from .exceptions import UnknownScaleName
+from .util import normalize
 
 
 class Scale(object):

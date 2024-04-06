@@ -1,5 +1,6 @@
 from isobar_ext import FileOut, MidiFileOutputDevice
 from pathlib import Path
+import platform
 
 def test_get_channel_track():
     test_midi_out_device = MidiFileOutputDevice(filename='test_output_file')
@@ -55,7 +56,7 @@ def test_get_channel_track():
 # from tracker.app.isobar_fixes import *
 # from tracker.app.midi_dev import *
 
-
+@pytest.mark.skipif(platform.system() == "Windows", reason="Test not supported on Windows")
 def test_wrk_midi_out():
     """
     This test check fix for FileOut, which has broken because trying to open midi output device 2 times.
