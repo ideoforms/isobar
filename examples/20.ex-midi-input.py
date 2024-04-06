@@ -4,7 +4,7 @@
 # MIDI input example
 #------------------------------------------------------------------------
 
-import isobar as iso
+import isobar_ext as iso
 import logging
 import time
 

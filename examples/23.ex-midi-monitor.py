@@ -6,7 +6,7 @@
 # messages are received.
 #------------------------------------------------------------------------
 
-import isobar as iso
+import isobar_ext as iso
 import time
 
 def print_message(message):

@@ -7,7 +7,7 @@
 # Make sure you have a MIDI device connected.
 #------------------------------------------------------------------------
 
-import isobar as iso
+import isobar_ext as iso
 
 import logging
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")

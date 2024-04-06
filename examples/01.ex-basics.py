@@ -7,7 +7,7 @@
 # sequences, scales, stochastic functions, scheduling and mapping.
 #------------------------------------------------------------------------
 
-import isobar as iso
+import isobar_ext as iso
 
 #------------------------------------------------------------------------
 # Turn on some basic logging output. 

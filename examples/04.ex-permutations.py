@@ -9,7 +9,7 @@
 # Use simple permutations to generate intertwining musical structures.
 #------------------------------------------------------------------------
 
-import isobar as iso
+import isobar_ext as iso
 import random
 
 import logging

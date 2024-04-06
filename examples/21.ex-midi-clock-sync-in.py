@@ -6,7 +6,7 @@
 # The MidiInputDevice object estimates the input tempo via a moving average.
 #------------------------------------------------------------------------
 
-import isobar as iso
+import isobar_ext as iso
 
 midi_in = iso.MidiInputDevice()
 
