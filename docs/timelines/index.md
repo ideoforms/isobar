@@ -61,6 +61,7 @@ Scheduling can be quantized or delayed by passing args to the `schedule()` metho
 
 - `quantize=N`: quantize to the next `N` beats before beginning playback. For example, `quantize=1` will quantize to the next beat. `quantize=0.25` will quantize to a quarter-beat.
 - `delay=N`: delay by `N` beats before beginning playback. If `quantize` and `delay` are both specified, quantization is applied, and the event is scheduled `delay` beats after the quantization time.
+- `sel_track_idx=N` (optional): When utilizing multitrack output, this parameter enables the selection of the MIDI track to which a specific event needs to be assigned.
 
 To limit the number of iterations of an event, pass the `count` property:
 

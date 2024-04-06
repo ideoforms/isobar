@@ -6,7 +6,7 @@
 # Brownian walk around a scale.
 #------------------------------------------------------------------------
 
-import isobar as iso
+import isobar_ext as iso
 
 import logging
 

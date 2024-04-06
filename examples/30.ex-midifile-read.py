@@ -6,8 +6,8 @@
 # Example of reading from a MIDI file in real time.
 #------------------------------------------------------------------------
 
-import isobar as iso
-from isobar.io import MidiFileInputDevice
+import isobar_ext as iso
+from isobar_ext.io import MidiFileInputDevice
 
 import argparse
 import logging
@@ -22,7 +22,7 @@ args = parser.parse_args()
 # The resulting pattern is a PDict, with keys containing patterns for each
 # of the event properties (note, duration, amplitude)
 #--------------------------------------------------------------------------------
-pattern = MidiFileInputDevice(args.filename).read()
+pattern = MidiFileInputDevice(args.filename).read(multi_track_file=True)
 print("Read pattern containing %d note events" % len(pattern["note"]))
 
 timeline = iso.Timeline()

@@ -4,7 +4,7 @@
 # isobar: ex-subsequence
 #------------------------------------------------------------------------
 
-import isobar as iso
+import isobar_ext as iso
 
 import logging
 logging.basicConfig(level=logging.DEBUG, format="[%(asctime)s] %(message)s")

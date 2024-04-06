@@ -7,7 +7,7 @@
 # in other patterns.
 #------------------------------------------------------------------------
 
-import isobar as iso
+import isobar_ext as iso
 
 key_sequence = iso.PSequence([
     iso.Key("C", "minor"),

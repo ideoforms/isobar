@@ -7,8 +7,8 @@
 #------------------------------------------------------------------------
 
 import argparse
-import isobar as iso
-from isobar.io.midifile.input import MidiFileInputDevice
+import isobar_ext as iso
+from isobar_ext.io.midifile.input import MidiFileInputDevice
 
 import logging
 logging.basicConfig(level=logging.DEBUG, format="[%(asctime)s] %(message)s")

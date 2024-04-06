@@ -6,7 +6,7 @@
 # Send OSC messages with a specified pattern.
 #------------------------------------------------------------------------
 
-import isobar as iso
+import isobar_ext as iso
 
 osc_device = iso.OSCOutputDevice("127.0.0.1", 8010)
 timeline = iso.Timeline(120, output_device=osc_device)

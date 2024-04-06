@@ -6,7 +6,7 @@
 # Uses Euclidean rhythms to generate multiple polyrhythmic voices.
 #------------------------------------------------------------------------
 
-import isobar as iso
+import isobar_ext as iso
 
 import logging
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
