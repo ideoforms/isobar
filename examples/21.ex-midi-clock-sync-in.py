@@ -6,19 +6,24 @@
 # The MidiInputDevice object estimates the input tempo via a moving average.
 #------------------------------------------------------------------------
 
-import isobar_ext as iso
+from isobar_ext import *
 
-midi_in = iso.MidiInputDevice()
+def main():
+    midi_in = MidiInputDevice()
 
-def print_tempo():
-    if midi_in.tempo:
-        print("Estimated tempo: %.3f" % midi_in.tempo)
+    def print_tempo():
+        if midi_in.tempo:
+            print("Estimated tempo: %.3f" % midi_in.tempo)
 
-timeline = iso.Timeline(120, clock_source=midi_in)
-timeline.schedule({
-    "action": print_tempo
-})
+    timeline = Timeline(120, clock_source=midi_in)
+    timeline.schedule({
+        "action": print_tempo
+    })
 
-print("Awaiting MIDI clock signal from %s..." % midi_in.device_name)
+    print("Awaiting MIDI clock signal from %s..." % midi_in.device_name)
 
-timeline.run()
+    timeline.run()
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
+    main()

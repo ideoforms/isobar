@@ -6,22 +6,28 @@
 # messages are received.
 #------------------------------------------------------------------------
 
-import isobar_ext as iso
+from isobar_ext import *
+import logging
 import time
 
-def print_message(message):
-    """
-    The callback argument is a mido Message object:
-    https://mido.readthedocs.io/en/latest/messages.html
-    """
-    print(" - Received MIDI: %s" % message)
+def main():
+    def print_message(message):
+        """
+        The callback argument is a mido Message object:
+        https://mido.readthedocs.io/en/latest/messages.html
+        """
+        print(" - Received MIDI: %s" % message)
 
-midi_in = iso.MidiInputDevice()
-midi_in.callback = print_message
-print("Opened MIDI input: %s" % midi_in.device_name)
+    midi_in = MidiInputDevice()
+    midi_in.callback = print_message
+    print("Opened MIDI input: %s" % midi_in.device_name)
 
-try:
-    while True:
-        time.sleep(0.1)
-except KeyboardInterrupt:
-    pass
+    try:
+        while True:
+            time.sleep(0.1)
+    except KeyboardInterrupt:
+        pass
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
+    main()

@@ -7,17 +7,22 @@
 # Make sure you have a MIDI device connected.
 #------------------------------------------------------------------------
 
-import isobar_ext as iso
+from isobar_ext import *
 
 import logging
-logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
-series = iso.PRange(60, 73, 1)
-timeline = iso.Timeline(120)
+def main():
+    series = PRange(60, 73, 1)
+    timeline = Timeline(120)
 
-timeline.schedule({
-    "note": series,
-    "duration": 1
-})
+    timeline.schedule({
+        "note": series,
+        "duration": 1
+    })
 
-timeline.run()
+    timeline.run()
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
+    main()

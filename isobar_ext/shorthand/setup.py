@@ -24,14 +24,23 @@ except (ModuleNotFoundError, DeviceNotFoundException):
 def track(name, **kwargs):
     global timeline
 
-    # --------------------------------------------------------------------------------
+    track_parameters = {
+        "quantize": 1,
+        "interpolate": None,
+    }
+    #--------------------------------------------------------------------------------
     # Unflatten the params list.
     # This has some perils (e.g. 'amp' is used as an Event keyword but is
     # also often used as a Patch parameter).
     # --------------------------------------------------------------------------------
     params = {}
     for key in list(kwargs.keys()):
-        if key not in ALL_EVENT_PARAMETERS:
+        if key in track_parameters:
+            track_parameters[key] = kwargs[key]
+            del kwargs[key]
+        elif key in ALL_EVENT_PARAMETERS:
+            pass
+        else:
             params[key] = kwargs[key]
             del kwargs[key]
 
@@ -50,10 +59,17 @@ def track(name, **kwargs):
     else:
         output_device = midi_output_device
 
-    track = timeline.schedule(
-        params=kwargs, name=name, replace=True, quantize=1, output_device=output_device
-    )
-    # --------------------------------------------------------------------------------
+    # track = timeline.schedule(params=kwargs,
+    #                           name=name,
+    #                           replace=True,
+    #                           quantize=1,
+    #                           output_device=output_device)
+    track = timeline.schedule(params=kwargs,
+                              name=name,
+                              replace=True,
+                              output_device=output_device,
+                              **track_parameters)
+    #--------------------------------------------------------------------------------
     # Evaluating a cell with a track() command with mute() appended to it causes
     # the track to be silenced.
     #

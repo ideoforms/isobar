@@ -6,11 +6,11 @@
 # Generates an L-system and its ASCII representation.
 #------------------------------------------------------------------------
 
-import isobar_ext as iso
+from isobar_ext import *
 import logging
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
-seq = iso.PLSystem("N[+N+N]?N[-N]+N", depth=3)
+seq = PLSystem("N[+N+N]?N[-N]+N", depth=3)
 notes = seq.all()
 note_min = min(notes)
 note_max = max(notes)
