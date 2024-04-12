@@ -27,7 +27,7 @@ There are a few key components in isobar.
 
 ### Flow diagram
 
-<a href="diagrams/Isobar Flow Diagram.png" target="_blank"><img src="diagrams/Isobar Flow Diagram.png" alt="A flow diagram showing an overview isobar" rel="noopener noreferrer"/></a>
+<a href="diagrams/Isobar Flow Diagram.png" target="_blank"><img src="diagrams/Isobar Flow Diagram.png" alt="A flow diagram showing an overview of isobar" rel="noopener noreferrer"/></a>
 
 
 ## Documentation
