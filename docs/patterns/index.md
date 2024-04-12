@@ -29,7 +29,7 @@ By assigning patterns to properties of [events](/events/), you can specify seque
 
 Patterns can be finite, such as the example above, or infinite, in which case they will keep generating new values forever.
 
-Patterns can also typically generate different Python types. Some Pattern classes will seek to do the right thing based on whether they are passed them int or float arguments.
+Patterns can also typically generate different Python types. Some Pattern classes will seek to do the right thing based on whether they are passed int or float arguments.
 
  - `PSequence([ "apple", "pear" ])` generates an alternating pair of strings
  - `PWhite(0, 10)` generates a stream of ints between `[0 .. 9]`
