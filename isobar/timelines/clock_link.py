@@ -1,9 +1,10 @@
-from ..constants import DEFAULT_TEMPO, DEFAULT_TICKS_PER_BEAT, MIN_CLOCK_DELAY_WARNING_TIME
+from ..constants import DEFAULT_TEMPO, DEFAULT_TICKS_PER_BEAT
 from .clock import Clock
-import time
-import sys
-import os
 from typing import Any
+import logging
+import time
+
+logger = logging.getLogger(__name__)
 
 try:
     import link
@@ -25,7 +26,7 @@ class AbletonLinkClock (Clock):
                          ticks_per_beat)
 
     def tempo_changed_callback(self, tempo):
-        print("tempo changed: %.2f" % tempo)
+        logger.debug("Link: Tempo changed: %.1f" % tempo)
 
     def run(self):
         ticks_previous = None
@@ -41,7 +42,6 @@ class AbletonLinkClock (Clock):
 
             ticks_current = int(beats * self.ticks_per_beat)
             if not got_sync:
-                # if ticks_current > 10 and ticks_current % self.ticks_per_beat == 0:
                 if ticks_current % self.ticks_per_beat == 0:
                     got_sync = True
             if ticks_previous is None or ticks_current > ticks_previous:
