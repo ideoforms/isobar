@@ -16,7 +16,8 @@ try:
     timeline.ignore_exceptions = True
     timeline.background()
 
-except (ModuleNotFoundError, DeviceNotFoundException):
+except (ModuleNotFoundError, DeviceNotFoundException) as e:
+    print("Warning: Could not set up shorthand mode: %s" % e)
     graph = None
     timeline = None
 
