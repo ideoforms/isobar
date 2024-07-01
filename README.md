@@ -192,6 +192,15 @@ distribution:
     PWSine                   - Sinosoidal warp, period `length` beats, amplitude +/-<amp>.
     PWRallantando            - Exponential deceleration to <amp> times the current tempo over `length` beats.
 
+## Contributors
+
+Thanks to the following contributors:
+
+- [Giacomo Loparco](https://github.com/loparcog)): for auto-generated documentation, type hinting, logging and comprehensive `__repr__` implementations
+- [Greg White](https://github.com/gregwht): for documentation improvements
+- [Piotr Sakowski](https://github.com/piotereks): for fixes in `Key` and `Scale` handling
+- [Dan Tenenbaum](https://github.com/dtenenba): for example and documentation fixes
+
 ## Background
 
 isobar was first designed for the generative sound installation [Variable 4](http://www.variable4.org.uk), in which it was used to generate musical structures in response to changing weather conditions. It was more recently used in [The Listening Machine](http://www.thelisteningmachine.org/), taking live input from Twitter and generating musical output from language patterns, streamed live over the internet.
