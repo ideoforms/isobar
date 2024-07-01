@@ -2,7 +2,7 @@
 
 ## [v0.1.3](https://github.com/ideoforms/isobar/tree/v0.1.3) (2024-07-01)
 
-- Added support for Ableton Link clock sync (thanks to Raphaël Forment for providing LinkPython-extern)
+- Added support for Ableton Link clock sync (thanks to [Raphaël Forment](https://github.com/Bubobubobubobubo) for providing LinkPython-extern)
 - Added shorthand syntax for more concise pattern expressions
 - Added new pattern classes:
   - `PMIDIControl`: provides access to MIDI control change values
