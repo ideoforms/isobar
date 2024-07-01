@@ -6,11 +6,6 @@ import os
 from typing import Any
 
 try:
-    lib_dir = 'auxiliary/lib'
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    lib_dir_abs = os.path.normpath(os.path.join(current_dir, os.path.pardir, os.path.pardir, lib_dir))
-    sys.path.insert(0, lib_dir)
-    sys.path.insert(0, lib_dir_abs)
     import link
 except ModuleNotFoundError as e:
     pass
