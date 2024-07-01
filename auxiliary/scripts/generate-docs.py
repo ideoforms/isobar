@@ -163,15 +163,19 @@ def generate_class_pages(class_data: list[dict]):
             # Format the file text into a list per line
             class_content = []
             class_content.append("# Pattern: %s" % class_dict['classname'])
-            class_content.append(class_dict['short_description'])
+            class_content.append("%s" % class_dict['short_description'])
+
             if (class_dict['long_description']):
                 class_content.append(class_dict['long_description'])
+
             if (class_dict['arguments']):
                 class_content.append("## Arguments")
                 class_content.append(class_dict['arguments'])
+
             if (class_dict['example_output']):
-                class_content.append("## Example Output")
+                class_content.append("## Example output")
                 class_content.append("```py\n%s```" % class_dict['example_output'])
+
             # Output to the proper file (adding .md to the actual file name)
             fname = (os.path.join(root_dir, file_dict['name'].lower(), class_dict['classname'].lower() + ".md"))
             with open(fname, "w") as f:
@@ -225,6 +229,8 @@ def parse_class_data():
             # Get first line for short description
             desc = desc.split("\n", 1)
             short_desc = desc[0]
+            if ':' in short_desc:
+                short_desc = short_desc[short_desc.index(':') + 2:]
             # Get the rest before code for a long description (if available)
             long_desc = None
             output = None
