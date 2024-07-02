@@ -81,6 +81,8 @@ distribution:
 * [21.ex-midi-clock-sync-in.py](examples/21.ex-midi-clock-sync-in.py)
 * [22.ex-midi-markov-learner.py](examples/22.ex-midi-markov-learner.py)
 * [23.ex-midi-monitor.py](examples/23.ex-midi-monitor.py)
+* [24.ex-link-clock.py](examples/24.ex-link-clock.py)
+* [25.ex-fluid-synth.py](examples/25.ex-fluid-synth.py)
 * [30.ex-midifile-read.py](examples/30.ex-midifile-read.py)
 * [31.ex-midifile-write.py](examples/31.ex-midifile-write.py)
 * [32.ex-midifile-markov.py](examples/32.ex-midifile-markov.py)

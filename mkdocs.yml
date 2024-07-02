@@ -39,3 +39,6 @@ nav:
    - Virtual MIDI devices: devices/virtual-midi-devices.md
    - MIDI files: devices/midifile.md
    - OSC: devices/osc.md
+   - SignalFlow: devices/signalflow.md
+   - SuperCollider: devices/supercollider.md
+   - FluidSynth: devices/fluidsynth.md

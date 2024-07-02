@@ -7,3 +7,4 @@ isobar can send events to several different types of output device.
 - [OpenSoundControl](osc.md): Send events using the [Open Sound Control](https://ccrma.stanford.edu/groups/osc/index.html) network protocol
 - [SignalFlow](signalflow.md): Trigger events in the [SignalFlow](https://signalflow.dev/) synthesis engine.
 - [SuperCollider](supercollider.md): Sends events to the [SuperCollider](https://supercollider.github.io/) synthesis server.
+- [FluidSynth](fluidsynth.md): Trigger notes in the free [FluidSynth](https://www.fluidsynth.org/) software synthesizer.
