@@ -320,6 +320,7 @@ class Track:
             return
         if self.is_muted:
             return
+        log.debug("Track: Executing event: %s" % event)
 
         #------------------------------------------------------------------------
         # Action: Carry out an action each time this event is triggered
