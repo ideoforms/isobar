@@ -9,6 +9,8 @@
       
       
       
+        <link rel="prev" href="../supercollider/">
+      
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -243,10 +245,12 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../" class="md-tabs__link">
           
   
@@ -781,23 +785,28 @@
       
   
   
+    
   
   
+  
     
     
     
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -808,7 +817,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             Devices and I/O
@@ -920,6 +929,118 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../signalflow/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SignalFlow
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../supercollider/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SuperCollider
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    FluidSynth
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    FluidSynth
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -989,15 +1110,15 @@
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">isobar</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">isobar.io.fluidsynth</span> <span class="kn">import</span> <span class="n">FluidSynthOutputDevice</span>
 
-<span class="n">output_device</span> <span class="o">=</span> <span class="n">FluidSynthOutputDevice</span><span class="p">(</span><span class="s2">&quot;/Users/daniel/Projects/IIL-Residency/fluidsynth/Touhou.sf2&quot;</span><span class="p">)</span>
+<span class="n">output_device</span> <span class="o">=</span> <span class="n">FluidSynthOutputDevice</span><span class="p">(</span><span class="s2">&quot;soundfont.sf2&quot;</span><span class="p">)</span>
 <span class="n">timeline</span> <span class="o">=</span> <span class="n">Timeline</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="n">output_device</span><span class="o">=</span><span class="n">output_device</span><span class="p">)</span>
 
 <span class="n">timeline</span><span class="o">.</span><span class="n">schedule</span><span class="p">({</span>
-    <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">Key</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;minorPenta&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">Key</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;minor&quot;</span><span class="p">),</span>
     <span class="s2">&quot;octave&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
     <span class="s2">&quot;degree&quot;</span><span class="p">:</span> <span class="n">PLoop</span><span class="p">(</span><span class="n">PSubsequence</span><span class="p">(</span><span class="n">PWhite</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">)),</span>
     <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
-<span class="p">},</span> <span class="n">quantize</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="p">})</span>
 
 <span class="n">timeline</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </code></pre></div>
