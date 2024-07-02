@@ -8,9 +8,11 @@ repo_name: ideoforms/isobar
 repo_url: https://github.com/ideoforms/isobar
 
 markdown_extensions:
- - markdown.extensions.admonition
- - markdown.extensions.codehilite
+ - admonition
+ - attr_list
  - pymdownx.tabbed
+ - pymdownx.superfences
+ - pymdownx.highlight
 
 nav:
  - Home:

@@ -16,13 +16,13 @@ apt install libasound2-dev libjack-dev
 
 The simplest way to install isobar is via `pip`:
 
-```python
+```sh
 pip3 install isobar
 ```
 
 To download the examples, you will need to clone the repo and install from source:
 
-```python
+```sh
 git clone https://github.com/ideoforms/isobar.git
 cd isobar
 pip3 install .
