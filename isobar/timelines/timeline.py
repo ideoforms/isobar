@@ -446,7 +446,7 @@ class Timeline:
                  output_device: Any = None,
                  remove_when_done: bool = True,
                  name: Optional[str] = None,
-                 replace: bool = False,
+                 replace: bool = True,
                  track_index: Optional[int] = None) -> Track:
         """
         Schedule a new track within this Timeline.
@@ -491,12 +491,10 @@ class Timeline:
             output_device = self.output_devices[0]
 
         #--------------------------------------------------------------------------------
-        # If replace=True is specified, updated the params of any existing track
+        # If replace=True, updated the params of any existing track
         # with the same name. If none exists, proceed to create it as usual.
         #--------------------------------------------------------------------------------
-        if replace:
-            if name is None:
-                raise ValueError("Must specify a track name if `replace` is specified")
+        if replace and name is not None:
             for existing_track in self.tracks:
                 if existing_track.name == name:
                     existing_track.update(params,
@@ -504,7 +502,6 @@ class Timeline:
                                           delay=delay,
                                           interpolate=interpolate)
                     # TODO: Add unit test for update interpolate
-                    # TODO: Add unit test around this (returning the track?)
                     return existing_track
 
         if self.max_tracks and len(self.tracks) >= self.max_tracks:

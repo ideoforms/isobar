@@ -16,6 +16,18 @@ def test_track(dummy_timeline):
     track.tick()
     assert track.is_finished
 
+def test_track_replace(dummy_timeline):
+    track1 = dummy_timeline.schedule({"note": 60}, name="foo")
+    track2 = dummy_timeline.schedule({"note": 61}, name="bar")
+    track3 = dummy_timeline.schedule({"note": 62}, name="foo")
+    track4 = dummy_timeline.schedule({"note": 63}, name="foo", replace=False)
+
+    assert track1 == track3
+    assert track1.note.constant == 62
+    assert track1 != track2
+    assert track1 != track4
+    assert len(dummy_timeline.tracks) == 3
+
 def test_track_update(dummy_timeline):
     #--------------------------------------------------------------------------------
     # Test that a track can be updated properly.
