@@ -45,6 +45,8 @@ class SignalFlowOutputDevice(OutputDevice):
             patch = patch_spec(**patch_params)
         elif isinstance(patch_spec, sf.PatchSpec):
             patch = sf.Patch(patch_spec, patch_params)
+        else:
+            raise RuntimeError("patch property is of invalid type")
 
         patch.set_auto_free(True)
 
