@@ -27,7 +27,7 @@ class SignalFlowOutputDevice(OutputDevice):
             try:
                 self.graph = sf.AudioGraph()
             except NameError:
-                raise Exception("Could not instantiate OutputDevice as libsignal not installed")
+                raise Exception("Could not instantiate SignalFlowOutputDevice, signalflow not installed?")
             except sf.GraphAlreadyCreatedException:
                 raise Exception("SignalFlow graph has already been instantiated."
                                 "Pass the AudioGraph object as an argument to SignalFlowOutputDevice.")
