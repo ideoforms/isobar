@@ -401,22 +401,29 @@ class Track:
         elif event.type == EVENT_TYPE_PATCH_SET or event.type == EVENT_TYPE_PATCH_TRIGGER:
             #------------------------------------------------------------------------
             # Action: Set patch's input(s) and/or trigger an event
+            # If any of the params return None, the event is treated as a rest,
+            # and the patch is not triggered.
             #------------------------------------------------------------------------
+            event_is_rest = False
             for key, value in event.params.items():
                 value = Pattern.value(value)
-                event.patch.set_input(key, value)
+                if value is None:
+                    event_is_rest = True
+                else:
+                    event.patch.set_input(key, value)
 
             if hasattr(event, "note"):
                 event.patch.set_input("frequency", midi_note_to_frequency(event.note))
 
-            if event.type == EVENT_TYPE_PATCH_TRIGGER:
-                #------------------------------------------------------------------------
-                # Action: Trigger a patch
-                #------------------------------------------------------------------------
-                if not hasattr(self.output_device, "trigger"):
-                    raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
-                params = dict((key, Pattern.value(value)) for key, value in event.params.items())
-                self.output_device.trigger(event.patch, event.trigger_name, event.trigger_value)
+            if not event_is_rest:
+                if event.type == EVENT_TYPE_PATCH_TRIGGER:
+                    #------------------------------------------------------------------------
+                    # Action: Trigger a patch
+                    #------------------------------------------------------------------------
+                    if not hasattr(self.output_device, "trigger"):
+                        raise InvalidEventException("Device %s does not support this kind of event" % self.output_device)
+                    params = dict((key, Pattern.value(value)) for key, value in event.params.items())
+                    self.output_device.trigger(event.patch, event.trigger_name, event.trigger_value)
 
         #------------------------------------------------------------------------
         # Note: Classic MIDI note
@@ -489,6 +496,16 @@ class Track:
 
     def stop(self):
         self.timeline.unschedule(self)
+
+    def nudge(self, nudge_by: float):
+        """
+        Nudge the next event time by the specified offset. Useful for pushing different
+        tracks in and out of phase, and for DJ-style beat matching.
+
+        Args:
+            nudge_by (float): The offset to nudge by, in beats. Can be negative.
+        """
+        self.next_event_time += nudge_by
 
     def mute(self) -> None:
         """
