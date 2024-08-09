@@ -159,7 +159,9 @@ class Track:
 
     @property
     def tick_duration(self) -> float:
-        """ Tick duration, in beats. """
+        """
+        Tick duration, in beats.
+        """
         return self.timeline.tick_duration
 
     def process_note_offs(self):
@@ -524,7 +526,7 @@ class Track:
         Callback to trigger when an event takes place.
         Useful for displaying GUI changes to reflect underlying events.
 
-        The callback recents a single arg containing the Event.
+        The callback receives a single arg containing the Event.
         """
         self.on_event_callbacks.append(callback)
 

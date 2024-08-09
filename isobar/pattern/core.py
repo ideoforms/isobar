@@ -5,7 +5,8 @@
 from __future__ import annotations
 import copy
 import inspect
-from typing import Iterable, Callable
+from typing import Iterable, Callable, TYPE_CHECKING
+from ..timelines.lfo import LFO
 
 import isobar
 
@@ -284,6 +285,8 @@ class Pattern:
 
         if isinstance(v, Pattern):
             return v
+        elif isinstance(v, LFO):
+            return PLFO(v)
         elif isinstance(v, dict):
             return isobar.PDict(v)
         elif isinstance(v, str):
@@ -559,6 +562,18 @@ class PInt(Pattern):
         if next is not None:
             return int(next)
         return next
+
+class PLFO(Pattern):
+    """ PLFO: Encapsulates an LFO object.
+    """
+    def __init__(self, lfo: LFO):
+        self.lfo = lfo
+    
+    def __repr__(self):
+        return ("PLFO(%s)" % repr(self.lfo))
+
+    def __next__(self):
+        return self.lfo.value
 
 #------------------------------------------------------------------
 # Binary operators

@@ -8,6 +8,7 @@ from typing import Callable, Any, Optional, Union
 from dataclasses import dataclass
 
 from .track import Track
+from .lfo import LFO
 from .clock import Clock
 from .event import EventDefaults
 from ..io import MidiOutputDevice, OutputDevice
@@ -74,6 +75,9 @@ class Timeline:
 
         self.tracks: list[Track] = []
         """ The list of Track objects that are currently scheduled. """
+
+        self.lfos: list[LFO] = []
+        """ The list of LFO objects that are currently scheduled. """
 
         self.stop_when_done = False
         """ If True, stops the timeline when the last track is finished. """
@@ -238,6 +242,12 @@ class Timeline:
             track.process_note_offs()
 
         #--------------------------------------------------------------------------------
+        # Process LFOs.
+        #--------------------------------------------------------------------------------
+        for lfo in self.lfos[:]:
+            lfo.tick()
+
+        #--------------------------------------------------------------------------------
         # Copy self.actions because removing from it whilst using it = bad idea.
         # Perform actions before tracks are executed because an event might
         # include scheduling a quantized track, which should then be
@@ -308,8 +318,12 @@ class Timeline:
             print(("   - %s" % device))
 
         print((" - %d tracks" % len(self.tracks)))
-        for tracks in self.tracks:
-            print(("   - %s" % tracks))
+        for track in self.tracks:
+            print(("   - %s" % track))
+
+        print((" - %d lfos" % len(self.lfos)))
+        for lfo in self.lfos:
+            print(("   - %s" % lfo))
 
     def reset_to_beat(self):
         """
@@ -501,7 +515,11 @@ class Timeline:
                                           quantize=quantize,
                                           delay=delay,
                                           interpolate=interpolate)
-                    # TODO: Add unit test for update interpolate
+
+                    # When a track is re-scheduled that has previously been muted, unmute it.
+                    # TODO: Add unit test for this
+                    existing_track.unmute()
+
                     return existing_track
 
         if self.max_tracks and len(self.tracks) >= self.max_tracks:
@@ -537,7 +555,6 @@ class Timeline:
             #  - Add test for added_latency_seconds
             #  - Add test for defaults
 
-
         return track
 
     #--------------------------------------------------------------------------------
@@ -551,7 +568,7 @@ class Timeline:
 
         Args:
             track: The Track object.
-            
+
         Raises:
             TrackNotFoundException: If the track is not playing.
         """
@@ -577,6 +594,41 @@ class Timeline:
         scheduled_time += delay
         action = Action(scheduled_time, function)
         self.actions.append(action)
+
+    def lfo(self,
+            params: dict = None,
+            quantize: float = None,
+            delay: float = 0,
+            name: Optional[str] = None,
+            replace: bool = True) -> LFO:
+        """
+        Schedule a new LFO within this Timeline.
+
+        Args:
+            params (dict):           LFO property dictionary. 
+            name (str):              Optional name for the LFO.
+            quantize (float):        Quantize level, in beats. For example, 1.0 will begin executing the \
+                                     events on the next whole beat.
+            delay (float):           Delay time, in beats, before LFO should be started. If `quantize` \
+                                     and `delay` are both specified, quantization is applied, \
+                                     and the LFO is scheduled `delay` beats after the quantization time.
+            name (str):              Optional name to identify the LFO. If given, can be used to update the LFO's
+                                     parameters in future calls to schedule() by specifying replace=True.
+            replace (bool):          Must be used in conjunction with the `name` parameter. Instead of scheduling a \
+                                     new LFO, this updates the parameters of an existing LFO with the same name.
+
+        Returns:
+            The new `LFO` object.
+        """
+        for lfo in self.lfos:
+            if name is not None and lfo.name == name:
+                lfo_object = lfo
+                lfo_object.update(params)
+                return lfo_object
+            
+        lfo_object = LFO(self, name=name, **params)
+        self.lfos.append(lfo_object)
+        return lfo_object
 
     def get_track(self, track_id: Union[int, str]) -> Optional[Track]:
         """
