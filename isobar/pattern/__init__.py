@@ -15,6 +15,7 @@ from .static import *
 from .tonal import *
 from .fade import *
 from .midi import *
+from .monome import *
 
 __all__ = []
 key = value = None
