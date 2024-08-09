@@ -8,7 +8,7 @@ from ..constants import *
 from ..util import scale_lin_lin
 
 import logging
-import numpy as np
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ class LFO:
         self.current_time += self.tick_duration
         
         if self.shape == "sine":
-            value_unscaled = np.sin(np.pi * 2 * self.current_time * self.frequency)
+            value_unscaled = math.sin(math.pi * 2 * self.current_time * self.frequency)
             value_scaled = scale_lin_lin(value_unscaled, -1, 1, self.min, self.max)
             self.current_value = value_scaled
         else:
