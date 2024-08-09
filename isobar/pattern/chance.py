@@ -29,7 +29,7 @@ class PStochasticPattern(Pattern):
         super().reset()
         self.rng.seed(self._seed)
 
-    def seed(self, seed=None):
+    def seed(self, seed: int = None):
         """
         Seed the pattern's random number generator with a new seed,
         initialising a new pseudo-random sequence.
@@ -42,10 +42,17 @@ class PStochasticPattern(Pattern):
         self._seed = seed
         self.rng.seed(self._seed)
 
+        #--------------------------------------------------------------------------------
+        # Return self so this method can be called in-line when scheduling a pattern,
+        # e.g. "note": PRandomUniform(60, 72, length=8).seed(0)
+        #--------------------------------------------------------------------------------
+        return self
+
 class PWhite(PStochasticPattern):
     """ PWhite: White noise between `min` and `max`.
         If values are given as floats, output values are also floats < max.
         If values are ints, output values are ints <= max (as random.randint)
+        If `length` is zero, an endless sequence is generated.
 
         >>> PWhite(0, 10).nextn(16)
         [8, 10, 8, 1, 7, 3, 1, 9, 9, 3, 2, 10, 7, 5, 10, 4]
@@ -54,11 +61,13 @@ class PWhite(PStochasticPattern):
         [3.6747936220022082, 0.61313530428271923, 9.1515368696591555, ... 6.2963694390145974 ]
         """
 
-    def __init__(self, min: float = 0.0, max: float = 1.0):
+    def __init__(self, min: float = 0.0, max: float = 1.0, length: int = 0):
         super().__init__()
 
         self.min = min
         self.max = max
+        self.length = length
+        self.index = 0
 
     def __repr__(self):
         return ("PWhite(%s,%s)" % (self.min, self.max))
@@ -66,6 +75,10 @@ class PWhite(PStochasticPattern):
     def __next__(self):
         min = Pattern.value(self.min)
         max = Pattern.value(self.max)
+        length = Pattern.value(self.length)
+        self.index += 1
+        if length > 0 and self.index > length + 1:
+            raise StopIteration
 
         if type(min) == float:
             return self.rng.uniform(min, max)
