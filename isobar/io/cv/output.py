@@ -1,10 +1,5 @@
 from ..output import OutputDevice
-
-try:
-    import numpy as np
-    import sounddevice
-except ModuleNotFoundError:
-    pass
+import numpy as np
 
 def get_cv_output_devices():
     return list(sounddevice.query_devices())
@@ -34,6 +29,16 @@ class CVOutputDevice(OutputDevice):
             sample_rate (int): Audio sample rate to use.
         """
         super().__init__()
+
+        #--------------------------------------------------------------------------------
+        # Lazily import sounddevice, to avoid the additional time cost of initializing 
+        # PortAudio when not needed
+        #--------------------------------------------------------------------------------
+        try:
+            import sounddevice
+        except ModuleNotFoundError:
+            raise RuntimeError("CVOutputDevice: Couldn't import the sounddevice module (to install: pip3 install sounddevice)")
+
         try:
             self.stream = sounddevice.OutputStream(device=device_name,
                                                    samplerate=sample_rate,
