@@ -1,5 +1,4 @@
 from ..output import OutputDevice
-import numpy as np
 
 def get_cv_output_devices():
     return list(sounddevice.query_devices())
@@ -36,8 +35,9 @@ class CVOutputDevice(OutputDevice):
         #--------------------------------------------------------------------------------
         try:
             import sounddevice
+            import numpy as np
         except ModuleNotFoundError:
-            raise RuntimeError("CVOutputDevice: Couldn't import the sounddevice module (to install: pip3 install sounddevice)")
+            raise RuntimeError("CVOutputDevice: Couldn't import the sounddevice or numpy modules (to install: pip3 install sounddevice numpy)")
 
         try:
             self.stream = sounddevice.OutputStream(device=device_name,
