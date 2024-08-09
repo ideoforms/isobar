@@ -23,10 +23,10 @@ class LFO:
         """
         Args:
             timeline: The Timeline object that the track inhabits
-            shape:
-            frequency:
-            min:
-            max:
+            shape: The shape of the LFO
+            frequency: The frequency of the LFO
+            min: The minimum value to generate
+            max: The maximum value to generate
             name: Optional name for the LFO. If specified, can be used to update LFOs in place by specifying \
                   its name when scheduling events on the Timeline.
         """

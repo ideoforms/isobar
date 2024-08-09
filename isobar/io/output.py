@@ -5,6 +5,9 @@ log = logging.getLogger(__name__)
 class OutputDevice:
     def __init__(self):
         self.added_latency_seconds = 0.0
+    
+    def __str__(self):
+        return "Device (%s)" % (self.__class__.__name__)
 
     @property
     def ticks_per_beat(self):

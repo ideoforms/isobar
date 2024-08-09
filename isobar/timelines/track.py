@@ -68,6 +68,12 @@ class Track:
         self.remove_when_done: bool = remove_when_done
         self.on_event_callbacks: list[Callable] = []
 
+    def __str__(self):
+        if self.name:
+            return "Track (name=%s, time=%.2f)" % (self.name, self.current_time)
+        else:
+            return "Track (time=%.2f)" % self.current_time
+
     def __getattr__(self, item):
         return self.event_stream[item]
 
@@ -150,12 +156,6 @@ class Track:
             self.timeline._schedule_action(function=lambda: self.start(events, interpolate=interpolate),
                                            quantize=quantize,
                                            delay=delay)
-
-    def __str__(self):
-        if self.name:
-            return "Track: %s (pos = %d)" % (self.name, self.current_time)
-        else:
-            return "Track (pos = %d)" % self.current_time
 
     @property
     def tick_duration(self) -> float:
