@@ -313,15 +313,15 @@ class Timeline:
         print("Timeline (clock: %s, tempo %s)" %
               (self.clock_source, self.clock_source.tempo if self.clock_source.tempo else "unknown"))
 
-        print((" - %d devices" % len(self.output_devices)))
+        print((" - Devices (total=%d)" % len(self.output_devices)))
         for device in self.output_devices:
             print(("   - %s" % device))
 
-        print((" - %d tracks" % len(self.tracks)))
+        print((" - Tracks (total=%d)" % len(self.tracks)))
         for track in self.tracks:
             print(("   - %s" % track))
 
-        print((" - %d lfos" % len(self.lfos)))
+        print((" - LFOs (total=%d)" % len(self.lfos)))
         for lfo in self.lfos:
             print(("   - %s" % lfo))
 
