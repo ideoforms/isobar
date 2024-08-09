@@ -195,8 +195,29 @@ def scale_lin_lin(value: float,
     Returns:
         The scaled value.
     """
-    norm = float(value - from_min) / (from_max - from_min)
-    return norm * float(to_max - to_min) + to_min
+    norm = (value - from_min) / (from_max - from_min)
+    return norm * (to_max - to_min) + to_min
+
+def scale_exp_lin(value: float,
+                  from_min: float,
+                  from_max: float,
+                  to_min: float,
+                  to_max: float) -> float:
+    """
+    Map a value on an exponential scale to a linear scale.
+
+    Args:
+        value: The value
+        from_min: The lower bound of the input range
+        from_max: The upper bound of the input range
+        to_min: The lower bound of the output range
+        to_max: The upper bound of the output range
+
+    Returns:
+        The scaled value.
+    """
+    norm = (math.log(value / from_min)) / (math.log(from_max / from_min))
+    return norm * (to_max - to_min) + to_min
 
 def bipolar_diverge(maximum: int) -> list[int]:
     """
