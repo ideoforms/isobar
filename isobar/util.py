@@ -154,10 +154,10 @@ def frequency_ratio_to_midi_semitones(frequency_ratio) -> float:
     return math.log2(frequency_ratio) * 12
 
 def scale_lin_exp(value: float,
-                  from_min: float = 0,
-                  from_max: float = 1,
-                  to_min: float = 1,
-                  to_max: float = 10) -> float:
+                  from_min: float,
+                  from_max: float,
+                  to_min: float,
+                  to_max: float) -> float:
     """
     Map a value on a linear scale to an exponential scale.
 
@@ -178,10 +178,10 @@ def scale_lin_exp(value: float,
     return ((to_max / to_min) ** ((value - from_min) / (from_max - from_min))) * to_min
 
 def scale_lin_lin(value: float,
-                  from_min: float = 0,
-                  from_max: float = 1,
-                  to_min: float = 0,
-                  to_max: float = 1) -> float:
+                  from_min: float,
+                  from_max: float,
+                  to_min: float,
+                  to_max: float) -> float:
     """
     Map a value on a linear scale to a linear scale.
 
