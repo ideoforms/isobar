@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.1.4](https://github.com/ideoforms/isobar/tree/v0.1.4) (2024-08-11)
+
+- Added support for LFOs for continuous parameter modulation, and `PLFO` pattern class
+- Added `Track.nudge()` to nudge a track back/forward in time
+- Added `FluidSynthOutputDevice` to interact with FluidSynth sound fonts
+- Added initial support for monome devices
+- Added `scale_exp_lin`
+
 ## [v0.1.3](https://github.com/ideoforms/isobar/tree/v0.1.3) (2024-07-01)
 
 - Added support for Ableton Link clock sync (thanks to [Raphaël Forment](https://github.com/Bubobubobubobubo) for providing LinkPython-extern)
