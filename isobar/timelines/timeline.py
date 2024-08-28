@@ -90,8 +90,9 @@ class Timeline:
         self.ignore_exceptions = False
         """
         If ignore_exceptions is True, exceptions do not halt the timeline,
-        and instead simply generate a warning. This can be useful for contexts
-        such as live performance that require a robust playback environment.
+        and instead simply generate a warning (and halt the track that generated
+        the exception). This can be useful for contexts such as live performance
+        that require a robust playback environment.
         """
 
         self.defaults = EventDefaults()
@@ -356,7 +357,8 @@ class Timeline:
 
     def run(self, stop_when_done: bool = None) -> None:
         """
-        Run this Timeline in the foreground.
+        Run this Timeline in the foreground. Note that this will block the main thread
+        indefinitely. If you want to run the timeline in the background, call `start()`.
 
         Args:
             stop_when_done: If set, returns when no tracks are currently \
@@ -463,7 +465,9 @@ class Timeline:
                  replace: bool = True,
                  track_index: Optional[int] = None) -> Track:
         """
-        Schedule a new track within this Timeline.
+        Create a new Track within this Timeline, with the properties specified in `params`.
+
+        If `name` is non-null and a track exists with the same name, the existing track is updated.
 
         Args:
             params (dict):           Event dictionary. Keys are generally EVENT_* values, defined in constants.py. \
