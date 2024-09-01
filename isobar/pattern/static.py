@@ -1,6 +1,8 @@
 from __future__ import annotations
 from . import Pattern
 
+from typing import Any
+
 class Globals:
     """
     The Globals class encapsulates a namespace of global variables that can be accessed
@@ -57,16 +59,20 @@ class PGlobals (Pattern):
     """ PGlobals: Static global value identified by a string.
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, default: Any = None):
         self.name = name
+        self.default = default
 
     def __repr__(self):
         return ("PGlobals(%s)" % repr(self.name))
 
     def __next__(self):
         name = Pattern.value(self.name)
-        value = Globals.get(name)
-        return Pattern.value(value)
+        try:
+            value = Globals.get(name)
+            return Pattern.value(value)
+        except KeyError:
+            return self.default
 
 class PStaticPattern(Pattern):
     def __init__(self, pattern: Pattern, element_duration: float):
