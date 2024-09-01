@@ -38,6 +38,10 @@ class Event:
             event_values[EVENT_DURATION] = event_values[EVENT_DURATION_LEGACY]
         if EVENT_AMPLITUDE_LEGACY in event_values:
             event_values[EVENT_AMPLITUDE] = event_values[EVENT_AMPLITUDE_LEGACY]
+        
+        # Synonym
+        if EVENT_VELOCITY in event_values:
+            event_values[EVENT_AMPLITUDE] = event_values[EVENT_VELOCITY]
 
         for key, value in defaults.__dict__.items():
             # Defaults can be patterns too
