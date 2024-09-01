@@ -271,6 +271,9 @@ class Pattern:
         """
         if isinstance(v, Pattern):
             return Pattern.value(next(v))
+        # Should lists/dicts be handled similarly?
+        elif isinstance(v, tuple):
+            return tuple(Pattern.value(element) for element in v)
         else:
             return v
 
