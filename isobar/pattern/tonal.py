@@ -1,6 +1,7 @@
 from __future__ import annotations
 from .core import Pattern
 from ..scale import Scale
+from ..key import Key
 from ..util import midi_note_to_frequency, midi_semitones_to_frequency_ratio
 
 import typing
@@ -114,3 +115,26 @@ class PMidiSemitonesToFrequencyRatio(Pattern):
         if note is None:
             return None
         return midi_semitones_to_frequency_ratio(note)
+    
+class PKeyTonic(Pattern):
+    """ PKeyTonic: Given a Key as an input, returns the tonic of that key
+
+        >>> p = PKeyTonic(PChoice([Key("C", "major"),
+                                   Key("F", "minor"),
+                                   Key("G", "major")]))
+        >>> p.nextn(16)
+        [0, 5, 0, 0, 5, 5, 0, 5, 7, 0, 5, 0, 5, 0, 7, 5]
+        """
+
+    def __init__(self, key: Key):
+        self.key = key
+
+    def __repr__(self):
+        return ("PKey(%s)" % (repr(self.key)))
+
+    def __next__(self):
+        key = Pattern.value(self.key)
+        if key is None:
+            return None
+
+        return key.tonic
