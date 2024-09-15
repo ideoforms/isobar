@@ -51,8 +51,8 @@ class SignalFlowOutputDevice(OutputDevice):
         patch.set_auto_free(True)
 
         if output:
-            output.add_input(patch)
-            patch.add_to_graph()
+            if patch.add_to_graph():
+                output.add_input(patch)
         else:
             self.graph.play(patch)
 
