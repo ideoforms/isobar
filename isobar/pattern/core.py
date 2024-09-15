@@ -422,13 +422,13 @@ class PDict(Pattern):
         Implemented for syntactical sugar, so that a track's params property
         can be modified by doing (e.g.) track.params.cutoff = 200
         """
-        if key == "dict":
+        if key == "dict" or key.startswith("__"):
             return super().__getattr__(key)
         else:
             return self.dict[key]
 
     def __setattr__(self, key: str, value: Any):
-        if key == "dict":
+        if key == "dict" or key.startswith("__"):
             return super().__setattr__(key, value)
         else:
             self.dict[key] = value
