@@ -5,7 +5,7 @@
 from __future__ import annotations
 import copy
 import inspect
-from typing import Iterable, Callable, TYPE_CHECKING
+from typing import Iterable, Callable, Any, TYPE_CHECKING
 from ..timelines.lfo import LFO
 
 import isobar
@@ -416,6 +416,22 @@ class PDict(Pattern):
                     self.dict[key] = PSequence([item[key] for item in value], 1)
             except IndexError:
                 pass
+
+    def __getattr__(self, key: str):
+        """
+        Implemented for syntactical sugar, so that a track's params property
+        can be modified by doing (e.g.) track.params.cutoff = 200
+        """
+        if key == "dict":
+            return super().__getattr__(key)
+        else:
+            return self.dict[key]
+
+    def __setattr__(self, key: str, value: Any):
+        if key == "dict":
+            return super().__setattr__(key, value)
+        else:
+            self.dict[key] = value
 
     def __repr__(self):
         return ("PDict(%s)" % repr(self.dict))
