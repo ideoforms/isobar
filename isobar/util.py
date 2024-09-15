@@ -76,8 +76,7 @@ def note_name_to_midi_note(name):
         octave = -1
 
     try:
-        # TODO: Fix such that note names can be lowercase (must also work with e.g. Bb)
-        index = note_names.index([nameset for nameset in note_names if name in nameset][0])
+        index = note_names.index([nameset for nameset in note_names if name.capitalize() in nameset][0])
     except IndexError:
         raise UnknownNoteName("Unknown note name: %s" % name)
 
