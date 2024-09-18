@@ -10,8 +10,9 @@ from dataclasses import dataclass
 from .track import Track
 from .lfo import LFO
 from .clock import Clock
+from .clock_link import AbletonLinkClock
 from .event import EventDefaults
-from ..io import MidiOutputDevice, OutputDevice
+from ..io import MidiOutputDevice, OutputDevice, MidiInputDevice
 from ..constants import DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO
 from ..constants import INTERPOLATION_NONE
 from ..exceptions import TrackLimitReachedException, TrackNotFoundException, MultipleOutputDevicesException
@@ -29,7 +30,9 @@ class Timeline:
                  tempo: float = DEFAULT_TEMPO,
                  output_device: Any = None,
                  clock_source: Any = None,
-                 ticks_per_beat: int = DEFAULT_TICKS_PER_BEAT):
+                 ticks_per_beat: int = DEFAULT_TICKS_PER_BEAT,
+                 ignore_exceptions: bool = False,
+                 start: bool = False):
         """
         A Timeline object encapsulates a number of Tracks, each of which
         represents a sequence of note or control events.
@@ -47,11 +50,26 @@ class Timeline:
             clock_source: The source of clocking events. If not specified, creates an internal Clock.
             ticks_per_beat: The timing resolution, in PPQN. Default is 480PPQN, which equates to approximately \
                             1ms resolution at 120bpm.
+            ignore_exceptions: If True, exceptions do not halt the timeline, and instead simply
+                               generate a warning and halt the affected track. Useful for cases
+                               such as live coding that require persistent operation.
+            start: If True, automatically start the timeline running in the background.
         """
         self._clock_source: Optional[Clock] = None
         if clock_source is None:
             clock_source = Clock(self, tempo, ticks_per_beat)
-        self.set_clock_source(clock_source)
+        else:
+            if isinstance(clock_source, str):
+                if clock_source == "midi":
+                    clock_source = MidiInputDevice()
+                elif clock_source == "link":
+                    clock_source = AbletonLinkClock()
+                elif clock_source == "internal":
+                    clock_source = Clock(self, tempo, ticks_per_beat)
+                else:
+                    raise ValueError("Invalid clock source: %s" % clock_source)
+            
+            self.set_clock_source(clock_source)
 
         self.clock_multipliers: dict[OutputDevice, Callable] = {}
         """
@@ -87,7 +105,7 @@ class Timeline:
         self.running: bool = False
         """ Indicates whether the timeline is currently running. """
 
-        self.ignore_exceptions = False
+        self.ignore_exceptions = ignore_exceptions
         """
         If ignore_exceptions is True, exceptions do not halt the timeline,
         and instead simply generate a warning (and halt the track that generated
@@ -109,6 +127,9 @@ class Timeline:
          - the Track that the event occurred on
          - the Event object
         """
+
+        if start:
+            self.start()
 
     def get_clock_source(self) -> Clock:
         """
@@ -276,6 +297,9 @@ class Timeline:
                 if self.ignore_exceptions:
                     tb = traceback.format_exc()
                     log.warning("*** Exception in track: %s" % tb)
+                    # TODO: Possibly don't remove tracks specifically for the case in which SignalFlow
+                    # throws a CPU exception? Generally, tracks should be stopped to prevent runaway repeats
+                    # of errors.
                     self.tracks.remove(track)
                 else:
                     raise
@@ -480,7 +504,7 @@ class Timeline:
             delay (float):           Delay time, in beats, before events should be executed. If `quantize` \
                                      and `delay` are both specified, quantization is applied, \
                                      and the event is scheduled `delay` beats after the quantization time.
-            count (int):             Number of events to process, or unlimited if not specified.
+            count (int):             Number of events to process, or unlimited if zero or None.
             interpolate (int):       Interpolation mode for control segments.
             output_device:           Output device to send events to. Uses the Timeline default if not specified.
             remove_when_done (bool): If True, removes the Track from the Timeline when it is finished.
@@ -518,7 +542,12 @@ class Timeline:
                     existing_track.update(params,
                                           quantize=quantize,
                                           delay=delay,
-                                          interpolate=interpolate)
+                                          interpolate=interpolate,
+                                          count=count)
+                    
+                    # When a track is re-scheduled, re-start its event count as this
+                    # is typically expected.
+                    existing_track.current_event_count = 0
 
                     # When a track is re-scheduled that has previously been muted, unmute it.
                     # TODO: Add unit test for this
