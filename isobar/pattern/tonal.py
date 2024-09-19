@@ -138,3 +138,24 @@ class PKeyTonic(Pattern):
             return None
 
         return key.tonic
+    
+class PKeyScale(Pattern):
+    """ PKeyScale: Given a Key as an input, returns the scale corresponding to the key
+
+        >>> p = PKeyScale(PChoice([Key("C", "major"),
+                                   Key("F", "minor"),
+                                   Key("G", "major")]))
+        """
+
+    def __init__(self, key: Key):
+        self.key = key
+
+    def __repr__(self):
+        return ("PScale(%s)" % (repr(self.key)))
+
+    def __next__(self):
+        key = Pattern.value(self.key)
+        if key is None:
+            return None
+
+        return key.scale
