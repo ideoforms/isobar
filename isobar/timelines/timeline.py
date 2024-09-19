@@ -56,6 +56,7 @@ class Timeline:
             start: If True, automatically start the timeline running in the background.
         """
         self._clock_source: Optional[Clock] = None
+
         if clock_source is None:
             clock_source = Clock(self, tempo, ticks_per_beat)
         else:
@@ -68,8 +69,7 @@ class Timeline:
                     clock_source = Clock(self, tempo, ticks_per_beat)
                 else:
                     raise ValueError("Invalid clock source: %s" % clock_source)
-            
-            self.set_clock_source(clock_source)
+        self.set_clock_source(clock_source)
 
         self.clock_multipliers: dict[OutputDevice, Callable] = {}
         """
