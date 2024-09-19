@@ -62,7 +62,11 @@ class Event:
                 # Tolerate float degrees.
                 # This may need revisiting for tunings that permit sub-semitone values.
                 #--------------------------------------------------------------------------------
-                degree = int(degree)
+                try:
+                    degree = [int(degree) for degree in degree]
+                except:
+                    degree = int(degree)
+                    
                 key = event_values[EVENT_KEY]
                 if isinstance(key, str):
                     key = Key(key)
