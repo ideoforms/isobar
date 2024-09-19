@@ -102,7 +102,6 @@ class Track:
               interpolate: Optional[str] = None) -> None:
         """
         Begin executing the events on this track.
-        Resets the track's time counter to zero.
 
         Args:
             events: A dict, a PDict, or a Pattern that generates dicts.
@@ -114,7 +113,13 @@ class Track:
         self.event_stream = events
 
         self.is_started = True
-        self.current_time = 0.0
+
+        # Previously, this reset the counter to zero, but when re-scheduling a track that has
+        # note-offs awaiting, this caused the existing notes to extend in duration.
+        # Arguably it is more coherent to reset the time and adjust the note-off scheduling
+        # accordingly, so may need to re-visit this.
+        # self.current_time = 0.0
+
         self.next_event_time = self.current_time
         if interpolate is not None:
             self.interpolate = interpolate
@@ -123,7 +128,8 @@ class Track:
                events: Union[dict, Pattern],
                quantize: Optional[float] = None,
                delay: Optional[float] = None,
-               interpolate: Optional[str] = None):
+               interpolate: Optional[str] = None,
+               count: Optional[int] = None):
         """
         Update the events that this Track produces.
 
@@ -133,6 +139,7 @@ class Track:
                       quantize == 1 means that the update should happen on the next beat boundary.
             delay: Optional float specifying delay time applied to quantization
             interpolate: Optional interpolation mode
+            count: Optional max_event_count
         """
         if quantize is None:
             quantize = self.timeline.defaults.quantize
@@ -140,6 +147,8 @@ class Track:
             delay = self.timeline.defaults.delay
         if self.output_device is not None and self.output_device.added_latency_seconds > 0.0:
             delay += self.timeline.seconds_to_beats(self.output_device.added_latency_seconds)
+        if count is not None:
+            self.max_event_count = count
 
         #--------------------------------------------------------------------------------
         # Don't assign to events immediately, because in the case of quantized
@@ -298,7 +307,8 @@ class Track:
         if self.event_stream is None:
             raise StopIteration
 
-        if self.max_event_count is not None and self.current_event_count >= self.max_event_count:
+        # Allow for 0 to mean infinite events, for ease of use in live coding
+        if self.max_event_count not in (None, 0) and self.current_event_count >= self.max_event_count:
             raise StopIteration
 
         #------------------------------------------------------------------------
