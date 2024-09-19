@@ -6,9 +6,15 @@ class Scale(object):
     dict = {}
 
     def __init__(self, semitones=[0, 2, 4, 5, 7, 9, 11], name="unnamed scale", octave_size=12):
+        for semitone in semitones:
+            if not isinstance(semitone, int):
+                raise ValueError("semitones must be a list of integers")
         self.semitones = semitones
-        """ For polymorphism with WeightedScale -- assume all notes equally weighted. """
+        """ List of semitone making up the scale """
+
         self.weights = [1.0 / len(self.semitones) for _ in range(len(self.semitones))]
+        """ For polymorphism with WeightedScale -- assume all notes equally weighted. """
+
         self.name = name
         self.octave_size = octave_size
         if name not in Scale.dict:
@@ -94,6 +100,10 @@ class Scale(object):
     def random():
         key = random.choice(list(Scale.dict.keys()))
         return Scale.dict[key]
+    
+    def random_note(self):
+        note = random.choices(self.semitones, self.weights)
+        return note[0]
 
 Scale.chromatic = Scale([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "chromatic")
 Scale.major = Scale([0, 2, 4, 5, 7, 9, 11], "major")
