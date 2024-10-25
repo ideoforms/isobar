@@ -24,15 +24,16 @@ class SignalFlowOutputDevice(OutputDevice):
         if graph:
             self.graph = graph
         else:
-            try:
-                self.graph = sf.AudioGraph()
-            except NameError:
-                raise Exception("Could not instantiate SignalFlowOutputDevice, signalflow not installed?")
-            except sf.GraphAlreadyCreatedException:
-                raise Exception("SignalFlow graph has already been instantiated."
-                                "Pass the AudioGraph object as an argument to SignalFlowOutputDevice.")
+            self.graph = sf.AudioGraph.get_shared_graph()
+            if self.graph is None:
+                try:
+                    self.graph = sf.AudioGraph(start=True)
+                except NameError:
+                    raise Exception("Could not instantiate SignalFlowOutputDevice, signalflow not installed?")
+                except sf.GraphAlreadyCreatedException:
+                    raise Exception("SignalFlow graph has already been instantiated."
+                                    "Pass the AudioGraph object as an argument to SignalFlowOutputDevice.")
 
-        self.graph.start()
         log.info("Opened SignalFlow output")
 
         self.patches = []
@@ -52,6 +53,9 @@ class SignalFlowOutputDevice(OutputDevice):
 
         if output:
             if patch.add_to_graph():
+                #--------------------------------------------------------------------------------
+                # Can fail if the graph exceeds its configured patch count limit
+                #--------------------------------------------------------------------------------
                 output.add_input(patch)
         else:
             self.graph.play(patch)
