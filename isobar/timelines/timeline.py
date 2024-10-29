@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 from .track import Track
 from .lfo import LFO
+from .automation import Automation
 from .clock import Clock
 from .clock_link import AbletonLinkClock
 from .event import EventDefaults
@@ -80,9 +81,14 @@ class Timeline:
         """
 
         self.output_devices: list[OutputDevice] = []
-        if output_device:
-            self.add_output_device(output_device)
         """ The output devices that the timeline is able to schedule events on. """
+
+        #--------------------------------------------------------------------------------
+        # If no output device is specified, send to the system default MIDI output.
+        #--------------------------------------------------------------------------------
+        if output_device is None:
+            output_device = MidiOutputDevice()
+        self.add_output_device(output_device)
 
         self.current_time: float = 0
         """ The current time, in beats. """
@@ -96,6 +102,9 @@ class Timeline:
 
         self.lfos: list[LFO] = []
         """ The list of LFO objects that are currently scheduled. """
+
+        self.automations: list[Automation] = []
+        """ The list of Automation objects that are currently scheduled. """
 
         self.stop_when_done = False
         """ If True, stops the timeline when the last track is finished. """
@@ -268,6 +277,12 @@ class Timeline:
         #--------------------------------------------------------------------------------
         for lfo in self.lfos[:]:
             lfo.tick()
+
+        #--------------------------------------------------------------------------------
+        # Process automations.
+        #--------------------------------------------------------------------------------
+        for automation in self.automations[:]:
+            automation.tick()
 
         #--------------------------------------------------------------------------------
         # Copy self.actions because removing from it whilst using it = bad idea.
@@ -453,7 +468,7 @@ class Timeline:
         Raises:
             MultipleOutputDevicesException: If multiple output devices exist.
         """
-        if len(self.output_devices) != 1:
+        if len(self.output_devices) > 1:
             raise MultipleOutputDevicesException("output_device is ambiguous for Timelines with multiple outputs")
         return self.output_devices[0]
 
@@ -480,7 +495,7 @@ class Timeline:
     def schedule(self,
                  params: dict = None,
                  quantize: float = None,
-                 delay: float = 0,
+                 delay: float = None,
                  count: Optional[int] = None,
                  interpolate: str = INTERPOLATION_NONE,
                  output_device: Any = None,
@@ -525,11 +540,6 @@ class Timeline:
             TrackLimitReachedException: If `max_tracks` has been reached.
         """
         if output_device is None:
-            #--------------------------------------------------------------------------------
-            # If no output device exists, send to the system default MIDI output.
-            #--------------------------------------------------------------------------------
-            if len(self.output_devices) == 0:
-                self.add_output_device(MidiOutputDevice())
             output_device = self.output_devices[0]
 
         #--------------------------------------------------------------------------------
@@ -544,7 +554,7 @@ class Timeline:
                                           delay=delay,
                                           interpolate=interpolate,
                                           count=count)
-                    
+
                     # When a track is re-scheduled, re-start its event count as this
                     # is typically expected.
                     existing_track.current_event_count = 0
@@ -658,10 +668,27 @@ class Timeline:
                 lfo_object = lfo
                 lfo_object.update(params)
                 return lfo_object
-            
+
         lfo_object = LFO(self, name=name, **params)
         self.lfos.append(lfo_object)
         return lfo_object
+
+    def automation(self,
+                   range: Optional[tuple[float, float]] = None,
+                   initial: Optional[float] = None,
+                   ease: Optional[str] = None,
+                   curve: Optional[str] = "linear",
+                   boundaries: Optional[str] = "clip",
+                   default_duration: Optional[float] = 0.0) -> Automation:
+        automation = Automation(timeline=self,
+                                range=range,
+                                initial=initial,
+                                ease=ease,
+                                curve=curve,
+                                boundaries=boundaries,
+                                default_duration=default_duration)
+        self.automations.append(automation)
+        return automation
 
     def get_track(self, track_id: Union[int, str]) -> Optional[Track]:
         """
