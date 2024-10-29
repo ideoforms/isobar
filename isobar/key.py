@@ -27,7 +27,10 @@ class Key:
         self.scale = scale
 
     def __eq__(self, other):
-        return self.tonic == other.tonic and self.scale == other.scale
+        try:
+            return self.tonic == other.tonic and self.scale == other.scale
+        except AttributeError:
+            return False
 
     def __str__(self):
         return "Key: %s %s" % (midi_note_to_note_name(self.tonic)[:], self.scale.name)
