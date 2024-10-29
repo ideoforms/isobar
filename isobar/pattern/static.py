@@ -1,59 +1,9 @@
 from __future__ import annotations
 from . import Pattern
+from ..globals import Globals
 
 from typing import Any
 
-class Globals:
-    """
-    The Globals class encapsulates a namespace of global variables that can be accessed
-    throughout isobar. This is particularly useful to alter parameters shared across the
-    composition, which can then be accessed in patterns using the PGlobals class.
-    """
-    dict = {}
-    on_change_callbacks = []
-
-    @classmethod
-    def get(cls, key):
-        """
-        Returns the value stored in `key`.
-        Args:
-            key: The key to query.
-
-        Returns:
-            The value, which can be of any type.
-
-        Raises:
-            KeyError: If the key does not exist in the globals dict.
-        """
-        if key not in Globals.dict:
-            raise KeyError("Global variable does not exist: %s" % key)
-        value = Globals.dict[key]
-        return Pattern.value(value)
-
-    @classmethod
-    def set(cls, key, value=None):
-        """
-        Set global parameters.
-        Can either be used to set a single parameter or, if `key` is a dict, a dict of multiple
-        parameters concurrently.
-
-        Args:
-            key: A key name, or a dict of key-value pairs.
-            value: The value to set the key to
-        """
-        if isinstance(key, dict):
-            for key, value in key.items():
-                Globals.dict[key] = value
-                for callback in Globals.on_change_callbacks:
-                    callback(key, value)
-        else:
-            Globals.dict[key] = value
-            for callback in Globals.on_change_callbacks:
-                callback(key, value)
-
-    @classmethod
-    def add_on_change_callback(self, callback):
-        Globals.on_change_callbacks.append(callback)
 
 class PGlobals (Pattern):
     """ PGlobals: Static global value identified by a string.
