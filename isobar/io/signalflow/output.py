@@ -17,8 +17,9 @@ class SignalFlowOutputDevice(OutputDevice):
         Create an output device for the SignalFlow audio DSP framework.
 
         Args:
-            device_name (str): The name of the target device to use.
-                               If not specified, uses the system default.
+            graph (str): An existing SignalFlow AudioGraph object to use.
+                         If not specified, uses the current global AudioGraph,
+                         creating one if it has not yet been instantiated.
         """
         super().__init__()
         if graph:
@@ -30,9 +31,6 @@ class SignalFlowOutputDevice(OutputDevice):
                     self.graph = sf.AudioGraph(start=True)
                 except NameError:
                     raise Exception("Could not instantiate SignalFlowOutputDevice, signalflow not installed?")
-                except sf.GraphAlreadyCreatedException:
-                    raise Exception("SignalFlow graph has already been instantiated."
-                                    "Pass the AudioGraph object as an argument to SignalFlowOutputDevice.")
 
         log.info("Opened SignalFlow output")
 
