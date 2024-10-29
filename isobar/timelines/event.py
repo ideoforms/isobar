@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 class EventDefaults:
     def __init__(self):
-        default_values = {
+        self.default_values = {
             EVENT_ACTIVE: True,
             EVENT_CHANNEL: DEFAULT_EVENT_CHANNEL,
             EVENT_DURATION: DEFAULT_EVENT_DURATION,
@@ -23,8 +23,12 @@ class EventDefaults:
             EVENT_DELAY: DEFAULT_EVENT_DELAY,
             EVENT_PITCHBEND: None,
         }
-        for key, value in default_values.items():
+        for key, value in self.default_values.items():
             setattr(self, key, value)
+    def __setattr__(self, name, value):
+        if name != "default_values" and name not in self.default_values:
+            raise ValueError("Invalid property for defaults: %s" % name)
+        super().__setattr__(name, value)
 
 class Event:
     def __init__(self, event_values, defaults=EventDefaults(), track=None):
