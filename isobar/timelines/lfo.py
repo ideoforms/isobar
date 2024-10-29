@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Optional, Callable, TYPE_CHECKING
+from typing import Optional, Callable, Any, TYPE_CHECKING
+from dataclasses import dataclass
 
 if TYPE_CHECKING:
     from .timeline import Timeline
@@ -11,6 +12,11 @@ import logging
 import math
 
 logger = logging.getLogger(__name__)
+
+@dataclass
+class Binding:
+    object: Any
+    property_name: str
 
 class LFO:
     def __init__(self,
@@ -43,6 +49,7 @@ class LFO:
         self.current_time: float = 0.0
 
         self.value_changed_callbacks: list[Callable] = []
+        self.bindings: list[Binding] = []
 
     def __str__(self):
         return "LFO (%s, shape=%s, frequency=%.2f)" % (self.name if self.name else "unnamed", self.shape, self.frequency)
@@ -80,6 +87,9 @@ class LFO:
             self.current_value = value_scaled
         else:
             raise ValueError("Invalid LFO shape: %s" % self.shape)
+        
+        for binding in self.bindings:
+            setattr(binding.object, binding.property_name, self.current_value)
         
     def update(self,
                properties: dict):
@@ -130,3 +140,7 @@ class LFO:
             callback: The callback to remove.
         """
         self.value_changed_callbacks.remove(callback)
+
+    def bind(self, object: Any, property_name: str):
+        binding = Binding(object, property_name)
+        self.bindings.append(binding)
