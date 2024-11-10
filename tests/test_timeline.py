@@ -12,8 +12,8 @@ def test_timeline_tempo():
     assert timeline.clock_source.tempo == pytest.approx(100)
 
 def test_timeline_default_output_device():
-    timeline = iso.Timeline()
     try:
+        timeline = iso.Timeline()
         track = timeline.schedule({ "note": 0 })
         assert issubclass(type(track.output_device), MidiOutputDevice)
     except iso.DeviceNotFoundException:
@@ -271,18 +271,26 @@ def test_timeline_tick_actions(dummy_timeline):
     assert dummy_timeline.done
 
 def test_timeline_beats_to_seconds(dummy_timeline):
-    timeline = iso.Timeline(120)
-    assert timeline.beats_to_seconds(1) == pytest.approx(0.5)
-    assert timeline.beats_to_seconds(0) == pytest.approx(0.0)
-    timeline.tempo = 180
-    assert timeline.beats_to_seconds(1) == pytest.approx(1/3)
+    try:
+        timeline = iso.Timeline(120)
+        assert timeline.beats_to_seconds(1) == pytest.approx(0.5)
+        assert timeline.beats_to_seconds(0) == pytest.approx(0.0)
+        timeline.tempo = 180
+        assert timeline.beats_to_seconds(1) == pytest.approx(1/3)
+    except iso.DeviceNotFoundException:
+        # Ignore exception on machines without a MIDI device
+        pass
 
 def test_timeline_seconds_to_beats(dummy_timeline):
-    timeline = iso.Timeline(120)
-    assert timeline.seconds_to_beats(1) == pytest.approx(2)
-    assert timeline.seconds_to_beats(0) == pytest.approx(0.0)
-    timeline.tempo = 180
-    assert timeline.seconds_to_beats(1) == pytest.approx(3)
+    try:
+        timeline = iso.Timeline(120)
+        assert timeline.seconds_to_beats(1) == pytest.approx(2)
+        assert timeline.seconds_to_beats(0) == pytest.approx(0.0)
+        timeline.tempo = 180
+        assert timeline.seconds_to_beats(1) == pytest.approx(3)
+    except iso.DeviceNotFoundException:
+        # Ignore exception on machines without a MIDI device
+        pass
 
 def test_timeline_tempo(dummy_timeline):
     # Set tempo of internal clock
