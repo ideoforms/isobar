@@ -497,12 +497,25 @@ class PDict(Pattern):
 
     def __next__(self):
         vdict = Pattern.value(self.dict)
-        if not vdict:
-            raise StopIteration
 
-        # for some reason, doing a list comprehension without the surrounding square
-        # brackets causes an inner StopIteration to be suppressed -- we want to
-        # explicitly raise it.
+        #--------------------------------------------------------------------------------
+        # This previously raised a StopIteration, but this breaks the common case in
+        # which an empty params dict is bound to the timeline:
+        #
+        # timeline.schedule({ "patch": FooPatch, "params": {} }) <- ends immediately
+        #
+        # So instead simply return the empty dict in this case.
+        # This will also return `None` when Pattern.value(dict) evaluates to None.
+        # Hopefully this doesn't break any cases in the wild...
+        #--------------------------------------------------------------------------------
+        # if not vdict:
+        #     return vdict
+
+        #--------------------------------------------------------------------------------
+        # Doing a list comprehension without surrounding square brackets produces a lazy
+        # evaluation, which causes the inner StopIteration to be suppressed. We want to
+        # explicitly raise it, so greedily evaluate the dict.
+        #--------------------------------------------------------------------------------
         rv = dict([(k, Pattern.value(vdict[k])) for k in vdict])
 
         return rv
