@@ -12,7 +12,7 @@ setup(
     author_email='dan-isobar@erase.net',
     url='https://github.com/ideoforms/isobar',
     packages=find_packages(),
-    install_requires=['python-osc', 'mido', 'python-rtmidi', 'LinkPython-extern'],
+    install_requires=['python-osc', 'mido', 'python-rtmidi', 'LinkPython-extern', 'numpy'],
     keywords=['sound', 'music', 'composition'],
     classifiers=[
         'Topic :: Multimedia :: Sound/Audio',
