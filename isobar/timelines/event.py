@@ -9,8 +9,7 @@ from typing import Iterable
 log = logging.getLogger(__name__)
 
 class EventDefaults:
-    def __init__(self):
-        self.default_values = {
+    default_values = {
             EVENT_ACTIVE: True,
             EVENT_CHANNEL: DEFAULT_EVENT_CHANNEL,
             EVENT_DURATION: DEFAULT_EVENT_DURATION,
@@ -23,10 +22,12 @@ class EventDefaults:
             EVENT_DELAY: DEFAULT_EVENT_DELAY,
             EVENT_PITCHBEND: None,
         }
-        for key, value in self.default_values.items():
+    
+    def __init__(self):
+        for key, value in EventDefaults.default_values.items():
             setattr(self, key, value)
     def __setattr__(self, name, value):
-        if name != "default_values" and name not in self.default_values:
+        if name != "default_values" and name not in EventDefaults.default_values:
             raise ValueError("Invalid property for defaults: %s" % name)
         super().__setattr__(name, value)
 
