@@ -5,8 +5,8 @@
 - Globals: Added support for synchronising Globals state between isobar processes via `enable_interprocess_sync()`
 - Added syntactical sugar around `PDict` `getattr`/`setattr`, so that a track's `params` property can be modified by (e.g.) `track.params.cutoff = 200` (requires `rpyc`)
 - Added `PKeyScale` class, which returns the `Scale` corresponding to an input `Key`
-- Added new `Automation` class for continuous variable control
-- Added new `Instrument` class for more concise scheduling of multi-modal events
+- Added new `Automation` class for continuous parameter control
+- Added new `Instrument` class for concise scheduling of multi-modal events
 - `Timeline`: Added support for specifying a `clock_source` by name: either `midi`, `internal` or `link`
 - `Timeline`: Added `start` constructor argument to immediately start the timeline
 
