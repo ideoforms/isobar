@@ -10,7 +10,6 @@
 #--------------------------------------------------------------------------------
 
 from isobar import *
-from isobar.io import SignalFlowOutputDevice
 from signalflow import *
 
 class Cymbal (Patch):

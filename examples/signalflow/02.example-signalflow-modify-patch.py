@@ -10,7 +10,6 @@
 #--------------------------------------------------------------------------------
 
 from isobar import *
-from isobar.io import SignalFlowOutputDevice
 from signalflow import *
 
 class Squelch (Patch):
@@ -25,7 +24,7 @@ class Squelch (Patch):
 graph = AudioGraph()
 output_device = SignalFlowOutputDevice(graph=graph)
 
-patch = Tone()
+patch = Squelch()
 patch.play()
 
 timeline = Timeline(120, output_device=output_device)
