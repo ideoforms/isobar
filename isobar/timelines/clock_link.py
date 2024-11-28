@@ -16,7 +16,7 @@ class AbletonLinkClock (Clock):
                  clock_target: Any = None,
                  tempo: float = DEFAULT_TEMPO,
                  ticks_per_beat: int = DEFAULT_TICKS_PER_BEAT):
-        self.link_client = link.Link(120)
+        self.link_client = link.Link(tempo)
         self.link_client.enabled = True
         self.link_client.startStopSyncEnabled = True
         self.link_client.setTempoCallback(self.tempo_changed_callback)
