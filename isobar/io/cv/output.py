@@ -88,7 +88,8 @@ class CVOutputDevice(OutputDevice):
             gate_channel (int): CV channel to output current gate (10V when open)
         """
         if not all((ch == None or (ch >= 0 and ch <= self.channels)) for ch in [midi_channel, note_channel, velocity_channel, gate_channel]):
-            print("set_channels: All set channels need to be an integer greater than 0 and less than the channel max (%d)" % self.channels)
+            raise ValueError(
+                "set_channels: All set channels need to be an integer greater than 0 and less than the channel max (%d)" % self.channels)
 
         # Mappings in a list of [note, velocity, gate]
         self.channel_map[midi_channel] = [note_channel, velocity_channel, gate_channel]
@@ -112,7 +113,7 @@ class CVOutputDevice(OutputDevice):
         else:
             print("No MIDI channel %d mappings found" % midi_channel)
 
-    def show_channels(self):
+    def print_channels(self):
         """
         Show all currently assigned channels.
 
@@ -122,9 +123,10 @@ class CVOutputDevice(OutputDevice):
         for midi_channel in self.channel_map:
             # Print MIDI title
             print("MIDI Channel %d" % midi_channel)
-            print("\t\\Note: ch%d" % midi_channel[0])
-            print("\t\\Velocity: ch%d" % midi_channel[0])
-            print("\t\\Gate: ch%d" % midi_channel[0])
+            # Use %s in the case of None
+            print("\t\\ Note: %s" % self.channel_map[midi_channel][0])
+            print("\t\\ Velocity: %s" % self.channel_map[midi_channel][1])
+            print("\t\\ Gate: %s" % self.channel_map[midi_channel][2])
 
     def ping_channel(self, channel):
         """
@@ -159,7 +161,9 @@ class CVOutputDevice(OutputDevice):
             # Distribute outputs (note, velocity, gate)
             output_cvs = [note_float, (velocity/127), 1.0]
             for ch, cv in zip(channel_set, output_cvs):
-                self._set_channel_value(ch, cv)
+                # Make sure the channel is assigned
+                if ch is not None:
+                    self._set_channel_value(ch, cv)
         # Otherwise select the next open channel
         else:
             for index, channel_note in enumerate(self.channel_cvs):
@@ -173,7 +177,8 @@ class CVOutputDevice(OutputDevice):
         if (channel_set is not None):
             # Turn all outputs off
             for ch in channel_set:
-                self._set_channel_value(ch, 0)
+                if ch is not None:
+                    self._set_channel_value(ch, 0)
         # Otherwise select the next open channel
         note_float = self._note_index_to_amplitude(note)
         for index, channel_note in enumerate(self.channel_cvs):
