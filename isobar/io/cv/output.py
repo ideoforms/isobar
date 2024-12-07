@@ -1,6 +1,5 @@
 from ..output import OutputDevice
-import numpy
-import time
+from enum import Enum
 
 def get_cv_output_devices():
     try:
@@ -9,6 +8,66 @@ def get_cv_output_devices():
         raise RuntimeError(
             "get_cv_output_devices: Couldn't import the sounddevice module (to install: pip3 install sounddevice)")
     return list(sounddevice.query_devices())
+
+class CVPolyMode(Enum):
+    NEXT = 0
+    HIGHEST = 1
+    LOWEST = 2
+
+class CVMapping():
+
+    # Which MIDI channel is this for
+    midi = None
+    # Which poly mode should be used (see CVPolyModes Enum)
+    poly_mode = None
+
+    channels = {
+        'note': None,
+        'velocity': None,
+        'gate': None,
+        'trigger': None,
+    }
+
+    def __init__(self, max_channels=0, midi_channel=None, note_channel=None, velocity_channel=None, gate_channel=None, trigger_channel=None,
+                 poly_channels=[], poly_mode=0):
+        # Validate input channels
+        if not all((ch == None or (ch >= 0 and ch <= max_channels)) for ch in [midi_channel, note_channel, velocity_channel, gate_channel, trigger_channel]):
+            raise ValueError(
+                "set_channels: All set channels need to be an integer greater than 0 and less than the channel max (%d)" % max_channels)
+        if poly_channels and all((ch >= 0 and ch <= max_channels) for ch in poly_channels):
+            raise ValueError(
+                "set_channels: All poly channels need to be an integer greater than 0 and less than the channel max (%d)" % max_channels)
+        # TODO: Make dictionary
+        self.midi = midi_channel
+        self.channels['note'] = note_channel
+        self.channels['velocity'] = velocity_channel
+        self.channels['gate'] = gate_channel
+        self.channels['trigger'] = trigger_channel
+        self.poly_mode = poly_mode
+
+    def __str__(self):
+        # Store output
+        outstr = ""
+        outstr += ("MIDI Channel %d\n" % self.midi)
+        # Use %s in the case of None
+        outstr += ("\t\\ Note: %s\n" % self.channels['note'])
+        outstr += ("\t\\ Velocity: %s\n" % self.channels['velocity'])
+        outstr += ("\t\\ Gate: %s\n" % self.channels['gate'])
+        return outstr
+
+    def get_output_channels(self, note=None, velocity=None, gate=None, trigger=None):
+        # Iterate through channel dictionary
+        channel_pairs = []
+        if self.channels['note'] is not None and note is not None:
+            channel_pairs.append([self.channels['note'], note])
+        if self.channels['velocity'] is not None and velocity is not None:
+            channel_pairs.append([self.channels['velocity'], velocity])
+        if self.channels['gate'] is not None and gate is not None:
+            channel_pairs.append([self.channels['gate'], gate])
+        if self.channels['trigger'] is not None and trigger is not None:
+            channel_pairs.append([self.channels['trigger'], trigger])
+        return channel_pairs
+
 
 class CVOutputDevice(OutputDevice):
     """
@@ -21,7 +80,7 @@ class CVOutputDevice(OutputDevice):
             if value is None:
                 value = 0.0
             if self.ping_flag[channel]:
-                value = 10.0
+                value = 0.5
                 self.ping_flag[channel] = False
             out_data[:, channel] = value
 
@@ -67,15 +126,16 @@ class CVOutputDevice(OutputDevice):
         # Channel output CV values
         self.channel_cvs = [None] * self.channels
         # Channel MIDI to CV mappings
-        self.channel_map = {}
+        self.channel_maps = {}
         # Ping flag
         self.ping_flag = [False] * self.channels
 
         print("Started CV output with %d channels" % self.channels)
 
     # TODO: Retrigger event possible?
+    # Yes it is! Look @ ping event
     # TODO: Add polyphony handling and settings
-    def map_channels(self, midi_channel=0, note_channel=None, velocity_channel=None, gate_channel=None):
+    def map_channels(self, midi_channel=0, note_channel=None, velocity_channel=None, gate_channel=None, poly_channels=None, poly_setting=None):
         """
         Distribute CV outputs from a single MIDI channel.
 
@@ -91,8 +151,9 @@ class CVOutputDevice(OutputDevice):
             raise ValueError(
                 "set_channels: All set channels need to be an integer greater than 0 and less than the channel max (%d)" % self.channels)
 
-        # Mappings in a list of [note, velocity, gate]
-        self.channel_map[midi_channel] = [note_channel, velocity_channel, gate_channel]
+        # Create an object
+        self.channel_maps[midi_channel] = CVMapping(
+            self.channels, midi_channel, note_channel, velocity_channel, gate_channel)
 
     def reset_channel(self, midi_channel):
         """
@@ -104,11 +165,11 @@ class CVOutputDevice(OutputDevice):
             midi_channel (int): MIDI channel to erase CV channel pairings from
         """
         # Set all outputs to 0
-        mappings = self.channel_map.get(midi_channel)
+        mappings = self.channel_maps.get(midi_channel)
         if (mappings):
-            for ch in self.channel_map[midi_channel]:
+            for ch in self.channel_maps[midi_channel].channels.values():
                 self._set_channel_value(ch, None)
-            del self.channel_map[midi_channel]
+            del self.channel_maps[midi_channel]
             print("MIDI channel %d mappings removed" % midi_channel)
         else:
             print("No MIDI channel %d mappings found" % midi_channel)
@@ -120,13 +181,9 @@ class CVOutputDevice(OutputDevice):
         Display all channels that are currently assigned in a tree view
         """
         # Loop through dictionary for outputs
-        for midi_channel in self.channel_map:
+        for cvmap in self.channel_maps.values():
             # Print MIDI title
-            print("MIDI Channel %d" % midi_channel)
-            # Use %s in the case of None
-            print("\t\\ Note: %s" % self.channel_map[midi_channel][0])
-            print("\t\\ Velocity: %s" % self.channel_map[midi_channel][1])
-            print("\t\\ Gate: %s" % self.channel_map[midi_channel][2])
+            print(cvmap)
 
     def ping_channel(self, channel):
         """
@@ -156,14 +213,12 @@ class CVOutputDevice(OutputDevice):
         note_float = self._note_index_to_amplitude(note)
         print("Note On: %d, CV %f" % (note, note_float))
         # See if the specified MIDI channel exists
-        channel_set = self.channel_map.get(channel)
-        if (channel_set):
+        cmap = self.channel_maps.get(channel)
+        if (cmap):
             # Distribute outputs (note, velocity, gate)
-            output_cvs = [note_float, (velocity/127), 1.0]
-            for ch, cv in zip(channel_set, output_cvs):
-                # Make sure the channel is assigned
-                if ch is not None:
-                    self._set_channel_value(ch, cv)
+            # TODO: I hate this I need to change it
+            for chcv in cmap.get_output_channels(note_float, velocity/127, 1.0):
+                self._set_channel_value(chcv[0], chcv[1])
         # Otherwise select the next open channel
         else:
             for index, channel_note in enumerate(self.channel_cvs):
@@ -173,17 +228,17 @@ class CVOutputDevice(OutputDevice):
 
     def note_off(self, note=60, channel=None):
         # See if the specified MIDI channel exists
-        channel_set = self.channel_map.get(channel)
-        if (channel_set is not None):
+        cmap = self.channel_maps.get(channel)
+        if (cmap is not None):
             # Turn all outputs off
-            for ch in channel_set:
-                if ch is not None:
-                    self._set_channel_value(ch, 0)
+            for chcv in cmap.get_output_channels(0, 0, 0):
+                self._set_channel_value(chcv[0], chcv[1])
         # Otherwise select the next open channel
-        note_float = self._note_index_to_amplitude(note)
-        for index, channel_note in enumerate(self.channel_cvs):
-            if channel_note is not None and channel_note == note_float:
-                self._set_channel_value(index, None)
+        else:
+            note_float = self._note_index_to_amplitude(note)
+            for index, channel_note in enumerate(self.channel_cvs):
+                if channel_note is not None and channel_note == note_float:
+                    self._set_channel_value(index, None)
 
     def control(self, control, value, channel=0):
         pass
