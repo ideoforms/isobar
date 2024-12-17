@@ -58,6 +58,7 @@ class CVMapping():
     def get_output_channels(self, note=None, velocity=None, gate=None, trigger=None):
         # Iterate through channel dictionary
         channel_pairs = []
+        # Return the pair of channel ID and note value
         if self.channels['note'] is not None and note is not None:
             channel_pairs.append([self.channels['note'], note])
         if self.channels['velocity'] is not None and velocity is not None:
@@ -120,7 +121,8 @@ class CVOutputDevice(OutputDevice):
             raise Exception("For CV support, the sounddevice and numpy modules must be installed")
 
         # Expert Sleepers ES-8 supports entire -10V to +10V range
-        self.output_voltage_max = 10
+        # NOTE: Voltage is on a 10x scale, so 1 = 10V
+        self.output_voltage_max = 1
         # Number of channels available
         self.channels = self.stream.channels
         # Channel output CV values
@@ -131,6 +133,9 @@ class CVOutputDevice(OutputDevice):
         self.ping_flag = [False] * self.channels
 
         print("Started CV output with %d channels" % self.channels)
+
+    def set_output_voltage_max(self, voltage):
+        self.output_voltage_max = voltage/10
 
     # TODO: Retrigger event possible?
     # Yes it is! Look @ ping event
@@ -199,14 +204,16 @@ class CVOutputDevice(OutputDevice):
     # TODO: Implement bipolar setting
     def _note_index_to_amplitude(self, note, bipolar=False):
         # Reduce to -5V to 5V if bipolar
-        note_float = (note / (12 * self.output_voltage_max)) - (0.5 * bipolar)
-        if note_float < -1.0 or note_float > 1.0:
+        note_float = (note / 120) - (0.5 * bipolar)
+        if note_float < -self.output_voltage_max or note_float > self.output_voltage_max:
             raise ValueError("Note index %d is outside the voltage range supported by this device" % note)
         return note_float
 
     def _set_channel_value(self, channel, cv):
-        if cv and (cv < -1.0 or cv > 1.0):
-            raise ValueError("CV value %f is outside the voltage range supported by this device" % cv)
+        if cv and (cv < -self.output_voltage_max or cv > self.output_voltage_max):
+            raise ValueError("CV value %f is outside the voltage range set or supported by this device (%fV)" %
+                             (cv, self.output_voltage_max * 10))
+        print("Ch: %s, V: %s" % (channel, cv))
         self.channel_cvs[channel] = cv
 
     def note_on(self, note=60, velocity=64, channel=None):
@@ -217,7 +224,7 @@ class CVOutputDevice(OutputDevice):
         if (cmap):
             # Distribute outputs (note, velocity, gate)
             # TODO: I hate this I need to change it
-            for chcv in cmap.get_output_channels(note_float, velocity/127, 1.0):
+            for chcv in cmap.get_output_channels(note_float, (velocity/127) * self.output_voltage_max, self.output_voltage_max):
                 self._set_channel_value(chcv[0], chcv[1])
         # Otherwise select the next open channel
         else:
