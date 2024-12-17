@@ -2,6 +2,9 @@ from ..output import OutputDevice
 from enum import Enum
 
 def get_cv_output_devices():
+    """
+    Show all available CV output device names
+    """
     try:
         import sounddevice
     except ModuleNotFoundError:
@@ -10,17 +13,23 @@ def get_cv_output_devices():
     return list(sounddevice.query_devices())
 
 class CVPolyMode(Enum):
+    """
+    Setting for how to handle polyphony in CV output
+    """
     NEXT = 0
     HIGHEST = 1
     LOWEST = 2
 
 class CVMapping():
-
+    """
+    Map MIDI channels to CV channels
+    """
     # Which MIDI channel is this for
     midi = None
     # Which poly mode should be used (see CVPolyModes Enum)
     poly_mode = None
 
+    # Dictionary of all mapped CV channels
     channels = {
         'note': None,
         'velocity': None,
@@ -30,6 +39,19 @@ class CVMapping():
 
     def __init__(self, max_channels=0, midi_channel=None, note_channel=None, velocity_channel=None, gate_channel=None, trigger_channel=None,
                  poly_channels=[], poly_mode=0):
+        """
+        Declare a MIDI to CV channel mapping set. Also allows for custom CV parameter setting
+
+        Args:
+            max_channels: Maximum channels available from the current CV output
+            midi_channel: MIDI channel to take MIDI input from
+            note_channel: CV channel to output note data
+            velocity_channel: CV channel to output velocity data
+            gate_channel: CV channel to output gate data (max voltage when note is on, 0 when note is off)
+            trigger_channel: CV channel to output trigger data (max voltage ping whenever note is on)
+            poly_channels: CV channels to output multiple notes at once
+            poly_mode: How to distribute multiple notes being played at once, using the CVPolyMode Enum
+        """
         # Validate input channels
         if not all((ch == None or (ch >= 0 and ch <= max_channels)) for ch in [midi_channel, note_channel, velocity_channel, gate_channel, trigger_channel]):
             raise ValueError(
@@ -37,7 +59,6 @@ class CVMapping():
         if poly_channels and all((ch >= 0 and ch <= max_channels) for ch in poly_channels):
             raise ValueError(
                 "set_channels: All poly channels need to be an integer greater than 0 and less than the channel max (%d)" % max_channels)
-        # TODO: Make dictionary
         self.midi = midi_channel
         self.channels['note'] = note_channel
         self.channels['velocity'] = velocity_channel
@@ -53,26 +74,34 @@ class CVMapping():
         outstr += ("\t\\ Note: %s\n" % self.channels['note'])
         outstr += ("\t\\ Velocity: %s\n" % self.channels['velocity'])
         outstr += ("\t\\ Gate: %s\n" % self.channels['gate'])
+        outstr += ("\t\\ Trigger: %s\n" % self.channels['trigger'])
         return outstr
 
-    def get_output_channels(self, note=None, velocity=None, gate=None, trigger=None):
+    def get_output_channels(self, note=None, velocity=None, gate=None):
+        """
+        Return a tuple list of channel numbers and given CV outputs to easily set multiple output values at once
+
+        Args:
+            note: CV output for the note channel
+            velocity: CV output for the velocity channel
+            gate: CV output for the gate channel
+            trigger: CV output for the trigger channel
+        """
         # Iterate through channel dictionary
         channel_pairs = []
-        # Return the pair of channel ID and note value
+        # Return the pair of channel ID and note value if the CV output and channel exists
         if self.channels['note'] is not None and note is not None:
             channel_pairs.append([self.channels['note'], note])
         if self.channels['velocity'] is not None and velocity is not None:
             channel_pairs.append([self.channels['velocity'], velocity])
         if self.channels['gate'] is not None and gate is not None:
             channel_pairs.append([self.channels['gate'], gate])
-        if self.channels['trigger'] is not None and trigger is not None:
-            channel_pairs.append([self.channels['trigger'], trigger])
         return channel_pairs
 
 
 class CVOutputDevice(OutputDevice):
     """
-    CVOutputDevice: Sends output to CV over an audio I/O device.
+    Sends output to CV over an audio I/O device.
     """
 
     def audio_callback(self, out_data, frames, time, status):
@@ -81,7 +110,7 @@ class CVOutputDevice(OutputDevice):
             if value is None:
                 value = 0.0
             if self.ping_flag[channel]:
-                value = 0.5
+                value = self.output_voltage_max
                 self.ping_flag[channel] = False
             out_data[:, channel] = value
 
@@ -135,12 +164,18 @@ class CVOutputDevice(OutputDevice):
         print("Started CV output with %d channels" % self.channels)
 
     def set_output_voltage_max(self, voltage):
+        """
+        Set the max voltage output for this CV output
+
+        Args:
+            voltage: Voltage value (commonly from 5V to 10V)
+        """
         self.output_voltage_max = voltage/10
 
     # TODO: Retrigger event possible?
     # Yes it is! Look @ ping event
     # TODO: Add polyphony handling and settings
-    def map_channels(self, midi_channel=0, note_channel=None, velocity_channel=None, gate_channel=None, poly_channels=None, poly_setting=None):
+    def map_channels(self, midi_channel=0, note_channel=None, velocity_channel=None, gate_channel=None, trigger_channel=None, poly_channels=None, poly_setting=None):
         """
         Distribute CV outputs from a single MIDI channel.
 
@@ -152,13 +187,13 @@ class CVOutputDevice(OutputDevice):
             velocity_channel (int): CV channel to output note velocity
             gate_channel (int): CV channel to output current gate (10V when open)
         """
-        if not all((ch == None or (ch >= 0 and ch <= self.channels)) for ch in [midi_channel, note_channel, velocity_channel, gate_channel]):
+        if not all((ch == None or (ch >= 0 and ch <= self.channels)) for ch in [midi_channel, note_channel, velocity_channel, gate_channel, trigger_channel]):
             raise ValueError(
                 "set_channels: All set channels need to be an integer greater than 0 and less than the channel max (%d)" % self.channels)
 
         # Create an object
         self.channel_maps[midi_channel] = CVMapping(
-            self.channels, midi_channel, note_channel, velocity_channel, gate_channel)
+            self.channels, midi_channel, note_channel, velocity_channel, gate_channel, trigger_channel, poly_channels, poly_setting)
 
     def reset_channel(self, midi_channel):
         """
@@ -222,8 +257,12 @@ class CVOutputDevice(OutputDevice):
         # See if the specified MIDI channel exists
         cmap = self.channel_maps.get(channel)
         if (cmap):
+            # Check if the trigger channel exists
+            triggerChannel = cmap.channels['trigger']
+            if triggerChannel:
+                # If so, set the flag
+                self.ping_flag[triggerChannel] = True
             # Distribute outputs (note, velocity, gate)
-            # TODO: I hate this I need to change it
             for chcv in cmap.get_output_channels(note_float, (velocity/127) * self.output_voltage_max, self.output_voltage_max):
                 self._set_channel_value(chcv[0], chcv[1])
         # Otherwise select the next open channel
