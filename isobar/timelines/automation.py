@@ -8,9 +8,11 @@ if TYPE_CHECKING:
 from ..constants import *
 from ..util import scale_lin_lin
 
+import itertools
 import logging
 import numpy as np
 import math
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,8 @@ logger = logging.getLogger(__name__)
 class Binding:
     object: Any
     property_name: str
+    mode: str
+    kwargs: dict
 
 class AutomationEnvelope:
     def __init__(self,
@@ -64,14 +68,15 @@ class AutomationModulation:
                                            curve=envelope_curve)
 
     def tick(self):
+        try:
+            delta_per_tick = next(self.delta_per_tick)
+        except TypeError:
+            delta_per_tick = self.delta_per_tick
         self.current_tick += 1
         if self.current_tick >= self.duration_ticks:
             self.is_finished = True
         rv = self.envelope.tick()
-        return self.delta_per_tick * rv
-
-
-# class AutomationModulationLFO (AutomationModulation):
+        return delta_per_tick * rv
 
 
 class Automation:
@@ -164,16 +169,46 @@ class Automation:
     def jump_to(self, value):
         self.current_value = value
         for binding in self.bindings:
-            setattr(binding.object, binding.property_name, self.value)
+            if binding.mode == "attr":
+                setattr(binding.object, binding.property_name, self.value)
+            elif binding.mode == "method":
+                method = getattr(binding.object, binding.property_name)
+                args = {"value": self.value, **binding.kwargs}
+                method(**args)
 
     def stop(self):
         self.timeline.remove_automation(self)
 
-    def move_to(self, value: float, duration: float = None, envelope: float = 0.5):
+    def move_to(self, value: float, duration: float = None, envelope: float = 0.5, blocking: bool = False):
         # TODO: This`` prevents multiple move_bys, but is needed so that each Arc move_to
         # update action overwrites the previous. Need to think through this.
         self.modulations.clear()
         self.move_by(value - self.current_value, duration, envelope)
+
+        if blocking:
+            time.sleep(duration)
+    
+    def bounce_to(self, value: float, duration: float = None, envelope: float = 0.5):
+        if duration is None:
+            duration = self.default_duration
+        self.modulations.clear()
+
+        duration_ticks = int(math.ceil(duration / self.tick_duration))
+        if duration_ticks == 0:
+            return
+    
+        duration_ticks_each_way = int(math.ceil(duration_ticks / 2))
+        duration_ticks = duration_ticks_each_way * 2
+        delta_per_tick_upwards = (value - self.current_value) / duration_ticks_each_way
+        delta_per_tick_downwards = -delta_per_tick_upwards
+        delta_per_tick = itertools.chain(itertools.repeat(delta_per_tick_upwards, duration_ticks_each_way),
+                                         itertools.repeat(delta_per_tick_downwards, duration_ticks_each_way))
+        envelope_ticks = int(envelope * duration_ticks)
+        modulation = AutomationModulation(delta_per_tick=delta_per_tick,
+                                          duration_ticks=duration_ticks,
+                                          envelope_ticks=envelope_ticks)
+        self.modulations.append(modulation)
+
     
     def move_by(self, value: float, duration: float = None, envelope: float = 0.5):
         if duration is None:
@@ -205,11 +240,17 @@ class Automation:
         """
         self.value_changed_callbacks.remove(callback)
 
-    def bind(self, object: Any, property_name: str):
-        binding = Binding(object, property_name)
+    def bind_to(self, object: Any, property_name: str, mode: str = "attr", method_argument: str = "value", **kwargs):
+        assert mode in ["attr", "method"]
+        binding = Binding(object, property_name, mode, kwargs)
         self.bindings.append(binding)
 
         # Initialise each binding to the automation's initial value,
         # to prevent jumps if the source's property was previously set
         # to a different value
-        setattr(binding.object, binding.property_name, self.value)
+        if binding.mode == "attr":
+            setattr(binding.object, binding.property_name, self.value)
+        elif binding.mode == "method":
+            method = getattr(binding.object, binding.property_name)
+            args = {"value": self.value, **kwargs}
+            method(**args)
