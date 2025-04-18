@@ -10,7 +10,7 @@ from typing import Callable
 
 try:
     from monome import ArcUI, NoDevicesFoundError
-except ModuleNotFoundError:
+except (ModuleNotFoundError, ImportError):
     pass
 
 class IsobarMonomeManager:
