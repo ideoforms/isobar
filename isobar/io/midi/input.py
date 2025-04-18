@@ -4,13 +4,17 @@ import os
 import time
 import queue
 import logging
+from typing import Any
 from ...exceptions import DeviceNotFoundException
 from ...constants import MIDI_CLOCK_TICKS_PER_BEAT
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 class MidiInputDevice:
-    def __init__(self, device_name=None, clock_target=None, virtual=False):
+    def __init__(self, 
+                 device_name: str = None,
+                 clock_target: Any = None,
+                 virtual: bool = False):
         """
         Create a MIDI input device.
         Use `isobar.get_midi_input_names()` to query all available devices.
@@ -36,7 +40,7 @@ class MidiInputDevice:
         self.callback = None
         self.estimated_tempo = None
         self.last_clock_time = None
-        log.info("Opened MIDI input: %s" % self.midi.name)
+        logger.info("Opened MIDI input: %s" % self.midi.name)
 
     @property
     def device_name(self):
@@ -48,7 +52,7 @@ class MidiInputDevice:
         Args:
             message: A mido.Message.
         """
-        log.debug(" - MIDI message received: %s" % message)
+        logger.debug(" - MIDI message received: %s" % message)
 
         if message.type == 'clock':
             if self.last_clock_time is not None:
@@ -67,22 +71,22 @@ class MidiInputDevice:
                 self.clock_target.tick()
 
         elif message.type == 'start':
-            log.info(" - MIDI: Received start message")
+            logger.info(" - MIDI: Received start message")
             if self.clock_target is not None:
                 self.clock_target.start()
 
         elif message.type == 'stop':
-            log.info(" - MIDI: Received stop message")
+            logger.info(" - MIDI: Received stop message")
             if self.clock_target is not None:
                 self.clock_target.stop()
 
         elif message.type == 'songpos':
-            log.info(" - MIDI: Received songpos message")
+            logger.info(" - MIDI: Received songpos message")
             if message.pos == 0:
                 if self.clock_target is not None:
                     self.clock_target.reset()
             else:
-                log.warning("MIDI song position message received, but MIDI input cannot seek to arbitrary position")
+                logger.warning("MIDI song position message received, but MIDI input cannot seek to arbitrary position")
 
         elif message.type in ['note_on', 'note_off', 'control_change', 'pitchwheel']:
             if self.callback:

@@ -1,5 +1,5 @@
 from ..midinote import MidiNote
-from ...constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_GATE
+from ...constants import EVENT_NOTE, EVENT_AMPLITUDE, EVENT_DURATION, EVENT_GATE, EVENT_CHANNEL
 from ...pattern import PSequence
 
 import mido
@@ -42,7 +42,10 @@ class MidiFileInputDevice:
                     event.velocity = 127
 
                 offset += event.time / midi_reader.ticks_per_beat
-                note = MidiNote(event.note, event.velocity, offset)
+                note = MidiNote(pitch=event.note,
+                                velocity=event.velocity,
+                                location=offset,
+                                channel=event.channel)
                 notes.append(note)
             elif event.type == 'note_off' or (event.type == 'note_on' and event.velocity == 0):
                 #------------------------------------------------------------------------
@@ -80,7 +83,8 @@ class MidiFileInputDevice:
             EVENT_NOTE: [],
             EVENT_AMPLITUDE: [],
             EVENT_GATE: [],
-            EVENT_DURATION: []
+            EVENT_DURATION: [],
+            EVENT_CHANNEL: [],
         }
 
         #------------------------------------------------------------------------
@@ -110,12 +114,14 @@ class MidiFileInputDevice:
                 note_dict[EVENT_NOTE].append(tuple(note.pitch for note in notes))
                 note_dict[EVENT_AMPLITUDE].append(tuple(note.velocity for note in notes))
                 note_dict[EVENT_GATE].append(tuple(note.duration / time_until_next_note for note in notes))
+                note_dict[EVENT_CHANNEL].append(tuple(note.channel for note in notes))
             else:
                 if time_until_next_note:
                     note = notes[0]
                     note_dict[EVENT_NOTE].append(note.pitch)
                     note_dict[EVENT_AMPLITUDE].append(note.velocity)
                     note_dict[EVENT_GATE].append(note.duration / time_until_next_note)
+                    note_dict[EVENT_CHANNEL].append(note.channel)
 
         for key, value in note_dict.items():
             note_dict[key] = PSequence(value, 1)
