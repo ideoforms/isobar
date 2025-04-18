@@ -99,6 +99,24 @@ def midi_note_to_note_name(note: float) -> str:
 
     return str
 
+def frequency_to_midi_note(frequency: float) -> float:
+    """
+    Maps a frequency to a MIDI note index.
+
+    Args:
+        frequency (float): The frequency, in Hz.
+
+    Returns:
+        float: The corresponding MIDI note index, which may be non-integer if the frequency falls between notes.
+    """
+    if frequency <= 0:
+        return None
+    
+    note_ratio_to_a4 = frequency / 440
+    semitone_ratio = 2 ** (1/12)
+    semitones_relative_to_a4 = math.log(note_ratio_to_a4) / math.log(semitone_ratio)
+    return 69 + semitones_relative_to_a4
+
 def midi_note_to_frequency(note: float) -> float:
     """
     Maps a MIDI note index to a frequency.
@@ -192,7 +210,8 @@ def scale_lin_lin(value: float,
         to_max: The upper bound of the output range
 
     Returns:
-        The scaled value.
+        The scaled value. If the input value is outside the input range, the output will be clipped
+        to [to_min, to_max].
     """
     norm = (value - from_min) / (from_max - from_min)
     return norm * (to_max - to_min) + to_min
@@ -213,10 +232,25 @@ def scale_exp_lin(value: float,
         to_max: The upper bound of the output range
 
     Returns:
-        The scaled value.
+        The scaled value. If the input value is outside the input range, the output will be clipped
+        to [to_min, to_max].
     """
     norm = (math.log(value / from_min)) / (math.log(from_max / from_min))
     return norm * (to_max - to_min) + to_min
+
+def clip(value: float, minimum: float, maximum: float) -> float:
+    """
+    Clip a value to a range.
+
+    Args:
+        value: The value
+        minimum: The lower bound of the range
+        maximum: The upper bound of the range
+
+    Returns:
+        The clipped value.
+    """
+    return max(minimum, min(value, maximum))
 
 def bipolar_diverge(maximum: int) -> list[int]:
     """
