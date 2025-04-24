@@ -1,6 +1,7 @@
 import random
+import numpy as np
 import math
-from typing import Any, Generator
+from typing import Any, Generator, Iterable, Union
 from .exceptions import InvalidMIDIPitch, UnknownNoteName, ClockException
 
 note_names = [
@@ -99,31 +100,57 @@ def midi_note_to_note_name(note: float) -> str:
 
     return str
 
-def frequency_to_midi_note(frequency: float) -> float:
+def frequency_to_midi_note(frequency: Union[float, Iterable],
+                           omit_invalid_frequencies: bool = True) -> float:
     """
-    Maps a frequency to a MIDI note index.
+    Maps a frequency or list of frequencies to a MIDI note index.
+    The output will be a float, which may be a non-integer if the frequency falls between notes.
+
+    If the input is a list or numpy array, the output will be a list of the same length.
+    If omit_invalid_frequencies is True, frequencies <= 0 will be omitted from the output;
+    otherwise, they will be converted to None.
 
     Args:
         frequency (float): The frequency, in Hz.
 
     Returns:
-        float: The corresponding MIDI note index, which may be non-integer if the frequency falls between notes.
+        float: The corresponding MIDI note index or indices.
     """
-    if frequency <= 0:
-        return None
-    
-    note_ratio_to_a4 = frequency / 440
-    semitone_ratio = 2 ** (1/12)
-    semitones_relative_to_a4 = math.log(note_ratio_to_a4) / math.log(semitone_ratio)
-    return 69 + semitones_relative_to_a4
+    if isinstance(frequency, Iterable):
+        notes = [frequency_to_midi_note(f) for f in frequency]
+        if omit_invalid_frequencies:
+            notes = [note for note in notes if note is not None]
+        rv = np.array(notes) if isinstance(frequency, np.ndarray) else notes
+        return rv
+    else:
+        if frequency <= 0:
+            return None
+        
+        note_ratio_to_a4 = frequency / 440
+        semitone_ratio = 2 ** (1/12)
+        semitones_relative_to_a4 = math.log(note_ratio_to_a4) / math.log(semitone_ratio)
+        return 69 + semitones_relative_to_a4
 
-def midi_note_to_frequency(note: float) -> float:
+def midi_note_to_frequency(note: Union[float, Iterable]) -> float:
     """
     Maps a MIDI note index to a frequency.
+
+    If the input is a list or numpy array, the output will be a list of the same length.
+    If the input is None, the output will be None.
+
+    Args:
+        note: The MIDI note index or indices.
+    
+    Returns:
+        float: The corresponding frequency or frequencies.
     """
-    if note is None:
-        return None
-    return 440.0 * pow(2, (note - 69.0) / 12)
+    if isinstance(note, Iterable):
+        notes = [midi_note_to_frequency(n) for n in note]
+        return np.array(notes) if isinstance(note, np.ndarray) else notes
+    else:
+        if note is None:
+            return None
+        return 440.0 * pow(2, (note - 69.0) / 12)
 
 def midi_note_to_frequency_just_intonation(note):
     note_ratios = [1/1, 256/243, 9/8, 32/27, 81/64, 4/3, 729/512, 3/2, 128/81, 27/16, 16/9, 243/128]
