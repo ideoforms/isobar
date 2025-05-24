@@ -64,7 +64,7 @@ class MidiOutputDevice (OutputDevice):
             self.midi.send(msg)
 
     def note_on(self, note: int = 60, velocity: int = 64, channel: int = 0) -> None:
-        log.debug("[midi] Note on  (channel = %d, note = %d, velocity = %d)" % (channel, note, velocity))
+        log.info("[midi] Note on  (channel = %d, note = %d, velocity = %d)" % (channel, note, velocity))
         msg = mido.Message('note_on', note=int(note), velocity=int(velocity), channel=int(channel))
         self.midi.send(msg)
 
