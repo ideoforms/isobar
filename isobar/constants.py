@@ -68,6 +68,12 @@ EVENT_SUPERCOLLIDER_SYNTH = "synth"
 EVENT_SUPERCOLLIDER_SYNTH_PARAMS = "params"
 
 #------------------------------------------------------------------------
+# NeoPixel RGB parameters
+#------------------------------------------------------------------------
+EVENT_COLOUR = "colour"
+EVENT_PIXEL = "pixel"
+
+#------------------------------------------------------------------------
 # Quantize is used to beat-align events, so should not be included
 # directly in the dictionary.
 #------------------------------------------------------------------------
@@ -93,7 +99,8 @@ ALL_EVENT_PARAMETERS = [
     EVENT_PATCH_PARAMS, EVENT_PATCH_OUTPUT, EVENT_PROGRAM_CHANGE, EVENT_SUPERCOLLIDER_SYNTH,
     EVENT_SUPERCOLLIDER_SYNTH_PARAMS, EVENT_QUANTIZE, EVENT_DELAY,
     EVENT_DURATION_LEGACY, EVENT_AMPLITUDE_LEGACY, EVENT_VELOCITY,
-    EVENT_TRIGGER_NAME, EVENT_TRIGGER_VALUE
+    EVENT_TRIGGER_NAME, EVENT_TRIGGER_VALUE,
+    EVENT_COLOUR, EVENT_PIXEL,
 ]
 
 #------------------------------------------------------------------------
@@ -109,6 +116,7 @@ EVENT_TYPE_PATCH_CREATE = "patch"
 EVENT_TYPE_PATCH_TRIGGER = "trigger"
 EVENT_TYPE_PATCH_SET = "set"
 EVENT_TYPE_SUPERCOLLIDER = "supercollider"
+EVENT_TYPE_NEOPIXEL = "neopixel"
 
 #------------------------------------------------------------------------
 # Default parameter values

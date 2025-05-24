@@ -201,10 +201,17 @@ class Event:
             self.gate = event_values[EVENT_GATE]
             self.channel = event_values[EVENT_CHANNEL]
             self.pitchbend = event_values[EVENT_PITCHBEND]
+        
+        elif EVENT_COLOUR in event_values:
+            self.type = EVENT_TYPE_NEOPIXEL
+            self.colour = event_values[EVENT_COLOUR]
+            if isinstance(self.colour, str):                
+                self.colour = track.output_device.get_colour(self.colour)
+            self.pixel = event_values.get(EVENT_PIXEL, None)
 
         else:
             possible_event_types = [EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL,
-                                    EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS]
+                                    EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS, EVENT_COLOUR]
             raise InvalidEventException("No event type specified (must provide one of %s)" % possible_event_types)
 
         self.duration = event_values[EVENT_DURATION]
@@ -213,3 +220,6 @@ class Event:
 
     def __str__(self):
         return "Event (%s)" % self.fields
+    
+    def to_json(self):
+        return str(self.fields)

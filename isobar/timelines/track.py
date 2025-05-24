@@ -241,8 +241,9 @@ class Track:
                         self.current_event = self.next_event
                         self.next_event = self.get_next_event()
 
-                    if self.current_event.type != EVENT_TYPE_CONTROL or self.next_event.type != EVENT_TYPE_CONTROL:
-                        raise InvalidEventException("Interpolation is only valid for control event")
+                    if self.current_event.type not in [EVENT_TYPE_CONTROL, EVENT_TYPE_NEOPIXEL] or \
+                        self.next_event.type not in [EVENT_TYPE_CONTROL, EVENT_TYPE_NEOPIXEL]:
+                        raise InvalidEventException("Interpolation is only valid for control and light events")
 
                     interpolating_event_fields = copy.copy(self.current_event.fields)
                     duration = self.current_event.duration
@@ -254,7 +255,9 @@ class Track:
                         #--------------------------------------------------------------------------------
                         if key == EVENT_TYPE or key == EVENT_DURATION:
                             continue
-                        if type(value) is not float and type(value) is not int:
+
+                        # TODO: Temporarily tolerate ndarrays for interpolating colours
+                        if type(value) is not float and type(value) is not int and type(value) is not np.ndarray:
                             continue
                         interpolating_event_fields[key] = PInterpolate(PSequence([self.current_event.fields[key],
                                                                                   self.next_event.fields[key]], 1),
@@ -496,6 +499,20 @@ class Track:
                         self.note_offs.append(note_off)
                 if event.pitchbend is not None:
                     self.output_device.pitch_bend(event.pitchbend, channel)
+        
+        #------------------------------------------------------------------------
+        # NeoPixel RGB colour change
+        #------------------------------------------------------------------------
+        elif event.type == EVENT_TYPE_NEOPIXEL:
+            if hasattr(self.output_device, "set_pixel") and callable(getattr(self.output_device, "set_pixel")):
+                if event.pixel is None:
+                    self.output_device.set_all_pixels(event.colour)
+                else:
+                    self.output_device.set_pixel(event.pixel, event.colour)
+
+        #------------------------------------------------------------------------
+        # Unknown event type
+        #------------------------------------------------------------------------
         else:
             raise InvalidEventException("Invalid event type: %s" % event.type)
 

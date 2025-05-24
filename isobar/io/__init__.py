@@ -9,10 +9,13 @@ from .socketio import SocketIOOutputDevice
 from .signalflow import SignalFlowOutputDevice
 from .midinote import MidiNote
 from .supercollider import SuperColliderOutputDevice
+from .neopixel import NeoPixelOutputDevice
+from .proxy import ProxyOutputDevice, ProxyOutputDeviceReceiver
 
 __all__ = ["OutputDevice", "DummyOutputDevice", "MidiInputDevice", "MidiOutputDevice", "MPEOutputDevice"]
 __all__ += ["get_midi_output_names", "get_midi_input_names"]
 __all__ += ["MidiFileInputDevice", "MidiFileOutputDevice", "PatternWriterMIDI"]
 __all__ += ["OSCOutputDevice", "SocketIOOutputDevice", "SignalFlowOutputDevice",
-            "MidiNote", "SuperColliderOutputDevice", "CVOutputDevice"]
+            "MidiNote", "SuperColliderOutputDevice", "CVOutputDevice", "NeoPixelOutputDevice",
+            "ProxyOutputDevice", "ProxyOutputDeviceReceiver"]
 __all__ += ["get_cv_output_devices"]

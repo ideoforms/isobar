@@ -55,9 +55,12 @@ class PSequence(Pattern):
         sequence = Pattern.value(self.sequence)
         repeats = Pattern.value(self.repeats)
 
-        if len(sequence) == 0 or self.rcount >= repeats:
+        if self.rcount >= repeats:
             raise StopIteration
+        if len(sequence) == 0:
+            return None
 
+        self.pos = self.pos % len(sequence)
         rv = Pattern.value(sequence[self.pos])
         self.pos += 1
         if self.pos >= len(sequence):
