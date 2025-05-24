@@ -51,6 +51,7 @@ class NeoPixelOutputDevice (OutputDevice):
                   mode: str = "set"):
         if pixel < 0 or pixel >= self.num_pixels:
             raise ValueError("Invalid pixel index: %d" % pixel)
+        pixel = int(pixel)
         if isinstance(colour, str):
             if colour not in self.colour_dict:
                 raise ValueError("Colour name not found: %s" % colour)
@@ -60,21 +61,22 @@ class NeoPixelOutputDevice (OutputDevice):
         # TODO: actually set pixel value
         print("set_pixel: %d, %s" % (pixel, colour))
         current_colour = self.pixels[int(pixel)]
-        print(current_colour)
-        self.pixels[int(pixel)] = colour
+        self._set(pixel, colour)
 
         if mode == "flash":
             # this is a really hacky way to do this! TODO: fix
             def pixel_off(pixel, colour):
                 time.sleep(0.05)
-                print("set_pixel: %d, %s" % (pixel, colour))
-                self.pixels[int(pixel)] = colour
+                self._set(pixel, colour)
             thread = threading.Thread(target=pixel_off, args=(pixel, current_colour), daemon=True)
             thread.start()
         elif mode == "solo":
             for n in range(self.num_pixels):
                 if n != pixel:
                     self.pixels[n] = (0, 0, 0)
+                    
+    def _set(self, pixel: int, colour: tuple):
+        self.pixels[pixel] = colour
 
     def set_all_pixels(self, colour: Union[str, tuple], alpha: float = 1.0, mode: str = "set"):
         for pixel in range(self.num_pixels):
