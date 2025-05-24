@@ -205,6 +205,8 @@ class Event:
         elif EVENT_COLOUR in event_values:
             self.type = EVENT_TYPE_NEOPIXEL
             self.colour = event_values[EVENT_COLOUR]
+            self.mode = event_values.get(EVENT_MODE, "set")
+            self.alpha = event_values.get(EVENT_ALPHA, 1.0)
             if isinstance(self.colour, str):                
                 self.colour = track.output_device.get_colour(self.colour)
             self.pixel = event_values.get(EVENT_PIXEL, None)

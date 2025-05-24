@@ -257,6 +257,7 @@ class Track:
                             continue
 
                         # TODO: Temporarily tolerate ndarrays for interpolating colours
+                        import numpy as np
                         if type(value) is not float and type(value) is not int and type(value) is not np.ndarray:
                             continue
                         interpolating_event_fields[key] = PInterpolate(PSequence([self.current_event.fields[key],
@@ -506,9 +507,9 @@ class Track:
         elif event.type == EVENT_TYPE_NEOPIXEL:
             if hasattr(self.output_device, "set_pixel") and callable(getattr(self.output_device, "set_pixel")):
                 if event.pixel is None:
-                    self.output_device.set_all_pixels(event.colour)
+                    self.output_device.set_all_pixels(event.colour, mode=event.mode, alpha=event.alpha)
                 else:
-                    self.output_device.set_pixel(event.pixel, event.colour)
+                    self.output_device.set_pixel(event.pixel, event.colour, mode=event.mode, alpha=event.alpha)
 
         #------------------------------------------------------------------------
         # Unknown event type

@@ -72,6 +72,8 @@ EVENT_SUPERCOLLIDER_SYNTH_PARAMS = "params"
 #------------------------------------------------------------------------
 EVENT_COLOUR = "colour"
 EVENT_PIXEL = "pixel"
+EVENT_MODE = "mode"
+EVENT_ALPHA = "alpha"
 
 #------------------------------------------------------------------------
 # Quantize is used to beat-align events, so should not be included
@@ -100,7 +102,7 @@ ALL_EVENT_PARAMETERS = [
     EVENT_SUPERCOLLIDER_SYNTH_PARAMS, EVENT_QUANTIZE, EVENT_DELAY,
     EVENT_DURATION_LEGACY, EVENT_AMPLITUDE_LEGACY, EVENT_VELOCITY,
     EVENT_TRIGGER_NAME, EVENT_TRIGGER_VALUE,
-    EVENT_COLOUR, EVENT_PIXEL,
+    EVENT_COLOUR, EVENT_PIXEL, EVENT_MODE, EVENT_ALPHA,
 ]
 
 #------------------------------------------------------------------------
