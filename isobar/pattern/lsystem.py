@@ -52,7 +52,7 @@ class LSystem:
         raise StopIteration
 
 class PLSystem(Pattern):
-    """ PLSystem: integer sequence derived from Lindenmayer systems """
+    """ PLSystem: Formal grammars based on Lindenmayer systems, modelling plant growth."""
 
     def __init__(self, rule: str, depth: int = 3, loop: bool = True):
         self.rule = rule

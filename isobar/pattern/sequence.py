@@ -17,7 +17,7 @@ import logging
 log = logging.getLogger(__name__)
 
 class PSequence(Pattern):
-    """ Sequence: Sequence of values based on an array
+    """ Sequence: Output sequential values from a list.
         Takes an input list, and repeats the items in this list.
 
         >>> p = PSeq([ 1, 2, 3, 5 ])
@@ -83,7 +83,7 @@ class PSequence(Pattern):
 PSeq = PSequence
 
 class PSeries(Pattern):
-    """ PSeries: Arithmetic series, beginning at `start`, increment by `step`
+    """ PSeries: Arithmetic series, beginning at `start`, increment by `step`.
 
         >>> p = PSeries(3, 9)
         >>> p.nextn(16)
@@ -271,7 +271,7 @@ class PLoop(Pattern):
         return rv
 
 class PPingPong(Pattern):
-    """ PPingPong: Ping-pong input pattern back and forth N times.
+    """ PPingPong: Ping-pong input pattern back and forth `count` times.
 
         >>> p = PPingPong(PSeq([ 1, 4, 9 ], 1), 10)
         >>> p.nextn(16)
@@ -1062,7 +1062,7 @@ class PPermut(Pattern):
         return rv
 
 class PPatternGeneratorAction(Pattern):
-    """ PPatternGeneratorAction: Each time its pattern is exhausted, request a new pattern by calling <fn>.
+    """ PPatternGeneratorAction: Each time its pattern is exhausted, request a new pattern by calling `fn`.
 
         >>>
         >>>

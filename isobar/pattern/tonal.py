@@ -8,7 +8,7 @@ import typing
 from typing import Iterable
 
 class PDegree(Pattern):
-    """ PDegree: Map scale index <degree> to MIDI notes in <scale>.
+    """ PDegree: Map scale index `degree` to MIDI notes in `scale`.
 
         >>> p = PDegree(PSeries(0, 1), Scale.major)
         >>> p.nextn(16)
@@ -34,8 +34,8 @@ class PDegree(Pattern):
             return scale[degree]
 
 class PFilterByKey(Pattern):
-    """ PFilterByKey: Filter notes based on their presence in <key>.
-        IF a note is not in <key>, None is returned instead.
+    """ PFilterByKey: Filter notes based on their presence in `key`.
+        IF a note is not in `key`, None is returned instead.
         To compress the output and remove rests, use PCollapse.
 
         >>> p = PFilterByKey(PSeries(0, 1), Key("C", "major"))
@@ -59,7 +59,7 @@ class PFilterByKey(Pattern):
             return None
 
 class PNearestNoteInKey(Pattern):
-    """ PNearestNoteInKey: Return the nearest note in <key>.
+    """ PNearestNoteInKey: Return the nearest note in `key`.
 
         >>> p = PNearestNoteKey(PSeries(0, 1), Key("C", "major"))
         >>> p.nextn(16)
@@ -117,7 +117,7 @@ class PMidiSemitonesToFrequencyRatio(Pattern):
         return midi_semitones_to_frequency_ratio(note)
     
 class PKeyTonic(Pattern):
-    """ PKeyTonic: Given a Key as an input, returns the tonic of that key
+    """ PKeyTonic: Given a Key as an input, returns the tonic of that key.
 
         >>> p = PKeyTonic(PChoice([Key("C", "major"),
                                    Key("F", "minor"),
@@ -140,7 +140,7 @@ class PKeyTonic(Pattern):
         return key.tonic
     
 class PKeyScale(Pattern):
-    """ PKeyScale: Given a Key as an input, returns the scale corresponding to the key
+    """ PKeyScale: Given a Key as an input, returns the scale corresponding to the key.
 
         >>> p = PKeyScale(PChoice([Key("C", "major"),
                                    Key("F", "minor"),

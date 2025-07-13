@@ -3,7 +3,7 @@ View source: [chance.py](https://github.com/ideoforms/isobar/tree/master/isobar/
 
 | Class | Function |
 |-|-|
-| [PStochasticPattern](chance/pstochasticpattern.md) | PStochasticPattern is the superclass of all chance-based patterns. |
+| [PStochasticPattern](chance/pstochasticpattern.md) | The superclass of all chance-based patterns. |
 | [PWhite](chance/pwhite.md) | White noise between `min` and `max`. |
 | [PBrown](chance/pbrown.md) | Brownian noise. |
 | [PCoin](chance/pcoin.md) | Coin toss, returning either 0 or 1 given some `probability`. |
@@ -13,7 +13,7 @@ View source: [chance.py](https://github.com/ideoforms/isobar/tree/master/isobar/
 | [PShuffle](chance/pshuffle.md) | Shuffled list. |
 | [PShuffleInput](chance/pshuffleinput.md) | Every `n` steps, take `n` values from `pattern` and reorder. |
 | [PSkip](chance/pskip.md) | Skip events with some probability, 1 - `play`. |
-| [PFlipFlop](chance/pflipflop.md) | flip a binary bit with some probability. |
+| [PFlipFlop](chance/pflipflop.md) | Flip a binary bit with some probability. |
 | [PSwitchOne](chance/pswitchone.md) | Capture `length` input values; loop, repeatedly switching two adjacent values. |
 | [PRandomExponential](chance/prandomexponential.md) | Random uniform on exponential curve between `min` and `max`, |
 | [PRandomImpulseSequence](chance/prandomimpulsesequence.md) | Random sequence of impulses with probability `probability`. |
@@ -34,6 +34,7 @@ View source: [core.py](https://github.com/ideoforms/isobar/tree/master/isobar/pa
 | [PConcatenate](core/pconcatenate.md) | Concatenate the output of multiple sequences. |
 | [PAbs](core/pabs.md) | Absolute value of `input` |
 | [PInt](core/pint.md) | Integer value of `input` |
+| [PLFO](core/plfo.md) | Encapsulates an LFO object. |
 | [PAdd](core/padd.md) | Add elements of two patterns (shorthand: patternA + patternB) |
 | [PSub](core/psub.md) | Subtract elements of two patterns (shorthand: patternA - patternB) |
 | [PMul](core/pmul.md) | Multiply elements of two patterns (shorthand: patternA * patternB) |
@@ -66,7 +67,7 @@ View source: [lsystem.py](https://github.com/ideoforms/isobar/tree/master/isobar
 
 | Class | Function |
 |-|-|
-| [PLSystem](lsystem/plsystem.md) | integer sequence derived from Lindenmayer systems |
+| [PLSystem](lsystem/plsystem.md) | Formal grammars based on Lindenmayer systems, modelling plant growth. |
 
 
 ## [Markov](markov/index.md)
@@ -86,13 +87,20 @@ View source: [midi.py](https://github.com/ideoforms/isobar/tree/master/isobar/pa
 |-|-|
 
 
+## [Monome](monome/index.md)
+View source: [monome.py](https://github.com/ideoforms/isobar/tree/master/isobar/pattern/monome.py)
+
+| Class | Function |
+|-|-|
+
+
 ## [Oscillator](oscillator/index.md)
 View source: [oscillator.py](https://github.com/ideoforms/isobar/tree/master/isobar/pattern/oscillator.py)
 
 | Class | Function |
 |-|-|
 | [PTri](oscillator/ptri.md) | Generates a triangle waveform of period `length`. |
-| [PSaw](oscillator/psaw.md) | Generates a sawtooth waveform. |
+| [PSaw](oscillator/psaw.md) | Generates a sawtooth waveform of period `length`. |
 
 
 ## [Scalar](scalar/index.md)
@@ -100,18 +108,18 @@ View source: [scalar.py](https://github.com/ideoforms/isobar/tree/master/isobar/
 
 | Class | Function |
 |-|-|
-| [PChanged](scalar/pchanged.md) | Outputs a 1 if the value of the input pattern has changed, |
-| [PDiff](scalar/pdiff.md) | Outputs the difference between the current and previous values of an input pattern |
+| [PChanged](scalar/pchanged.md) | Outputs a 1 if the value of the input pattern has changed, 0 otherwise. |
+| [PDiff](scalar/pdiff.md) | Outputs the difference between the current and previous values of an input pattern. |
 | [PSkipIf](scalar/pskipif.md) | If `skip` is false, returns `input`; otherwise, returns None. |
-| [PNormalise](scalar/pnormalise.md) | Adaptively normalise `input` to [0..1] over a linear scale. |
+| [PNormalise](scalar/pnormalise.md) | Adaptively normalise `input` to `[0..1]` over a linear scale. |
 | [PMap](scalar/pmap.md) | Apply an arbitrary function to an input pattern. |
 | [PMapEnumerated](scalar/pmapenumerated.md) | Apply arbitrary function to input, passing a counter. |
 | [PScaleLinLin](scalar/pscalelinlin.md) | Map `input` from linear range [a,b] to linear range [c,d]. |
 | [PScaleLinExp](scalar/pscalelinexp.md) | Map `input` from linear range [a,b] to exponential range [c,d]. |
 | [PRound](scalar/pround.md) | Round `input` to N decimal places. |
 | [PScalar](scalar/pscalar.md) | Reduce tuples and lists into single scalar values, |
-| [PWrap](scalar/pwrap.md) | Wrap input note values within <min>, <max>. |
-| [PIndexOf](scalar/pindexof.md) | Find index of items from `pattern` in <list> |
+| [PWrap](scalar/pwrap.md) | Wrap input note values within `[min, max]`. |
+| [PIndexOf](scalar/pindexof.md) | Find index of items from `pattern` in `list`. |
 
 
 ## [Sequence](sequence/index.md)
@@ -119,13 +127,13 @@ View source: [sequence.py](https://github.com/ideoforms/isobar/tree/master/isoba
 
 | Class | Function |
 |-|-|
-| [PSequence](sequence/psequence.md) | Sequence of values based on an array |
-| [PSeries](sequence/pseries.md) | Arithmetic series, beginning at `start`, increment by `step` |
+| [PSequence](sequence/psequence.md) | Output sequential values from a list. |
+| [PSeries](sequence/pseries.md) | Arithmetic series, beginning at `start`, increment by `step`. |
 | [PRange](sequence/prange.md) | Similar to PSeries, but specify a max/step value. |
 | [PGeom](sequence/pgeom.md) | Geometric series, beginning at `start`, multiplied by `step` |
 | [PImpulse](sequence/pimpulse.md) | Outputs a 1 every <period> events, otherwise 0. |
 | [PLoop](sequence/ploop.md) | Repeats a finite `pattern` for `n` repeats. |
-| [PPingPong](sequence/ppingpong.md) | Ping-pong input pattern back and forth N times. |
+| [PPingPong](sequence/ppingpong.md) | Ping-pong input pattern back and forth `count` times. |
 | [PCreep](sequence/pcreep.md) | Loop `length`-note segment, progressing `creep` notes after `repeats` repeats. |
 | [PStutter](sequence/pstutter.md) | Play each note of `pattern` `count` times. |
 | [PSubsequence](sequence/psubsequence.md) | Returns a finite subsequence of an input pattern. |
@@ -139,7 +147,7 @@ View source: [sequence.py](https://github.com/ideoforms/isobar/tree/master/isoba
 | [PArpeggiator](sequence/parpeggiator.md) | Arpeggiator. |
 | [PEuclidean](sequence/peuclidean.md) | Generate Euclidean rhythms. |
 | [PPermut](sequence/ppermut.md) | Generate every permutation of `count` input items. |
-| [PPatternGeneratorAction](sequence/ppatterngeneratoraction.md) | Each time its pattern is exhausted, request a new pattern by calling <fn>. |
+| [PPatternGeneratorAction](sequence/ppatterngeneratoraction.md) | Each time its pattern is exhausted, request a new pattern by calling `fn`. |
 | [PSequenceAction](sequence/psequenceaction.md) | Iterate over an array, perform a function, and repeat. |
 
 
@@ -148,7 +156,6 @@ View source: [static.py](https://github.com/ideoforms/isobar/tree/master/isobar/
 
 | Class | Function |
 |-|-|
-| [Globals](static/globals.md) | The Globals class encapsulates a namespace of global variables that can be accessed |
 | [PGlobals ](static/pglobals .md) | Static global value identified by a string. |
 | [PCurrentTime](static/pcurrenttime.md) | Returns the position (in beats) of the current timeline. |
 
@@ -158,11 +165,13 @@ View source: [tonal.py](https://github.com/ideoforms/isobar/tree/master/isobar/p
 
 | Class | Function |
 |-|-|
-| [PDegree](tonal/pdegree.md) | Map scale index <degree> to MIDI notes in <scale>. |
-| [PFilterByKey](tonal/pfilterbykey.md) | Filter notes based on their presence in <key>. |
-| [PNearestNoteInKey](tonal/pnearestnoteinkey.md) | Return the nearest note in <key>. |
+| [PDegree](tonal/pdegree.md) | Map scale index `degree` to MIDI notes in `scale`. |
+| [PFilterByKey](tonal/pfilterbykey.md) | Filter notes based on their presence in `key`. |
+| [PNearestNoteInKey](tonal/pnearestnoteinkey.md) | Return the nearest note in `key`. |
 | [PMidiNoteToFrequency](tonal/pmidinotetofrequency.md) | Map MIDI note to frequency value. |
 | [PMidiSemitonesToFrequencyRatio](tonal/pmidisemitonestofrequencyratio.md) | Map a MIDI offet in semitones to a frequency ratio. |
+| [PKeyTonic](tonal/pkeytonic.md) | Given a Key as an input, returns the tonic of that key. |
+| [PKeyScale](tonal/pkeyscale.md) | Given a Key as an input, returns the scale corresponding to the key. |
 
 
 ## [Warp](warp/index.md)

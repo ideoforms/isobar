@@ -8,7 +8,7 @@ from ..util import wnchoice, scale_lin_exp
 
 class PStochasticPattern(Pattern):
     """
-    PStochasticPattern is the superclass of all chance-based patterns.
+    PStochasticPattern: The superclass of all chance-based patterns.
     It contains its own random number generator and state, so that it can be
     seeded independently of other RNG processes in the application.
 
@@ -422,10 +422,10 @@ class PSkip(PStochasticPattern):
         return None
 
 class PFlipFlop(PStochasticPattern):
-    """ PFlipFlop: flip a binary bit with some probability.
-                   <initial> is initial value (0 or 1)
-                   <p_on> is chance of switching from 0->1
-                   <p_off> is chance of switching from 1->0
+    """ PFlipFlop: Flip a binary bit with some probability.
+                   - `initial` is initial value (0 or 1)
+                   - `p_on` is chance of switching from 0->1
+                   - `p_off` is chance of switching from 1->0
 
         >>> p = PFlipFlop(0, 0.9, 0.5)
         >>> p.nextn(16)

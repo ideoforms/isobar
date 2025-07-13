@@ -42,7 +42,7 @@ class PTri(Pattern):
         return rv
 
 class PSaw(Pattern):
-    """ PSaw: Generates a sawtooth waveform.
+    """ PSaw: Generates a sawtooth waveform of period `length`.
 
         >>> p = PTri(10)
         >>> p.nextn(10)

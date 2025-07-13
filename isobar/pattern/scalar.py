@@ -6,8 +6,7 @@ from ..util import scale_lin_exp, scale_lin_lin
 from typing import Callable
 
 class PChanged(Pattern):
-    """ PChanged: Outputs a 1 if the value of the input pattern has changed,
-        or 0 otherwise.
+    """ PChanged: Outputs a 1 if the value of the input pattern has changed, 0 otherwise.
 
         >>> a = PSequence([1, 0, 1, 2, 2, 2, 1, 0, 0, 1], repeats=1)
         >>> b = PChanged(a)
@@ -33,7 +32,7 @@ class PChanged(Pattern):
         return rv
 
 class PDiff(Pattern):
-    """ PDiff: Outputs the difference between the current and previous values of an input pattern
+    """ PDiff: Outputs the difference between the current and previous values of an input pattern.
         If the current or next value are None, a value of None will be output.
 
         The length of the output pattern is always 1 less than the length of the input.
@@ -83,7 +82,7 @@ class PSkipIf(Pattern):
         return rv
 
 class PNormalise(Pattern):
-    """ PNormalise: Adaptively normalise `input` to [0..1] over a linear scale.
+    """ PNormalise: Adaptively normalise `input` to `[0..1]` over a linear scale.
         Use maximum and minimum values found in history.
 
         If you know the output range ahead of time, use `PScaleLinLin`.
@@ -253,7 +252,7 @@ class PScalar(PMap):
         PMap.__init__(self, pattern, self.scalar, method=method)
 
 class PWrap(Pattern):
-    """ PWrap: Wrap input note values within <min>, <max>.
+    """ PWrap: Wrap input note values within `[min, max]`.
 
         >>> p = PWrap(PSeries(5, 3), 0, 10)
         >>> p.nextn(16)
@@ -277,7 +276,7 @@ class PWrap(Pattern):
         return value
 
 class PIndexOf(Pattern):
-    """ PIndexOf: Find index of items from `pattern` in <list>
+    """ PIndexOf: Find index of items from `pattern` in `list`.
 
         >>> p = PIndexOf([ chr(ord("a") + n) for n in range(26) ], PSeq("isobar"))
         >>> p.nextn(16)
