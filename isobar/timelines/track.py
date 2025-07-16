@@ -470,8 +470,9 @@ class Track:
 
             #----------------------------------------------------------------------
             # note_on: Standard (MIDI) type of device
+            # If the amplitude is None or 0, this is a rest.
             #----------------------------------------------------------------------
-            if type(event.amplitude) is tuple or event.amplitude > 0:
+            if type(event.amplitude) is tuple or (event.amplitude is not None and event.amplitude > 0):
                 # TODO: pythonic duck-typing approach might be better
                 # TODO: doesn't handle arrays of amp, channel event, etc
                 notes = event.note if hasattr(event.note, '__iter__') else [event.note]
