@@ -715,8 +715,27 @@ class Timeline:
         """
         Remove all tracks.
         """
+        
+        for device in self.output_devices:
+            device.all_notes_off()
         for track in self.tracks[:]:
             self.unschedule(track)
+
+    def mute(self) -> None:
+        """
+        Mute all tracks in this timeline.
+        This is equivalent to calling Track.mute() on each track.
+        """
+        for track in self.tracks:
+            track.mute()
+
+    def unmute(self) -> None:
+        """
+        Unmute all tracks in this timeline.
+        This is equivalent to calling Track.unmute() on each track.
+        """
+        for track in self.tracks:
+            track.unmute()
 
     def wait(self):
         """
