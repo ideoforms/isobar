@@ -8,7 +8,7 @@ try:
     from ..io.signalflow import SignalFlowOutputDevice
 
     midi_output_device = MidiOutputDevice()
-    timeline = Timeline(120, midi_output_device)
+    timeline = Timeline(120, midi_output_device, clock_source="link")
     timeline.add_output_device(midi_output_device)
     graph = AudioGraph()
     signalflow_output_device = SignalFlowOutputDevice(graph)
