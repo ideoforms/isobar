@@ -15,9 +15,13 @@ def _parser_push(obj, sequence: PSequence, depth: int):
 def _parser_get_next_token(string: str):
     """
     Return the next token in the string.
-    This may be a number (integer/float) or a note name (e.g. c#4).
+    This may be:
+     - a number (integer/float)
+     - a note name (e.g. c#4)
+     - a rest (- or ~)
     """
-    note_pattern = r"(-?[0-9]+(\.[0-9]+)?|[a-g]#?[0-9])\b"
+    note_pattern = r"((-?[0-9]+(\.[0-9]+)?)|([a-g]#?[0-9])|[\~-])"
+    # note_pattern = r"((-?[0-9]+(\.[0-9]+)?)|([a-g]#?[0-9]))\b"
     if string[0] in '[]':
         return string[0]
     else:
@@ -28,6 +32,9 @@ def _parser_get_next_token(string: str):
             raise ValueError("Invalid character in notation: %s" % string)
 
 def _parser_token_to_value(token: str):
+    if token in ["~", "-"]:
+        return None
+
     try:
         return int(token)
     except ValueError:
@@ -79,6 +86,6 @@ def parse_notation(string: str):
         return groups
 
 if __name__ == "__main__":
-    seq = parse_notation('1 2 [10 11] [c#4 [30.1 30.2 30.3]]')
-    expected = [1, 2, 10, 'c#4', 1, 2, 11, 30.1, 1, 2, 10, 'c#4', 1, 2, 11, 30.2]
+    seq = parse_notation('1 2 ~ - [10 11] [c#4 [30.1 30.2 30.3]]')
+    expected = [1, 2, None, None, 10, 'c#4', 1, 2, None, None, 11, 30.1, 1, 2, None, None, 10, 'c#4', 1, 2, None, None, 11, 30.2]
     print(seq.nextn(16))
