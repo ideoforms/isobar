@@ -23,6 +23,10 @@ class PGlobals (Pattern):
             return Pattern.value(value)
         except KeyError:
             return self.default
+    
+    def set(self, value: Any):
+        """ Set the value of the global variable. """
+        Globals.set(self.name, value)
 
 class PStaticPattern(Pattern):
     def __init__(self, pattern: Pattern, element_duration: float):
