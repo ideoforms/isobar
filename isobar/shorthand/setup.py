@@ -1,18 +1,23 @@
 from ..io.midi import MidiOutputDevice
 from ..timelines import Timeline
 from ..exceptions import DeviceNotFoundException
+from ..globals import Globals
 from .. import ALL_EVENT_PARAMETERS
 
 try:
     from signalflow import *
     from ..io.signalflow import SignalFlowOutputDevice
 
+    Globals.enable_interprocess_sync()
+
     midi_output_device = MidiOutputDevice()
     timeline = Timeline(120, midi_output_device, clock_source="link")
     timeline.add_output_device(midi_output_device)
+
     graph = AudioGraph()
     signalflow_output_device = SignalFlowOutputDevice(graph)
     signalflow_output_device.added_latency_seconds = 0.04
+
     timeline.ignore_exceptions = True
     timeline.background()
 
@@ -20,6 +25,18 @@ except (ModuleNotFoundError, DeviceNotFoundException) as e:
     print("Warning: Could not set up shorthand mode: %s" % e)
     graph = None
     timeline = None
+
+# Enable Ableton Link clock in current Live set
+def enable_ableton_link():
+    import live
+    set = live.Set()
+    try:
+        if not set.is_ableton_link_enabled:
+            set.is_ableton_link_enabled = True
+            print("Ableton Link enabled in current Live set.")
+    except live.LiveConnectionError as e:
+        print(f"Error enabling Ableton Link: {e}")
+enable_ableton_link()
 
 
 def track(name, **kwargs):
@@ -72,5 +89,16 @@ def track(name, **kwargs):
     # Re-evaluating the cell without mute() should then unmute the track.
     #--------------------------------------------------------------------------------
     track.is_muted = False
+
+    try:
+        import signalflow_vscode
+        cell_id = signalflow_vscode.vscode_get_this_cell_id()
+        print("Added flash callback for cell ID:", cell_id)
+        if cell_id is not None:
+            track.add_event_callback(lambda e: signalflow_vscode.vscode_flash_cell_id(cell_id, track.name))
+    except (ModuleNotFoundError, ImportError):
+        # no signalflow_vscode module available
+        pass
+
 
     return track
