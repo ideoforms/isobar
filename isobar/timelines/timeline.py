@@ -21,6 +21,13 @@ from ..util import make_clock_multiplier
 
 log = logging.getLogger(__name__)
 
+#------------------------------------------------------------------------------
+# shared_timeline is used in the common case in which only one Timeline is
+# used in a process, so it can be treated as a singleton and accessed globally
+# via Timeline.get_shared_timeline().
+#------------------------------------------------------------------------------
+shared_timeline = None
+
 @dataclass
 class Action:
     time: float
@@ -56,6 +63,10 @@ class Timeline:
                                such as live coding that require persistent operation.
             start: If True, automatically start the timeline running in the background.
         """
+        global shared_timeline
+        if shared_timeline is None:
+            shared_timeline = self
+
         self._clock_source: Optional[Clock] = None
 
         if clock_source is None:
@@ -139,6 +150,18 @@ class Timeline:
 
         if start:
             self.start()
+    
+    @classmethod
+    def get_shared_timeline(cls) -> "Timeline":
+        """
+        Get the shared Timeline object, which is used in the common case
+        where only one Timeline is used in a process.
+
+        Returns:
+            The shared Timeline object.
+        """
+        global shared_timeline
+        return shared_timeline
 
     def get_clock_source(self) -> Clock:
         """
