@@ -171,6 +171,8 @@ class Automation:
         for binding in self.bindings:
             if binding.mode == "attr":
                 setattr(binding.object, binding.property_name, self.value)
+                if len(binding.kwargs) > 0:
+                    logger.warning("Ignoring kwargs %s for attr binding %s" % (binding.kwargs, binding))
             elif binding.mode == "method":
                 method = getattr(binding.object, binding.property_name)
                 args = {"value": self.value, **binding.kwargs}
