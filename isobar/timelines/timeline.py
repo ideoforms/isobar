@@ -148,6 +148,20 @@ class Timeline:
          - the Event object
         """
 
+        self.events_in_last_second: int = 0
+        self.events_per_second: float = 0.0
+        def _track_events_per_second():
+            """
+            Update the events_per_second value based on the number of events
+            that occurred in the last second.
+            """
+            while True:
+                time.sleep(1.0)
+                self.events_per_second = (0.5 * self.events_in_last_second) + (0.5 * self.events_per_second)
+                self.events_in_last_second = 0
+        thread = threading.Thread(target=_track_events_per_second, daemon=True)
+        thread.start()
+
         if start:
             self.start()
     
