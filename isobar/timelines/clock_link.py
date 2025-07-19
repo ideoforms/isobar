@@ -35,14 +35,14 @@ class AbletonLinkClock (Clock):
         while True:
             link_state = self.link_client.captureSessionState()
             link_time = self.link_client.clock().micros()
-            #--------------------------------------------------------------------------------
-            # Start clock at next 4-beat boundary (next bar, assuming 4/4)
-            #--------------------------------------------------------------------------------
             beats = link_state.beatAtTime(link_time, 4)
 
             ticks_current = int(beats * self.ticks_per_beat)
             if not got_sync:
-                if ticks_current % self.ticks_per_beat == 0:
+                #--------------------------------------------------------------------------------
+                # Start clock at next 4-beat boundary (next bar, assuming 4/4)
+                #--------------------------------------------------------------------------------
+                if ticks_current % (self.ticks_per_beat * 4) == 0:
                     got_sync = True
             if ticks_previous is None or ticks_current > ticks_previous:
                 if ticks_previous is None:
