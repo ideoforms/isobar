@@ -427,7 +427,9 @@ class Track:
             if hasattr(event, "note"):
                 event.patch.set_input("frequency", midi_note_to_frequency(event.note))
 
-            if not event_is_rest:
+            if event_is_rest:
+                return
+            else:
                 if event.type == EVENT_TYPE_PATCH_TRIGGER:
                     #------------------------------------------------------------------------
                     # Action: Trigger a patch
@@ -466,12 +468,12 @@ class Track:
                         d[key] = value
 
                 self.output_device.event(d)
-                return
 
             #----------------------------------------------------------------------
             # note_on: Standard (MIDI) type of device
             # If the amplitude is None or 0, this is a rest.
             #----------------------------------------------------------------------
+            event_did_fire = False
             if type(event.amplitude) is tuple or (event.amplitude is not None and event.amplitude > 0):
                 # TODO: pythonic duck-typing approach might be better
                 # TODO: doesn't handle arrays of amp, channel event, etc
@@ -489,6 +491,7 @@ class Track:
                     # TODO: Add an EVENT_SUSTAIN that allows absolute note lengths to be specified
 
                     if (amp is not None and amp > 0) and (gate is not None and gate > 0):
+                        event_did_fire = True
                         self.output_device.note_on(note, amp, channel)
 
                         note_dur = event.duration * gate
@@ -497,9 +500,14 @@ class Track:
                         self.note_offs.append(note_off)
                 if event.pitchbend is not None:
                     self.output_device.pitch_bend(event.pitchbend, channel)
+            
+            # This is a rest, so return early and don't fire any callbacks.
+            if not event_did_fire:
+                return
         else:
             raise InvalidEventException("Invalid event type: %s" % event.type)
 
+        self.timeline.events_in_last_second += 1
         if self.timeline.on_event_callback:
             self.timeline.on_event_callback(self, event)
 
