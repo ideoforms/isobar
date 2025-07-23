@@ -194,6 +194,11 @@ class Event:
                     raise ValueError("SuperCollider params must be a dict")
                 self.synth_params = event_values[EVENT_SUPERCOLLIDER_SYNTH_PARAMS]
 
+        elif EVENT_GLOBAL in event_values:
+            self.type = EVENT_TYPE_GLOBAL
+            self.global_key = event_values[EVENT_GLOBAL]
+            self.global_value = event_values.get(EVENT_VALUE, None)
+
         elif EVENT_NOTE in event_values:
             self.type = EVENT_TYPE_NOTE
             self.note = event_values[EVENT_NOTE]
@@ -204,7 +209,7 @@ class Event:
 
         else:
             possible_event_types = [EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL,
-                                    EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS]
+                                    EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS, EVENT_GLOBAL]
             raise InvalidEventException("No event type specified (must provide one of %s)" % possible_event_types)
 
         self.duration = event_values[EVENT_DURATION]

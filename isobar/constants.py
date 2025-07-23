@@ -56,6 +56,7 @@ EVENT_ACTION_ARGS = "args"
 EVENT_CONTROL = "control"
 EVENT_OSC_ADDRESS = "osc_address"
 EVENT_OSC_PARAMS = "osc_params"
+EVENT_GLOBAL = "globals"
 EVENT_VALUE = "value"
 EVENT_TIME = "time"
 EVENT_PATCH = "patch"
@@ -93,7 +94,7 @@ ALL_EVENT_PARAMETERS = [
     EVENT_PATCH_PARAMS, EVENT_PATCH_OUTPUT, EVENT_PROGRAM_CHANGE, EVENT_SUPERCOLLIDER_SYNTH,
     EVENT_SUPERCOLLIDER_SYNTH_PARAMS, EVENT_QUANTIZE, EVENT_DELAY,
     EVENT_DURATION_LEGACY, EVENT_AMPLITUDE_LEGACY, EVENT_VELOCITY,
-    EVENT_TRIGGER_NAME, EVENT_TRIGGER_VALUE
+    EVENT_TRIGGER_NAME, EVENT_TRIGGER_VALUE, EVENT_GLOBAL
 ]
 
 #------------------------------------------------------------------------
@@ -109,6 +110,7 @@ EVENT_TYPE_PATCH_CREATE = "patch"
 EVENT_TYPE_PATCH_TRIGGER = "trigger"
 EVENT_TYPE_PATCH_SET = "set"
 EVENT_TYPE_SUPERCOLLIDER = "supercollider"
+EVENT_TYPE_GLOBAL = "global"
 
 #------------------------------------------------------------------------
 # Default parameter values

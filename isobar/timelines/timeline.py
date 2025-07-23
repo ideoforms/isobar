@@ -654,6 +654,7 @@ class Timeline:
         """
         if track not in self.tracks:
             raise TrackNotFoundException("Track is not currently scheduled")
+        track.process_note_offs(immediately=True)
         self.tracks.remove(track)
 
     def _schedule_action(self,

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 import copy
 import inspect
 from typing import Union, Optional, Callable, TYPE_CHECKING
@@ -13,7 +14,10 @@ from ..constants import *
 from ..exceptions import InvalidEventException
 from ..util import midi_note_to_frequency
 from ..io.output import OutputDevice
+from ..globals import Globals
 import logging
+import queue
+import threading
 
 log = logging.getLogger(__name__)
 
@@ -67,6 +71,19 @@ class Track:
         self.is_finished: bool = False
         self.remove_when_done: bool = remove_when_done
         self.on_event_callbacks: list[Callable] = []
+
+        #--------------------------------------------------------------------------------
+        # Handle callbacks in a separate thread to prevent slow callbacks
+        # holding up scheduling
+        #--------------------------------------------------------------------------------
+        self.callback_queue = queue.Queue()
+        self.callback_thread = threading.Thread(target=self._callback_thread, daemon=True)
+        self.callback_thread.start()
+
+    def _callback_thread(self):
+        while True:
+            callback = self.callback_queue.get()
+            callback()
 
     def __str__(self):
         if self.name:
@@ -173,7 +190,7 @@ class Track:
         """
         return self.timeline.tick_duration
 
-    def process_note_offs(self):
+    def process_note_offs(self, immediately: bool = False):
         #----------------------------------------------------------------------
         # Process note_offs before we play the next note, else a repeated note
         # with gate = 1.0 will immediately be cancelled.
@@ -181,7 +198,7 @@ class Track:
         # Use round() to avoid scheduling issues arising from rounding errors.
         #----------------------------------------------------------------------
         for note_off in self.note_offs[:]:
-            if round(note_off.timestamp, 8) <= round(self.current_time, 8):
+            if (round(note_off.timestamp, 8) <= round(self.current_time, 8)) or immediately:
                 self.output_device.note_off(note_off.note, note_off.channel)
                 self.note_offs.remove(note_off)
 
@@ -332,6 +349,8 @@ class Track:
             return
         if self.is_muted:
             return
+
+        t0 = time.time()
         log.debug("Track: Executing event: %s" % event)
 
         #------------------------------------------------------------------------
@@ -439,6 +458,14 @@ class Track:
                     params = dict((key, Pattern.value(value)) for key, value in event.params.items())
                     self.output_device.trigger(event.patch, event.trigger_name, event.trigger_value)
 
+        elif event.type == EVENT_TYPE_GLOBAL:
+            #------------------------------------------------------------------------
+            # Action: Set a global variable
+            #------------------------------------------------------------------------
+            key = Pattern.value(event.global_key)
+            value = Pattern.value(event.global_value)
+            Globals.set(key, value)
+
         #------------------------------------------------------------------------
         # Note: Classic MIDI note
         #------------------------------------------------------------------------
@@ -506,14 +533,20 @@ class Track:
                 return
         else:
             raise InvalidEventException("Invalid event type: %s" % event.type)
+        
+        t1 = time.time()
 
         self.timeline.events_in_last_second += 1
         if self.timeline.on_event_callback:
-            self.timeline.on_event_callback(self, event)
+            self.callback_queue.put(lambda: self.timeline.on_event_callback(self, event))
 
         if self.on_event_callbacks:
             for callback in self.on_event_callbacks:
-                callback(event)
+                self.callback_queue.put(lambda: callback(event))
+
+        t2 = time.time()
+        if t2 - t0 > 0.01:
+            logger.debug("Track %s: Event took %.2f seconds to execute, %.2f in callbacks" % (self.name, t2 - t0, t2 - t1))
 
     def stop(self):
         self.timeline.unschedule(self)
