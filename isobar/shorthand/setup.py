@@ -12,11 +12,11 @@ try:
 
     midi_output_device = MidiOutputDevice()
     timeline = Timeline(120, midi_output_device, clock_source="link")
-    timeline.add_output_device(midi_output_device)
+    # timeline.add_output_device(midi_output_device)
 
     graph = AudioGraph()
     signalflow_output_device = SignalFlowOutputDevice(graph)
-    signalflow_output_device.added_latency_seconds = 0.04
+    signalflow_output_device.added_latency_seconds = 0.00
 
     timeline.ignore_exceptions = True
     timeline.background()
@@ -26,18 +26,23 @@ except (ModuleNotFoundError, DeviceNotFoundException) as e:
     graph = None
     timeline = None
 
+live_set = None
 # Enable Ableton Link clock in current Live set
 def enable_ableton_link():
     import live
-    set = live.Set()
+    global live_set
     try:
-        if not set.is_ableton_link_enabled:
-            set.is_ableton_link_enabled = True
+        live_set = live.Set()
+        if not live_set.is_ableton_link_enabled:
+            live_set.is_ableton_link_enabled = True
             print("Ableton Link enabled in current Live set.")
-    except live.LiveConnectionError as e:
+    except (live.LiveConnectionError, OSError) as e:
         print(f"Error enabling Ableton Link: {e}")
 enable_ableton_link()
 
+def open_set(set_name):
+    global live_set
+    live_set.open(set_name)
 
 def track(name, **kwargs):
     global timeline

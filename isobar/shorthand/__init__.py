@@ -1,6 +1,6 @@
 from .. import *
 from .abbreviations import *
-from .setup import timeline, track, graph
+from .setup import timeline, track, graph, live_set, open_set
 
 try:
     import signalflow
