@@ -13,3 +13,6 @@ audio
 midi
 build
 TODO.md
+
+# Ignore auto-generated docs
+docs/patterns/*/*.md
