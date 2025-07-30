@@ -39,11 +39,13 @@ class Event:
             if key not in ALL_EVENT_PARAMETERS:
                 raise ValueError("Invalid key for event: %s" % (key))
 
-        if EVENT_DURATION_LEGACY in event_values:
-            event_values[EVENT_DURATION] = event_values[EVENT_DURATION_LEGACY]
-        if EVENT_AMPLITUDE_LEGACY in event_values:
-            event_values[EVENT_AMPLITUDE] = event_values[EVENT_AMPLITUDE_LEGACY]
-        
+        if EVENT_DURATION_SHORTHAND in event_values:
+            event_values[EVENT_DURATION] = event_values[EVENT_DURATION_SHORTHAND]
+        if EVENT_AMPLITUDE_SHORTHAND in event_values:
+            event_values[EVENT_AMPLITUDE] = event_values[EVENT_AMPLITUDE_SHORTHAND]
+        if EVENT_ACTIVE_SHORTHAND in event_values:
+            event_values[EVENT_ACTIVE] = event_values[EVENT_ACTIVE_SHORTHAND]
+
         # Synonym
         if EVENT_VELOCITY in event_values:
             event_values[EVENT_AMPLITUDE] = event_values[EVENT_VELOCITY]
