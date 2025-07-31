@@ -14,7 +14,7 @@ from .chance import PStochasticPattern
 
 import logging
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 class PSequence(Pattern):
     """ Sequence: Output sequential values from a list.
@@ -914,7 +914,7 @@ class PExplorer(Pattern):
 
         OPERATION_NAMES = ["mutate", "rotate", "swap", "split", "reverse", "delete", "insert", "copy"]
 
-        log.debug("PExplorer: Exploring: %s" % self.values)
+        logger.debug("PExplorer: Exploring: %s" % self.values)
         operations = [OP_MUTATE, OP_ROTATE, OP_SWAP, OP_SPLIT, OP_REVERSE, OP_DELETE, OP_INSERT, OP_COPY]
 
         values = self.values
@@ -924,7 +924,7 @@ class PExplorer(Pattern):
         if len(values) <= self.length_min:
             operations.remove(OP_DELETE)
         operation = random.choice(operations)
-        log.debug("PExplorer: Selected operation: %s" % OPERATION_NAMES[operation])
+        logger.debug("PExplorer: Selected operation: %s" % OPERATION_NAMES[operation])
 
         #------------------------------------------------------------------------
         # MUTATE: Replace a note with another note found within the sequence.
@@ -987,7 +987,7 @@ class PExplorer(Pattern):
             index = random.randint(0, len(values) - 1)
             values.insert(index + 1, values[index])
 
-        log.debug("PExplorer: New values: %s" % values)
+        logger.debug("PExplorer: New values: %s" % values)
 
         self.values = values
         self.counter = 0
