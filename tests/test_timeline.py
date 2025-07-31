@@ -124,10 +124,9 @@ def test_timeline_schedule_real_clock():
     def record_time():
         times.append(time.time())
     timeline.schedule({
-        iso.EVENT_NOTE: iso.PSequence([1, 1], 1),
         iso.EVENT_ACTION: record_time,
         iso.EVENT_DURATION: 0.1
-    }, delay=0.1)
+    }, delay=0.1, count=2)
     t0 = time.time()
     timeline.run()
     diff = times[1] - times[0]
