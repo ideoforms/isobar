@@ -12,7 +12,7 @@ from .lfo import LFO
 from .automation import Automation
 from .clock import Clock
 from .clock_link import AbletonLinkClock
-from .event import EventDefaults
+from .events import EventDefaults
 from ..io import MidiOutputDevice, OutputDevice, MidiInputDevice
 from ..constants import DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO
 from ..constants import INTERPOLATION_NONE

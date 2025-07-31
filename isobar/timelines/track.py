@@ -6,7 +6,7 @@ import inspect
 from typing import Union, Optional, Callable, TYPE_CHECKING
 from dataclasses import dataclass
 
-from .event import Event
+from .events import Event
 if TYPE_CHECKING:
     from .timeline import Timeline
 from ..pattern import Pattern, PSequence, PDict, PInterpolate
@@ -216,7 +216,8 @@ class Track:
                     while round(self.current_time, 8) >= round(self.next_event_time, 8):
                         #--------------------------------------------------------------------------------
                         # Retrieve the next event.
-                        # If no more events are available, this raises StopIteration.
+                        # If no more events are available, this raises StopIteration (caught by
+                        # the enclosing try/except block)
                         #--------------------------------------------------------------------------------
                         self.current_event = self.get_next_event()
                         self.next_event_time += float(self.current_event.duration)
@@ -234,7 +235,9 @@ class Track:
                 #--------------------------------------------------------------------------------
                 try:
                     interpolated_values = next(self.interpolating_event)
-                    interpolated_event = Event(interpolated_values, self.timeline.defaults, track=self)
+                    interpolated_event = Event.from_dict(event_values=interpolated_values,
+                                                         defaults=self.timeline.defaults,
+                                                         track=self)
                     self.perform_event(interpolated_event)
                 except StopIteration:
                     is_first_event = False
@@ -281,7 +284,9 @@ class Track:
                     self.interpolating_event = PDict(interpolating_event_fields)
                     if not is_first_event:
                         next(self.interpolating_event)
-                    event = Event(next(self.interpolating_event), self.timeline.defaults, track=self)
+                    event = Event.from_dict(event_values=next(self.interpolating_event),
+                                            defaults=self.timeline.defaults,
+                                            track=self)
                     self.perform_event(event)
 
         except StopIteration:
@@ -339,7 +344,7 @@ class Track:
         event_values = next(self.event_stream)
         event_values = copy.copy(event_values)
 
-        event = Event(event_values, self.timeline.defaults, track=self)
+        event = Event.from_dict(event_values, self.timeline.defaults, track=self)
         self.current_event_count += 1
 
         return event
@@ -546,7 +551,7 @@ class Track:
 
         t2 = time.time()
         if t2 - t0 > 0.01:
-            logger.debug("Track %s: Event took %.2f seconds to execute, %.2f in callbacks" % (self.name, t2 - t0, t2 - t1))
+            log.debug("Track %s: Event took %.2f seconds to execute, %.2f in callbacks" % (self.name, t2 - t0, t2 - t1))
 
     def stop(self):
         self.timeline.unschedule(self)
