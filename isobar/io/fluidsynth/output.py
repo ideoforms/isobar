@@ -1,10 +1,15 @@
 from ..output import OutputDevice
-
-import logging
-
-log = logging.getLogger(__name__)
+import os
+import platform
 
 try:
+    #--------------------------------------------------------------------------------
+    # Workaround for bug in pyfluidsynth in which it fails to find the Homebrew
+    # prefix on Apple Silicon Macs:
+    # https://github.com/nwhitehead/pyfluidsynth/pull/69#issuecomment-2276138666
+    #--------------------------------------------------------------------------------
+    if platform.system() == "Darwin" and platform.machine() == "arm64":
+        os.environ["HOMEBREW_PREFIX"] = "/opt/homebrew"
     import fluidsynth
 except ModuleNotFoundError:
     pass
