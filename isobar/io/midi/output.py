@@ -50,6 +50,10 @@ class MidiOutputDevice (OutputDevice):
             msg = mido.Message("stop")
             self.midi.send(msg)
 
+    def close(self):
+        self.midi.close()
+        del self.midi
+
     @property
     def ticks_per_beat(self) -> int:
         """

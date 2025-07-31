@@ -160,7 +160,7 @@ class MidiInputDevice:
                 note.aftertouch = message.value
                 if self.on_polytouch_handler:
                     self.on_polytouch_handler(message)
-                
+            
             if self.callback:
                 self.callback(message)
             else:
@@ -168,13 +168,6 @@ class MidiInputDevice:
 
     def stop(self):
         pass
-
-    def run(self):
-        """
-        Run indefinitely.
-        """
-        while True:
-            time.sleep(0.1)
 
     def get_tempo(self):
         return self.estimated_tempo
@@ -218,6 +211,7 @@ class MidiInputDevice:
         return rv
 
     def close(self):
+        self.midi.close()
         del self.midi
 
     def set_note_on_handler(self, handler: Callable):
