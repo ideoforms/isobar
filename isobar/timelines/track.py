@@ -341,7 +341,9 @@ class Track:
         event_values = next(self.event_stream)
         event_values = copy.copy(event_values)
 
-        event = Event.from_dict(event_values, self.timeline.defaults, track=self)
+        event = Event.from_dict(event_values=event_values,
+                                defaults=self.timeline.defaults,
+                                track=self)
         self.current_event_count += 1
 
         return event

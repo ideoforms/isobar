@@ -23,6 +23,7 @@ class EventDefaults:
     def __init__(self):
         for key, value in EventDefaults.default_values.items():
             setattr(self, key, value)
+            
     def __setattr__(self, name, value):
         if name != "default_values" and name not in EventDefaults.default_values:
             raise ValueError("Invalid property for defaults: %s" % name)
@@ -41,30 +42,17 @@ class Event:
                   defaults=EventDefaults(),
                   track=None) -> 'Event':
         
-        from .midi_note import MidiNoteEvent
-        from .action import ActionEvent
-        from .midi_control import MidiControlChangeEvent
-        from .midi_program import MidiProgramChangeEvent
-        from .globals import GlobalsEvent
-        from .osc import OscEvent
-        from .supercollider import SuperColliderEvent
-        from .signalflow import SignalFlowEvent
+        from . import MidiNoteEvent, ActionEvent, MidiControlChangeEvent, MidiProgramChangeEvent, GlobalsEvent, OscEvent, SuperColliderEvent, SignalFlowEvent
 
         for key in event_values.keys():
             if key not in ALL_EVENT_PARAMETERS:
                 raise ValueError("Invalid key for event: %s" % (key))
 
-        # Shorthand keys
-        if EVENT_DURATION_SHORTHAND in event_values:
-            event_values[EVENT_DURATION] = event_values[EVENT_DURATION_SHORTHAND]
-        if EVENT_AMPLITUDE_SHORTHAND in event_values:
-            event_values[EVENT_AMPLITUDE] = event_values[EVENT_AMPLITUDE_SHORTHAND]
-        if EVENT_ACTIVE_SHORTHAND in event_values:
-            event_values[EVENT_ACTIVE] = event_values[EVENT_ACTIVE_SHORTHAND]
-
-        # Synonym
-        if EVENT_VELOCITY in event_values:
-            event_values[EVENT_AMPLITUDE] = event_values[EVENT_VELOCITY]
+        # Shorthand and synonym keys
+        for synonym, key in EVENT_KEY_SYNONYMS.items():
+            if synonym in event_values:
+                event_values[key] = event_values[synonym]
+                del event_values[synonym]
 
         for key, value in defaults.__dict__.items():
             # Defaults can be patterns too

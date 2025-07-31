@@ -78,9 +78,13 @@ EVENT_DELAY = "delay"
 #------------------------------------------------------------------------
 # Legacy keys.
 #------------------------------------------------------------------------
-EVENT_DURATION_SHORTHAND = "dur"
-EVENT_AMPLITUDE_SHORTHAND = "amp"
-EVENT_ACTIVE_SHORTHAND = "on"
+
+EVENT_KEY_SYNONYMS = {
+    "dur": "duration",
+    "amp": "amplitude",
+    "on": "active",
+    "velocity": "amplitude",
+}
 
 #------------------------------------------------------------------------
 # Synonym keys
@@ -95,7 +99,7 @@ ALL_EVENT_PARAMETERS = [
     EVENT_PATCH_PARAMS, EVENT_PATCH_OUTPUT, EVENT_PROGRAM_CHANGE, EVENT_SUPERCOLLIDER_SYNTH,
     EVENT_SUPERCOLLIDER_SYNTH_PARAMS, EVENT_QUANTIZE, EVENT_DELAY, EVENT_VELOCITY,
     EVENT_TRIGGER_NAME, EVENT_TRIGGER_VALUE, EVENT_GLOBAL,
-    EVENT_DURATION_SHORTHAND, EVENT_AMPLITUDE_SHORTHAND, EVENT_ACTIVE_SHORTHAND
+    *EVENT_KEY_SYNONYMS.keys()
 ]
 
 #------------------------------------------------------------------------
