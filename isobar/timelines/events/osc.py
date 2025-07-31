@@ -19,3 +19,8 @@ class OscEvent(Event):
             if not isinstance(event_values[EVENT_OSC_PARAMS], Iterable):
                 raise ValueError("OSC params must be an iterable")
             self.osc_params = list(event_values[EVENT_OSC_PARAMS])
+
+    
+    def perform(self) -> bool:
+        self.track.output_device.send(self.osc_address, self.osc_params)
+        return True

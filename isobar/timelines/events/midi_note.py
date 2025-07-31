@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from .midi import MidiEvent
 from ...constants import EVENT_DEGREE, EVENT_NOTE, EVENT_KEY, EVENT_OCTAVE, EVENT_TRANSPOSE, EVENT_CHANNEL, EVENT_PITCHBEND, EVENT_AMPLITUDE, EVENT_GATE, EVENT_TYPE_NOTE
 from ...exceptions import InvalidEventException
@@ -8,6 +10,13 @@ from ...key import Key
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ..track import Track
+
+
+@dataclass
+class NoteOffEvent:
+    timestamp: float
+    note: int
+    channel: int
 
 
 class MidiNoteEvent(MidiEvent):
@@ -87,3 +96,36 @@ class MidiNoteEvent(MidiEvent):
         self.gate = event_values[EVENT_GATE]
 
         self.pitchbend = event_values[EVENT_PITCHBEND]
+
+    
+    def perform(self) -> bool:
+        event_did_fire = False
+
+        #----------------------------------------------------------------------
+        # note_on: Standard (MIDI) type of device
+        # If the amplitude is None or 0, this is a rest.
+        #----------------------------------------------------------------------
+        if type(self.amplitude) is tuple or (self.amplitude is not None and self.amplitude > 0):
+            notes = self.note if hasattr(self.note, '__iter__') else [self.note]
+
+            #----------------------------------------------------------------------
+            # Allow for arrays of amp, gate etc, to handle chords properly.
+            #----------------------------------------------------------------------
+            for index, note in enumerate(notes):
+                amp = self.amplitude[index % len(self.amplitude)] if isinstance(self.amplitude, tuple) else self.amplitude
+                channel = self.channel[index % len(self.channel)] if isinstance(self.channel, tuple) else self.channel
+                gate = self.gate[index % len(self.gate)] if isinstance(self.gate, tuple) else self.gate
+                # TODO: Add an EVENT_SUSTAIN that allows absolute note lengths to be specified
+
+                if (amp is not None and amp > 0) and (gate is not None and gate > 0):
+                    event_did_fire = True
+                    self.track.output_device.note_on(note, amp, channel)
+
+                    note_dur = self.duration * gate
+                    note_off_time = self.track.current_time + note_dur
+                    note_off = NoteOffEvent(note_off_time, note, channel)
+                    self.track.note_offs.append(note_off)
+            if self.pitchbend is not None:
+                self.track.output_device.pitch_bend(self.pitchbend, channel)
+        
+        return event_did_fire

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from isobar.timelines.events import event
+
 from .midi import MidiEvent
 from ...constants import EVENT_TYPE_PROGRAM_CHANGE, EVENT_PROGRAM_CHANGE
 
@@ -12,3 +14,7 @@ class MidiProgramChangeEvent(MidiEvent):
         super().__init__(event_values, track)
         self.type = EVENT_TYPE_PROGRAM_CHANGE
         self.program_change = event_values[EVENT_PROGRAM_CHANGE]
+
+    def perform(self) -> bool:
+        self.output_device.program_change(self.program_change, self.channel)
+        return True

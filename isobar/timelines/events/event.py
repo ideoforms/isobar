@@ -96,6 +96,9 @@ class Event:
         
         return event
 
-
     def __str__(self):
         return "Event (%s)" % self.fields
+
+    @property
+    def output_device(self):
+        return self.track.output_device

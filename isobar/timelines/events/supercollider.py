@@ -19,3 +19,7 @@ class SuperColliderEvent(Event):
             if not isinstance(event_values[EVENT_SUPERCOLLIDER_SYNTH_PARAMS], dict):
                 raise ValueError("SuperCollider params must be a dict")
             self.synth_params = event_values[EVENT_SUPERCOLLIDER_SYNTH_PARAMS]
+
+    def perform(self) -> bool:
+        self.track.output_device.create(self.synth_name, self.synth_params)
+        return True

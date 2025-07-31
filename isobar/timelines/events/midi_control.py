@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import logging
+logger = logging.getLogger(__name__)
+
 from .midi import MidiEvent
 from ...constants import EVENT_TYPE_CONTROL, EVENT_CONTROL, EVENT_VALUE
 
@@ -13,3 +16,7 @@ class MidiControlChangeEvent(MidiEvent):
         self.type = EVENT_TYPE_CONTROL
         self.control = event_values[EVENT_CONTROL]
         self.value = event_values[EVENT_VALUE]
+
+    def perform(self) -> None:
+        self.track.output_device.control(self.control, self.value, self.channel)
+        return True
