@@ -16,5 +16,6 @@ class MidiProgramChangeEvent(MidiEvent):
         self.program_change = event_values[EVENT_PROGRAM_CHANGE]
 
     def perform(self) -> bool:
-        self.output_device.program_change(self.program_change, self.channel)
+        self.output_device.program_change(self.program_change,
+                                          self.channel)
         return True

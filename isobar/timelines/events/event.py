@@ -7,23 +7,23 @@ from ...exceptions import InvalidEventException
 
 class EventDefaults:
     default_values = {
-            EVENT_ACTIVE: True,
-            EVENT_CHANNEL: DEFAULT_EVENT_CHANNEL,
-            EVENT_DURATION: DEFAULT_EVENT_DURATION,
-            EVENT_GATE: DEFAULT_EVENT_GATE,
-            EVENT_AMPLITUDE: DEFAULT_EVENT_AMPLITUDE,
-            EVENT_OCTAVE: DEFAULT_EVENT_OCTAVE,
-            EVENT_TRANSPOSE: DEFAULT_EVENT_TRANSPOSE,
-            EVENT_KEY: Key("C", Scale.default),
-            EVENT_QUANTIZE: DEFAULT_EVENT_QUANTIZE,
-            EVENT_DELAY: DEFAULT_EVENT_DELAY,
-            EVENT_PITCHBEND: None,
-        }
-    
+        EVENT_ACTIVE: True,
+        EVENT_CHANNEL: DEFAULT_EVENT_CHANNEL,
+        EVENT_DURATION: DEFAULT_EVENT_DURATION,
+        EVENT_GATE: DEFAULT_EVENT_GATE,
+        EVENT_AMPLITUDE: DEFAULT_EVENT_AMPLITUDE,
+        EVENT_OCTAVE: DEFAULT_EVENT_OCTAVE,
+        EVENT_TRANSPOSE: DEFAULT_EVENT_TRANSPOSE,
+        EVENT_KEY: Key("C", Scale.default),
+        EVENT_QUANTIZE: DEFAULT_EVENT_QUANTIZE,
+        EVENT_DELAY: DEFAULT_EVENT_DELAY,
+        EVENT_PITCHBEND: None,
+    }
+
     def __init__(self):
         for key, value in EventDefaults.default_values.items():
             setattr(self, key, value)
-            
+
     def __setattr__(self, name, value):
         if name != "default_values" and name not in EventDefaults.default_values:
             raise ValueError("Invalid property for defaults: %s" % name)
@@ -41,7 +41,7 @@ class Event:
                   event_values,
                   defaults=EventDefaults(),
                   track=None) -> 'Event':
-        
+
         from . import MidiNoteEvent, ActionEvent, MidiControlChangeEvent, MidiProgramChangeEvent, GlobalsEvent, OscEvent, SuperColliderEvent, SignalFlowEvent
 
         for key in event_values.keys():
@@ -81,7 +81,7 @@ class Event:
             possible_event_types = [EVENT_NOTE, EVENT_DEGREE, EVENT_ACTION, EVENT_PATCH, EVENT_CONTROL,
                                     EVENT_PROGRAM_CHANGE, EVENT_OSC_ADDRESS, EVENT_GLOBAL]
             raise InvalidEventException("No event type specified (must provide one of %s)" % possible_event_types)
-        
+
         return event
 
     def __str__(self):

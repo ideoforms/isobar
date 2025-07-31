@@ -18,5 +18,5 @@ class MidiControlChangeEvent(MidiEvent):
         self.value = event_values[EVENT_VALUE]
 
     def perform(self) -> None:
-        self.track.output_device.control(self.control, self.value, self.channel)
+        self.output_device.control(self.control, self.value, self.channel)
         return True

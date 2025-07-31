@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .midi import MidiEvent
-from ...constants import EVENT_DEGREE, EVENT_NOTE, EVENT_KEY, EVENT_OCTAVE, EVENT_TRANSPOSE, EVENT_CHANNEL, EVENT_PITCHBEND, EVENT_AMPLITUDE, EVENT_GATE, EVENT_TYPE_NOTE
+from ...constants import EVENT_DEGREE, EVENT_NOTE, EVENT_KEY, EVENT_OCTAVE, EVENT_TRANSPOSE, EVENT_PITCHBEND, EVENT_AMPLITUDE, EVENT_GATE, EVENT_TYPE_NOTE
 from ...exceptions import InvalidEventException
 from ...key import Key
 
@@ -21,10 +21,10 @@ class NoteOffEvent:
 class MidiNoteEvent(MidiEvent):
     def __init__(self, event_values: dict, track: Track):
         super().__init__(event_values, track)
-        
+
         if EVENT_NOTE in event_values and EVENT_DEGREE in event_values:
             raise InvalidEventException("Cannot specify both note and degree")
-        
+
         #------------------------------------------------------------------------
         # Note/degree/etc: Send a MIDI note
         #------------------------------------------------------------------------
@@ -44,7 +44,7 @@ class MidiNoteEvent(MidiEvent):
                     degree = [int(degree) for degree in degree]
                 except:
                     degree = int(degree)
-                    
+
                 key = event_values[EVENT_KEY]
                 if isinstance(key, str):
                     key = Key(key)
@@ -87,7 +87,6 @@ class MidiNoteEvent(MidiEvent):
             except TypeError:
                 event_values[EVENT_NOTE] += transpose
 
-
         self.type = EVENT_TYPE_NOTE
 
         self.note = event_values[EVENT_NOTE]
@@ -96,8 +95,11 @@ class MidiNoteEvent(MidiEvent):
 
         self.pitchbend = event_values[EVENT_PITCHBEND]
 
-    
     def perform(self) -> bool:
+        #----------------------------------------------------------------------
+        # event_did_fire is set to True if the event includes one or more
+        # notes whose amplitude is greater than zero.
+        #----------------------------------------------------------------------
         event_did_fire = False
 
         #----------------------------------------------------------------------
@@ -115,17 +117,16 @@ class MidiNoteEvent(MidiEvent):
                 amplitude = int(amplitude)
                 channel = self.channel[index % len(self.channel)] if isinstance(self.channel, tuple) else self.channel
                 gate = self.gate[index % len(self.gate)] if isinstance(self.gate, tuple) else self.gate
-                # TODO: Add an EVENT_SUSTAIN that allows absolute note lengths to be specified
 
                 if (amplitude is not None and amplitude > 0) and (gate is not None and gate > 0):
                     event_did_fire = True
-                    self.track.output_device.note_on(note, amplitude, channel)
+                    self.output_device.note_on(note, amplitude, channel)
 
                     note_dur = self.duration * gate
                     note_off_time = self.track.current_time + note_dur
                     note_off = NoteOffEvent(note_off_time, note, channel)
                     self.track.note_offs.append(note_off)
             if self.pitchbend is not None:
-                self.track.output_device.pitch_bend(self.pitchbend, channel)
-        
+                self.output_device.pitch_bend(self.pitchbend, channel)
+
         return event_did_fire
