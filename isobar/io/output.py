@@ -1,7 +1,3 @@
-import logging
-
-log = logging.getLogger(__name__)
-
 class OutputDevice:
     def __init__(self):
         self.added_latency_seconds = 0.0

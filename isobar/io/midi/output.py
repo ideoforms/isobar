@@ -6,7 +6,7 @@ from ..output import OutputDevice
 from ...exceptions import DeviceNotFoundException
 from ...constants import MIDI_CLOCK_TICKS_PER_BEAT
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 class MidiOutputDevice (OutputDevice):
     def __init__(self,
@@ -32,7 +32,7 @@ class MidiOutputDevice (OutputDevice):
         except (RuntimeError, SystemError, OSError):
             raise DeviceNotFoundException("Could not find MIDI device")
         self.send_clock = send_clock
-        log.info("Opened MIDI output: %s" % self.midi.name)
+        logger.info("Opened MIDI output: %s" % self.midi.name)
 
     def start(self) -> None:
         """
@@ -68,39 +68,39 @@ class MidiOutputDevice (OutputDevice):
             self.midi.send(msg)
 
     def note_on(self, note: int = 60, velocity: int = 64, channel: int = 0) -> None:
-        log.info("[midi] Note on  (channel = %d, note = %d, velocity = %d)" % (channel, note, velocity))
+        logger.info("[midi] Note on  (channel = %d, note = %d, velocity = %d)" % (channel, note, velocity))
         msg = mido.Message('note_on', note=int(note), velocity=int(velocity), channel=int(channel))
         self.midi.send(msg)
 
     def note_off(self, note: int = 60, channel: int = 0) -> None:
-        log.debug("[midi] Note off (channel = %d, note = %d)" % (channel, note))
+        logger.debug("[midi] Note off (channel = %d, note = %d)" % (channel, note))
         msg = mido.Message('note_off', note=int(note), channel=int(channel))
         self.midi.send(msg)
 
     def all_notes_off(self) -> None:
-        log.debug("[midi] All notes off")
+        logger.debug("[midi] All notes off")
         for channel in range(16):
             for note in range(128):
                 msg = mido.Message('note_off', note=int(note), channel=int(channel))
                 self.midi.send(msg)
 
     def control(self, control: int = 0, value: int = 0, channel: int = 0):
-        log.debug("[midi] Control (channel %d, control %d, value %d)" % (channel, control, value))
+        logger.debug("[midi] Control (channel %d, control %d, value %d)" % (channel, control, value))
         msg = mido.Message('control_change', control=int(control), value=int(value), channel=int(channel))
         self.midi.send(msg)
 
     def program_change(self, program: int = 0, channel: int = 0) -> None:
-        log.debug("[midi] Program change (channel %d, program_change %d)" % (channel, program))
+        logger.debug("[midi] Program change (channel %d, program_change %d)" % (channel, program))
         msg = mido.Message('program_change', program=int(program), channel=int(channel))
         self.midi.send(msg)
 
     def pitch_bend(self, pitch: int = 0, channel: int = 0) -> None:
-        log.debug("[midi] Pitch bend (channel %d, pitch %d)" % (channel, pitch))
+        logger.debug("[midi] Pitch bend (channel %d, pitch %d)" % (channel, pitch))
         msg = mido.Message('pitchwheel', pitch=int(pitch), channel=int(channel))
         self.midi.send(msg)
 
     def aftertouch(self, value: int = 0, channel: int = 0) -> None:
-        log.debug("[midi] Aftertouch (channel %d, pitch %d)" % (channel, value))
+        logger.debug("[midi] Aftertouch (channel %d, pitch %d)" % (channel, value))
         msg = mido.Message('aftertouch', value=int(value), channel=int(channel))
         self.midi.send(msg)
 

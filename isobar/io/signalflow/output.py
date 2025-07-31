@@ -3,7 +3,7 @@ from ..output import OutputDevice
 import logging
 import inspect
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 try:
     import signalflow as sf
@@ -32,7 +32,7 @@ class SignalFlowOutputDevice(OutputDevice):
                 except NameError:
                     raise Exception("Could not instantiate SignalFlowOutputDevice, signalflow not installed?")
 
-        log.info("Opened SignalFlow output")
+        logger.info("Opened SignalFlow output")
 
         self.patches = []
 

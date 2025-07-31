@@ -19,7 +19,7 @@ from ..constants import INTERPOLATION_NONE
 from ..exceptions import TrackLimitReachedException, TrackNotFoundException, MultipleOutputDevicesException
 from ..util import make_clock_multiplier
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 #------------------------------------------------------------------------------
 # shared_timeline is used in the common case in which only one Timeline is
@@ -299,8 +299,8 @@ class Timeline:
         # http://docs.python.org/tutorial/floatingpoint.html
         #--------------------------------------------------------------------------------
         if round(self.current_time, 8) % 1 == 0:
-            log.debug("--------------------------------------------------------------------------------")
-            log.debug("Tick (%d active tracks, %d pending actions)" % (len(self.tracks), len(self.actions)))
+            logger.debug("--------------------------------------------------------------------------------")
+            logger.debug("Tick (%d active tracks, %d pending actions)" % (len(self.tracks), len(self.actions)))
 
         #--------------------------------------------------------------------------------
         # Process note-offs before scheduled actions, which may reset the timestamp
@@ -348,7 +348,7 @@ class Timeline:
             except Exception as e:
                 if self.ignore_exceptions:
                     tb = traceback.format_exc()
-                    log.warning("*** Exception in track: %s" % tb)
+                    logger.warning("*** Exception in track: %s" % tb)
                     # TODO: Possibly don't remove tracks specifically for the case in which SignalFlow
                     # throws a CPU exception? Generally, tracks should be stopped to prevent runaway repeats
                     # of errors.
@@ -357,7 +357,7 @@ class Timeline:
                     raise
             if track.is_finished and track.remove_when_done:
                 self.tracks.remove(track)
-                log.info("Timeline: Track finished, removing from scheduler (total tracks: %d)" % len(self.tracks))
+                logger.info("Timeline: Track finished, removing from scheduler (total tracks: %d)" % len(self.tracks))
 
         #--------------------------------------------------------------------------------
         # If we've run out of notes, raise a StopIteration.
@@ -457,7 +457,7 @@ class Timeline:
             #--------------------------------------------------------------------------------
             # This will be hit if every Pattern in a timeline is exhausted.
             #--------------------------------------------------------------------------------
-            log.info("Timeline: Finished")
+            logger.info("Timeline: Finished")
             self.running = False
 
         except Exception as e:
@@ -475,7 +475,7 @@ class Timeline:
         """
         Stops the timeline running.
         """
-        log.info("Timeline: Stopping")
+        logger.info("Timeline: Stopping")
         for device in self.output_devices:
             device.all_notes_off()
             device.stop()
@@ -629,7 +629,7 @@ class Timeline:
             else:
                 self.tracks.append(track)
 
-            log.info("Timeline: Scheduled new track (total tracks: %d)" % len(self.tracks))
+            logger.info("Timeline: Scheduled new track (total tracks: %d)" % len(self.tracks))
 
             # TODO:
             #  - Add test for added_latency_seconds

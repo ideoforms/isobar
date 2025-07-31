@@ -5,7 +5,7 @@ from ...pattern import PSequence
 import mido
 import logging
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 class MidiFileInputDevice:
     """ Read events from a MIDI file.
@@ -16,7 +16,7 @@ class MidiFileInputDevice:
 
     def read(self, quantize=None):
         midi_reader = mido.MidiFile(self.filename)
-        log.info("Loading MIDI data from %s, ticks per beat = %d" % (self.filename, midi_reader.ticks_per_beat))
+        logger.info("Loading MIDI data from %s, ticks per beat = %d" % (self.filename, midi_reader.ticks_per_beat))
         note_tracks = list(filter(lambda track: any(message.type == 'note_on' for message in track),
                                   midi_reader.tracks))
         if not note_tracks:
@@ -71,7 +71,7 @@ class MidiFileInputDevice:
         #------------------------------------------------------------------------
         notes_by_time = {}
         for note in notes:
-            log.debug(" - MIDI event (t = %.2f): Note %d, velocity %d, duration %.3f" %
+            logger.debug(" - MIDI event (t = %.2f): Note %d, velocity %d, duration %.3f" %
                       (note.location, note.pitch, note.velocity, note.duration))
             location = note.location
             if location in notes_by_time:

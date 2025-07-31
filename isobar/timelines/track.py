@@ -20,7 +20,7 @@ import logging
 import queue
 import threading
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 
@@ -353,7 +353,7 @@ class Track:
             return
 
         t0 = time.time()
-        log.debug("Track: Executing event: %s" % event)
+        logger.debug("Track: Executing event: %s" % event)
             
         event_did_fire = event.perform()
         
@@ -373,7 +373,7 @@ class Track:
 
         t2 = time.time()
         if t2 - t0 > 0.01:
-            log.debug("Track %s: Event took %.2f seconds to execute, %.2f in callbacks" % (self.name, t2 - t0, t2 - t1))
+            logger.info("Track %s: Event took %.2f seconds to execute, %.2f in callbacks" % (self.name, t2 - t0, t2 - t1))
 
     def stop(self):
         self.timeline.unschedule(self)
