@@ -6,7 +6,7 @@ import inspect
 logger = logging.getLogger(__name__)
 
 try:
-    import signalflow as sf
+    from signalflow import AudioGraph, Patch, PatchSpec
 except ModuleNotFoundError:
     # No SignalFlow support available
     pass
@@ -25,10 +25,10 @@ class SignalFlowOutputDevice(OutputDevice):
         if graph:
             self.graph = graph
         else:
-            self.graph = sf.AudioGraph.get_shared_graph()
+            self.graph = AudioGraph.get_shared_graph()
             if self.graph is None:
                 try:
-                    self.graph = sf.AudioGraph(start=True)
+                    self.graph = AudioGraph(start=True)
                 except NameError:
                     raise Exception("Could not instantiate SignalFlowOutputDevice, signalflow not installed?")
 
@@ -42,8 +42,8 @@ class SignalFlowOutputDevice(OutputDevice):
         #--------------------------------------------------------------------------------
         if inspect.isclass(patch_spec):
             patch = patch_spec(**patch_params)
-        elif isinstance(patch_spec, sf.PatchSpec):
-            patch = sf.Patch(patch_spec, patch_params)
+        elif isinstance(patch_spec, PatchSpec):
+            patch = Patch(patch_spec, patch_params)
         else:
             raise RuntimeError("patch property is of invalid type")
 
