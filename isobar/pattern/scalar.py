@@ -151,7 +151,7 @@ class PMap(Pattern):
     def __next__(self):
         args = [Pattern.value(value) for value in self.args]
         kwargs = dict((key, Pattern.value(value)) for key, value in list(self.kwargs.items()))
-        value = next(self.input)
+        value = Pattern.value(self.input)
         rv = self.operator(value, *args, **kwargs)
         return rv
 
