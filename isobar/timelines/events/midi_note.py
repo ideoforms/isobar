@@ -112,14 +112,15 @@ class MidiNoteEvent(MidiEvent):
             # Allow for arrays of amp, gate etc, to handle chords properly.
             #----------------------------------------------------------------------
             for index, note in enumerate(notes):
-                amp = self.amplitude[index % len(self.amplitude)] if isinstance(self.amplitude, tuple) else self.amplitude
+                amplitude = self.amplitude[index % len(self.amplitude)] if isinstance(self.amplitude, tuple) else self.amplitude
+                amplitude = int(amplitude)
                 channel = self.channel[index % len(self.channel)] if isinstance(self.channel, tuple) else self.channel
                 gate = self.gate[index % len(self.gate)] if isinstance(self.gate, tuple) else self.gate
                 # TODO: Add an EVENT_SUSTAIN that allows absolute note lengths to be specified
 
-                if (amp is not None and amp > 0) and (gate is not None and gate > 0):
+                if (amplitude is not None and amplitude > 0) and (gate is not None and gate > 0):
                     event_did_fire = True
-                    self.track.output_device.note_on(note, amp, channel)
+                    self.track.output_device.note_on(note, amplitude, channel)
 
                     note_dur = self.duration * gate
                     note_off_time = self.track.current_time + note_dur
