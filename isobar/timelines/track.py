@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import threading
+import logging
+import queue
 import time
 import copy
-import inspect
+
 from typing import Union, Optional, Callable, TYPE_CHECKING
 from dataclasses import dataclass
 
@@ -13,15 +16,9 @@ if TYPE_CHECKING:
 from ..pattern import Pattern, PSequence, PDict, PInterpolate
 from ..constants import *
 from ..exceptions import InvalidEventException
-from ..util import midi_note_to_frequency
 from ..io.output import OutputDevice
-from ..globals import Globals
-import logging
-import queue
-import threading
 
 logger = logging.getLogger(__name__)
-
 
 
 class Track:
@@ -349,6 +346,15 @@ class Track:
         return event
 
     def perform_event(self, event: Event):
+        """
+        Perform the event. Any Patterns within the event have already been resolved
+        to their final values.
+
+        If present, callbacks are executed after the event has been performed.
+
+        Args:
+            event (Event): The event to perform.
+        """
         if not event.active:
             return
         if self.is_muted:
@@ -356,28 +362,41 @@ class Track:
 
         t0 = time.time()
         logger.debug("Track: Executing event: %s" % event)
-            
+
         event_did_fire = event.perform()
-        
-        # This is a rest, so return early and don't fire any callbacks.
+
+        #----------------------------------------------------------------------
+        # In the case of rests or failed events, return early and don't fire
+        # any callbacks.
+        #----------------------------------------------------------------------
         if not event_did_fire:
             return
-        
-        t1 = time.time()
 
+        #----------------------------------------------------------------------
+        # Event rate counter
+        #----------------------------------------------------------------------
         self.timeline.events_in_last_second += 1
+
+        #----------------------------------------------------------------------
+        # Callbacks
+        #----------------------------------------------------------------------
         if self.timeline.on_event_callback:
             self.callback_queue.put(lambda: self.timeline.on_event_callback(self, event))
-
         if self.on_event_callbacks:
             for callback in self.on_event_callbacks:
                 self.callback_queue.put(lambda: callback(event))
 
-        t2 = time.time()
-        if t2 - t0 > 0.01:
-            logger.info("Track %s: Event took %.2f seconds to execute, %.2f in callbacks" % (self.name, t2 - t0, t2 - t1))
+        #----------------------------------------------------------------------
+        # Temporary debugging logging to catch any long-running events.
+        #----------------------------------------------------------------------
+        t1 = time.time()
+        if t1 - t0 > 0.01:
+            logger.info("Track %s: Event took %.2f seconds to execute" % (self.name, t1 - t0))
 
     def stop(self):
+        """
+        Stop the track and remove it from the timeline.
+        """
         self.timeline.unschedule(self)
 
     def nudge(self, nudge_by: float):
