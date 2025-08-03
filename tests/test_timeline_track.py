@@ -71,3 +71,24 @@ def test_track_update(dummy_timeline):
     ]
     assert track.is_finished
     assert len(dummy_timeline.tracks) == 0
+
+def test_track_callbacks(dummy_timeline):
+    track_events = []
+    timeline_events = []
+
+    def track_callback(event):
+        track_events.append(event)
+        assert event.output_device == dummy_timeline.output_device
+        assert event.track == track
+    def timeline_callback(event):
+        timeline_events.append(event)
+        assert event.output_device == dummy_timeline.output_device
+        assert event.track == track
+
+    track = dummy_timeline.schedule({"note": 60}, count=2)
+    track.on_event_callbacks.append(track_callback)
+
+    dummy_timeline.on_event_callback = timeline_callback
+    dummy_timeline.run()
+    assert len(track_events) == 2
+    assert len(timeline_events) == 2

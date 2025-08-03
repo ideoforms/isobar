@@ -142,15 +142,17 @@ class Timeline:
 
         self.on_event_callback: Optional[Callable] = None
         """
-        Optional callback to trigger each time an event is performed.
-        Receives two parameters:
-         - the Track that the event occurred on
-         - the Event object
+        Optional callback to trigger each time an event is performed. This can be useful
+        when providing visual feedback (e.g., a GUI or light show) of the underlying
+        events that are being performed.
+
+        The callback receives the Event object as a parameter, which contains a
+        .track property that can be used to identify the track that the event occurred on.
         """
 
         self.events_in_last_second: int = 0
         self.events_per_second: float = 0.0
-        def _track_events_per_second():
+        def _measure_events_per_second():
             """
             Update the events_per_second value based on the number of events
             that occurred in the last second.
@@ -159,7 +161,7 @@ class Timeline:
                 time.sleep(1.0)
                 self.events_per_second = (0.5 * self.events_in_last_second) + (0.5 * self.events_per_second)
                 self.events_in_last_second = 0
-        thread = threading.Thread(target=_track_events_per_second, daemon=True)
+        thread = threading.Thread(target=_measure_events_per_second, daemon=True)
         thread.start()
 
         if start:

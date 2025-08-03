@@ -5,6 +5,7 @@ from .midi import MidiEvent
 from ...constants import EVENT_DEGREE, EVENT_NOTE, EVENT_KEY, EVENT_OCTAVE, EVENT_TRANSPOSE, EVENT_PITCHBEND, EVENT_AMPLITUDE, EVENT_GATE, EVENT_TYPE_NOTE
 from ...exceptions import InvalidEventException
 from ...key import Key
+from ..midi_note import MidiNoteInstance
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -120,12 +121,15 @@ class MidiNoteEvent(MidiEvent):
 
                 if (amplitude is not None and amplitude > 0) and (gate is not None and gate > 0):
                     event_did_fire = True
-                    self.output_device.note_on(note, amplitude, channel)
+                    duration = self.duration * gate
 
-                    note_dur = self.duration * gate
-                    note_off_time = self.track.current_time + note_dur
-                    note_off = NoteOffEvent(note_off_time, note, channel)
-                    self.track.note_offs.append(note_off)
+                    note = MidiNoteInstance(note=note,
+                                            amplitude=amplitude,
+                                            channel=channel,
+                                            timestamp=self.track.current_time,
+                                            duration=duration)
+                    self.track.schedule_note(note)
+
             if self.pitchbend is not None:
                 self.output_device.pitch_bend(self.pitchbend, channel)
 

@@ -41,6 +41,10 @@ class Event:
                   event_values,
                   defaults=EventDefaults(),
                   track=None) -> 'Event':
+        
+        if len(event_values) == 0:
+            # Empty event, return a dummy event
+            return None
 
         from . import MidiNoteEvent, ActionEvent, MidiControlChangeEvent, MidiProgramChangeEvent, GlobalsEvent, OscEvent, SuperColliderEvent, SignalFlowEvent
 

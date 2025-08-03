@@ -10,7 +10,7 @@ from typing import Union, Optional, Callable, TYPE_CHECKING
 from dataclasses import dataclass
 
 from .events import Event
-from .events.midi_note import NoteOffEvent
+from .midi_note import MidiNoteInstance
 if TYPE_CHECKING:
     from .timeline import Timeline
 from ..pattern import Pattern, PSequence, PDict, PInterpolate
@@ -41,29 +41,30 @@ class Track:
             name: Optional name for the track. If specified, can be used to update tracks in place by specifying \
                   its name when scheduling events on the Timeline.
         """
+
         #--------------------------------------------------------------------------------
-        # Ensure that events is a pattern that generates a dict when it is iterated.
+        # event_stream can be a dict, or a pattern that generates a dict when it is iterated.
         #--------------------------------------------------------------------------------
-        self.event_stream: Pattern = PDict({})
-        self.timeline: Timeline = timeline
+        self.event_stream: Pattern = None
         self.current_time: float = 0.0
         self.next_event_time: float = sys.maxsize
         self.max_event_count: int = max_event_count
         self.current_event_count: int = 0
-        self.name: str = name
-
         self.current_event: Optional[Event] = None
         self.next_event: Optional[Event] = None
         self.interpolating_event: Pattern = PSequence([], 0)
 
+        self.name: str = name
+        self.timeline: Timeline = timeline
         self.output_device: OutputDevice = output_device
         self.interpolate: bool = interpolate
+        self.remove_when_done: bool = remove_when_done
 
-        self.note_offs: list[NoteOffEvent] = []
+
+        self.notes: list[MidiNoteInstance] = []
         self.is_muted: bool = False
         self.is_started: bool = False
         self.is_finished: bool = False
-        self.remove_when_done: bool = remove_when_done
         self.on_event_callbacks: list[Callable] = []
 
         #--------------------------------------------------------------------------------
@@ -191,10 +192,10 @@ class Track:
         #
         # Use round() to avoid scheduling issues arising from rounding errors.
         #----------------------------------------------------------------------
-        for note_off in self.note_offs[:]:
-            if (round(note_off.timestamp, 8) <= round(self.current_time, 8)) or immediately:
-                self.output_device.note_off(note_off.note, note_off.channel)
-                self.note_offs.remove(note_off)
+        for note in self.notes[:]:
+            if (round(note.note_off_time, 8) <= round(self.current_time, 8)) or immediately:
+                self.output_device.note_off(note.note, note.channel)
+                self.notes.remove(note)
 
     def tick(self):
         """
@@ -204,6 +205,15 @@ class Track:
         if not self.is_started:
             return
 
+        self.process_event_stream()
+        self.process_notes()
+
+        self.current_time += self.tick_duration
+
+    def process_event_stream(self):
+        """
+        Process the event stream, returning the next event.
+        """
         try:
             if self.interpolate is None or self.interpolate == INTERPOLATION_NONE:
                 if round(self.current_time, 8) >= round(self.next_event_time, 8):
@@ -214,6 +224,8 @@ class Track:
                         # the enclosing try/except block)
                         #--------------------------------------------------------------------------------
                         self.current_event = self.get_next_event()
+                        if self.current_event is None:
+                            return
                         self.next_event_time += float(self.current_event.duration)
 
                     #--------------------------------------------------------------------------------
@@ -230,8 +242,8 @@ class Track:
                 try:
                     interpolated_values = next(self.interpolating_event)
                     interpolated_event = Event.from_dict(event_values=interpolated_values,
-                                                         defaults=self.timeline.defaults,
-                                                         track=self)
+                                                        defaults=self.timeline.defaults,
+                                                        track=self)
                     self.perform_event(interpolated_event)
                 except StopIteration:
                     is_first_event = False
@@ -271,9 +283,9 @@ class Track:
                         if type(value) is not float and type(value) is not int:
                             continue
                         interpolating_event_fields[key] = PInterpolate(PSequence([self.current_event.fields[key],
-                                                                                  self.next_event.fields[key]], 1),
-                                                                       duration_ticks,
-                                                                       self.interpolate)
+                                                                                self.next_event.fields[key]], 1),
+                                                                    duration_ticks,
+                                                                    self.interpolate)
 
                     self.interpolating_event = PDict(interpolating_event_fields)
                     if not is_first_event:
@@ -284,10 +296,28 @@ class Track:
                     self.perform_event(event)
 
         except StopIteration:
-            if len(self.note_offs) == 0:
+            #--------------------------------------------------------------------------------
+            # Mark the track as finished if:
+            #  - there are no more events in the event stream, and
+            # - all pending callbacks have been processed.
+            # The second condition is necesary because callbacks are handled
+            # in a separate thread, and the track may finish before the callbacks
+            # have been processed.
+            #--------------------------------------------------------------------------------
+            if len(self.notes) == 0 and self.callback_queue.empty():
                 self.is_finished = True
 
-        self.current_time += self.tick_duration
+    def process_notes(self):
+        """
+        Process any notes that are scheduled to be played at the current time.
+        """
+        for note in self.notes[:]:
+            if note.timestamp <= self.current_time and not note.is_playing:
+                self.output_device.note_on(note.note, note.amplitude, note.channel)
+                note.is_playing = True
+            if note.note_off_time <= self.current_time and note.is_playing:
+                self.output_device.note_off(note.note, note.channel)
+                self.notes.remove(note)
 
     def reset_to_beat(self):
         """
@@ -297,7 +327,7 @@ class Track:
 
     def reset(self):
         """
-        Rewind to the beginning of the pattern.
+        Rewind to the beginning of the event stream.
         """
         self.current_time = 0
         self.next_event_time = self.current_time
@@ -381,7 +411,7 @@ class Track:
         # Callbacks
         #----------------------------------------------------------------------
         if self.timeline.on_event_callback:
-            self.callback_queue.put(lambda: self.timeline.on_event_callback(self, event))
+            self.callback_queue.put(lambda: self.timeline.on_event_callback(event))
         if self.on_event_callbacks:
             for callback in self.on_event_callbacks:
                 self.callback_queue.put(lambda: callback(event))
@@ -392,6 +422,16 @@ class Track:
         t1 = time.time()
         if t1 - t0 > 0.01:
             logger.info("Track %s: Event took %.2f seconds to execute" % (self.name, t1 - t0))
+
+    def schedule_note(self, note: MidiNoteInstance):
+        """
+        Schedule a note to be played on the output device.
+
+        Args:
+            note (MidiNoteInstance): The MIDI note instance to play.
+        """
+        self.notes.append(note)
+
 
     def stop(self):
         """
