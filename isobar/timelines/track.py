@@ -111,6 +111,12 @@ class Track:
         else:
             super().__delattr__(item)
 
+    def __gt__(self, other):
+        if isinstance(other, NoteEffect):
+            self.add_note_effect(other)
+        else:
+            raise NotImplementedError("Cannot compare Track with %s" % type(other))
+
     def start(self,
               events: Union[dict, Pattern],
               interpolate: Optional[str] = None) -> None:
@@ -227,7 +233,7 @@ class Track:
                         #--------------------------------------------------------------------------------
                         self.current_event = self.get_next_event()
                         if self.current_event is None:
-                            return
+                            raise StopIteration
                         self.next_event_time += float(self.current_event.duration)
 
                     #--------------------------------------------------------------------------------
@@ -315,6 +321,15 @@ class Track:
         """
         for note in self.notes[:]:
             if note.timestamp <= self.current_time and not note.is_playing:
+                if note.origin is None:
+                    effects = self.note_effects
+                else:
+                    # If the note was created by an effect (e.g. echo), apply the effects
+                    # that come after the effect that created the note.
+                    effects = self.note_effects[self.note_effects.index(note.origin) + 1:]
+
+                for effect in effects:
+                    effect.apply(note)
                 self.output_device.note_on(note.note, note.amplitude, note.channel)
                 note.is_playing = True
             if note.note_off_time <= self.current_time and note.is_playing:
@@ -426,8 +441,7 @@ class Track:
             logger.info("Track %s: Event took %.2f seconds to execute" % (self.name, t1 - t0))
 
     def schedule_note(self,
-                      note: MidiNoteInstance,
-                      bypass_effects: bool = False):
+                      note: MidiNoteInstance):
         """
         Schedule a note to be played on the output device.
 
@@ -438,9 +452,6 @@ class Track:
                                    the effects to themselves.
         """
         note.track = self
-        if not bypass_effects:
-            for effect in self.note_effects:
-                effect.apply(note)
         self.notes.append(note)
 
     def add_note_effect(self, effect: NoteEffect):

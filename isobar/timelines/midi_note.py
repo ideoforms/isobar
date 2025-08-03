@@ -1,5 +1,6 @@
 import copy
 
+
 class MidiNoteInstance:
     def __init__(self,
                  note: int,
@@ -8,6 +9,10 @@ class MidiNoteInstance:
                  timestamp: float,
                  duration: float,
                  pitchbend: int = 0):
+        
+        from .track import Track
+        from ..effects.note_effect import NoteEffect
+
         self.note = note
         self.amplitude = amplitude
         self.channel = channel
@@ -16,7 +21,8 @@ class MidiNoteInstance:
         self.pitchbend = pitchbend
 
         self.is_playing = False
-        self.track = None
+        self.track: Track = None
+        self.origin: NoteEffect = None
 
     @property
     def note_off_time(self) -> float:
