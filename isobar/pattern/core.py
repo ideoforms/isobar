@@ -5,6 +5,7 @@
 from __future__ import annotations
 import copy
 import inspect
+import types
 from typing import Iterable, Callable, Any, TYPE_CHECKING
 from ..timelines.lfo import LFO
 
@@ -269,7 +270,7 @@ class Pattern:
         Resolve a pattern to a scalar value (that is, the next item in this
         pattern, recursively).
         """
-        if isinstance(v, Pattern):
+        if isinstance(v, (Pattern, types.GeneratorType)):
             return Pattern.value(next(v))
         # Should lists/dicts be handled similarly?
         elif isinstance(v, tuple):
@@ -283,10 +284,12 @@ class Pattern:
         Patternify a value, turning it into an object with a next() method
         to obtain its next value.
 
-        Pattern subclasses remain untouched.
+        Pattern subclasses remain untouched, and generators are treated
+        as patterns.
+
         Scalars and other objects are turned into PConstant objects. """
 
-        if isinstance(v, Pattern):
+        if isinstance(v, (Pattern, types.GeneratorType)):
             return v
         elif isinstance(v, LFO):
             return PLFO(v)
