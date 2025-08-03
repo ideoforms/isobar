@@ -17,6 +17,7 @@ from ..pattern import Pattern, PSequence, PDict, PInterpolate
 from ..constants import *
 from ..exceptions import InvalidEventException
 from ..io.output import OutputDevice
+from ..effects import NoteEffect
 
 logger = logging.getLogger(__name__)
 
@@ -60,8 +61,9 @@ class Track:
         self.interpolate: bool = interpolate
         self.remove_when_done: bool = remove_when_done
 
-
         self.notes: list[MidiNoteInstance] = []
+        self.note_effects: list[NoteEffect] = []
+
         self.is_muted: bool = False
         self.is_started: bool = False
         self.is_finished: bool = False
@@ -423,15 +425,35 @@ class Track:
         if t1 - t0 > 0.01:
             logger.info("Track %s: Event took %.2f seconds to execute" % (self.name, t1 - t0))
 
-    def schedule_note(self, note: MidiNoteInstance):
+    def schedule_note(self,
+                      note: MidiNoteInstance,
+                      bypass_effects: bool = False):
         """
         Schedule a note to be played on the output device.
 
         Args:
             note (MidiNoteInstance): The MIDI note instance to play.
+            bypass_effects (bool): If True, bypasses any note effects that are applied to this track.
+                                   This is used by effects that need to schedule notes without applying
+                                   the effects to themselves.
         """
+        note.track = self
+        if not bypass_effects:
+            for effect in self.note_effects:
+                effect.apply(note)
         self.notes.append(note)
 
+    def add_note_effect(self, effect: NoteEffect):
+        """
+        Add a note effect to the track. The effect will be applied to all notes scheduled on this track.
+        
+        Args:
+            effect (NoteEffect): The note effect to add.
+        """
+        if not isinstance(effect, NoteEffect):
+            raise TypeError("Effect must be an instance of NoteEffect")
+        effect.track = self
+        self.note_effects.append(effect)
 
     def stop(self):
         """

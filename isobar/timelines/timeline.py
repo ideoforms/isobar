@@ -598,6 +598,10 @@ class Timeline:
                     # is typically expected.
                     existing_track.current_event_count = 0
 
+                    # When a track is re-scheduled, reset its note effects.
+                    existing_track.notes = []
+                    existing_track.note_effects = []
+
                     # When a track is re-scheduled that has previously been muted, unmute it.
                     # TODO: Add unit test for this
                     existing_track.unmute()

@@ -1,3 +1,5 @@
+import copy
+
 class MidiNoteInstance:
     def __init__(self,
                  note: int,
@@ -14,6 +16,7 @@ class MidiNoteInstance:
         self.pitchbend = pitchbend
 
         self.is_playing = False
+        self.track = None
 
     @property
     def note_off_time(self) -> float:
@@ -24,3 +27,6 @@ class MidiNoteInstance:
 
     def __repr__(self):
         return f"MidiNoteInstance(note={self.note}, amplitude={self.amplitude}, channel={self.channel}, timestamp={self.timestamp}, duration={self.duration}, pitchbend={self.pitchbend})"
+    
+    def copy(self):
+        return copy.copy(self)
