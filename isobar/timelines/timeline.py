@@ -625,7 +625,7 @@ class Timeline:
                           remove_when_done=remove_when_done,
                           name=name)
 
-            track.update(copy.copy(params), quantize=quantize, delay=delay)
+            track.update(params, quantize=quantize, delay=delay)
 
             #--------------------------------------------------------------------------------
             # Add a new track.

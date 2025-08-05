@@ -269,8 +269,10 @@ class Pattern:
         """
         Resolve a pattern to a scalar value (that is, the next item in this
         pattern, recursively).
+
+        If the input is a Pattern or any other iterator, it will return the next value.
         """
-        if isinstance(v, (Pattern, types.GeneratorType)):
+        if hasattr(v, '__next__') and callable(v.__next__):
             return Pattern.value(next(v))
         # Should lists/dicts be handled similarly?
         elif isinstance(v, tuple):
@@ -289,7 +291,7 @@ class Pattern:
 
         Scalars and other objects are turned into PConstant objects. """
 
-        if isinstance(v, (Pattern, types.GeneratorType)):
+        if hasattr(v, '__next__') and callable(v.__next__):
             return v
         elif isinstance(v, LFO):
             return PLFO(v)
