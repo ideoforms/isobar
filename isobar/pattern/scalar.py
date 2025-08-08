@@ -2,6 +2,7 @@ from __future__ import annotations
 from .core import Pattern
 from .sequence import PSeries
 from ..util import scale_lin_exp, scale_lin_lin
+import math
 
 from typing import Callable
 
@@ -215,6 +216,71 @@ class PRound(PMap):
 
     def __init__(self, input, *args):
         PMap.__init__(self, input, self.round, *args)
+
+class PFloor(PMap):
+    """ PFloor: Round `input` down to the next integer below.
+
+        >>> a = PFloor(PSequence([0, 0.1, 0.5, 1.0, 1.1, None, -0.2], 1))
+        >>> a.nextn(16)
+        [0, 0, 0, 1, 1, None, -1]
+        """
+
+    def floor(self, value):
+        if value is None:
+            return None
+        else:
+            return int(math.floor(value))
+
+    def __init__(self, input: Pattern):
+        """
+        Args:
+            input (Pattern): Input pattern to apply flooring to.
+        """
+        PMap.__init__(self, input, self.floor)
+
+class PCeil(PMap):
+    """ PCeil: Round `input` up to the next integer above.
+
+        >>> a = PCeil(PSequence([0, 0.1, 0.5, 1.0, 1.1, None, -0.2], 1))
+        >>> a.nextn(16)
+        [0, 1, 1, 1, 2, None, 0]
+        """
+
+    def ceil(self, value):
+        if value is None:
+            return None
+        else:
+            return int(math.ceil(value))
+    
+    def __init__(self, input: Pattern):
+        """
+        Args:
+            input (Pattern): Input pattern to apply ceiling to.
+        """
+        PMap.__init__(self, input, self.ceil)
+
+class PRoundToMultiple(PMap):
+    """ PRoundToMultiple: Round `input` to the nearest multiple of `multiple`.
+
+        >>> a = PRoundToMultiple(PSequence([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]), 0.25)
+        >>> a.nextn(10)
+        [0.0, 0.0, 0.25, 0.25, 0.5, 0.5, 0.5, 0.75, 0.75, 1.0]
+        """
+
+    def __init__(self, input: Pattern, multiple: int):
+        """
+        Args:
+            input (Pattern): Input pattern to apply rounding to.
+            multiple (int): The multiple to round to.
+        """
+        self.multiple = multiple
+        PMap.__init__(self, input, self.round_to_multiple)
+
+    def round_to_multiple(self, value):
+        if value is None:
+            return None
+        else:
+            return int(round(value / self.multiple)) * self.multiple
 
 class PScalar(PMap):
     """ PScalar: Reduce tuples and lists into single scalar values,
