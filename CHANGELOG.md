@@ -1,5 +1,18 @@
 # Changelog
 
+## [v0.2.1](https://github.com/ideoforms/isobar/tree/v0.2.1) (2025-08-08)
+
+- Added support for treating generator expressions in place of patterns
+- Initial support for MPE
+- Expanded `MidiInputDevice` with support for capturing aftertouch and polytouch events
+- Added `globals` event type, to schedule changes to a global variable
+- Added new scalar patterns: `PFloor`, `PCeil`, `PRoundToMultiple`
+- Added `PKeyScale` pattern, to extract a Scale from a Key
+- Added `Globals.enable_interprocess_sync()`, to synchronise global variables between multiple notebooks or Python processes on the same computer
+- Fixed bug in quantization with Ableton Link Clock
+- Refactor of Event handling, modularising handler logic for different event types
+- Utils: Added `clip()`, `frequency_to_midi_note()`
+
 ## [v0.2.0](https://github.com/ideoforms/isobar/tree/v0.2.0) (2024-11-10)
 
 - Globals: Added support for synchronising Globals state between isobar processes via `enable_interprocess_sync()`
