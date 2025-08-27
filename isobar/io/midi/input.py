@@ -4,13 +4,14 @@ import time
 import queue
 import logging
 from typing import Any, Callable
+from ...timelines.clock import BaseClockSource
 from ...exceptions import DeviceNotFoundException
 from ...constants import MIDI_CLOCK_TICKS_PER_BEAT
 from ..midinote import MidiNote
 
 logger = logging.getLogger(__name__)
 
-class MidiInputDevice:
+class MidiInputDevice (BaseClockSource):
     def __init__(self, 
                  device_name: str = None,
                  clock_target: Any = None,
@@ -168,6 +169,13 @@ class MidiInputDevice:
 
     def stop(self):
         pass
+
+    def run(self):
+        """
+        Run and block indefinitely. This is a method required of any ClockSource
+        """
+        while True:
+            time.sleep(0.1)
 
     def get_tempo(self):
         return self.estimated_tempo

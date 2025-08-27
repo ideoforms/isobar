@@ -9,9 +9,32 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-class Clock:
+class BaseClockTarget:
+    def tick(self):
+        raise NotImplementedError("Subclasses should implement this")
+
+class BaseClockSource:
     def __init__(self,
                  clock_target: Any = None,
+                 ticks_per_beat: int = DEFAULT_TICKS_PER_BEAT):
+        self.clock_target = clock_target
+        self._ticks_per_beat: int = ticks_per_beat
+
+    def get_ticks_per_beat(self) -> int:
+        return self._ticks_per_beat
+
+    def set_ticks_per_beat(self, ticks_per_beat: int):
+        self._ticks_per_beat = ticks_per_beat
+
+    ticks_per_beat = property(get_ticks_per_beat, set_ticks_per_beat)
+    """ Returns the number of ticks per beat. """
+
+    def run(self):
+        raise NotImplementedError("Subclasses should implement this")
+
+class Clock (BaseClockSource):
+    def __init__(self,
+                 clock_target: BaseClockTarget = None,
                  tempo: float = DEFAULT_TEMPO,
                  ticks_per_beat: int = DEFAULT_TICKS_PER_BEAT):
         """
@@ -34,11 +57,12 @@ class Clock:
             tempo: Tempo, in BPM.
             ticks_per_beat: The number of tick events generated per quarter-note.
         """
-        self.clock_target = clock_target
+        super().__init__(clock_target, ticks_per_beat)
+        self._tempo: float = tempo
         self.tick_duration_seconds: float = None
         self.tick_duration_seconds_orig: float = None
-        self._tempo: float = tempo
-        self.ticks_per_beat: int = ticks_per_beat
+        self._calculate_tick_duration()
+
         self.warpers = []
         self.accelerate: float = 1.0
         self.thread: threading.Thread = None
@@ -47,7 +71,7 @@ class Clock:
 
         target_ticks_per_beat = self.clock_target.ticks_per_beat if self.clock_target else ticks_per_beat
         self.clock_multiplier = make_clock_multiplier(target_ticks_per_beat, self.ticks_per_beat)
-
+    
     def _calculate_tick_duration(self):
         self.tick_duration_seconds = 60.0 / (self.tempo * self.ticks_per_beat)
         self.tick_duration_seconds_orig = self.tick_duration_seconds
@@ -60,7 +84,6 @@ class Clock:
         self._calculate_tick_duration()
 
     ticks_per_beat = property(get_ticks_per_beat, set_ticks_per_beat)
-    """ Returns the number of ticks per beat. """
 
     def get_tempo(self):
         return self._tempo
@@ -73,7 +96,7 @@ class Clock:
     """ The tempo of this clock, in BPM. """
 
     def background(self):
-        """ Run this Timeline in a background thread. """
+        """ Run this clock in a background thread. """
         self.thread = threading.Thread(target=self.run)
         self.thread.daemon = True
         self.thread.start()
@@ -131,7 +154,7 @@ class Clock:
     def rewind(self):
         self.clock_target.set_song_pos(0)
 
-class DummyClock(Clock):
+class DummyClock (BaseClockSource):
     """
     Clock subclass used in testing, which ticks at the highest rate possible.
     """
