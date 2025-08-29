@@ -1,14 +1,12 @@
-import logging
 from ..output import OutputDevice
 from ...constants import DEFAULT_TICKS_PER_BEAT
-
-log = logging.getLogger(__name__)
 
 class DummyOutputDevice(OutputDevice):
     def __init__(self):
         """
         Dummy output device.
         """
+        super().__init__()
         self.current_time = 0.0
         self.events = []
 

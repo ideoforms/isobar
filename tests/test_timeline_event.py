@@ -1,5 +1,6 @@
 """ Unit tests for events """
 
+from random import random
 import isobar as iso
 import pytest
 from . import dummy_timeline
@@ -197,3 +198,40 @@ def test_event_invalid_properties(dummy_timeline):
     })
     with pytest.raises(ValueError):
         dummy_timeline.run()
+
+def test_event_generator(dummy_timeline):
+    def custom_pattern():
+        for i in range(4):
+            yield 60 + i * i
+    dummy_timeline.schedule({
+        iso.EVENT_NOTE: custom_pattern(),
+        iso.EVENT_DURATION: 1
+    })
+    dummy_timeline.run()
+    assert dummy_timeline.output_device.events == [
+        [0, 'note_on', 60, 64, 0],
+        [1, 'note_off', 60, 0],
+        [1, 'note_on', 61, 64, 0],
+        [2, 'note_off', 61, 0],
+        [2, 'note_on', 64, 64, 0],
+        [3, 'note_off', 64, 0],
+        [3, 'note_on', 69, 64, 0],
+        [4, 'note_off', 69, 0],
+    ]
+
+def test_event_pdict_generator(dummy_timeline):
+    def custom_pattern():
+        for i in range(4):
+            yield {"note": 60 + i * i, "duration": 1}
+    dummy_timeline.schedule(custom_pattern())
+    dummy_timeline.run()
+    assert dummy_timeline.output_device.events == [
+        [0, 'note_on', 60, 64, 0],
+        [1, 'note_off', 60, 0],
+        [1, 'note_on', 61, 64, 0],
+        [2, 'note_off', 61, 0],
+        [2, 'note_on', 64, 64, 0],
+        [3, 'note_off', 64, 0],
+        [3, 'note_on', 69, 64, 0],
+        [4, 'note_off', 69, 0],
+    ]

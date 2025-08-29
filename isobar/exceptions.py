@@ -4,6 +4,12 @@ class DeviceNotFoundException (Exception):
     """
     pass
 
+class MultipleOutputDevicesException (Exception):
+    """
+    Multiple output devices are set.
+    """
+    pass
+
 class TrackLimitReachedException (Exception):
     """
     No more tracks could be scheduled in this Timeline.

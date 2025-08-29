@@ -20,6 +20,8 @@ def test_pseries():
 def test_prange():
     a = iso.PRange(0, iso.PConstant(10), iso.PSequence([1, 2]))
     assert list(a) == [0, 1, 3, 4, 6, 7, 9]
+    a = iso.PRange(500, -500, -250)
+    assert list(a) == [500, 250, 0, -250]
 
 def test_pgeom():
     a = iso.PGeom(1, iso.PSequence([1, 2]), 8)
@@ -49,9 +51,9 @@ def test_pcreep():
     assert list(b) == [1, 2, 3, 1, 2, 3, 2, 3, 4, 2, 3, 4, 3, 4, 5, 3, 4, 5]
 
 def test_pstutter():
-    a = iso.PSequence([1, 2, 3], 1)
-    b = iso.PStutter(a, 3)
-    assert list(b) == [1, 1, 1, 2, 2, 2, 3, 3, 3]
+    a = iso.PSequence([1, 2, 3, 4], 1)
+    b = iso.PStutter(a, iso.PSequence([2, 3]))
+    assert b.nextn(16) == [1, 1, 2, 2, 2, 3, 3, 4, 4, 4]
 
 def test_psubsequence():
     a = iso.PSeries()

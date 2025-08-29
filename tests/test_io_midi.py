@@ -30,17 +30,19 @@ def test_io_midi():
     timeline = iso.Timeline(120, midi_out)
     timeline.stop_when_done = True
     timeline.schedule({
-        "note": iso.PSequence([ 60 ], 1),
+        "note": 60,
         "duration" : 0.1
-    })
+    }, count=1)
     timeline.run()
-    assert len(events) == 1
+    # Allow time for the MIDI virtual device to process the message
+    time.sleep(0.01)
+    # A note_on and note_off message should have been sent
+    assert len(events) == 2
 
 @pytest.mark.skipif(no_midi, reason="Device does not have MIDI support")
 def test_io_midi_sync():
     tempo = 150
     midi_out = iso.MidiOutputDevice(VIRTUAL_DEVICE_NAME, virtual=True, send_clock=True)
-    print("Created MIDI out: %s" % midi_out)
     clock = iso.Clock(tempo=tempo, clock_target=midi_out)
 
     midi_in = iso.MidiInputDevice(VIRTUAL_DEVICE_NAME)

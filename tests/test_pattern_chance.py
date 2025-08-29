@@ -45,9 +45,9 @@ def test_pwalk():
     assert a.nextn(20) == expected
 
 def test_pchoice():
-    a = iso.PChoice(iso.PSequence([[0, 1, 2, 3], [4, 5, 6, 7]]))
+    a = iso.PChoice(iso.PSequence([[0, 1, 2, 3], [4, 5, 6, 7], ["a", "b", "c"]]))
     a.seed(0)
-    expected = [3, 7, 0, 6, 3, 7, 2, 7, 2, 5, 1, 6, 1, 4, 2, 5, 2, 4, 0, 6]
+    expected = [3, 7, 'a', 2, 7, 'b', 2, 7, 'b', 1, 5, 'b', 1, 4, 'c', 2, 5, 'b', 0, 4]
     assert a.nextn(20) == expected
     a.reset()
     assert a.nextn(20) == expected

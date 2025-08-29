@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='isobar',
-    version='0.1.1',
+    version='0.2.1',
     description='A Python library to express and manipulate musical patterns',
     long_description = open("README.md", "r").read(),
     long_description_content_type = "text/markdown",
@@ -12,7 +12,7 @@ setup(
     author_email='dan-isobar@erase.net',
     url='https://github.com/ideoforms/isobar',
     packages=find_packages(),
-    install_requires=['python-osc', 'mido', 'python-rtmidi'],
+    install_requires=['python-osc', 'mido', 'python-rtmidi', 'LinkPython-extern', 'numpy'],
     keywords=['sound', 'music', 'composition'],
     classifiers=[
         'Topic :: Multimedia :: Sound/Audio',

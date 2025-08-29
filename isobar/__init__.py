@@ -23,8 +23,10 @@ from .scale import *
 from .chord import *
 from .key import *
 from .util import *
-from .timeline import *
+from .timelines import *
 from .pattern import *
 from .constants import *
 from .exceptions import *
 from .io import *
+from .instrument import *
+from .globals import *

@@ -1,14 +1,18 @@
 import os
 import mido
 import logging
+from typing import Optional
 from ..output import OutputDevice
 from ...exceptions import DeviceNotFoundException
 from ...constants import MIDI_CLOCK_TICKS_PER_BEAT
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 class MidiOutputDevice (OutputDevice):
-    def __init__(self, device_name=None, send_clock=False, virtual=False):
+    def __init__(self,
+                 device_name: Optional[str] = None,
+                 send_clock: bool = False,
+                 virtual: bool = False):
         """
         Create a MIDI output device.
         Use `isobar.get_midi_output_names()` to query all available devices.
@@ -20,6 +24,7 @@ class MidiOutputDevice (OutputDevice):
             send_clock (bool): Whether to send clock sync/reset messages.
             virtual (bool):    Whether to create a "virtual" rtmidi device.
         """
+        super().__init__()
         try:
             if device_name is None:
                 device_name = os.getenv("ISOBAR_DEFAULT_MIDI_OUT")
@@ -27,9 +32,9 @@ class MidiOutputDevice (OutputDevice):
         except (RuntimeError, SystemError, OSError):
             raise DeviceNotFoundException("Could not find MIDI device")
         self.send_clock = send_clock
-        log.info("Opened MIDI output: %s" % self.midi.name)
+        logger.info("Opened MIDI output: %s" % self.midi.name)
 
-    def start(self):
+    def start(self) -> None:
         """
         Sends a MIDI start message to the output device.
         """
@@ -37,7 +42,7 @@ class MidiOutputDevice (OutputDevice):
             msg = mido.Message("start")
             self.midi.send(msg)
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Sends a MIDI stop message to the output device.
         """
@@ -45,50 +50,64 @@ class MidiOutputDevice (OutputDevice):
             msg = mido.Message("stop")
             self.midi.send(msg)
 
+    def close(self):
+        self.midi.close()
+        del self.midi
+
     @property
-    def ticks_per_beat(self):
+    def ticks_per_beat(self) -> int:
         """
         The number of clock ticks per beat.
         For MIDI devices, which is fixed at the MIDI standard of 24.
         """
         return MIDI_CLOCK_TICKS_PER_BEAT
 
-    def tick(self):
+    def tick(self) -> None:
         if self.send_clock:
             msg = mido.Message("clock")
             self.midi.send(msg)
 
-    def note_on(self, note=60, velocity=64, channel=0):
-        log.debug("[midi] Note on  (channel = %d, note = %d, velocity = %d)" % (channel, note, velocity))
+    def note_on(self, note: int = 60, velocity: int = 64, channel: int = 0) -> None:
+        logger.info("[midi] Note on  (channel = %d, note = %d, velocity = %d)" % (channel, note, velocity))
         msg = mido.Message('note_on', note=int(note), velocity=int(velocity), channel=int(channel))
         self.midi.send(msg)
 
-    def note_off(self, note=60, channel=0):
-        log.debug("[midi] Note off (channel = %d, note = %d)" % (channel, note))
+    def note_off(self, note: int = 60, channel: int = 0) -> None:
+        logger.debug("[midi] Note off (channel = %d, note = %d)" % (channel, note))
         msg = mido.Message('note_off', note=int(note), channel=int(channel))
         self.midi.send(msg)
 
-    def all_notes_off(self):
-        log.debug("[midi] All notes off")
+    def all_notes_off(self) -> None:
+        logger.debug("[midi] All notes off")
         for channel in range(16):
             for note in range(128):
                 msg = mido.Message('note_off', note=int(note), channel=int(channel))
                 self.midi.send(msg)
 
-    def control(self, control=0, value=0, channel=0):
-        log.debug("[midi] Control (channel %d, control %d, value %d)" % (channel, control, value))
+    def control(self, control: int = 0, value: int = 0, channel: int = 0):
+        logger.debug("[midi] Control (channel %d, control %d, value %d)" % (channel, control, value))
         msg = mido.Message('control_change', control=int(control), value=int(value), channel=int(channel))
         self.midi.send(msg)
 
-    def program_change(self, program=0, channel=0):
-        log.debug("[midi] Program change (channel %d, program_change %d)" % (channel, program))
+    def program_change(self, program: int = 0, channel: int = 0) -> None:
+        logger.debug("[midi] Program change (channel %d, program_change %d)" % (channel, program))
         msg = mido.Message('program_change', program=int(program), channel=int(channel))
         self.midi.send(msg)
 
-    def pitch_bend(self, pitch=0, channel=0):
-        log.debug("[midi] Pitch bend (channel %d, pitch %d)" % (channel, pitch))
+    def pitch_bend(self, pitch: int = 0, channel: int = 0) -> None:
+        logger.debug("[midi] Pitch bend (channel %d, pitch %d)" % (channel, pitch))
         msg = mido.Message('pitchwheel', pitch=int(pitch), channel=int(channel))
         self.midi.send(msg)
 
+    def aftertouch(self, value: int = 0, channel: int = 0) -> None:
+        logger.debug("[midi] Aftertouch (channel %d, pitch %d)" % (channel, value))
+        msg = mido.Message('aftertouch', value=int(value), channel=int(channel))
+        self.midi.send(msg)
+
+    def set_song_pos(self, pos: int = 0) -> None:
+        msg = mido.Message('songpos', pos=pos)
+        self.midi.send(msg)
+
     def __del__(self):
-        del self.midi
+        if hasattr(self, "midi"):
+            del self.midi

@@ -10,7 +10,16 @@ class Key:
 
     def __init__(self, tonic=0, scale=Scale.major):
         if type(tonic) == str:
-            tonic = note_name_to_midi_note(tonic)
+            #--------------------------------------------------------------------------------
+            # Constructor specifies a note name and a scale name (e.g, "C# minor")
+            # TODO unit test for this
+            #--------------------------------------------------------------------------------
+            if " " in tonic:
+                tonic_str, scale_str = tuple(tonic.split(" "))
+                tonic = note_name_to_midi_note(tonic_str)
+                scale = Scale.byname(scale_str)
+            else:
+                tonic = note_name_to_midi_note(tonic)
         if type(scale) == str:
             scale = Scale.byname(scale)
 
@@ -18,13 +27,19 @@ class Key:
         self.scale = scale
 
     def __eq__(self, other):
-        return self.tonic == other.tonic and self.scale == other.scale
+        try:
+            return self.tonic == other.tonic and self.scale == other.scale
+        except AttributeError:
+            return False
 
     def __str__(self):
         return "Key: %s %s" % (midi_note_to_note_name(self.tonic)[:], self.scale.name)
 
     def __repr__(self):
         return 'Key(%s, "%s")' % (self.tonic, self.scale.name)
+
+    def __hash__(self):
+        return hash((self.tonic, hash(self.scale)))
 
     def get(self, degree):
         """ Returns the <degree>th semitone within this key. """
@@ -54,14 +69,14 @@ class Key:
             return note
         else:
             octave, pitch = divmod(note, self.scale.octave_size)
-            nearest_semi = None
-            nearest_dist = None
-            for semi in self.semitones:
-                dist = abs(semi - pitch)
-                if nearest_dist is None or dist < nearest_dist:
-                    nearest_semi = semi
-                    nearest_dist = dist
-            return (octave * self.scale.octave_size) + nearest_semi
+            nearest_semitone = None
+            nearest_distance = None
+            for semitone in self.semitones + [self.scale.octave_size]:
+                distance = abs(semitone - pitch)
+                if nearest_distance is None or distance < nearest_distance:
+                    nearest_semitone = semitone
+                    nearest_distance = distance
+            return (octave * self.scale.octave_size) + nearest_semitone
 
     def voiceleading(self, other):
         """ Returns the most parsimonious voice leading between this key

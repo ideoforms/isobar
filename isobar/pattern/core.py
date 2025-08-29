@@ -2,8 +2,12 @@
 # isobar: a python library for expressing and manipulating musical patterns.
 #-------------------------------------------------------------------------------
 
+from __future__ import annotations
 import copy
 import inspect
+import types
+from typing import Iterable, Callable, Any, TYPE_CHECKING
+from ..timelines.lfo import LFO
 
 import isobar
 
@@ -21,8 +25,9 @@ class Pattern:
 
     LENGTH_MAX = 65536
 
-    def __str__(self):
-        return "Pattern (%s)" % self.__class__
+    def __repr__(self):
+        # Used in place of a common string representation
+        return "Pattern()"
 
     def __len__(self):
         # formerly defined as len(list(self)), but list(self) seemingly relies
@@ -135,10 +140,45 @@ class Pattern:
         """ Less than or equal """
         return PLessThanOrEqual(self, operand)
 
+    def __and__(self, operand):
+        """ And """
+        return PAnd(self, operand)
+
     def __iter__(self):
         return self
 
-    def nextn(self, count):
+    def poll(self, on: bool = True) -> object:
+        """
+        If set, causes the Pattern object to output its value to stdout each time
+        its __next__() method is called.
+
+        Returns the Pattern object, useful when scheduling like so:
+
+        timeline.schedule({
+            "note": pattern.poll(),
+            ...
+        })
+
+        Args:
+            on: Whether to poll the Pattern's output.
+
+        Returns:
+            The Pattern.
+        """
+        if not hasattr(self.__class__, "__next_orig__"):
+            self.__class__.__next_orig__ = self.__class__.__next__
+
+        def _get_and_print_next(self):
+            value = self.__next_orig__()
+            if hasattr(self, "_poll") and self._poll:
+                print("%s: %s" % (self.__class__.__name__, value))
+            return value
+
+        self.__class__.__next__ = _get_and_print_next
+        self._poll = on
+        return self
+
+    def nextn(self, count: int) -> list:
         """
         Returns the next `count` output values.
         If fewer than `count` values are generated, return all output values.
@@ -155,7 +195,7 @@ class Pattern:
     def __next__(self):
         raise StopIteration
 
-    def all(self, maximum=LENGTH_MAX):
+    def all(self, maximum: int = LENGTH_MAX) -> list:
         """
         Returns all output values, up to a maximum length of `maximum`.
         """
@@ -197,7 +237,7 @@ class Pattern:
                     if isinstance(item, Pattern):
                         item.reset()
 
-    def append(self, other):
+    def append(self, other: Pattern) -> PConcatenate:
         """
         Returns a new pattern with the contents of `other` appended to the contents of `self`.
         """
@@ -218,7 +258,7 @@ class Pattern:
                 if classname == "Timeline":
                     return instance
 
-    def copy(self):
+    def copy(self) -> Pattern:
         """
         Returns a copy of this Pattern.
         """
@@ -229,8 +269,16 @@ class Pattern:
         """
         Resolve a pattern to a scalar value (that is, the next item in this
         pattern, recursively).
+
+        If the input is a Pattern or any other iterator, it will return the next value.
         """
-        return Pattern.value(next(v)) if isinstance(v, Pattern) else v
+        if hasattr(v, '__next__') and callable(v.__next__):
+            return Pattern.value(next(v))
+        # Should lists/dicts be handled similarly?
+        elif isinstance(v, tuple):
+            return tuple(Pattern.value(element) for element in v)
+        else:
+            return v
 
     @staticmethod
     def pattern(v):
@@ -238,13 +286,24 @@ class Pattern:
         Patternify a value, turning it into an object with a next() method
         to obtain its next value.
 
-        Pattern subclasses remain untouched.
-        Scalars and other objects are turned into PConst objects. """
+        Pattern subclasses remain untouched, and generators are treated
+        as patterns.
 
-        if isinstance(v, Pattern):
+        Scalars and other objects are turned into PConstant objects. """
+
+        if hasattr(v, '__next__') and callable(v.__next__):
             return v
+        elif isinstance(v, LFO):
+            return PLFO(v)
         elif isinstance(v, dict):
             return isobar.PDict(v)
+        elif isinstance(v, str):
+            from isobar.notation import parse_notation
+
+            try:
+                return parse_notation(v)
+            except ValueError:
+                return isobar.PConstant(v)
         else:
             return isobar.PConstant(v)
 
@@ -256,11 +315,11 @@ class PConstant(Pattern):
         [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
         """
 
-    def __init__(self, constant):
+    def __init__(self, constant: float):
         self.constant = constant
 
-    def __str__(self):
-        return "constant"
+    def __repr__(self):
+        return ("PConstant(%s)" % repr(self.constant))
 
     def __next__(self):
         return self.constant
@@ -274,10 +333,13 @@ class PRef(Pattern):
         Useful to change an inner pattern in real time.
         """
 
-    def __init__(self, pattern):
+    def __init__(self, pattern: Pattern):
         self.pattern = pattern
 
-    def set_pattern(self, pattern):
+    def __repr__(self):
+        return ("PRef(%s)" % repr(self.pattern))
+
+    def set_pattern(self, pattern: Pattern):
         """ Replace the referenced pattern with another. """
         self.pattern = pattern
 
@@ -292,8 +354,11 @@ class PFunc(Pattern):
         >>> p.nextn(16)
         [19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19]"""
 
-    def __init__(self, function):
+    def __init__(self, function: Callable):
         self.function = function
+
+    def __repr__(self):
+        return ("PFunc(%s)" % repr(self.function))
 
     def __next__(self):
         function = Pattern.value(self.function)
@@ -304,9 +369,12 @@ class PArrayIndex(Pattern):
         If the item is a Pattern, the next value from that pattern is returned.
         """
 
-    def __init__(self, list, index):
+    def __init__(self, list: Iterable, index: int):
         self.list = list
         self.index = index
+
+    def __repr__(self):
+        return ("PArrayIndex(%s, %s)" % (self.list, self.index))
 
     def __next__(self):
         list = Pattern.value(self.list)
@@ -332,7 +400,7 @@ class PDict(Pattern):
         Thanks to Dan Stowell <http://www.mcld.co.uk/>
         """
 
-    def __init__(self, value=None):
+    def __init__(self, value: dict = None):
         from .sequence import PSequence
 
         self.dict = {}
@@ -354,6 +422,25 @@ class PDict(Pattern):
             except IndexError:
                 pass
 
+    def __getattr__(self, key: str):
+        """
+        Implemented for syntactical sugar, so that a track's params property
+        can be modified by doing (e.g.) track.params.cutoff = 200
+        """
+        if key == "dict" or key.startswith("__"):
+            return super().__getattr__(key)
+        else:
+            return self.dict[key]
+
+    def __setattr__(self, key: str, value: Any):
+        if key == "dict" or key.startswith("__"):
+            return super().__setattr__(key, value)
+        else:
+            self.dict[key] = value
+
+    def __repr__(self):
+        return ("PDict(%s)" % repr(self.dict))
+
     def __getitem__(self, key):
         return self.dict[key]
 
@@ -366,7 +453,7 @@ class PDict(Pattern):
     def __contains__(self, key):
         return key in self.dict
 
-    def load(self, filename, quantize=None):
+    def load(self, filename: str, quantize: float = None):
         """
         Load pattern data from a MIDI file.
 
@@ -377,7 +464,7 @@ class PDict(Pattern):
         reader = MidiFileInputDevice(filename)
         self.dict = reader.read(quantize=quantize)
 
-    def save(self, filename):
+    def save(self, filename: str):
         """
         Save pattern data to a MIDI file.
 
@@ -404,23 +491,36 @@ class PDict(Pattern):
         if key not in self.dict:
             self.dict[key] = value
 
-    def keys(self):
+    def keys(self) -> list:
         return list(self.dict.keys())
 
-    def values(self):
+    def values(self) -> list:
         return list(self.dict.values())
 
-    def items(self):
+    def items(self) -> list:
         return list(self.dict.items())
 
     def __next__(self):
         vdict = Pattern.value(self.dict)
-        if not vdict:
-            raise StopIteration
 
-        # for some reason, doing a list comprehension without the surrounding square
-        # brackets causes an inner StopIteration to be suppressed -- we want to
-        # explicitly raise it.
+        #--------------------------------------------------------------------------------
+        # This previously raised a StopIteration, but this breaks the common case in
+        # which an empty params dict is bound to the timeline:
+        #
+        # timeline.schedule({ "patch": FooPatch, "params": {} }) <- ends immediately
+        #
+        # So instead simply return the empty dict in this case.
+        # This will also return `None` when Pattern.value(dict) evaluates to None.
+        # Hopefully this doesn't break any cases in the wild...
+        #--------------------------------------------------------------------------------
+        # if not vdict:
+        #     return vdict
+
+        #--------------------------------------------------------------------------------
+        # Doing a list comprehension without surrounding square brackets produces a lazy
+        # evaluation, which causes the inner StopIteration to be suppressed. We want to
+        # explicitly raise it, so greedily evaluate the dict.
+        #--------------------------------------------------------------------------------
         rv = dict([(k, Pattern.value(vdict[k])) for k in vdict])
 
         return rv
@@ -429,13 +529,16 @@ class PDictKey(Pattern):
     """ PDictKey: Request a specified key from a dictionary.
         """
 
-    def __init__(self, key, dict):
-        self.key = key
+    def __init__(self, dict: dict, key):
         self.dict = dict
+        self.key = key
+
+    def __repr__(self):
+        return ("PDictKey(%s, %s)" % (repr(self.dict), repr(self.key)))
 
     def __next__(self):
-        vkey = Pattern.value(self.key)
         vdict = Pattern.value(self.dict)
+        vkey = Pattern.value(self.key)
         return vdict[vkey]
 
 class PConcatenate(Pattern):
@@ -445,9 +548,12 @@ class PConcatenate(Pattern):
         [1, 2, 3, 1, 2, 3, 9, 8, 7, 9, 8, 7]
         """
 
-    def __init__(self, inputs):
+    def __init__(self, inputs: list):
         self.inputs = inputs
         self.pos = 0
+
+    def __repr__(self):
+        return ("PConcatenate(%s)" % self.inputs)
 
     def __next__(self):
         try:
@@ -470,6 +576,9 @@ class PAbs(Pattern):
     def __init__(self, input):
         self.input = input
 
+    def __repr__(self):
+        return ("PAbs(%s)" % repr(self.input))
+
     def __next__(self):
         next = Pattern.value(self.input)
         if next is not None:
@@ -479,14 +588,29 @@ class PAbs(Pattern):
 class PInt(Pattern):
     """ PInt: Integer value of `input` """
 
-    def __init__(self, input):
+    def __init__(self, input: int):
         self.input = input
+
+    def __repr__(self):
+        return ("PInt(%s)" % self.input)
 
     def __next__(self):
         next = Pattern.value(self.input)
         if next is not None:
             return int(next)
         return next
+
+class PLFO(Pattern):
+    """ PLFO: Encapsulates an LFO object.
+    """
+    def __init__(self, lfo: LFO):
+        self.lfo = lfo
+    
+    def __repr__(self):
+        return ("PLFO(%s)" % repr(self.lfo))
+
+    def __next__(self):
+        return self.lfo.value
 
 #------------------------------------------------------------------
 # Binary operators
@@ -661,3 +785,14 @@ class PLessThanOrEqual(PBinOp):
         a = Pattern.value(self.a)
         b = Pattern.value(self.b)
         return None if a is None or b is None else a <= b
+
+class PAnd(PBinOp):
+    """ PAnd: Return True if a and b, False otherwise (shorthand: patternA & patternB) """
+
+    def __str__(self):
+        return "%s & %s" % (self.a, self.b)
+
+    def __next__(self):
+        a = Pattern.value(self.a)
+        b = Pattern.value(self.b)
+        return True if a and b else False

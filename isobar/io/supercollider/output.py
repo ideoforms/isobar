@@ -2,7 +2,7 @@ from ..output import OutputDevice
 
 import logging
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 try:
     import supercollider
@@ -20,8 +20,9 @@ class SuperColliderOutputDevice (OutputDevice):
         """
         Args:
             host: Hostname to send OSC messages to
-            port: =Port number to send OSC messages to
+            port: Port number to send OSC messages to
         """
+        super().__init__()
         try:
             self.server = supercollider.Server()
 
@@ -46,5 +47,5 @@ class SuperColliderOutputDevice (OutputDevice):
         pass
 
     def create(self, name, params=None):
-        log.debug("Creating SuperCollider Synth: %s, %s" % (name, params))
+        logger.debug("Creating SuperCollider Synth: %s, %s" % (name, params))
         supercollider.Synth(self.server, name, params)

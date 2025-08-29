@@ -6,19 +6,23 @@
 # Generates a stochastic L-system arpeggio
 #------------------------------------------------------------------------
 
-import isobar as iso
-
+from isobar import *
 import logging
-logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
+    
+def main():
+    notes = PLSystem("N[+N--?N]+N[+?N]", depth=4)
+    notes = PDegree(notes, Scale.majorPenta)
+    notes = notes % 36
+    
+    timeline = Timeline(180)
+    
+    timeline.schedule({
+        "note": notes,
+        "duration": 0.25,
+        "transpose": 50
+    })
+    timeline.run()
 
-notes = iso.PLSystem("N[+N--?N]+N[+?N]", depth=4)
-notes = iso.PDegree(notes, iso.Scale.majorPenta)
-notes = notes % 36 + 52
-
-timeline = iso.Timeline(180)
-
-timeline.schedule({
-    "note": notes,
-    "duration": 0.25
-})
-timeline.run()
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
+    main()

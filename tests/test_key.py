@@ -47,10 +47,13 @@ def test_key_contains():
 
 def test_key_semitones():
     a = iso.Key("C", "minor")
-    assert a.semitones == [0, 2, 3, 5, 7, 8, 11]
+    assert a.semitones == [0, 2, 3, 5, 7, 8, 10]
 
 def test_key_nearest_note():
-    a = iso.Key("C", "minor")
+    a = iso.Key("C", iso.Scale([0, 2, 3, 5, 7, 9]))
+    assert a.nearest_note(-3) == -3
+    assert a.nearest_note(-2) == -3
+    assert a.nearest_note(-1) == 0
     assert a.nearest_note(0) == 0
     assert a.nearest_note(1) == 0
     assert a.nearest_note(2) == 2
@@ -59,10 +62,20 @@ def test_key_nearest_note():
     assert a.nearest_note(5) == 5
     assert a.nearest_note(6) == 5
     assert a.nearest_note(7) == 7
-    assert a.nearest_note(8) == 8
-    assert a.nearest_note(9) == 8
-    assert a.nearest_note(10) == 11
-    assert a.nearest_note(11) == 11
+    assert a.nearest_note(8) == 7
+    assert a.nearest_note(9) == 9
+    assert a.nearest_note(10) == 9
+    assert a.nearest_note(11) == 12
+    assert a.nearest_note(13) == 12
+    assert a.nearest_note(14) == 14
+    assert a.nearest_note(60) == 60
+    assert a.nearest_note(61) == 60
+
+    a = iso.Key("F#", "major")
+    assert a.nearest_note(0) == 1
+    assert a.nearest_note(6) == 6
+    assert a.nearest_note(17) == 17
+    assert a.nearest_note(18) == 18
 
 def test_key_voiceleading():
     pass
@@ -70,7 +83,7 @@ def test_key_voiceleading():
 def test_key_distance():
     a = iso.Key("C", "minor")
     b = iso.Key("C", "major")
-    assert a.distance(b) == 2
+    assert a.distance(b) == 3
 
 def test_key_random():
     a = iso.Key.random()

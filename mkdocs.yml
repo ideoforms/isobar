@@ -8,9 +8,11 @@ repo_name: ideoforms/isobar
 repo_url: https://github.com/ideoforms/isobar
 
 markdown_extensions:
- - markdown.extensions.admonition
- - markdown.extensions.codehilite
+ - admonition
+ - attr_list
  - pymdownx.tabbed
+ - pymdownx.superfences
+ - pymdownx.highlight
 
 nav:
  - Home:
@@ -34,5 +36,9 @@ nav:
  - Devices and I/O:
    - Devices and I/O: devices/index.md
    - MIDI: devices/midi.md
+   - Virtual MIDI devices: devices/virtual-midi-devices.md
    - MIDI files: devices/midifile.md
    - OSC: devices/osc.md
+   - SignalFlow: devices/signalflow.md
+   - SuperCollider: devices/supercollider.md
+   - FluidSynth: devices/fluidsynth.md

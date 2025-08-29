@@ -1,55 +1,43 @@
+from __future__ import annotations
 from . import Pattern
+from ..globals import Globals
 
-class Globals:
-    """
-    The Globals class encapsulates a namespace of global variables that can be accessed
-    throughout isobar. This is particularly useful to alter parameters shared across the
-    composition, which can then be accessed in patterns using the PGlobals class.
+from typing import Any
 
-    For example,
-    """
-    @classmethod
-    def get(cls, key):
-        """
-        Returns the value stored in `key`.
-        Args:
-            key: The key to query.
-
-        Returns:
-            The value, which can be of any type.
-
-        Raises:
-            KeyError: If the key does not exist in the globals dict.
-        """
-        if key not in PGlobals.dict:
-            raise KeyError("Global variable does not exist: %s" % key)
-        value = PGlobals.dict[key]
-        return Pattern.value(value)
-
-    @classmethod
-    def set(cls, key, value):
-        PGlobals.dict[key] = value
 
 class PGlobals (Pattern):
     """ PGlobals: Static global value identified by a string.
     """
-    dict = {}
 
-    def __init__(self, name):
+    def __init__(self, name: str, default: Any = None):
         self.name = name
+        self.default = default
+
+    def __repr__(self):
+        return ("PGlobals(%s)" % repr(self.name))
 
     def __next__(self):
         name = Pattern.value(self.name)
-        value = Globals.get(name)
-        return Pattern.value(value)
+        try:
+            value = Globals.get(name)
+            return Pattern.value(value)
+        except KeyError:
+            return self.default
+    
+    def set(self, value: Any):
+        """ Set the value of the global variable. """
+        Globals.set(self.name, value)
 
 class PStaticPattern(Pattern):
-    def __init__(self, pattern, element_duration):
+    def __init__(self, pattern: Pattern, element_duration: float):
         self.pattern = pattern
         self.value = None
         self.element_duration = element_duration
         self.current_element_start_time = None
         self.current_element_duration = None
+
+    def __repr__(self):
+        return ("PStaticPattern(%s, %s)" % (repr(self.pattern), repr(self.element_duration)))
 
     def __next__(self):
         timeline = self.timeline
@@ -70,6 +58,9 @@ class PCurrentTime(Pattern):
 
     def __init__(self):
         pass
+
+    def __repr__(self):
+        return "PCurrentTime()"
 
     def __next__(self):
         beats = self.get_beats()

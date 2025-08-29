@@ -1,9 +1,13 @@
+from __future__ import annotations
 from .core import Pattern
 from .sequence import PSeries
+from ..util import scale_lin_exp, scale_lin_lin
+import math
+
+from typing import Callable
 
 class PChanged(Pattern):
-    """ PChanged: Outputs a 1 if the value of the input pattern has changed,
-        or 0 otherwise.
+    """ PChanged: Outputs a 1 if the value of the input pattern has changed, 0 otherwise.
 
         >>> a = PSequence([1, 0, 1, 2, 2, 2, 1, 0, 0, 1], repeats=1)
         >>> b = PChanged(a)
@@ -11,9 +15,12 @@ class PChanged(Pattern):
         [1, 1, 1, 0, 0, 1, 1, 0, 1]
         """
 
-    def __init__(self, source):
+    def __init__(self, source: Pattern):
         self.source = source
         self.current = Pattern.value(self.source)
+
+    def __repr__(self):
+        return ("PChanged(%s)" % repr(self.source))
 
     def reset(self):
         super().reset()
@@ -26,7 +33,7 @@ class PChanged(Pattern):
         return rv
 
 class PDiff(Pattern):
-    """ PDiff: Outputs the difference between the current and previous values of an input pattern
+    """ PDiff: Outputs the difference between the current and previous values of an input pattern.
         If the current or next value are None, a value of None will be output.
 
         The length of the output pattern is always 1 less than the length of the input.
@@ -37,9 +44,12 @@ class PDiff(Pattern):
         [-1, 1, 1, 0, 0, -1, -1, 0, 1]
         """
 
-    def __init__(self, source):
+    def __init__(self, source: Pattern):
         self.source = source
         self.current = Pattern.value(self.source)
+
+    def __repr__(self):
+        return ("PDiff(%s)" % repr(self.source))
 
     def reset(self):
         super().reset()
@@ -58,9 +68,12 @@ class PSkipIf(Pattern):
     """ PSkipIf: If `skip` is false, returns `input`; otherwise, returns None.
         """
 
-    def __init__(self, pattern, skip):
+    def __init__(self, pattern: Pattern, skip: bool):
         self.pattern = pattern
         self.skip = skip
+
+    def __repr__(self):
+        return ("PSkipIf(%s, %s)" % (repr(self.pattern), self.skip))
 
     def __next__(self):
         rv = Pattern.value(self.pattern)
@@ -70,18 +83,21 @@ class PSkipIf(Pattern):
         return rv
 
 class PNormalise(Pattern):
-    """ PNormalise: Adaptively normalise `input` to [0..1] over a linear scale.
+    """ PNormalise: Adaptively normalise `input` to `[0..1]` over a linear scale.
         Use maximum and minimum values found in history.
 
         If you know the output range ahead of time, use `PScaleLinLin`.
         """
 
-    def __init__(self, input):
+    def __init__(self, input: Pattern):
         self.input = input
 
         self.lower = None
         self.upper = None
         self.history = []
+
+    def __repr__(self):
+        return ("PNormalise(%s)" % repr(self.input))
 
     def __next__(self):
         value = Pattern.value(self.input)
@@ -115,11 +131,14 @@ class PMap(Pattern):
         [1, 1, 4, 27, 256, 3125, 46656, 823543, 16777216, 387420489, 10000000000, ... ]
         """
 
-    def __init__(self, input, operator, *args, **kwargs):
+    def __init__(self, input: Pattern, operator: Callable, *args, **kwargs):
         self.input = input
         self.operator = operator
         self.args = args
         self.kwargs = kwargs
+
+    def __repr__(self):
+        return ("PMap(%s, %s, %s, %s)" % (repr(self.input), repr(self.operator), repr(self.args), repr(self.kwargs)))
 
     def reset(self):
         super().reset()
@@ -133,7 +152,7 @@ class PMap(Pattern):
     def __next__(self):
         args = [Pattern.value(value) for value in self.args]
         kwargs = dict((key, Pattern.value(value)) for key, value in list(self.kwargs.items()))
-        value = next(self.input)
+        value = Pattern.value(self.input)
         rv = self.operator(value, *args, **kwargs)
         return rv
 
@@ -145,8 +164,12 @@ class PMapEnumerated(PMap):
         """
 
     def __init__(self, *args):
+        self.args = args
         PMap.__init__(self, *args)
         self.counter = PSeries()
+
+    def __repr__(self):
+        return ("PMapEnumerated(%s)" % repr(self.args))
 
     def __next__(self):
         args = [Pattern.value(value) for value in self.args]
@@ -156,37 +179,26 @@ class PMapEnumerated(PMap):
         return rv
 
 class PScaleLinLin(PMap):
-    """ PLinLin: Map `input` from linear range [a,b] to linear range [c,d].
+    """ PScaleLinLin: Map `input` from linear range [a,b] to linear range [c,d].
 
         >>> p = PScaleLinLin(PWhite(), 0, 1, -50, 50)
         >>> p.nextn(16)
         [-34.434991496625955, -33.38823791706497, 42.153457333940267, 16.692545937573783, ... -48.850511242044604 ]
         """
 
-    def linlin(self, value, from_min=0, from_max=1, to_min=0, to_max=1):
-        norm = float(value - from_min) / (from_max - from_min)
-        return norm * float(to_max - to_min) + to_min
-
-    def __init__(self, input, *args):
-        PMap.__init__(self, input, self.linlin, *args)
+    def __init__(self, input: Pattern, *args):
+        super().__init__(input, scale_lin_lin, *args)
 
 class PScaleLinExp(PMap):
-    """ PLinExp: Map `input` from linear range [a,b] to exponential range [c,d].
+    """ PScaleLinExp: Map `input` from linear range [a,b] to exponential range [c,d].
 
         >>> p = PScaleLinExp(PWhite(0.0, 1.0), 0, 1, 40, 20000)
         >>> p.nextn(16)
         [946.888, 282.944, 2343.145, 634.637, 218.844, 19687.330, 4457.627, 172.419, 934.666, ... 46.697 ]
         """
 
-    def linexp(self, value, from_min=0, from_max=1, to_min=1, to_max=10):
-        if value < from_min:
-            return to_min
-        if value > from_max:
-            return to_max
-        return ((to_max / to_min) ** ((value - from_min) / (from_max - from_min))) * to_min
-
-    def __init__(self, input, *args):
-        super(self, input, self.linexp, *args)
+    def __init__(self, input: Pattern, *args):
+        super().__init__(input, scale_lin_exp, *args)
 
 class PRound(PMap):
     """ PRound: Round `input` to N decimal places.
@@ -205,6 +217,71 @@ class PRound(PMap):
     def __init__(self, input, *args):
         PMap.__init__(self, input, self.round, *args)
 
+class PFloor(PMap):
+    """ PFloor: Round `input` down to the next integer below.
+
+        >>> a = PFloor(PSequence([0, 0.1, 0.5, 1.0, 1.1, None, -0.2], 1))
+        >>> a.nextn(16)
+        [0, 0, 0, 1, 1, None, -1]
+        """
+
+    def floor(self, value):
+        if value is None:
+            return None
+        else:
+            return int(math.floor(value))
+
+    def __init__(self, input: Pattern):
+        """
+        Args:
+            input (Pattern): Input pattern to apply flooring to.
+        """
+        PMap.__init__(self, input, self.floor)
+
+class PCeil(PMap):
+    """ PCeil: Round `input` up to the next integer above.
+
+        >>> a = PCeil(PSequence([0, 0.1, 0.5, 1.0, 1.1, None, -0.2], 1))
+        >>> a.nextn(16)
+        [0, 1, 1, 1, 2, None, 0]
+        """
+
+    def ceil(self, value):
+        if value is None:
+            return None
+        else:
+            return int(math.ceil(value))
+    
+    def __init__(self, input: Pattern):
+        """
+        Args:
+            input (Pattern): Input pattern to apply ceiling to.
+        """
+        PMap.__init__(self, input, self.ceil)
+
+class PRoundToMultiple(PMap):
+    """ PRoundToMultiple: Round `input` to the nearest multiple of `multiple`.
+
+        >>> a = PRoundToMultiple(PSequence([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]), 0.25)
+        >>> a.nextn(10)
+        [0.0, 0.0, 0.25, 0.25, 0.5, 0.5, 0.5, 0.75, 0.75, 1.0]
+        """
+
+    def __init__(self, input: Pattern, multiple: int):
+        """
+        Args:
+            input (Pattern): Input pattern to apply rounding to.
+            multiple (int): The multiple to round to.
+        """
+        self.multiple = multiple
+        PMap.__init__(self, input, self.round_to_multiple)
+
+    def round_to_multiple(self, value):
+        if value is None:
+            return None
+        else:
+            return int(round(value / self.multiple)) * self.multiple
+
 class PScalar(PMap):
     """ PScalar: Reduce tuples and lists into single scalar values,
         either by taking the mean or the first value.
@@ -215,7 +292,7 @@ class PScalar(PMap):
         [1, 2.5, 5, None, 7]
         """
 
-    def scalar(self, pattern, method):
+    def scalar(self, pattern: Pattern, method: str):
         value = Pattern.value(pattern)
         try:
             values = list(value)
@@ -231,7 +308,7 @@ class PScalar(PMap):
         except TypeError:
             return value
 
-    def __init__(self, pattern, method="mean"):
+    def __init__(self, pattern: Pattern, method: str = "mean"):
         """
         Args:
             input (Pattern): Input pattern
@@ -241,17 +318,20 @@ class PScalar(PMap):
         PMap.__init__(self, pattern, self.scalar, method=method)
 
 class PWrap(Pattern):
-    """ PWrap: Wrap input note values within <min>, <max>.
+    """ PWrap: Wrap input note values within `[min, max]`.
 
         >>> p = PWrap(PSeries(5, 3), 0, 10)
         >>> p.nextn(16)
         [5, 8, 1, 4, 7, 0, 3, 6, 9, 2, 5, 8, 1, 4, 7, 0]
         """
 
-    def __init__(self, pattern, min=40, max=80):
+    def __init__(self, pattern: Pattern, min: int = 40, max: int = 80):
         self.pattern = pattern
         self.min = min
         self.max = max
+
+    def __repr__(self):
+        return ("PWrap(%s, %s, %s)" % (repr(self.pattern), self.min, self.max))
 
     def __next__(self):
         value = next(self.pattern)
@@ -262,16 +342,19 @@ class PWrap(Pattern):
         return value
 
 class PIndexOf(Pattern):
-    """ PIndexOf: Find index of items from `pattern` in <list>
+    """ PIndexOf: Find index of items from `pattern` in `list`.
 
         >>> p = PIndexOf([ chr(ord("a") + n) for n in range(26) ], PSeq("isobar"))
         >>> p.nextn(16)
         [8, 18, 14, 1, 0, 17, 8, 18, 14, 1, 0, 17, 8, 18, 14, 1]
         """
 
-    def __init__(self, list, item):
+    def __init__(self, list: Pattern, item):
         self.list = list
         self.item = item
+
+    def __repr__(self):
+        return ("PIndexOf(%s, %s)" % (repr(self.list), repr(self.item)))
 
     def __next__(self):
         list = Pattern.value(self.list)

@@ -20,3 +20,9 @@ def test_pnearest():
 def test_pmiditofrequency():
     a = iso.PMidiNoteToFrequency(iso.PSequence([0, 60, 60.5, None], 1))
     assert list(a) == [8.175798915643707, 261.6255653005986, 269.2917795270241, None]
+
+def test_pkeytonic():
+    a = iso.PKeyTonic(iso.PSequence([iso.Key("C", "major"),
+                                     iso.Key("F", "minor"),
+                                     iso.Key("G", "major")], 1))
+    assert list(a) == [0, 5, 7]

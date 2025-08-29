@@ -4,13 +4,14 @@ from mido import Message, MidiFile, MidiTrack
 
 import logging
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 class MidiFileOutputDevice (OutputDevice):
     """ Write events to a MIDI file.
         """
 
     def __init__(self, filename):
+        super().__init__()
         self.filename = filename
         self.midifile = MidiFile()
         self.miditrack = MidiTrack()

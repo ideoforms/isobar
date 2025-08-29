@@ -1,10 +1,33 @@
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
 class MidiNote:
-    def __init__(self, pitch, velocity, location, duration=None):
-        # pitch = MIDI 0..127
-        self.pitch = pitch
-        # velocity = MIDI 0..127
-        self.velocity = velocity
-        # location in time, beats
-        self.location = location
-        # duration in time, beats
-        self.duration = duration
+    #--------------------------------------------------------------------------------
+    # Pitch = MIDI 0..127
+    #--------------------------------------------------------------------------------
+    pitch: int
+
+    #--------------------------------------------------------------------------------
+    # Velocity = MIDI 0..127
+    #--------------------------------------------------------------------------------
+    velocity: int
+
+    #--------------------------------------------------------------------------------
+    # Aftertouch = MIDI 0..127
+    # If present, this value may be updated dynamically during the note's lifetime.
+    #--------------------------------------------------------------------------------
+    aftertouch: Optional[int] = None
+
+    #--------------------------------------------------------------------------------
+    # Channel = MIDI 0..15
+    #--------------------------------------------------------------------------------
+    channel: Optional[int] = None
+
+    #--------------------------------------------------------------------------------
+    # For notes that are located in a time sequence:
+    #  - Location on the timeline, in beats
+    #  - Duration, in beats
+    #--------------------------------------------------------------------------------
+    location: Optional[float] = None
+    duration: Optional[float] = None
