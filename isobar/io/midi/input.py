@@ -87,7 +87,19 @@ class MidiInputDevice (BaseClockSource):
         elif message.type == 'start':
             logger.info(" - MIDI: Received start message")
             if self.clock_target is not None:
+                #------------------------------------------------------------------------
+                # MIDI `start` typically implies restarting playback from the beginning,
+                # so reset the timeline.
+                #
+                # To resume playback from the same point in the timeline, a MIDI `continue`
+                # message should be sent.
+                #------------------------------------------------------------------------
+                self.clock_target.reset()
                 self.clock_target.start()
+
+        elif message.type == 'continue':
+            logger.info(" - MIDI: Received continue message")
+            self.clock_target.start()
 
         elif message.type == 'stop':
             logger.info(" - MIDI: Received stop message")
@@ -95,7 +107,7 @@ class MidiInputDevice (BaseClockSource):
                 self.clock_target.stop()
 
         elif message.type == 'songpos':
-            logger.info(" - MIDI: Received songpos message")
+            logger.info(" - MIDI: Received songpos message (pos = %d)" % message.pos)
             if message.pos == 0:
                 if self.clock_target is not None:
                     self.clock_target.reset()
