@@ -42,6 +42,7 @@ class MidiInputDevice (BaseClockSource):
         self.queue = queue.Queue()
         self.estimated_tempo = None
         self.last_clock_time = None
+        self.midi_clock_is_running = False
 
         logger.info("Opened MIDI input: %s" % self.midi.name)
 
@@ -81,11 +82,12 @@ class MidiInputDevice (BaseClockSource):
             else:
                 self.last_clock_time = time.time()
 
-            if self.clock_target is not None:
+            if self.clock_target is not None and self.midi_clock_is_running:
                 self.clock_target.tick()
 
         elif message.type == 'start':
             logger.info(" - MIDI: Received start message")
+            self.midi_clock_is_running = True
             if self.clock_target is not None:
                 #------------------------------------------------------------------------
                 # MIDI `start` typically implies restarting playback from the beginning,
@@ -103,6 +105,7 @@ class MidiInputDevice (BaseClockSource):
 
         elif message.type == 'stop':
             logger.info(" - MIDI: Received stop message")
+            self.midi_clock_is_running = False
             if self.clock_target is not None:
                 self.clock_target.stop()
 
