@@ -91,10 +91,8 @@
     {% if not config.theme.palette is mapping %}
       {% include "partials/javascripts/palette.html" %}
     {% endif %}
-    <!--
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off" aria-hidden="true">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off" aria-hidden="true">
-    -->
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       {% if page.toc | first is defined %}
