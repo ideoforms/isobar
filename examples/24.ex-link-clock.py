@@ -21,8 +21,7 @@ from isobar import *
 import logging
 
 def main():
-    timeline = Timeline(120)
-    timeline.clock_source = AbletonLinkClock()
+    timeline = Timeline(clock_source="link")
     timeline.schedule({
         "key": Key("C", "minorPenta"),
         "octave": random.choice([4, 5, 6]),
@@ -30,7 +29,7 @@ def main():
                                0, 8)),
         "duration": PLoop(PSubsequence(PChoice([0.25, 0.5, 1.0], [1, 0.5, 0.25]),
                                  0, 6))
-    }, quantize=None)
+    }, quantize=1)
     timeline.run()
 
 if __name__ == "__main__":
