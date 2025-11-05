@@ -28,6 +28,21 @@ class MidiOutputDevice (OutputDevice):
         try:
             if device_name is None:
                 device_name = os.getenv("ISOBAR_DEFAULT_MIDI_OUT")
+
+            if device_name:
+                #--------------------------------------------------------------------------------
+                # For permissive matching, look up device names that start with the given string.
+                #--------------------------------------------------------------------------------
+                available_device_names = mido.get_output_names()
+                matching_device_names = [name for name in available_device_names if name.startswith(device_name)]
+
+                if len(matching_device_names) == 0:
+                    raise DeviceNotFoundException("Could not find MIDI device with name starting with: %s" % device_name)
+                elif len(matching_device_names) > 1:
+                    raise DeviceNotFoundException("Multiple MIDI output devices found matching '%s'" % (device_name))
+                else:
+                    device_name = matching_device_names[0]
+            
             self.midi = mido.open_output(device_name, virtual=virtual)
         except (RuntimeError, SystemError, OSError):
             raise DeviceNotFoundException("Could not find MIDI device")
@@ -89,8 +104,12 @@ class MidiOutputDevice (OutputDevice):
         msg = mido.Message('control_change', control=int(control), value=int(value), channel=int(channel))
         self.midi.send(msg)
 
-    def program_change(self, program: int = 0, channel: int = 0) -> None:
+    def program_change(self, program: int = 0, bank: int = None, channel: int = 0) -> None:
         logger.debug("[midi] Program change (channel %d, program_change %d)" % (channel, program))
+        
+        if bank is not None:
+            msg = mido.Message('control_change', control=0, value=int(bank), channel=int(channel))
+            self.midi.send(msg)
         msg = mido.Message('program_change', program=int(program), channel=int(channel))
         self.midi.send(msg)
 
@@ -111,3 +130,10 @@ class MidiOutputDevice (OutputDevice):
     def __del__(self):
         if hasattr(self, "midi"):
             del self.midi
+
+    @classmethod
+    def get_device_names(cls):
+        """
+        Returns a list of available MIDI output device names.
+        """
+        return mido.get_output_names()

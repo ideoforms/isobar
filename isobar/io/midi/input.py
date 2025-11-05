@@ -284,3 +284,10 @@ class MidiInputDevice (BaseClockSource):
             handler (Callable): The function to call.
         """
         self.on_aftertouch_handler = handler
+
+    @classmethod
+    def get_device_names(cls):
+        """
+        Returns a list of available MIDI input device names.
+        """
+        return mido.get_input_names()
