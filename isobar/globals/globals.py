@@ -1,5 +1,6 @@
 from __future__ import annotations
 from ..pattern import Pattern
+from typing import Any
 
 class Globals:
     """
@@ -31,7 +32,10 @@ class Globals:
         return Pattern.value(value)
 
     @classmethod
-    def set(cls, key, value=None):
+    def set(cls,
+            key,
+            value: Any = None,
+            quantize: float = None):
         """
         Set global parameters.
         Can either be used to set a single parameter or, if `key` is a dict, a dict of multiple
@@ -40,7 +44,17 @@ class Globals:
         Args:
             key: A key name, or a dict of key-value pairs.
             value: The value to set the key to
+            quantize: If set, the time (in beats) to quantize the setting of the parameter to.
         """
+
+        if quantize is not None:
+            from ..timelines import Timeline
+
+            timeline = Timeline.get_shared_timeline()
+            if timeline is not None:
+                timeline._schedule_action(lambda: Globals.set(key, value), quantize)
+            return
+        
         if isinstance(key, dict):
             for key, value in key.items():
                 Globals.dict[key] = value
