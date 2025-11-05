@@ -23,6 +23,26 @@ class Binding:
     mode: str
     kwargs: dict
 
+    def __post_init__(self):
+        if self.mode not in ["auto", "attr", "method"]:
+            raise ValueError("Invalid binding mode: %s" % self.mode)
+        
+        if self.mode == "auto":
+            if callable(getattr(self.object, self.property_name)):
+                self.mode = "method"
+            else:
+                self.mode = "attr"
+
+    def apply(self, value: float):
+        if self.mode == "attr":
+            setattr(self.object, self.property_name, value)
+            if len(self.kwargs) > 0:
+                logger.warning("Ignoring kwargs %s for attr binding %s" % (self.kwargs, self))
+        elif self.mode == "method":
+            method = getattr(self.object, self.property_name)
+            args = {"value": value, **self.kwargs}
+            method(**args)
+
 class AutomationEnvelope:
     def __init__(self,
                  total_ticks: int,
@@ -169,14 +189,7 @@ class Automation:
     def jump_to(self, value):
         self.current_value = value
         for binding in self.bindings:
-            if binding.mode == "attr":
-                setattr(binding.object, binding.property_name, self.value)
-                if len(binding.kwargs) > 0:
-                    logger.warning("Ignoring kwargs %s for attr binding %s" % (binding.kwargs, binding))
-            elif binding.mode == "method":
-                method = getattr(binding.object, binding.property_name)
-                args = {"value": self.value, **binding.kwargs}
-                method(**args)
+            binding.apply(self.value)
 
     def stop(self):
         self.timeline.remove_automation(self)
@@ -242,17 +255,11 @@ class Automation:
         """
         self.value_changed_callbacks.remove(callback)
 
-    def bind_to(self, object: Any, property_name: str, mode: str = "attr", method_argument: str = "value", **kwargs):
-        assert mode in ["attr", "method"]
+    def bind_to(self, object: Any, property_name: str, mode: str = "auto", method_argument: str = "value", **kwargs):
         binding = Binding(object, property_name, mode, kwargs)
         self.bindings.append(binding)
 
         # Initialise each binding to the automation's initial value,
         # to prevent jumps if the source's property was previously set
         # to a different value
-        if binding.mode == "attr":
-            setattr(binding.object, binding.property_name, self.value)
-        elif binding.mode == "method":
-            method = getattr(binding.object, binding.property_name)
-            args = {"value": self.value, **kwargs}
-            method(**args)
+        binding.apply(self.value)
