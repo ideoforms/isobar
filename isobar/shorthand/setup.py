@@ -50,6 +50,7 @@ def track(name, **kwargs):
     track_parameters = {
         "quantize": 1,
         "interpolate": None,
+        "output_device": None,
     }
     #--------------------------------------------------------------------------------
     # Unflatten the params list.
@@ -73,19 +74,19 @@ def track(name, **kwargs):
         # not sure why
         #--------------------------------------------------------------------------------
         kwargs["params"] = params
-
+    
     #--------------------------------------------------------------------------------
     # Automatically select the appropriate output device based on the event type.
     #--------------------------------------------------------------------------------
-    if "patch" in kwargs:
-        output_device = signalflow_output_device
-    else:
-        output_device = midi_output_device
+    if track_parameters["output_device"] is None:
+        if "patch" in kwargs:
+            track_parameters["output_device"] = signalflow_output_device
+        else:
+            track_parameters["output_device"] = midi_output_device
 
     track = timeline.schedule(params=kwargs,
                               name=name,
                               replace=True,
-                              output_device=output_device,
                               **track_parameters)
     #--------------------------------------------------------------------------------
     # Evaluating a cell with a track() command with mute() appended to it causes
@@ -97,10 +98,10 @@ def track(name, **kwargs):
 
     try:
         import signalflow_vscode
-        cell_id = signalflow_vscode.vscode_get_this_cell_id()
-        print("Added flash callback for cell ID:", cell_id)
+        cell_id = signalflow_vscode.get_this_cell_id()
+        # print("Added flash callback for cell ID:", cell_id)
         if cell_id is not None:
-            track.add_event_callback(lambda e: signalflow_vscode.vscode_flash_cell_id(cell_id, track.name))
+            track.add_event_callback(lambda e: signalflow_vscode.flash_cell_id(cell_id, track.name))
     except (ModuleNotFoundError, ImportError):
         # no signalflow_vscode module available
         pass
