@@ -35,7 +35,7 @@ class MPEOutputDevice (MidiOutputDevice):
         super().__init__(device_name, send_clock, virtual)
 
         self.channels = list(range(1, 16))
-        self.note_assignments = dict((n, MPENote) for n in range(128))
+        self.note_assignments: dict[int, MPENote] = dict((n, None) for n in range(128))
         self.channel_assignments: dict[int, MPENote] = dict((n, None) for n in self.channels)
     
     def _get_next_channel(self) -> Optional[int]:
@@ -53,28 +53,43 @@ class MPEOutputDevice (MidiOutputDevice):
     def note_on(self,
                 note_index: int,
                 velocity: int) -> MPENote:
+        
         channel = self._get_next_channel()
         if channel is None:
             # No channels are available
             return None
-        else:
-            note = MPENote(note=note_index,
-                           channel=channel,
-                           output_device=self)
-            
-            self.note_assignments[note_index] = note
-            self.channel_assignments[channel] = note
+        
+        if self.note_assignments[note_index] is not None:
+            import time
+            self.note_off(note_index)
+            # Horrible hack between some MIDI devices (e.g. EaganMatrix) won't honour a note_on
+            # if received too quickly after a note_off.
+            time.sleep(0.001)
 
-            super().note_on(note_index, velocity, channel)
-            return note
+        note = MPENote(note=note_index,
+                        channel=channel,
+                        output_device=self)
+        
+        self.note_assignments[note_index] = note
+        self.channel_assignments[channel] = note
+
+        super().note_on(note_index, velocity, channel)
+        return note
     
     def note_off(self,
                  note_index: int):
         note = self.note_assignments[note_index]
         if note is None:
-            raise ValueError("MPE: note_off received for non-depressed note (%d)" % note_index)
+            return
         else:
             super().note_off(note_index, note.channel)
-            self.channel_assignments[note_index] = None
+            self.channel_assignments[note.channel] = None
             self.note_assignments[note_index] = None
             note.is_down = False
+
+    def all_notes_off(self) -> None:
+        super().all_notes_off()
+        for note in self.note_assignments.keys():
+            self.note_assignments[note] = None
+        for channel_index in self.channel_assignments.keys():
+            self.channel_assignments[channel_index] = None

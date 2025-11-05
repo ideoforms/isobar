@@ -18,6 +18,11 @@ class MPENote:
         if self.is_down:
             self.output_device.aftertouch(value, channel=self.channel)
 
+    pressure = aftertouch
+    
+    def timbre(self, value: int = 0) -> None:
+        self.control(74, value)
+
     def control(self, control: int = 0, value: int = 0) -> None:
         if self.is_down:
             self.output_device.control(control, value, channel=self.channel)
