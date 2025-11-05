@@ -82,7 +82,12 @@ class MidiNoteEvent(MidiEvent):
             # The below does not allow for event_values[EVENT_TRANSPOSE] to be an array,
             # for example.
             #----------------------------------------------------------------------
-            transpose = int(event_values[EVENT_OCTAVE]) * 12 + int(event_values[EVENT_TRANSPOSE])
+
+            # Handle None values for transpose and octave (e.g, for the case in which 
+            # values are being taken from a PGlobals which may not yet be defined)
+            octave = event_values[EVENT_OCTAVE] or 0
+            transpose = event_values[EVENT_TRANSPOSE] or 0
+            transpose = int(octave) * 12 + int(transpose)
             try:
                 event_values[EVENT_NOTE] = [int(note) + transpose for note in event_values[EVENT_NOTE]]
             except TypeError:
