@@ -40,6 +40,7 @@ class Timeline:
                  clock_source: Any = None,
                  ticks_per_beat: int = DEFAULT_TICKS_PER_BEAT,
                  ignore_exceptions: bool = False,
+                 stop_when_done: bool = False,
                  start: bool = False):
         """
         A Timeline object encapsulates a number of Tracks, each of which
@@ -61,6 +62,7 @@ class Timeline:
             ignore_exceptions: If True, exceptions do not halt the timeline, and instead simply
                                generate a warning and halt the affected track. Useful for cases
                                such as live coding that require persistent operation.
+            stop_when_done: If True, stops the timeline when no more tracks are scheduled.
             start: If True, automatically start the timeline running in the background.
         """
         global shared_timeline
@@ -117,7 +119,7 @@ class Timeline:
         self.automations: list[Automation] = []
         """ The list of Automation objects that are currently scheduled. """
 
-        self.stop_when_done = False
+        self.stop_when_done = stop_when_done
         """ If True, stops the timeline when the last track is finished. """
 
         self.actions = []
@@ -599,7 +601,7 @@ class Timeline:
                     existing_track.current_event_count = 0
 
                     # When a track is re-scheduled, reset its note effects.
-                    existing_track.notes = []
+                    # but not its notes (to prevent hung notes)
                     existing_track.note_effects = []
 
                     # When a track is re-scheduled that has previously been muted, unmute it.
