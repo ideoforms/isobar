@@ -327,7 +327,10 @@ class Track:
                 else:
                     # If the note was created by an effect (e.g. echo), apply the effects
                     # that come after the effect that created the note.
-                    effects = self.note_effects[self.note_effects.index(note.origin) + 1:]
+                    if note.origin in self.note_effects:
+                        effects = self.note_effects[self.note_effects.index(note.origin) + 1:]
+                    else:
+                        effects = []
 
                 for effect in effects:
                     effect.apply(note)
