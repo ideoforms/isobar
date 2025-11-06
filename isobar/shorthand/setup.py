@@ -49,6 +49,7 @@ def track(name, **kwargs):
 
     track_parameters = {
         "quantize": 1,
+        "count": None,
         "interpolate": None,
         "output_device": None,
     }
