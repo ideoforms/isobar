@@ -114,6 +114,7 @@ class Track:
     def __gt__(self, other):
         if isinstance(other, NoteEffect):
             self.add_note_effect(other)
+            return self
         else:
             raise NotImplementedError("Cannot compare Track with %s" % type(other))
 
