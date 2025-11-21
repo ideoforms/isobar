@@ -91,6 +91,8 @@ class PWhite(PStochasticPattern):
             rv = int(self.rng.uniform(min, max))
             return rv
 
+PRandomUniform = PWhite
+
 class PBrown(PStochasticPattern):
     """ PBrown: Brownian noise.
                 Output begins at `initial_value`, and steps up/down
