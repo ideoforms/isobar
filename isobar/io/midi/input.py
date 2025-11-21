@@ -3,6 +3,7 @@ import mido
 import time
 import queue
 import logging
+import argparse
 from typing import Any, Callable
 from ...timelines.clock import BaseClockSource
 from ...exceptions import DeviceNotFoundException
@@ -88,7 +89,6 @@ class MidiInputDevice (BaseClockSource):
                 self.clock_target.tick()
 
         elif message.type == 'start':
-            logger.info(" - MIDI: Received start message")
             self.is_midi_transport_started = True
             if self.clock_target is not None:
                 #------------------------------------------------------------------------
@@ -102,18 +102,15 @@ class MidiInputDevice (BaseClockSource):
                 self.clock_target.start()
 
         elif message.type == 'continue':
-            logger.info(" - MIDI: Received continue message")
             self.is_midi_transport_started = True
             self.clock_target.start()
 
         elif message.type == 'stop':
-            logger.info(" - MIDI: Received stop message")
             self.is_midi_transport_started = False
             if self.clock_target is not None:
                 self.clock_target.stop()
 
         elif message.type == 'songpos':
-            logger.info(" - MIDI: Received songpos message (pos = %d)" % message.pos)
             if message.pos == 0:
                 if self.clock_target is not None:
                     self.clock_target.reset()
@@ -291,3 +288,30 @@ class MidiInputDevice (BaseClockSource):
         Returns a list of available MIDI input device names.
         """
         return mido.get_input_names()
+    
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="MIDI Input Device Test")
+    parser.add_argument('--device', type=str, default=None,
+                        help='Name of the MIDI input device to use. If not specified, uses the ISOBAR_DEFAULT_MIDI_IN environment variable if set; otherwise, uses the system default MIDI input device.')
+    
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Enable verbose logging output.')
+    args = parser.parse_args()
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG, format='(%(asctime)s) %(message)s')
+    else:
+        logging.basicConfig(level=logging.INFO, format='(%(asctime)s) %(message)s')
+
+    midi_in = MidiInputDevice(device_name=args.device)
+    logger.info("Listening for MIDI input on device: %s" % midi_in.device_name)
+
+    midi_in.set_note_on_handler(lambda msg: logger.info("Note on: %s" % msg))
+    midi_in.set_note_off_handler(lambda msg: logger.info("Note off: %s" % msg))
+    midi_in.set_control_change_handler(lambda msg: logger.info("Control change: %s" % msg))
+
+    try:
+        midi_in.run()
+    except KeyboardInterrupt:
+        print("Exiting...")
+        midi_in.close()
