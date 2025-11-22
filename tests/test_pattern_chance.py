@@ -124,3 +124,14 @@ def test_pswitchone():
     a.reset()
     assert a.nextn(20) == expected
 
+def test_pperlin():
+    # Test with Pattern inputs
+    a = iso.PPerlin(iso.PConstant(0.1), iso.PConstant(0.0), iso.PConstant(0.5), iso.PConstant(1.0))
+    a.seed(0)
+    seq1 = a.nextn(20)
+    a.reset()
+    seq2 = a.nextn(20)
+    assert seq1 == seq2
+    
+    for val in seq1:
+        assert 0.0 <= val <= 1.0

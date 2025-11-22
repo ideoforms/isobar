@@ -623,3 +623,103 @@ class PRandomImpulseSequence(PStochasticPattern):
         rv = self.values[self.pos]
         self.pos += 1
         return rv
+
+class PPerlin(PStochasticPattern):
+    """ PPerlin: Perlin noise generator.
+        Generates 1D Perlin noise (gradient noise) with octaves.
+        The `pos` parameter loops between 0..1.
+
+        Args:
+            step (float): Step size for the position counter.
+            start (float): Initial position.
+            detail (float): Persistence of upper octaves (0..1).
+            rate (float): The rate of change of the noise landscape (frequency multiplier).
+    """
+
+    def __init__(self, step: float = 0.01, start: float = 0.0, detail: float = 0.5, rate: float = 1.0):
+        super().__init__()
+        self.step = step
+        self.start = start
+        self.pos = Pattern.value(start)
+        self.detail = detail
+        self.rate = rate
+        
+        self.reset()
+
+    def __repr__(self):
+        return ("PPerlin(%s, %s, %s, %s)" % (self.step, self.pos, self.detail, self.rate))
+
+    def _generate_gradients(self):
+        self.gradients = [self.rng.uniform(-1, 1) for _ in range(256)]
+
+    def reset(self):
+        super().reset()
+        self._generate_gradients()
+        self.pos = Pattern.value(self.start)
+
+    def seed(self, seed=None):
+        # Ensure that gradients are re-generated if the seed changes.
+        super().seed(seed)
+        self._generate_gradients()
+        return self
+
+    def noise(self, x, p):
+        """ Calculate gradient noise for a single octave with period p. """
+        xi = int(x)
+        xf = x - xi
+        
+        # Wrap indices
+        idx0 = xi % int(p)
+        idx1 = (xi + 1) % int(p)
+        
+        g0 = self.gradients[idx0 % len(self.gradients)]
+        g1 = self.gradients[idx1 % len(self.gradients)]
+        
+        v0 = g0 * xf
+        v1 = g1 * (xf - 1)
+        
+        # Smoothstep fade
+        u = xf * xf * (3 - 2 * xf)
+        
+        return (1 - u) * v0 + u * v1
+
+    def __next__(self):
+        step = Pattern.value(self.step)
+        detail = Pattern.value(self.detail)
+        rate = Pattern.value(self.rate)
+        
+        val = 0.0
+        amp = 1.0
+        max_amp = 0.0
+        freq = 1
+        
+        # 4 Octaves
+        for i in range(4):
+            # For periodic noise over 0..1 with frequency f and rate r:
+            # The effective coordinate is pos * rate * freq
+            # The period is rate * freq
+            
+            p = rate * freq
+            if p < 1: p = 1 
+            
+            n = self.noise(self.pos * rate * freq, p)
+            val += n * amp
+            max_amp += amp
+            amp *= detail
+            freq *= 2
+            
+        # Normalize to 0..1
+        val = (val / max_amp) + 0.5
+        
+        # Clamp
+        if val < 0: val = 0
+        if val > 1: val = 1
+        
+        # Update position
+        self.pos += step
+        if self.pos >= 1.0:
+            self.pos -= 1.0
+        elif self.pos < 0.0:
+            self.pos += 1.0
+            
+        return val
