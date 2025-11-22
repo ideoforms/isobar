@@ -48,7 +48,10 @@ class GlobalsSyncServer:
 class GlobalsSyncClient:
     def __init__(self):
         conn = rpyc.connect("127.0.0.1", GLOBALS_SYNC_PORT)
-        self.thread = rpyc.BgServingThread(conn)
+
+        # Setting a small sleep interval is critical to reduce latency.
+        # Otherwise, the client.set() call can take up to 100ms by default.
+        self.thread = rpyc.BgServingThread(conn, sleep_interval=0.005)
         self.client = conn.root
 
         def on_globals_changed_local(key, value):
