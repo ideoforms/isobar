@@ -1,24 +1,28 @@
-from ..io.midi import MidiOutputDevice
+from ..io.midi import MidiOutputDevice, MidiInputDevice
 from ..timelines import Timeline
 from ..exceptions import DeviceNotFoundException
 from ..globals import Globals
 from .. import ALL_EVENT_PARAMETERS
+import re
 
 try:
     from signalflow import *
     from ..io.signalflow import SignalFlowOutputDevice
+    from ..io.ableton import AbletonMidiOutputDevice
 
-    Globals.enable_interprocess_sync()
+    # Don't need this for now
+    # Globals.enable_interprocess_sync()
 
-    midi_output_device = MidiOutputDevice()
-    timeline = Timeline(120, midi_output_device, clock_source="link")
-    # timeline.add_output_device(midi_output_device)
+    midi_output_device = MidiOutputDevice("IAC Driver Bus 1")
+    
+    timeline = Timeline(midi_output_device, clock_source="link")
+    timeline.defaults.quantize = 4
+    timeline.ignore_exceptions = True
 
     graph = AudioGraph()
     signalflow_output_device = SignalFlowOutputDevice(graph)
-    signalflow_output_device.added_latency_seconds = 0.00
+    signalflow_output_device.added_latency_seconds = -0.04
 
-    timeline.ignore_exceptions = True
     timeline.background()
 
 except (ModuleNotFoundError, DeviceNotFoundException) as e:
@@ -27,15 +31,27 @@ except (ModuleNotFoundError, DeviceNotFoundException) as e:
     timeline = None
 
 live_set = None
+tempo = None
+
 # Enable Ableton Link clock in current Live set
 def enable_ableton_link():
     import live
     global live_set
+    global tempo
     try:
-        live_set = live.Set()
+        live_set = live.Set(scan=True)
         if not live_set.is_ableton_link_enabled:
             live_set.is_ableton_link_enabled = True
-            print("Ableton Link enabled in current Live set.")
+            # TODO use logger
+            # print("Ableton Link enabled in current Live set.")
+
+        # For some reasin, calling start_playing() here if Live is already playing with a Link clock
+        # causes the playback to immediately rewind, which causes timing issues.
+        if not live_set.is_playing:
+            live_set.start_playing()
+
+        tempo = timeline.automation(initial=live_set.tempo, default_duration=10)
+        tempo.bind_to(live_set, "tempo")
     except (live.LiveConnectionError, OSError) as e:
         print(f"Error enabling Ableton Link: {e}")
 enable_ableton_link()
@@ -44,13 +60,20 @@ def open_set(set_name):
     global live_set
     live_set.open(set_name)
 
+def lfo(shape, frequency=1.0, min=0.0, max=1.0, **kwargs):
+    from ..pattern import PLFO
+    from ..timelines.lfo import LFO
+    lfo = LFO(shape=shape, frequency=frequency, min=min, max=max, **kwargs)
+    return PLFO(lfo)
+
 def track(name, **kwargs):
     global timeline
 
     track_parameters = {
-        "quantize": 1,
+        "quantize": None,
         "count": None,
         "interpolate": None,
+        "track_index": None,
         "output_device": None,
     }
     #--------------------------------------------------------------------------------
@@ -83,12 +106,28 @@ def track(name, **kwargs):
         if "patch" in kwargs:
             track_parameters["output_device"] = signalflow_output_device
         else:
-            track_parameters["output_device"] = midi_output_device
+            track_parameters["output_device"] = timeline.output_device
+
 
     track = timeline.schedule(params=kwargs,
                               name=name,
                               replace=True,
                               **track_parameters)
+
+    # TODO tidy this up
+    from ..pattern import PLFO
+    track.lfos = []
+    if "params" in kwargs:
+        for param in kwargs["params"]:
+            if isinstance(kwargs["params"][param], PLFO):
+                #--------------------------------------------------------------------------------
+                # Register LFO with timeline
+                #--------------------------------------------------------------------------------
+                lfo = kwargs["params"][param].lfo
+                lfo.track = track
+                # TODO: Should this be a different formulation of add_lfo?
+                track.lfos.append(lfo)
+
     #--------------------------------------------------------------------------------
     # Evaluating a cell with a track() command with mute() appended to it causes
     # the track to be silenced.
