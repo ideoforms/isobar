@@ -1,33 +1,7 @@
 from ...pattern import Pattern
-from ...scale import Scale
-from ...key import Key
 from ...constants import *
 from ...exceptions import InvalidEventException
-
-
-class EventDefaults:
-    default_values = {
-        EVENT_ACTIVE: True,
-        EVENT_CHANNEL: DEFAULT_EVENT_CHANNEL,
-        EVENT_DURATION: DEFAULT_EVENT_DURATION,
-        EVENT_GATE: DEFAULT_EVENT_GATE,
-        EVENT_AMPLITUDE: DEFAULT_EVENT_AMPLITUDE,
-        EVENT_OCTAVE: DEFAULT_EVENT_OCTAVE,
-        EVENT_TRANSPOSE: DEFAULT_EVENT_TRANSPOSE,
-        EVENT_KEY: Key("C", Scale.default),
-        EVENT_QUANTIZE: DEFAULT_EVENT_QUANTIZE,
-        EVENT_DELAY: DEFAULT_EVENT_DELAY,
-        EVENT_PITCHBEND: None,
-    }
-
-    def __init__(self):
-        for key, value in EventDefaults.default_values.items():
-            setattr(self, key, value)
-
-    def __setattr__(self, name, value):
-        if name != "default_values" and name not in EventDefaults.default_values:
-            raise ValueError("Invalid property for defaults: %s" % name)
-        super().__setattr__(name, value)
+from .defaults import EventDefaults
 
 class Event:
     def __init__(self, event_values, track):
@@ -46,7 +20,7 @@ class Event:
             # Empty event, return a dummy event
             return None
 
-        from . import MidiNoteEvent, ActionEvent, MidiControlChangeEvent, MidiProgramChangeEvent, GlobalsEvent, OscEvent, SuperColliderEvent, SignalFlowEvent
+        from . import MidiNoteEvent, ActionEvent, MidiControlChangeEvent, MidiProgramChangeEvent, GlobalsEvent, OscEvent, SuperColliderEvent, SignalFlowEvent, AbletonMidiNoteEvent
 
         for key in event_values.keys():
             if key not in ALL_EVENT_PARAMETERS:
@@ -60,13 +34,19 @@ class Event:
 
         for key, value in defaults.__dict__.items():
             # Defaults can be patterns too
+            if key == "fallback_to":
+                continue
             event_values.setdefault(key, Pattern.value(value))
 
         #----------------------------------------------------------------------
         # Classify the event type.
         #----------------------------------------------------------------------
         if EVENT_NOTE in event_values or EVENT_DEGREE in event_values:
-            event = MidiNoteEvent(event_values, track)
+            from ...io.ableton.output import AbletonMidiOutputDevice
+            if isinstance(track, AbletonMidiOutputDevice):
+                event = AbletonMidiNoteEvent(event_values, track)
+            else:
+                event = MidiNoteEvent(event_values, track)
         elif EVENT_CONTROL in event_values:
             event = MidiControlChangeEvent(event_values, track)
         elif EVENT_PROGRAM_CHANGE in event_values:

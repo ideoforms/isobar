@@ -118,3 +118,23 @@ def test_track_add_remove_note(dummy_timeline):
     for note in track.notes[:]:
         track.remove_note(note)
     assert len(track.notes) == 0
+
+def test_track_defaults(dummy_timeline):
+    track = dummy_timeline.schedule(name="test_track")
+
+    track.add_note(iso.MidiNoteInstance(timestamp=0.0, note=60))
+    track.add_note(iso.MidiNoteInstance(timestamp=1.0, note=62))
+    assert track.notes[0].has_amplitude() is False
+    assert track.notes[0].amplitude == iso.DEFAULT_EVENT_AMPLITUDE
+
+    dummy_timeline.defaults.amplitude = 32
+    assert track.notes[0].amplitude == 32
+
+    track.defaults.amplitude = 48
+    assert track.notes[0].amplitude == 48
+
+    track.notes[0].amplitude = 97
+    assert track.notes[0].has_amplitude() is True
+    assert track.notes[0].amplitude == 97
+
+    assert track.notes[1].amplitude == 48

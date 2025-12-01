@@ -7,3 +7,4 @@ from .globals import GlobalsEvent
 from .osc import OscEvent
 from .supercollider import SuperColliderEvent
 from .signalflow import SignalFlowEvent
+from .ableton_note import AbletonMidiNoteEvent

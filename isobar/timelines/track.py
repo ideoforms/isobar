@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from isobar.timelines.lfo import LFO
 
 from .events import Event
+from .events.defaults import EventDefaults
 from .midi_note import MidiNoteInstance
 if TYPE_CHECKING:
     from .timeline import Timeline
@@ -21,6 +22,7 @@ from ..exceptions import InvalidEventException
 from ..io.output import OutputDevice
 from ..effects import NoteEffect
 from .lfo import LFO
+
 
 
 logger = logging.getLogger(__name__)
@@ -70,6 +72,8 @@ class Track:
 
         self.lfos: list[LFO] = []
         """ The list of LFO objects that are currently scheduled. """
+
+        self.defaults = EventDefaults(fallback_to=timeline.defaults)
 
         self.is_muted: bool = False
         self.is_started: bool = False
@@ -585,3 +589,4 @@ class Track:
         lfo_object = LFO(self, name=name, **params)
         self.lfos.append(lfo_object)
         return lfo_object
+    

@@ -101,6 +101,11 @@ class MidiNoteEvent(MidiEvent):
 
         self.pitchbend = event_values[EVENT_PITCHBEND]
 
+        # For unusual MIDI devices such as AbletonOutputDevice which allow added metadata per note
+        self.params = None
+        if "params" in event_values:
+            self.params = event_values["params"]
+
     def perform(self) -> bool:
         #----------------------------------------------------------------------
         # event_did_fire is set to True if the event includes one or more
@@ -132,7 +137,8 @@ class MidiNoteEvent(MidiEvent):
                                             amplitude=amplitude,
                                             channel=channel,
                                             timestamp=self.track.current_time,
-                                            duration=duration)
+                                            duration=duration,
+                                            params=self.params)
                     self.track.schedule_note(note)
 
             if self.pitchbend is not None:
