@@ -1,9 +1,13 @@
 class OutputDevice:
     def __init__(self):
         self.added_latency_seconds = 0.0
-        """ added_latency_seconds can be used to compensate for latency offsets between output
+        """
+        added_latency_seconds can be used to compensate for latency offsets between output
         devices. It is preferable to using timeline.defaults.delay as added_latency_seconds is
-        measured in seconds, whereas timeline.defaults.delay is in beats and so varies by BPM. """
+        measured in seconds, whereas timeline.defaults.delay is in beats and so varies by BPM.
+
+        added_latency_seconds can be negative if the device is fast.
+        """
     
     def __str__(self):  
         return "Device (%s)" % (self.__class__.__name__)
