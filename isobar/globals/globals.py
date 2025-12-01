@@ -2,6 +2,9 @@ from __future__ import annotations
 from ..pattern import Pattern
 from typing import Any
 
+import logging
+logger = logging.getLogger(__name__)
+
 class Globals:
     """
     The Globals class encapsulates a namespace of global variables that can be accessed
@@ -47,13 +50,17 @@ class Globals:
             quantize: If set, the time (in beats) to quantize the setting of the parameter to.
         """
 
-        if quantize is not None:
-            from ..timelines import Timeline
+        from ..timelines import Timeline
 
-            timeline = Timeline.get_shared_timeline()
-            if timeline is not None:
-                timeline._schedule_action(lambda: Globals.set(key, value), quantize)
-            return
+        timeline = Timeline.get_shared_timeline()
+
+        if timeline is not None:
+            if quantize is None:
+                quantize = timeline.defaults.quantize
+
+            if quantize is not None and quantize > 0:
+                timeline._schedule_action(lambda: Globals.set(key, value, 0), quantize)
+                return
         
         if isinstance(key, dict):
             for key, value in key.items():
@@ -82,7 +89,9 @@ class Globals:
             from .sync import GlobalsSyncClient, GlobalsSyncServer
             try:
                 cls.sync_client = GlobalsSyncClient()
+                logger.info("Created GlobalsSyncClient")
             except ConnectionRefusedError:
+                logger.info("Creating GlobalsSyncServer")
                 cls.sync_server = GlobalsSyncServer()
                 cls.sync_client = GlobalsSyncClient()
         except ModuleNotFoundError:
