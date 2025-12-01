@@ -9,6 +9,8 @@ import copy
 from typing import Union, Optional, Callable, TYPE_CHECKING
 from dataclasses import dataclass
 
+from isobar.timelines.lfo import LFO
+
 from .events import Event
 from .midi_note import MidiNoteInstance
 if TYPE_CHECKING:
@@ -18,6 +20,8 @@ from ..constants import *
 from ..exceptions import InvalidEventException
 from ..io.output import OutputDevice
 from ..effects import NoteEffect
+from .lfo import LFO
+
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +67,9 @@ class Track:
 
         self.notes: list[MidiNoteInstance] = []
         self.note_effects: list[NoteEffect] = []
+
+        self.lfos: list[LFO] = []
+        """ The list of LFO objects that are currently scheduled. """
 
         self.is_muted: bool = False
         self.is_started: bool = False
@@ -166,7 +173,7 @@ class Track:
             quantize = self.timeline.defaults.quantize
         if delay is None:
             delay = self.timeline.defaults.delay
-        if self.output_device is not None and self.output_device.added_latency_seconds > 0.0:
+        if self.output_device is not None and self.output_device.added_latency_seconds != 0.0:
             delay += self.timeline.seconds_to_beats(self.output_device.added_latency_seconds)
         if count is not None:
             self.max_event_count = count
@@ -214,6 +221,12 @@ class Track:
         if not self.is_started:
             return
 
+        #--------------------------------------------------------------------------------
+        # Process LFOs.
+        #--------------------------------------------------------------------------------
+        for lfo in self.lfos[:]:
+            lfo.tick()
+
         self.process_event_stream()
         self.process_notes()
 
@@ -235,6 +248,7 @@ class Track:
                         self.current_event = self.get_next_event()
                         if self.current_event is None:
                             raise StopIteration
+
                         self.next_event_time += float(self.current_event.duration)
 
                     #--------------------------------------------------------------------------------
@@ -251,8 +265,8 @@ class Track:
                 try:
                     interpolated_values = next(self.interpolating_event)
                     interpolated_event = Event.from_dict(event_values=interpolated_values,
-                                                        defaults=self.timeline.defaults,
-                                                        track=self)
+                                                         defaults=self.timeline.defaults,
+                                                         track=self)
                     self.perform_event(interpolated_event)
                 except StopIteration:
                     is_first_event = False
@@ -292,9 +306,9 @@ class Track:
                         if type(value) is not float and type(value) is not int:
                             continue
                         interpolating_event_fields[key] = PInterpolate(PSequence([self.current_event.fields[key],
-                                                                                self.next_event.fields[key]], 1),
-                                                                    duration_ticks,
-                                                                    self.interpolate)
+                                                                                  self.next_event.fields[key]], 1),
+                                                                       duration_ticks,
+                                                                       self.interpolate)
 
                     self.interpolating_event = PDict(interpolating_event_fields)
                     if not is_first_event:
@@ -334,7 +348,12 @@ class Track:
 
                 for effect in effects:
                     effect.apply(note)
-                self.output_device.note_on(note.note, note.amplitude, note.channel)
+
+                if hasattr(self.output_device, "perform"):
+                    self.output_device.perform(note)
+                else:
+                    self.output_device.note_on(note.note, note.amplitude, note.channel)
+
                 note.is_playing = True
             if note.note_off_time <= self.current_time and note.is_playing:
                 self.output_device.note_off(note.note, note.channel)
@@ -444,10 +463,10 @@ class Track:
         if t1 - t0 > 0.01:
             logger.info("Track %s: Event took %.2f seconds to execute" % (self.name, t1 - t0))
 
-    def schedule_note(self,
-                      note: MidiNoteInstance):
+    def add_note(self,
+                 note: MidiNoteInstance):
         """
-        Schedule a note to be played on the output device.
+        Add a note event to the track.
 
         Args:
             note (MidiNoteInstance): The MIDI note instance to play.
@@ -457,11 +476,24 @@ class Track:
         """
         note.track = self
         self.notes.append(note)
+    
+    def remove_note(self,
+                    note: MidiNoteInstance):
+        """
+        Remove a note event.
+
+        Args:
+            note (MidiNoteInstance): The note to remove from the track.
+        """
+        if note in self.notes:
+            self.notes.remove(note)
+        else:
+            raise ValueError("Note not found in track's scheduled notes")
 
     def add_note_effect(self, effect: NoteEffect):
         """
         Add a note effect to the track. The effect will be applied to all notes scheduled on this track.
-        
+
         Args:
             effect (NoteEffect): The note effect to add.
         """
@@ -515,3 +547,39 @@ class Track:
             callback: The callback to remove.
         """
         self.on_event_callbacks.remove(callback)
+
+    def add_lfo(self,
+                params: dict = None,
+                # NOT YET IMPLEMENTED
+                quantize: float = None,
+                delay: float = 0,
+                name: Optional[str] = None,
+                replace: bool = True) -> LFO:
+        """
+        Schedule a new LFO within this Track.
+
+        Args:
+            params (dict):           LFO property dictionary. 
+            name (str):              Optional name for the LFO.
+            quantize (float):        Quantize level, in beats. For example, 1.0 will begin executing the \
+                                     events on the next whole beat.
+            delay (float):           Delay time, in beats, before LFO should be started. If `quantize` \
+                                     and `delay` are both specified, quantization is applied, \
+                                     and the LFO is scheduled `delay` beats after the quantization time.
+            name (str):              Optional name to identify the LFO. If given, can be used to update the LFO's
+                                     parameters in future calls to schedule() by specifying replace=True.
+            replace (bool):          Must be used in conjunction with the `name` parameter. Instead of scheduling a \
+                                     new LFO, this updates the parameters of an existing LFO with the same name.
+
+        Returns:
+            The new `LFO` object.
+        """
+        for lfo in self.lfos:
+            if name is not None and lfo.name == name:
+                lfo_object = lfo
+                lfo_object.update(params)
+                return lfo_object
+
+        lfo_object = LFO(self, name=name, **params)
+        self.lfos.append(lfo_object)
+        return lfo_object

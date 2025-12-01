@@ -8,7 +8,6 @@ from typing import Callable, Any, Optional, Union
 from dataclasses import dataclass
 
 from .track import Track
-from .lfo import LFO
 from .automation import Automation
 from .clock import Clock
 from .clock_link import AbletonLinkClock
@@ -54,15 +53,18 @@ class Timeline:
         set `stop_when_done = True`.
 
         Args:
-            tempo: The initial tempo, in bpm
-            output_device: The default output device to send events to
+            tempo: The initial tempo, in beats per minute.
+            output_device: The default output device to send events to.
+                           Must be a subclass of OutputDevice, or a string, in which case the MIDI output
+                           device with a matching name is used. Partial matches are allowed (e.g, 
+                           specifying "IAC Driver" will match "IAC Driver Bus 1" on macOS).
             clock_source: The source of clocking events. If not specified, creates an internal Clock.
-            ticks_per_beat: The timing resolution, in PPQN. Default is 480PPQN, which equates to approximately \
-                            1ms resolution at 120bpm.
+            ticks_per_beat: The timing resolution, in pulses per quarter note (PPQN).
+                            Default is 480PPQN, which equates to approximately 1ms resolution at 120bpm.
             ignore_exceptions: If True, exceptions do not halt the timeline, and instead simply
                                generate a warning and halt the affected track. Useful for cases
                                such as live coding that require persistent operation.
-            stop_when_done: If True, stops the timeline when no more tracks are scheduled.
+            stop_when_done: If True, stops the timeline when all tracks are finished.
             start: If True, automatically start the timeline running in the background.
         """
         global shared_timeline
@@ -96,11 +98,28 @@ class Timeline:
         self.output_devices: list[OutputDevice] = []
         """ The output devices that the timeline is able to schedule events on. """
 
-        #--------------------------------------------------------------------------------
-        # If no output device is specified, send to the system default MIDI output.
-        #--------------------------------------------------------------------------------
         if output_device is None:
+            #--------------------------------------------------------------------------------
+            # If no output device is specified, send to the system default MIDI output.
+            #--------------------------------------------------------------------------------
             output_device = MidiOutputDevice()
+        elif isinstance(output_device, str):
+            #--------------------------------------------------------------------------------
+            # If a string is specified, find the MIDI output device with a matching name.
+            # Partial matching is supported (e.g. specifying "IAC Driver" will match
+            # "IAC Driver Bus 1" on macOS).
+            #--------------------------------------------------------------------------------
+            output_device_names = MidiOutputDevice.get_device_names()
+            matching_output_device_names = [name for name in output_device_names if name.startswith(output_device)]
+            if len(matching_output_device_names) == 0:
+                raise ValueError("No MIDI output device found matching '%s'" % output_device)
+            elif len(matching_output_device_names) > 1:
+                raise ValueError("Multiple MIDI output devices found matching '%s': %s" % (output_device, matching_output_device_names))
+            output_device = MidiOutputDevice(matching_output_device_names[0])
+        elif isinstance(output_device, OutputDevice):
+            pass
+        else:
+            raise TypeError("Invalid type for output_device: %s" % type(output_device))
         self.add_output_device(output_device)
 
         self.current_time: float = 0
@@ -112,9 +131,6 @@ class Timeline:
 
         self.tracks: list[Track] = []
         """ The list of Track objects that are currently scheduled. """
-
-        self.lfos: list[LFO] = []
-        """ The list of LFO objects that are currently scheduled. """
 
         self.automations: list[Automation] = []
         """ The list of Automation objects that are currently scheduled. """
@@ -314,12 +330,6 @@ class Timeline:
             track.process_note_offs()
 
         #--------------------------------------------------------------------------------
-        # Process LFOs.
-        #--------------------------------------------------------------------------------
-        for lfo in self.lfos[:]:
-            lfo.tick()
-
-        #--------------------------------------------------------------------------------
         # Process automations.
         #--------------------------------------------------------------------------------
         for automation in self.automations[:]:
@@ -340,7 +350,13 @@ class Timeline:
             # http://docs.python.org/tutorial/floatingpoint.html
             #--------------------------------------------------------------------------------
             if round(action.time, 8) <= round(self.current_time, 8):
-                action.function()
+                try:
+                    action.function()
+                except Exception as e:
+                    if self.ignore_exceptions:
+                        logger.warning("*** Exception in scheduled action: %s" % e)
+                    else:
+                        raise
                 self.actions.remove(action)
 
         #--------------------------------------------------------------------------------
@@ -402,10 +418,6 @@ class Timeline:
         for track in self.tracks:
             print(("   - %s" % track))
 
-        print((" - LFOs (total=%d)" % len(self.lfos)))
-        for lfo in self.lfos:
-            print(("   - %s" % lfo))
-
     def reset_to_beat(self):
         """
         Reset the timer to the last beat.
@@ -465,7 +477,8 @@ class Timeline:
             self.running = False
 
         except Exception as e:
-            print((" *** Exception in Timeline thread: %s" % e))
+            ignoring = "ignoring" if self.ignore_exceptions else "raising"
+            print((" *** Exception in Timeline thread: %s (%s)" % (e, ignoring)))
             if not self.ignore_exceptions:
                 raise e
 
@@ -583,6 +596,28 @@ class Timeline:
         if output_device is None:
             output_device = self.output_devices[0]
 
+        from ..io.ableton.output import AbletonMidiOutputDevice
+        import re
+        if isinstance(output_device, AbletonMidiOutputDevice):
+            # Match track name to channel
+            
+            if params.get("type", "") not in ["globals", "control"]:
+                track = output_device.live_set.get_track_named(name)
+                if track is None:
+                    logger.warning("Timeline: Could not find track named '%s'" % name)
+                else:
+                    channel = track.input_routing_channel
+                    if re.search(r' \d+$', channel):
+                        channel = int(channel.split()[-1])
+                    else:
+                        channel = None
+                    if channel:
+                        params["channel"] = channel - 1
+
+                    if "params" not in params:
+                        params["params"] = {}
+                    params["params"]["live_track"] = track
+
         #--------------------------------------------------------------------------------
         # If replace=True, updated the params of any existing track
         # with the same name. If none exists, proceed to create it as usual.
@@ -680,44 +715,17 @@ class Timeline:
         scheduled_time = self.current_time
         if quantize:
             scheduled_time = quantize * math.ceil(float(self.current_time) / quantize)
+        
         scheduled_time += delay
+
+        # Events cannot happen before the timeline has begun.
+        # This can happen if a negative delay is specified, e.g. using added_latency_seconds.
+        # Workaround is to wait a bar before scheduling the event, so that it happens just before t=1.
+        if scheduled_time < 0.0:
+            logger.warning("WARNING: Attempt to schedule action at time < 0.0 (perhaps a delay is set to a negative value?). Event will take place at t=0.")
+
         action = Action(scheduled_time, function)
         self.actions.append(action)
-
-    def lfo(self,
-            params: dict = None,
-            quantize: float = None,
-            delay: float = 0,
-            name: Optional[str] = None,
-            replace: bool = True) -> LFO:
-        """
-        Schedule a new LFO within this Timeline.
-
-        Args:
-            params (dict):           LFO property dictionary. 
-            name (str):              Optional name for the LFO.
-            quantize (float):        Quantize level, in beats. For example, 1.0 will begin executing the \
-                                     events on the next whole beat.
-            delay (float):           Delay time, in beats, before LFO should be started. If `quantize` \
-                                     and `delay` are both specified, quantization is applied, \
-                                     and the LFO is scheduled `delay` beats after the quantization time.
-            name (str):              Optional name to identify the LFO. If given, can be used to update the LFO's
-                                     parameters in future calls to schedule() by specifying replace=True.
-            replace (bool):          Must be used in conjunction with the `name` parameter. Instead of scheduling a \
-                                     new LFO, this updates the parameters of an existing LFO with the same name.
-
-        Returns:
-            The new `LFO` object.
-        """
-        for lfo in self.lfos:
-            if name is not None and lfo.name == name:
-                lfo_object = lfo
-                lfo_object.update(params)
-                return lfo_object
-
-        lfo_object = LFO(self, name=name, **params)
-        self.lfos.append(lfo_object)
-        return lfo_object
 
     def automation(self,
                    range: Optional[tuple[float, float]] = None,

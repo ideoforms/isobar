@@ -4,7 +4,7 @@ from typing import Optional, Callable, Any, TYPE_CHECKING
 from dataclasses import dataclass
 
 if TYPE_CHECKING:
-    from .timeline import Timeline
+    from .track import Track
 from ..constants import *
 from ..util import scale_lin_lin
 
@@ -20,15 +20,15 @@ class Binding:
 
 class LFO:
     def __init__(self,
-                 timeline: Timeline,
-                 shape: str,
-                 frequency: float,
+                 track: Track = None,
+                 shape: str = 'sine',
+                 frequency: float = 1.0,
                  min: float = 0.0,
                  max: float = 1.0,
                  name: Optional[str] = None):
         """
         Args:
-            timeline: The Timeline object that the track inhabits
+            track: The Track object that the LFO belongs to
             shape: The shape of the LFO
             frequency: The frequency of the LFO
             min: The minimum value to generate
@@ -36,7 +36,7 @@ class LFO:
             name: Optional name for the LFO. If specified, can be used to update LFOs in place by specifying \
                   its name when scheduling events on the Timeline.
         """
-        self.timeline: Timeline = timeline
+        self.track: Track = track
         self.name: str = name
         self.shape = shape
         self.frequency = frequency
@@ -69,7 +69,7 @@ class LFO:
         """
         Tick duration, in beats.
         """
-        return self.timeline.tick_duration
+        return self.track.tick_duration
 
     def tick(self):
         """
@@ -109,7 +109,7 @@ class LFO:
         self.current_time = 0
 
     def stop(self):
-        self.timeline.remove_lfo(self)
+        self.track.remove_lfo(self)
 
     def pause(self) -> None:
         """
