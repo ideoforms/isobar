@@ -1,16 +1,18 @@
+import copy
 import re
-from ..pattern.sequence import PSequence
+from ..pattern import PSequence, PStutter, PSkip
 
 def _parser_push(obj, sequence: PSequence, depth: int):
     """
     Append an item to the (possibly nested) PSequence.
     """
-    while depth > 0:
-        # Iterate up the stack
-        sequence = sequence[-1]
-        depth -= 1
+    tip = _parser_get_current_tip(sequence, depth)
+    tip.sequence.append(obj)
 
-    sequence.sequence.append(obj)
+def _parser_get_current_tip(sequence: PSequence, depth: int):
+    for n in range(depth):
+        sequence = sequence[-1]
+    return sequence
 
 def _parser_get_next_token(string: str):
     """
@@ -19,10 +21,11 @@ def _parser_get_next_token(string: str):
      - a number (integer/float)
      - a note name (e.g. c#4)
      - a rest (- or ~)
+     - a repetition operator (!)
+     - a chance operator (?)
     """
     note_pattern = r"((-?[0-9]+(\.[0-9]+)?)|([a-g]#?[0-9])|[\~-])"
-    # note_pattern = r"((-?[0-9]+(\.[0-9]+)?)|([a-g]#?[0-9]))\b"
-    if string[0] in '[]':
+    if string[0] in '[]!?':
         return string[0]
     else:
         match = re.match(note_pattern, string)
@@ -66,14 +69,51 @@ def parse_notation(string: str):
             if token == '[':
                 _parser_push(PSequence([]), groups, depth)
                 depth += 1
+                string = string[1:].lstrip()
             elif token == ']':
                 depth -= 1
+                string = string[1:].lstrip()
+            elif token == '!':
+                # Repetition operator.
+                # The next token must be an integer indicating the number of repetitions.
+                string = string[1:]
+                if len(string) == 0:
+                    raise ValueError("Notation error: expected number after '!'")
+                
+                count_token = _parser_get_next_token(string)
+                string = string[len(count_token):].lstrip()
+
+                try:
+                    count = int(count_token)
+                except ValueError:
+                    raise ValueError("Notation error: expected integer after '!', got %s" % count_token)
+
+                current_sequence = _parser_get_current_tip(groups, depth)
+                last_item = current_sequence.sequence[-1]
+                for n in range(count - 1):
+                    current_sequence.sequence.append(copy.copy(last_item))
+
+            elif token == '?':
+                # Chance operator.
+                # The next token may be skipped with a random probability, 0.5 by default.
+                string = string[1:].lstrip()
+                probability = 0.5
+                
+                if len(string) > 0 and string[0] in "0123456789-.":
+                    prob_token = _parser_get_next_token(string)
+                    try:
+                        probability = float(prob_token)
+                    except ValueError:
+                        raise ValueError("Notation error: expected integer after '!', got %s" % count_token)
+                    string = string[len(prob_token):].lstrip()
+
+                current_sequence = _parser_get_current_tip(groups, depth)
+                last_item = current_sequence.sequence.pop(-1)                
+                current_sequence.sequence.append(PSkip(last_item, probability))
             else:
                 value = _parser_token_to_value(token)
                 _parser_push(value, groups, depth)
-
-            string = string[len(token):]
-            string = string.lstrip()
+                string = string[len(token):].lstrip()
 
             if len(string) == 0:
                 break
