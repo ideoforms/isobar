@@ -477,6 +477,8 @@ class Track:
         note.track = self
         self.notes.append(note)
     
+    schedule_note = add_note
+    
     def remove_note(self,
                     note: MidiNoteInstance):
         """

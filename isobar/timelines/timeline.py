@@ -596,27 +596,27 @@ class Timeline:
         if output_device is None:
             output_device = self.output_devices[0]
 
-        from ..io.ableton.output import AbletonMidiOutputDevice
-        import re
-        if isinstance(output_device, AbletonMidiOutputDevice):
-            # Match track name to channel
+        # from ..io.ableton.output import AbletonMidiOutputDevice
+        # import re
+        # if isinstance(output_device, AbletonMidiOutputDevice):
+        #     # Match track name to channel
             
-            if params.get("type", "") not in ["globals", "control"]:
-                track = output_device.live_set.get_track_named(name)
-                if track is None:
-                    logger.warning("Timeline: Could not find track named '%s'" % name)
-                else:
-                    channel = track.input_routing_channel
-                    if re.search(r' \d+$', channel):
-                        channel = int(channel.split()[-1])
-                    else:
-                        channel = None
-                    if channel:
-                        params["channel"] = channel - 1
+        #     if params.get("type", "") not in ["globals", "control"]:
+        #         track = output_device.live_set.get_track_named(name)
+        #         if track is None:
+        #             logger.warning("Timeline: Could not find track named '%s'" % name)
+        #         else:
+        #             channel = track.input_routing_channel
+        #             if re.search(r' \d+$', channel):
+        #                 channel = int(channel.split()[-1])
+        #             else:
+        #                 channel = None
+        #             if channel:
+        #                 params["channel"] = channel - 1
 
-                    if "params" not in params:
-                        params["params"] = {}
-                    params["params"]["live_track"] = track
+        #             if "params" not in params:
+        #                 params["params"] = {}
+        #             params["params"]["live_track"] = track
 
         #--------------------------------------------------------------------------------
         # If replace=True, updated the params of any existing track
