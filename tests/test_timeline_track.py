@@ -80,6 +80,7 @@ def test_track_callbacks(dummy_timeline):
         track_events.append(event)
         assert event.output_device == dummy_timeline.output_device
         assert event.track == track
+
     def timeline_callback(event):
         timeline_events.append(event)
         assert event.output_device == dummy_timeline.output_device
@@ -92,3 +93,28 @@ def test_track_callbacks(dummy_timeline):
     dummy_timeline.run()
     assert len(track_events) == 2
     assert len(timeline_events) == 2
+
+def test_track_add_remove_note(dummy_timeline):
+    track = dummy_timeline.schedule(name="test_track")
+
+    notes = []
+    for index, n in enumerate([60, 62, 64, 65, 67]):
+        note = iso.MidiNoteInstance(note=n,
+                                    amplitude=32,
+                                    channel=0,
+                                    timestamp=index,
+                                    duration=1.0)
+        notes.append(note)
+        track.add_note(note)
+
+    assert len(track.notes) == 5
+
+    # Remove a note
+    track.remove_note(notes[0])
+    assert len(track.notes) == 4
+    assert notes[0] not in track.notes
+    with pytest.raises(ValueError):
+        track.remove_note(notes[0])
+    for note in track.notes[:]:
+        track.remove_note(note)
+    assert len(track.notes) == 0
