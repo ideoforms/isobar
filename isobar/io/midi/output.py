@@ -44,6 +44,7 @@ class MidiOutputDevice (OutputDevice):
                     device_name = matching_device_names[0]
             
             self.midi = mido.open_output(device_name, virtual=virtual)
+            self.device_name = device_name
         except (RuntimeError, SystemError, OSError):
             raise DeviceNotFoundException("Could not find MIDI device")
         self.send_clock = send_clock
@@ -53,17 +54,15 @@ class MidiOutputDevice (OutputDevice):
         """
         Sends a MIDI start message to the output device.
         """
-        if self.send_clock:
-            msg = mido.Message("start")
-            self.midi.send(msg)
+        msg = mido.Message("start")
+        self.midi.send(msg)
 
     def stop(self) -> None:
         """
         Sends a MIDI stop message to the output device.
         """
-        if self.send_clock:
-            msg = mido.Message("stop")
-            self.midi.send(msg)
+        msg = mido.Message("stop")
+        self.midi.send(msg)
 
     def close(self):
         self.midi.close()
