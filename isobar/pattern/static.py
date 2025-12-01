@@ -13,6 +13,10 @@ class PGlobals (Pattern):
         self.name = name
         self.default = default
 
+        # If a default is provided, set it in the Globals store.
+        if self.default is not None:
+            Globals.set(name, default)
+
     def __repr__(self):
         return ("PGlobals(%s)" % repr(self.name))
 
