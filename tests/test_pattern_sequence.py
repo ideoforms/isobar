@@ -182,3 +182,7 @@ def test_ppatterngeneratoraction():
 def test_psequenceaction():
     a = iso.PSequenceAction([1, 2, 3], lambda a: list(reversed(a)), 4)
     assert list(a) == [1, 2, 3, 3, 2, 1, 1, 2, 3, 3, 2, 1]
+
+def test_pfadein():
+    a = iso.PFadeIn(4, 0, 10)
+    assert a.nextn(10) == [0.0, 2.5, 5.0, 7.5, 10, 10, 10, 10, 10, 10]

@@ -209,17 +209,46 @@ class PImpulse(Pattern):
         self.pos = 0
 
     def __next__(self):
-        period = Pattern.value(self.period)
-
-        if self.pos >= period:
-            self.pos = 0
-
         if self.pos == 0:
             rv = 1
         else:
             rv = 0
         self.pos += 1
+        if self.pos >= self.period:
+            self.pos = 0
 
+        return rv
+
+class PFadeIn(Pattern):
+    """ PFadeIn: Fade a pattern in.
+    """
+
+    def __init__(self, length: int, start: float = 0, end: float = 1, interpolation: str = INTERPOLATION_LINEAR):
+        self.length = length
+        self.start = start
+        self.end = end
+        self.interpolation = interpolation
+        self.count = 0
+
+    def __repr__(self):
+        return "PFadeIn(%s, %s, %s, %s)" % (self.length, self.start, self.end, self.interpolation)
+
+    def reset(self):
+        self.count = 0
+
+    def __next__(self):
+        if self.count >= self.length:
+            return self.end
+        
+        if self.interpolation == INTERPOLATION_LINEAR:
+            rv = self.start + (self.end - self.start) * self.count / self.length
+        elif self.interpolation == INTERPOLATION_COSINE:
+            # TODO: implement cosine interpolation
+            pass
+        else:
+            rv = self.start
+
+        self.count += 1
         return rv
 
 class PLoop(Pattern):

@@ -59,6 +59,7 @@ from ..pattern import PNotEqual as pnotequal
 from ..pattern import PPad as ppad
 from ..pattern import PPadToMultiple as ppadtomultiple
 from ..pattern import PPatternGeneratorAction as ppatterngeneratoraction
+from ..pattern import PPerlin as pperlin
 from ..pattern import PPermut as ppermut
 from ..pattern import PPingPong as ppingpong
 from ..pattern import PPow as ppow
@@ -97,3 +98,4 @@ from ..pattern import PWSine as pwsine
 from ..pattern import PWarp as pwarp
 from ..pattern import PWhite as pwhite
 from ..pattern import PWrap as pwrap
+from ..pattern import PFadeIn as pfadein
