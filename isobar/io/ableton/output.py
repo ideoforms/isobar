@@ -37,4 +37,7 @@ class AbletonMidiOutputDevice (MidiOutputDevice):
                 for key, value in note.params.items():
                     # TODO: This is very inefficient as it has to search the whole list each time
                     #       Make more efficient in pylive with a hashtable
-                    live_track.devices[0].set_parameter(key, value)
+                    try:
+                        live_track.devices[0].set_parameter(key, value)
+                    except StopIteration:
+                        print(f"Warning: Could not find parameter '{key}' in Live device.")
