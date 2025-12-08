@@ -235,6 +235,18 @@ class PFadeIn(Pattern):
 
     def reset(self):
         self.count = 0
+    
+    @property
+    def current_value(self):
+        if self.count >= self.length:
+            return self.end
+        
+        if self.interpolation == INTERPOLATION_LINEAR:
+            rv = self.start + (self.end - self.start) * self.count / self.length
+        elif self.interpolation == INTERPOLATION_COSINE:
+            # TODO
+            rv = self.end
+        return rv
 
     def __next__(self):
         if self.count >= self.length:
