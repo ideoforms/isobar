@@ -1,3 +1,15 @@
+class TimelineAlreadyRunningException (Exception):
+    """
+    This Timeline is already running.
+    """
+    pass
+
+class TimelineNotRunningException (Exception):
+    """
+    This Timeline is not running.
+    """
+    pass
+
 class DeviceNotFoundException (Exception):
     """
     I/O device could not be found.

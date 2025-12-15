@@ -17,7 +17,7 @@ from .events import EventDefaults
 from ..io import MidiOutputDevice, OutputDevice, MidiInputDevice
 from ..constants import DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO
 from ..constants import INTERPOLATION_NONE
-from ..exceptions import TrackLimitReachedException, TrackNotFoundException, MultipleOutputDevicesException
+from ..exceptions import TrackLimitReachedException, TrackNotFoundException, MultipleOutputDevicesException, TimelineAlreadyRunningException, TimelineNotRunningException
 from ..util import make_clock_multiplier
 
 logger = logging.getLogger(__name__)
@@ -142,7 +142,7 @@ class Timeline:
 
         self.actions = []
 
-        self.running: bool = False
+        self.is_running: bool = False
         """ Indicates whether the timeline is currently running. """
 
         self.ignore_exceptions = ignore_exceptions
@@ -441,14 +441,6 @@ class Timeline:
         for track in self.tracks:
             track.reset()
 
-    def background(self):
-        """
-        Run this Timeline in a background thread.
-        """
-        thread = threading.Thread(target=self.run)
-        thread.daemon = True
-        thread.start()
-
     def run(self, stop_when_done: bool = None) -> None:
         """
         Run this Timeline in the foreground. Note that this will block the main thread
@@ -468,15 +460,15 @@ class Timeline:
             #--------------------------------------------------------------------------------
             for device in self.output_devices:
                 device.start()
-            self.running = True
+            self.is_running = True
             self.clock_source.run()
 
         except StopIteration:
             #--------------------------------------------------------------------------------
-            # This will be hit if every Pattern in a timeline is exhausted.
+            # This will be raised if every Pattern in a timeline is exhausted.
             #--------------------------------------------------------------------------------
             logger.info("Timeline: Finished")
-            self.running = False
+            self.is_running = False
 
         except Exception as e:
             ignoring = "ignoring" if self.ignore_exceptions else "raising"
@@ -488,7 +480,12 @@ class Timeline:
         """
         Starts the timeline running in the background.
         """
-        self.background()
+        if self.is_running:
+            raise TimelineAlreadyRunningException("Timeline is already running")
+        
+        thread = threading.Thread(target=self.run,
+                                  daemon=True)
+        thread.start()
 
     def stop(self):
         """
@@ -499,6 +496,7 @@ class Timeline:
             device.all_notes_off()
             device.stop()
         self.clock_source.stop()
+        self.is_running = False
 
     def warp(self, warper):
         """
@@ -838,5 +836,5 @@ class Timeline:
         Sleep until the timeline is finished.
         If the timeline never finishes, sleep forever.
         """
-        while self.running:
+        while self.is_running:
             time.sleep(0.1)

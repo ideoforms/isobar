@@ -277,13 +277,16 @@ def test_timeline_background():
     def set_executed():
         nonlocal executed
         executed += 1
-    timeline.background()
+    timeline.start()
     timeline.schedule({
         "action": set_executed,
         "duration": 0.05
     }, delay=0.025)
     time.sleep(0.2)
+    assert timeline.is_running
     timeline.stop()
+    assert not timeline.is_running
+
     assert executed == 4
 
 def test_timeline_running(dummy_timeline):
