@@ -492,6 +492,11 @@ class Timeline:
     def stop(self):
         """
         Stops the timeline running.
+        This includes:
+         - Calling stop() on all output devices (stopping transport on any
+           MIDI devices that are synchronised to that device)
+         - Sending an `all_notes_off` event to all MIDI output devices
+         - Stopping the clock source from ticking
         """
         logger.info("Timeline: Stopping")
         for device in self.output_devices:
@@ -515,6 +520,7 @@ class Timeline:
     def get_output_device(self) -> OutputDevice:
         """
         Query the timeline's current OutputDevice.
+        
         If multiple output devices are currently set (e.g., for a timeline that generates
         both MIDI and OSC output), raises an exception.
 
