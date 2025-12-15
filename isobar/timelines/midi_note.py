@@ -34,7 +34,7 @@ class MidiNoteInstance:
 
         # If True, the note is ephemeral (e.g. created by a realtime process),
         # and should not be stored in history.
-        self.is_ephemeral = True
+        self.is_ephemeral = False
 
     def start_playing(self, duration_ticks: int) -> None:
         """
