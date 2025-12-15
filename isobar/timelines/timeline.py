@@ -1,5 +1,4 @@
 import math
-import copy
 import time
 import logging
 import threading
@@ -7,6 +6,9 @@ import traceback
 from typing import Callable, Any, Optional, Union
 from dataclasses import dataclass
 
+from isobar.pattern.sequence import PFadeIn
+
+from ..pattern import Pattern
 from .track import Track
 from .automation import Automation
 from .clock import Clock
@@ -255,6 +257,12 @@ class Timeline:
         """
         return 1.0 / self.ticks_per_beat
 
+    def time_to_ticks(self, time_in_beats: float) -> float:
+        return time_in_beats * self.ticks_per_beat
+    
+    def time_to_ticks_int(self, time_in_beats: float) -> int:
+        return int(round(time_in_beats * self.ticks_per_beat))
+
     def get_tempo(self) -> float:
         """
         Returns the tempo of this timeline's clock, or None if an external
@@ -321,13 +329,6 @@ class Timeline:
         if round(self.current_time, 8) % 1 == 0:
             logger.debug("--------------------------------------------------------------------------------")
             logger.debug("Tick (%d active tracks, %d pending actions)" % (len(self.tracks), len(self.actions)))
-
-        #--------------------------------------------------------------------------------
-        # Process note-offs before scheduled actions, which may reset the timestamp
-        # of the track.
-        #--------------------------------------------------------------------------------
-        for track in self.tracks[:]:
-            track.process_note_offs()
 
         #--------------------------------------------------------------------------------
         # Process automations.
@@ -552,6 +553,7 @@ class Timeline:
                  delay: float = None,
                  count: Optional[int] = None,
                  interpolate: str = INTERPOLATION_NONE,
+                 ramp: Optional[int] = None,
                  output_device: Any = None,
                  remove_when_done: bool = True,
                  name: Optional[str] = None,
@@ -593,30 +595,32 @@ class Timeline:
         Raises:
             TrackLimitReachedException: If `max_tracks` has been reached.
         """
+        # if params is not None:
+        #     params = params.copy()
         if output_device is None:
             output_device = self.output_devices[0]
 
-        # from ..io.ableton.output import AbletonMidiOutputDevice
-        # import re
-        # if isinstance(output_device, AbletonMidiOutputDevice):
-        #     # Match track name to channel
+        from ..io.ableton.output import AbletonMidiOutputDevice
+        import re
+        if isinstance(output_device, AbletonMidiOutputDevice):
+            # Match track name to channel
             
-        #     if params.get("type", "") not in ["globals", "control"]:
-        #         track = output_device.live_set.get_track_named(name)
-        #         if track is None:
-        #             logger.warning("Timeline: Could not find track named '%s'" % name)
-        #         else:
-        #             channel = track.input_routing_channel
-        #             if re.search(r' \d+$', channel):
-        #                 channel = int(channel.split()[-1])
-        #             else:
-        #                 channel = None
-        #             if channel:
-        #                 params["channel"] = channel - 1
+            if params.get("type", "") not in ["globals", "control"]:
+                track = output_device.live_set.get_track_named(name)
+                if track is None:
+                    logger.warning("Timeline: Could not find track named '%s'" % name)
+                else:
+                    channel = track.input_routing_channel
+                    if re.search(r' \d+$', channel):
+                        channel = int(channel.split()[-1])
+                    else:
+                        channel = None
+                    if channel:
+                        params["channel"] = channel - 1
 
-        #             if "params" not in params:
-        #                 params["params"] = {}
-        #             params["params"]["live_track"] = track
+                    if "params" not in params:
+                        params["params"] = {}
+                    params["params"]["live_track"] = track
 
         #--------------------------------------------------------------------------------
         # If replace=True, updated the params of any existing track
@@ -625,11 +629,46 @@ class Timeline:
         if replace and name is not None:
             for existing_track in self.tracks:
                 if existing_track.name == name:
+                    #--------------------------------------------------------------------------------
+                    # Fade-ins.
+                    # Ideally want to handle key synonyms (dur/duration) before this point
+                    #--------------------------------------------------------------------------------
+                    if existing_track.ramp:
+                        no_ramp_keys = ["note", "degree", "duration", "dur", "octave", "transpose", "key", "params", "channel"]
+                        for key, value in params.items():
+                            if key in no_ramp_keys:
+                                # print("Not fading param '%s' for track '%s'" % (key, name))
+                                continue
+                            # print("Considering ramping param '%s' for track '%s'" % (key, name))
+                            if isinstance(value, tuple):
+                                # Don't try to fade chords (yet)
+                                continue
+                            if key in existing_track.event_stream:
+                                current_pattern = existing_track.event_stream[key]
+                                if isinstance(current_pattern, PFadeIn):
+                                        current_pattern = current_pattern.end
+                                new_pattern = Pattern.pattern(value)
+                                if repr(current_pattern) != repr(new_pattern):
+                                    # print("Fading isobar param '%s' '%s': %s -> %s" % (name, key, current_pattern, new_pattern))
+                                    params[key] = PFadeIn(existing_track.ramp, current_pattern, new_pattern)
+
+                        if "params" in params:
+                            for key, value in params["params"].items():
+                                if "params" in existing_track.event_stream and key in existing_track.event_stream["params"]:
+                                    current_pattern = existing_track.event_stream["params"][key]
+                                    if isinstance(current_pattern, PFadeIn):
+                                        current_pattern = current_pattern.current_value
+                                    new_pattern = Pattern.pattern(value)
+                                    if repr(current_pattern) != repr(new_pattern):
+                                        # print("Fading instrument param '%s' '%s': %s -> %s" % (name, key, current_pattern, new_pattern))
+                                        params["params"][key] = PFadeIn(existing_track.ramp, current_pattern, new_pattern)
+
                     existing_track.update(params,
                                           quantize=quantize,
                                           delay=delay,
                                           interpolate=interpolate,
-                                          count=count)
+                                          count=count,
+                                          ramp=ramp)
 
                     # When a track is re-scheduled, re-start its event count as this
                     # is typically expected.
@@ -660,6 +699,7 @@ class Timeline:
                           interpolate=interpolate,
                           output_device=output_device,
                           remove_when_done=remove_when_done,
+                          ramp=ramp,
                           name=name)
 
             track.update(params, quantize=quantize, delay=delay)

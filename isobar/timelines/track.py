@@ -9,19 +9,19 @@ import copy
 from typing import Union, Optional, Callable, TYPE_CHECKING
 from dataclasses import dataclass
 
-from isobar.timelines.lfo import LFO
-
+from .lfo import LFO
+from .looping_region import LoopingRegion
 from .events import Event
 from .events.defaults import EventDefaults
 from .midi_note import MidiNoteInstance
 if TYPE_CHECKING:
     from .timeline import Timeline
+
 from ..pattern import Pattern, PSequence, PDict, PInterpolate
 from ..constants import *
 from ..exceptions import InvalidEventException
 from ..io.output import OutputDevice
 from ..effects import NoteEffect
-from .lfo import LFO
 
 
 
@@ -35,6 +35,7 @@ class Track:
                  interpolate: str = INTERPOLATION_NONE,
                  output_device: Optional[OutputDevice] = None,
                  remove_when_done: bool = True,
+                 ramp: int = None,
                  name: Optional[str] = None):
         """
         Args:
@@ -45,6 +46,7 @@ class Track:
             interpolate: Optional interpolation to impose on values, particularly for control tracks.
             output_device: Optional output device. Defaults to the Timeline's default_output_device.
             remove_when_done: If True, removes the Track from the Timeline when it finishes.
+            ramp: Optional ramp time for parameter changes, in steps.
             name: Optional name for the track. If specified, can be used to update tracks in place by specifying \
                   its name when scheduling events on the Timeline.
         """
@@ -52,7 +54,7 @@ class Track:
         #--------------------------------------------------------------------------------
         # event_stream can be a dict, or a pattern that generates a dict when it is iterated.
         #--------------------------------------------------------------------------------
-        self.event_stream: Pattern = None
+        self.event_stream: Union[dict, Pattern] = None
         self.current_time: float = 0.0
         self.next_event_time: float = sys.maxsize
         self.max_event_count: int = max_event_count
@@ -61,6 +63,7 @@ class Track:
         self.next_event: Optional[Event] = None
         self.interpolating_event: Pattern = PSequence([], 0)
 
+        self.ramp: int = ramp
         self.name: str = name
         self.timeline: Timeline = timeline
         self.output_device: OutputDevice = output_device
@@ -72,6 +75,8 @@ class Track:
 
         self.lfos: list[LFO] = []
         """ The list of LFO objects that are currently scheduled. """
+
+        self.looping_regions: list[LoopingRegion] = []
 
         self.defaults = EventDefaults(fallback_to=timeline.defaults)
 
@@ -161,7 +166,8 @@ class Track:
                quantize: Optional[float] = None,
                delay: Optional[float] = None,
                interpolate: Optional[str] = None,
-               count: Optional[int] = None):
+               count: Optional[int] = None,
+               ramp: Optional[int] = None) -> None:
         """
         Update the events that this Track produces.
 
@@ -181,6 +187,8 @@ class Track:
             delay += self.timeline.seconds_to_beats(self.output_device.added_latency_seconds)
         if count is not None:
             self.max_event_count = count
+        if ramp is not None:
+            self.ramp = ramp
 
         #--------------------------------------------------------------------------------
         # Don't assign to events immediately, because in the case of quantized
@@ -213,9 +221,14 @@ class Track:
         # Use round() to avoid scheduling issues arising from rounding errors.
         #----------------------------------------------------------------------
         for note in self.notes[:]:
-            if (round(note.note_off_time, 8) <= round(self.current_time, 8)) or immediately:
-                self.output_device.note_off(note.note, note.channel)
-                self.notes.remove(note)
+            if note.is_playing:
+                note.tick()
+                if note.is_finished or immediately:
+                    self.output_device.note_off(note.note, note.channel)
+                    if note.is_ephemeral:
+                        self.notes.remove(note)
+                    note.is_playing = False
+                    note.is_finished = False
 
     def tick(self):
         """
@@ -224,6 +237,14 @@ class Track:
 
         if not self.is_started:
             return
+        
+        for looping_region in self.looping_regions:
+            if (self.current_time < looping_region.end_time) and (self.current_time + self.tick_duration >= looping_region.end_time):
+                #--------------------------------------------------------------------------------
+                # Jump back to the start of the looping region.
+                #--------------------------------------------------------------------------------
+                self.current_time = looping_region.start_time
+                print("Looping region: jumping back to %.2f" % looping_region.start_time)
 
         #--------------------------------------------------------------------------------
         # Process LFOs.
@@ -231,6 +252,7 @@ class Track:
         for lfo in self.lfos[:]:
             lfo.tick()
 
+        self.process_note_offs()
         self.process_event_stream()
         self.process_notes()
 
@@ -338,8 +360,15 @@ class Track:
         """
         Process any notes that are scheduled to be played at the current time.
         """
-        for note in self.notes[:]:
-            if note.timestamp <= self.current_time and not note.is_playing:
+        for note in self.notes[:]:                
+            if self.timeline.time_to_ticks_int(note.timestamp) == self.timeline.time_to_ticks_int(self.current_time):
+                if note.is_playing:
+                    # If the note is already playing, send a note_off first
+                    self.output_device.note_off(note.note, note.channel)
+                    note.is_playing = False
+
+                note.start_playing(duration_ticks = self.timeline.time_to_ticks_int(note.duration))
+                
                 if note.origin is None:
                     effects = self.note_effects
                 else:
@@ -359,9 +388,6 @@ class Track:
                     self.output_device.note_on(note.note, note.amplitude, note.channel)
 
                 note.is_playing = True
-            if note.note_off_time <= self.current_time and note.is_playing:
-                self.output_device.note_off(note.note, note.channel)
-                self.notes.remove(note)
 
     def reset_to_beat(self):
         """
@@ -590,3 +616,21 @@ class Track:
         self.lfos.append(lfo_object)
         return lfo_object
     
+    def add_looping_region(self,
+                           start_time: float,
+                           end_time: float) -> LoopingRegion:
+        """
+        Add a looping region to the track.
+
+        Args:
+            start_time (float):  The start time of the looping region, in beats.
+            end_time (float):    The end time of the looping region, in beats.
+
+        Returns:
+            The new LoopingRegion object.
+        """
+        looping_region = LoopingRegion(track=self,
+                                       start_time=start_time,
+                                       end_time=end_time)
+        self.looping_regions.append(looping_region)
+        return looping_region

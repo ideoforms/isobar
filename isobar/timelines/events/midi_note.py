@@ -7,6 +7,7 @@ from ...exceptions import InvalidEventException
 from ...key import Key
 from ..midi_note import MidiNoteInstance
 
+import numpy as np
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ..track import Track
@@ -41,11 +42,6 @@ class MidiNoteEvent(MidiEvent):
                 # Tolerate float degrees.
                 # This may need revisiting for tunings that permit sub-semitone values.
                 #--------------------------------------------------------------------------------
-                try:
-                    degree = [int(degree) for degree in degree]
-                except:
-                    degree = int(degree)
-
                 key = event_values[EVENT_KEY]
                 if isinstance(key, str):
                     key = Key(key)
@@ -56,7 +52,7 @@ class MidiNoteEvent(MidiEvent):
                 #       addition transparently
                 #--------------------------------------------------------------------------------
                 try:
-                    event_values[EVENT_NOTE] = [key[n] for n in degree]
+                    event_values[EVENT_NOTE] = np.array([key[n] for n in degree])
                 except TypeError:
                     event_values[EVENT_NOTE] = key[degree]
 
@@ -89,7 +85,8 @@ class MidiNoteEvent(MidiEvent):
             transpose = event_values[EVENT_TRANSPOSE] or 0
             transpose = int(octave) * 12 + int(transpose)
             try:
-                event_values[EVENT_NOTE] = [int(note) + transpose for note in event_values[EVENT_NOTE]]
+                # Handle tuples of notes (i.e. chords), treating rests correctly
+                event_values[EVENT_NOTE] = np.array([int(note) + transpose if note is not None else None for note in event_values[EVENT_NOTE]])
             except TypeError:
                 event_values[EVENT_NOTE] += transpose
 
@@ -118,7 +115,7 @@ class MidiNoteEvent(MidiEvent):
         # If the amplitude is None or 0, this is a rest.
         #----------------------------------------------------------------------
         if type(self.amplitude) is tuple or (self.amplitude is not None and self.amplitude > 0):
-            notes = self.note if hasattr(self.note, '__iter__') else [self.note]
+            notes = self.note if hasattr(self.note, '__iter__') else np.array([self.note])
 
             #----------------------------------------------------------------------
             # Allow for arrays of amp, gate etc, to handle chords properly.
@@ -139,6 +136,7 @@ class MidiNoteEvent(MidiEvent):
                                             timestamp=self.track.current_time,
                                             duration=duration,
                                             params=self.params)
+                    note.is_ephemeral = True
                     self.track.schedule_note(note)
 
             if self.pitchbend is not None:

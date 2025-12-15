@@ -15,7 +15,6 @@ class MidiNoteInstance:
                  pitchbend: int = 0,
                  params: dict = None):
         
-        
         from ..effects.note_effect import NoteEffect
 
         self.track = track
@@ -27,9 +26,38 @@ class MidiNoteInstance:
         self._duration = duration
         self._pitchbend = pitchbend
         self._params = params
+        self._ticks_remaining = None
 
         self.is_playing = False
+        self.is_finished = False
         self.origin: NoteEffect = None
+
+        # If True, the note is ephemeral (e.g. created by a realtime process),
+        # and should not be stored in history.
+        self.is_ephemeral = True
+
+    def start_playing(self, duration_ticks: int) -> None:
+        """
+        Mark the note as playing and set the remaining ticks.
+
+        Args:
+            duration_ticks (int): The duration of the note in ticks.
+        """
+        self.is_playing = True
+        self._ticks_remaining = duration_ticks - 1
+
+    def tick(self) -> None:
+        """
+        Advance the note by one tick.
+        """
+        if self._ticks_remaining is None:
+            return
+        
+        if self._ticks_remaining > 0:
+            self._ticks_remaining -= 1
+        else:
+            if self._ticks_remaining == 0:
+                self.is_finished = True
 
     @property
     def note_off_time(self) -> float:
