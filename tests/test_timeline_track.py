@@ -119,6 +119,22 @@ def test_track_add_remove_note(dummy_timeline):
         track.remove_note(note)
     assert len(track.notes) == 0
 
+def test_track_is_finished_after_last_note(dummy_timeline):
+    track = dummy_timeline.add_track(name="test_track", remove_when_done=False)
+
+    note1 = iso.MidiNoteInstance(note=60, timestamp=0.0, duration=1)
+    note2 = iso.MidiNoteInstance(note=62, timestamp=1.0, duration=1)
+    track.add_note(note1)
+    track.add_note(note2)
+
+    for tick_count in range(dummy_timeline.time_to_ticks_int(2.0)):
+        dummy_timeline.tick()
+    
+    assert track.is_finished is False
+    with pytest.raises(StopIteration):
+        dummy_timeline.tick()
+    assert track.is_finished
+
 def test_track_defaults(dummy_timeline):
     track = dummy_timeline.schedule(name="test_track")
 

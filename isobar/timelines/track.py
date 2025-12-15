@@ -71,6 +71,8 @@ class Track:
         self.remove_when_done: bool = remove_when_done
 
         self.notes: list[MidiNoteInstance] = []
+        """ List of MidiNoteInstance objects that are scheduled on this track."""
+
         self.note_effects: list[NoteEffect] = []
 
         self.lfos: list[LFO] = []
@@ -215,12 +217,9 @@ class Track:
 
     def process_note_offs(self, immediately: bool = False):
         #----------------------------------------------------------------------
-        # Process note_offs before we play the next note, else a repeated note
-        # with gate = 1.0 will immediately be cancelled.
-        #
-        # Use round() to avoid scheduling issues arising from rounding errors.
+        # Handle note_off events.
         #----------------------------------------------------------------------
-        for note in self.notes[:]:
+        for index, note in enumerate(self.notes[:]):
             if note.is_playing:
                 note.tick()
                 if note.is_finished or immediately:
@@ -229,6 +228,12 @@ class Track:
                         self.notes.remove(note)
                     note.is_playing = False
                     note.is_finished = False
+
+                    if not note.is_ephemeral:
+                        if len(self.notes[index + 1:]) == 0 or (all(note.note_off_time <= self.current_time for note in self.notes[index + 1:])):
+                            logger.debug("Tick %f: All notes finished on track: %s" % (self.timeline.current_time, self.name))
+                            self.is_finished = True
+
 
     def tick(self):
         """
@@ -400,6 +405,7 @@ class Track:
         Rewind to the beginning of the event stream.
         """
         self.current_time = 0
+        self.is_finished = False
         self.next_event_time = self.current_time
 
         for pattern in self.event_stream.values():
@@ -505,7 +511,12 @@ class Track:
                                    the effects to themselves.
         """
         note.track = self
+
         self.notes.append(note)
+
+        # Not the most efficient way to keep the list sorted, but
+        # notes are typically added in order so the overhead is minimal.
+        self.notes = sorted(self.notes, key=lambda n: n.timestamp)
     
     schedule_note = add_note
     

@@ -48,6 +48,37 @@ def test_timeline_schedule(dummy_timeline):
     assert dummy_timeline.output_device.events[0] == [pytest.approx(0.0), "note_on", 1, 64, 0]
     assert dummy_timeline.output_device.events[1] == [pytest.approx(1.0), "note_off", 1, 0]
 
+def test_timeline_add_notes_and_rewind(dummy_timeline):
+    track = dummy_timeline.schedule(name="test_track",
+                                    remove_when_done=False)
+
+    for n in range(4):
+        note = iso.MidiNoteInstance(note=60 + n,
+                                    amplitude=64,
+                                    channel=0,
+                                    timestamp=n,
+                                    duration=0.5)
+        track.add_note(note)
+
+    dummy_timeline.run()
+    assert dummy_timeline.output_device.events == [
+        [0.0, 'note_on', 60, 64, 0], [0.5, 'note_off', 60, 0],
+        [1.0, 'note_on', 61, 64, 0], [1.5, 'note_off', 61, 0],
+        [2.0, 'note_on', 62, 64, 0], [2.5, 'note_off', 62, 0],
+        [3.0, 'note_on', 63, 64, 0], [3.5, 'note_off', 63, 0],
+    ]
+
+    # Rewind the track and play again
+    dummy_timeline.output_device.events = []
+    dummy_timeline.reset()
+    dummy_timeline.run()
+    assert dummy_timeline.output_device.events == [
+        [3.5, 'note_on', 60, 64, 0], [4.0, 'note_off', 60, 0],
+        [4.5, 'note_on', 61, 64, 0], [5.0, 'note_off', 61, 0],
+        [5.5, 'note_on', 62, 64, 0], [6.0, 'note_off', 62, 0],
+        [6.5, 'note_on', 63, 64, 0], [7.0, 'note_off', 63, 0],
+    ]
+
 def test_timeline_schedule_update(dummy_timeline):
     """
     Schedule an empty Track, and subsequently update it with events.

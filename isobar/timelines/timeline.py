@@ -383,11 +383,12 @@ class Timeline:
         #--------------------------------------------------------------------------------
         # If we've run out of notes, raise a StopIteration.
         #--------------------------------------------------------------------------------
-        if len(self.tracks) == 0 and len(self.actions) == 0 and self.stop_when_done:
-            # TODO: Don't do this if we've never played any events, e.g.
-            #       right after calling timeline.start(). Should at least
-            #       wait for some events to happen first.
-            raise StopIteration
+        if self.stop_when_done:
+            if len(self.actions) == 0 and (len(self.tracks) == 0 or all(track.is_finished for track in self.tracks)):
+                # TODO: Don't do this if we've never played any events, e.g.
+                #       right after calling timeline.start(). Should at least
+                #       wait for some events to happen first.
+                raise StopIteration
 
         #--------------------------------------------------------------------------------
         # Tell our output devices to move forward a step.
@@ -724,6 +725,7 @@ class Timeline:
     # Backwards-compatibility
     #--------------------------------------------------------------------------------
     sched = schedule
+    add_track = schedule
 
     def unschedule(self, track):
         """
