@@ -77,16 +77,6 @@ class Timeline:
 
         if clock_source is None:
             clock_source = Clock(self, tempo, ticks_per_beat)
-        else:
-            if isinstance(clock_source, str):
-                if clock_source == "midi":
-                    clock_source = MidiInputDevice()
-                elif clock_source == "link":
-                    clock_source = AbletonLinkClock()
-                elif clock_source == "internal":
-                    clock_source = Clock(self, tempo, ticks_per_beat)
-                else:
-                    raise ValueError("Invalid clock source: %s" % clock_source)
         self.set_clock_source(clock_source)
 
         self.clock_multipliers: dict[OutputDevice, Callable] = {}
@@ -208,13 +198,25 @@ class Timeline:
         """
         return self._clock_source
 
-    def set_clock_source(self, clock_source: Clock) -> None:
+    def set_clock_source(self, clock_source: Union[Clock, str]) -> None:
         """
         Set the Clock object that will send timing ticks to this timeline.
 
         Args:
-            clock_source: The clock source.
+            clock_source: The clock source, or a string denoting different clock types:
+                            "midi" to use the clock of the system's default midi input device,
+                            "link" to use Ableton Link clock,
+                            "internal" for an internal Clock.
         """
+        if isinstance(clock_source, str):
+            if clock_source == "midi":
+                clock_source = MidiInputDevice()
+            elif clock_source == "link":
+                clock_source = AbletonLinkClock()
+            elif clock_source == "internal":
+                clock_source = Clock(self, self.tempo, self.ticks_per_beat)
+            else:
+                raise ValueError("Invalid clock source: %s" % clock_source)
         clock_source.clock_target = self
         self._clock_source = clock_source
 
