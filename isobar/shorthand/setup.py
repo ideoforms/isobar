@@ -13,9 +13,11 @@ try:
     # Don't need this for now
     # Globals.enable_interprocess_sync()
 
-    midi_output_device = MidiOutputDevice("IAC Driver Bus 1")
+    # midi_output_device = MidiOutputDevice("IAC Driver Bus 1")
+    midi_output_device = AbletonMidiOutputDevice("IAC Driver Bus 1")
     
-    timeline = Timeline(midi_output_device, clock_source="link")
+    timeline = Timeline(output_device=midi_output_device,
+                        clock_source="link")
     timeline.defaults.quantize = 4
     timeline.ignore_exceptions = True
 
@@ -23,7 +25,7 @@ try:
     signalflow_output_device = SignalFlowOutputDevice(graph)
     signalflow_output_device.added_latency_seconds = -0.04
 
-    timeline.background()
+    timeline.start()
 
 except (ModuleNotFoundError, DeviceNotFoundException) as e:
     print("Warning: Could not set up shorthand mode: %s" % e)
@@ -75,6 +77,7 @@ def track(name, **kwargs):
         "interpolate": None,
         "track_index": None,
         "output_device": None,
+        "ramp": None
     }
     #--------------------------------------------------------------------------------
     # Unflatten the params list.
@@ -118,12 +121,12 @@ def track(name, **kwargs):
     from ..pattern import PLFO
     track.lfos = []
     if "params" in kwargs:
-        for param in kwargs["params"]:
-            if isinstance(kwargs["params"][param], PLFO):
+        for param_name, param_value in kwargs["params"].items():
+            if isinstance(param_value, PLFO):
                 #--------------------------------------------------------------------------------
                 # Register LFO with timeline
                 #--------------------------------------------------------------------------------
-                lfo = kwargs["params"][param].lfo
+                lfo = param_value.lfo
                 lfo.track = track
                 # TODO: Should this be a different formulation of add_lfo?
                 track.lfos.append(lfo)
