@@ -25,3 +25,6 @@ class DummyOutputDevice(OutputDevice):
 
     def control(self, control=0, value=0, channel=0):
         self.events.append([round(self.current_time, 8), "control", control, value, channel])
+
+    def clear(self):
+        self.events = []
