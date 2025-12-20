@@ -569,10 +569,17 @@ class Track:
         """
         self.next_event_time += nudge_by
 
-    def mute(self) -> None:
+    def mute(self, exclusive: bool = False) -> None:
         """
         Mutes the track. Subsequent events will be silenced until an unmute() is received.
+
+        Args:
+            exclusive (bool): If True, unmutes all other tracks.
         """
+        if exclusive:
+            for track in self.timeline.tracks:
+                if track is not self:
+                    track.unmute()
         self.is_muted = True
 
     def unmute(self) -> None:
