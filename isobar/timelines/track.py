@@ -83,6 +83,7 @@ class Track:
         self.defaults = EventDefaults(fallback_to=timeline.defaults)
 
         self.is_muted: bool = False
+        self.is_soloed: bool = False
         self.is_started: bool = False
         self.is_finished: bool = False
         self.on_event_callbacks: list[Callable] = []
@@ -465,6 +466,13 @@ class Track:
             return
         if self.is_muted:
             return
+        
+        #----------------------------------------------------------------------
+        # If any track is soloed, and this track is not soloed, muting takes
+        # precedence.
+        #----------------------------------------------------------------------
+        if any(track.is_soloed for track in self.timeline.tracks) and not self.is_soloed:
+            return
 
         t0 = time.time()
         logger.debug("Track: Executing event: %s" % event)
@@ -572,6 +580,25 @@ class Track:
         Unmutes the track.
         """
         self.is_muted = False
+
+    def solo(self, exclusive: bool = False) -> None:
+        """
+        Solos the track.
+        
+        Args:
+            exclusive (bool): If True, unsolos all other tracks.
+        """
+        if exclusive:
+            for track in self.timeline.tracks:
+                if track is not self:
+                    track.unsolo()
+        self.is_soloed = True
+    
+    def unsolo(self) -> None:
+        """
+        Unsolos the track.
+        """
+        self.is_soloed = False
 
     def add_event_callback(self, callback: Callable):
         """
