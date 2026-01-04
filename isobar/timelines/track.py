@@ -366,6 +366,11 @@ class Track:
         """
         Process any notes that are scheduled to be played at the current time.
         """
+        if self.is_muted:
+            return
+        if any(track.is_soloed for track in self.timeline.tracks) and not self.is_soloed:
+            return
+        
         for note in self.notes[:]:                
             if self.timeline.time_to_ticks_int(note.timestamp) == self.timeline.time_to_ticks_int(self.current_time):
                 if note.is_playing:
