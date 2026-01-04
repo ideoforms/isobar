@@ -414,12 +414,13 @@ class Track:
         self.is_finished = False
         self.next_event_time = self.current_time
 
-        for pattern in self.event_stream.values():
-            try:
-                pattern.reset()
-            except AttributeError:
-                # Event stream may contain constant values, in which case no reset is needed.
-                pass
+        if self.event_stream is not None:
+            for pattern in self.event_stream.values():
+                try:
+                    pattern.reset()
+                except AttributeError:
+                    # Event stream may contain constant values, in which case no reset is needed.
+                    pass
 
     def get_next_event(self) -> Event:
         """
