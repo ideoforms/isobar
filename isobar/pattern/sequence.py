@@ -155,6 +155,60 @@ class PRange(Pattern):
         self.value += step
         return rv
 
+class PLinSpace(Pattern):
+    """ PLinSpace: Generate evenly spaced values over a specified interval.
+        Similar to numpy.linspace.
+
+        >>> p = PLinSpace(0, 10, 5)
+        >>> p.nextn(5)
+        [0.0, 2.5, 5.0, 7.5, 10.0]
+        
+        >>> p = PLinSpace(1, 2, 11)
+        >>> p.nextn(11)
+        [1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]
+        """
+
+    def __init__(self, start: float = 0, stop: float = 1, num: int = 50, endpoint: bool = True):
+        """
+        Args:
+            start (float): Starting value of the sequence
+            stop (float): End value of the sequence
+            num (int): Number of samples to generate
+            endpoint (bool): If True, stop is the last sample. Otherwise, it is not included.
+        """
+        self.start = start
+        self.stop = stop
+        self.num = num
+        self.endpoint = endpoint
+        self.reset()
+
+    def __repr__(self):
+        return ("PLinSpace(%s, %s, %s, %s)" % (self.start, self.stop, self.num, self.endpoint))
+
+    def reset(self):
+        super().reset()
+        self.count = 0
+
+    def __next__(self):
+        num = Pattern.value(self.num)
+        if self.count >= num:
+            raise StopIteration
+        
+        start = Pattern.value(self.start)
+        stop = Pattern.value(self.stop)
+        endpoint = Pattern.value(self.endpoint)
+        
+        if endpoint:
+            if num == 1:
+                rv = start
+            else:
+                rv = start + (stop - start) * self.count / (num - 1)
+        else:
+            rv = start + (stop - start) * self.count / num
+        
+        self.count += 1
+        return rv
+
 class PGeom(Pattern):
     """ PGeom: Geometric series, beginning at `start`, multiplied by `step`
 
@@ -188,6 +242,8 @@ class PGeom(Pattern):
         self.value *= multiply
         self.count += 1
         return rv
+
+
 
 class PImpulse(Pattern):
     """ PImpulse: Outputs a 1 every <period> events, otherwise 0.
