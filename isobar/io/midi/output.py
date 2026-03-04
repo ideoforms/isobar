@@ -44,7 +44,7 @@ class MidiOutputDevice (OutputDevice):
                     device_name = matching_device_names[0]
             
             self.midi = mido.open_output(device_name, virtual=virtual)
-            self.device_name = device_name
+            self.name = device_name
         except (RuntimeError, SystemError, OSError):
             raise DeviceNotFoundException("Could not find MIDI device")
         self.send_clock = send_clock

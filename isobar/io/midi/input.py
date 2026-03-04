@@ -39,6 +39,7 @@ class MidiInputDevice (BaseClockSource):
         except (RuntimeError, SystemError, OSError):
             raise DeviceNotFoundException("Could not find MIDI device")
 
+        self.name = device_name
         self.clock_target = clock_target
         self.queue = queue.Queue()
         self.estimated_tempo = None
@@ -53,12 +54,12 @@ class MidiInputDevice (BaseClockSource):
         self.notes_down_dict: dict[int, MidiNote] = dict((n, None) for n in range(128))
 
         self.callback: Callable = None
-        self.on_note_on_handler: Callable = None
-        self.on_note_off_handler: Callable = None
-        self.on_control_change_handler: Callable = None
-        self.on_aftertouch_handler: Callable = None
-        self.on_polytouch_handler: Callable = None
-        self.on_pitchbend_handler: Callable = None
+        self.on_note_on_handlers: list[Callable] = []
+        self.on_note_off_handlers: list[Callable] = []
+        self.on_control_change_handlers: list[Callable] = []
+        self.on_aftertouch_handlers: list[Callable] = []
+        self.on_polytouch_handlers: list[Callable] = []
+        self.on_pitchbend_handlers: list[Callable] = []
 
     @property
     def device_name(self):
@@ -126,8 +127,8 @@ class MidiInputDevice (BaseClockSource):
                     note = self.notes_down_dict[message.note]
                     self.notes_down_dict[message.note] = None
                     self.notes_down.remove(note)
-                    if self.on_note_off_handler:
-                        self.on_note_off_handler(note)
+                    for handler in self.on_note_off_handlers:
+                        handler(note)
 
             elif message.type == 'note_on':
                 #------------------------------------------------------------------------
@@ -141,23 +142,23 @@ class MidiInputDevice (BaseClockSource):
                     self.notes_down.append(note)
                     self.notes_down_dict[message.note] = note
 
-                    if self.on_note_on_handler:
-                        self.on_note_on_handler(note)
+                    for handler in self.on_note_on_handlers:
+                        handler(note)
             
             elif message.type == 'control_change':
                 #------------------------------------------------------------------------
                 # Control change event
                 #------------------------------------------------------------------------
                 # TODO: This passes a mido message. Should be an isobar structure.
-                if self.on_control_change_handler:
-                    self.on_control_change_handler(message)
+                for handler in self.on_control_change_handlers:
+                    handler(message)
 
             elif message.type == 'pitchwheel':
                 #------------------------------------------------------------------------
                 # Pitch bend event
                 #------------------------------------------------------------------------
-                if self.on_pitchbend_handler:
-                    self.on_pitchbend_handler(message)
+                for handler in self.on_pitchbend_handlers:
+                    handler(message)
             
             elif message.type == 'aftertouch':
                 #------------------------------------------------------------------------
@@ -165,8 +166,8 @@ class MidiInputDevice (BaseClockSource):
                 #------------------------------------------------------------------------
                 for note in self.notes_down:
                     note.aftertouch = message.value
-                if self.on_aftertouch_handler:
-                    self.on_aftertouch_handler(message)
+                for handler in self.on_aftertouch_handlers:
+                    handler(message)
 
             elif message.type == 'polytouch':
                 #------------------------------------------------------------------------
@@ -174,8 +175,8 @@ class MidiInputDevice (BaseClockSource):
                 #------------------------------------------------------------------------
                 note = self.notes_down_dict[message.note]
                 note.aftertouch = message.value
-                if self.on_polytouch_handler:
-                    self.on_polytouch_handler(message)
+                for handler in self.on_polytouch_handlers:
+                    handler(message)
             
             if self.callback:
                 self.callback(message)
@@ -237,7 +238,7 @@ class MidiInputDevice (BaseClockSource):
         self.midi.close()
         del self.midi
 
-    def set_note_on_handler(self, handler: Callable):
+    def add_note_on_handler(self, handler: Callable):
         """
         Set the function to call when a note on event is received.
         The function should take a single argument, which is the MidiNote object.
@@ -245,42 +246,87 @@ class MidiInputDevice (BaseClockSource):
         Args:
             handler (Callable): The function to call.
         """
-        self.on_note_on_handler = handler
+        self.on_note_on_handlers.append(handler)
+
+    def remove_note_on_handler(self, handler: Callable):
+        """
+        Remove a note on handler.
+
+        Args:
+            handler (Callable): The function to remove.
+        """
+        self.on_note_on_handlers.remove(handler)
     
-    def set_note_off_handler(self, handler: Callable):
+    def add_note_off_handler(self, handler: Callable):
         """
         Set the function to call when a note off event is received.
 
         Args:
             handler (Callable): The function to call.
         """
-        self.on_note_off_handler = handler
+        self.on_note_off_handlers.append(handler)
+
+    def remove_note_off_handler(self, handler: Callable):
+        """
+        Remove a note off handler.
+
+        Args:
+            handler (Callable): The function to remove.
+        """
+        self.on_note_off_handlers.remove(handler)
     
-    def set_control_change_handler(self, handler: Callable):
+    def add_control_change_handler(self, handler: Callable):
         """
         Set the function to call when a control change event is received.
 
         Args:
             handler (Callable): The function to call.
         """
-        self.on_control_change_handler = handler
+        self.on_control_change_handlers.append(handler)
+    
+    def remove_control_change_handler(self, handler: Callable):
+        """
+        Remove a control change handler.
 
-    def set_polytouch_handler(self, handler: Callable):
+        Args:
+            handler (Callable): The function to remove.
+        """
+        self.on_control_change_handlers.remove(handler)
+
+    def add_polytouch_handler(self, handler: Callable):
         """
         Set the function to call when a polyphonic aftertouch event is received.
 
         Args:
             handler (Callable): The function to call.
         """
-        self.on_polytouch_handler = handler
+        self.on_polytouch_handlers.append(handler)
+    
+    def remove_polytouch_handler(self, handler: Callable):
+        """
+        Remove a polyphonic aftertouch handler.
 
-    def set_aftertouch_handler(self, handler: Callable):
+        Args:
+            handler (Callable): The function to remove.
+        """
+        self.on_polytouch_handlers.remove(handler)
+
+    def add_aftertouch_handler(self, handler: Callable):
         """
         Set the function to call when an aftertouch event is received.
         Args:
             handler (Callable): The function to call.
         """
-        self.on_aftertouch_handler = handler
+        self.on_aftertouch_handlers.append(handler)
+    
+    def remove_aftertouch_handler(self, handler: Callable):
+        """
+        Remove an aftertouch handler.
+
+        Args:
+            handler (Callable): The function to remove.
+        """
+        self.on_aftertouch_handlers.remove(handler)
 
     @classmethod
     def get_device_names(cls):

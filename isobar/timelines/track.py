@@ -22,6 +22,7 @@ from ..constants import *
 from ..exceptions import InvalidEventException
 from ..io.output import OutputDevice
 from ..effects import NoteEffect
+from ..io.midinote import MidiNote
 
 
 
@@ -34,6 +35,7 @@ class Track:
                  max_event_count: Optional[int] = None,
                  interpolate: str = INTERPOLATION_NONE,
                  output_device: Optional[OutputDevice] = None,
+                 input_device: Optional[Any] = None,
                  remove_when_done: bool = True,
                  ramp: int = None,
                  name: Optional[str] = None):
@@ -67,6 +69,10 @@ class Track:
         self.name: str = name
         self.timeline: Timeline = timeline
         self.output_device: OutputDevice = output_device
+
+        self._input_device = None
+        self.set_input_device(input_device)
+
         self.interpolate: bool = interpolate
         self.remove_when_done: bool = remove_when_done
 
@@ -86,6 +92,9 @@ class Track:
         self.is_soloed: bool = False
         self.is_started: bool = False
         self.is_finished: bool = False
+        self._is_recording: bool = False
+        self._monitor: bool = False
+        self._recording_notes: dict[int, tuple[float, int, int]] = {}
         self.on_event_callbacks: list[Callable] = []
 
         #--------------------------------------------------------------------------------
@@ -374,7 +383,9 @@ class Track:
         for note in self.notes[:]:                
             if self.timeline.time_to_ticks_int(note.timestamp) == self.timeline.time_to_ticks_int(self.current_time):
                 if note.is_playing:
-                    # If the note is already playing, send a note_off first
+                    #--------------------------------------------------------------------------------
+                    # If the note is already playing, send a note_off first.
+                    #--------------------------------------------------------------------------------
                     self.output_device.note_off(note.note, note.channel)
                     note.is_playing = False
 
@@ -383,8 +394,10 @@ class Track:
                 if note.origin is None:
                     effects = self.note_effects
                 else:
+                    #--------------------------------------------------------------------------------
                     # If the note was created by an effect (e.g. echo), apply the effects
                     # that come after the effect that created the note.
+                    #--------------------------------------------------------------------------------
                     if note.origin in self.note_effects:
                         effects = self.note_effects[self.note_effects.index(note.origin) + 1:]
                     else:
@@ -528,8 +541,13 @@ class Track:
 
         self.notes.append(note)
 
-        # Not the most efficient way to keep the list sorted, but
-        # notes are typically added in order so the overhead is minimal.
+        #--------------------------------------------------------------------------------
+        # The notes list is sorted by timestamp, so that notes are played in the correct
+        # order. 
+        # 
+        # This is not the most efficient way to keep the list sorted,
+        # but notes are typically added in order so the overhead is minimal.
+        #--------------------------------------------------------------------------------
         self.notes = sorted(self.notes, key=lambda n: n.timestamp)
     
     schedule_note = add_note
@@ -685,3 +703,116 @@ class Track:
                                        end_time=end_time)
         self.looping_regions.append(looping_region)
         return looping_region
+    
+
+    def set_input_device(self, input_device):
+        """
+        Set the input device for this track. The input device should be an object that can receive MIDI events, such as a MIDI controller.
+
+        Args:
+            input_device: The input device to set.
+        """
+        if self._input_device is not None:
+            self._input_device.remove_note_on_handler(self._on_note_on)
+            self._input_device.remove_note_off_handler(self._on_note_off)
+
+        self._input_device = input_device
+
+        if self._input_device is not None:
+            self._input_device.add_note_on_handler(self._on_note_on)
+            self._input_device.add_note_off_handler(self._on_note_off)
+    
+    def get_input_device(self):
+        """
+        Get the input device for this track.
+
+        Returns:
+            The input device for this track.
+        """
+        return self._input_device
+    
+    input_device = property(get_input_device, set_input_device)
+
+    @property
+    def is_recording(self) -> bool:
+        """
+        Query whether the track is currently recording.
+        """
+        return self._is_recording
+
+    def start_recording(self, monitor: bool = True):
+        """
+        Start recording events from the input device.
+
+        Args:
+            monitor (bool): If True, events received from the input device are
+                            immediately sent to the output device.
+        """
+        if self.input_device is None:
+            raise RuntimeError("Track does not have an input_device set")
+
+        self._is_recording = True
+        self._monitor = monitor
+        logger.info("Track %s: Started recording (monitor=%s)" % (self.name, monitor))
+
+    def stop_recording(self):
+        """
+        Stop recording.
+        """
+        self._is_recording = False
+        self._recording_notes.clear()
+        
+    def set_monitor(self, monitor: bool):
+        """
+        Set the monitoring state.
+
+        Args:
+            monitor (bool): If True, monitoring is enabled.
+        """
+        self._monitor = monitor
+
+    def get_monitor(self) -> bool:
+        """
+        Get the monitoring state.
+
+        Returns:
+            bool: The current monitoring state.
+        """
+        return self._monitor
+
+    def _on_note_on(self, note: MidiNote):
+        if not (self._is_recording or self._monitor):
+            return
+    
+        #--------------------------------------------------------------------------------
+        # Record the start time of the note.
+        #--------------------------------------------------------------------------------
+        if self._monitor:
+            self.output_device.note_on(note.pitch, note.velocity, note.channel)
+        
+        if self._is_recording:
+            self._recording_notes[note.pitch] = (self.timeline.current_time, note.velocity, note.channel)
+
+    def _on_note_off(self, note: MidiNote):
+        if not (self._is_recording or self._monitor):
+            return
+
+        if self._monitor:
+            self.output_device.note_off(note.pitch, note.channel)
+
+        if note.pitch in self._recording_notes:
+            start_time, velocity, channel = self._recording_notes.pop(note.pitch)
+            end_time = self.timeline.current_time
+            duration = end_time - start_time
+            
+            #--------------------------------------------------------------------------------
+            # Create a new note instance and add it to the track.
+            #--------------------------------------------------------------------------------
+            note_instance = MidiNoteInstance(timestamp=start_time,
+                                             track=self,
+                                             note=note.pitch,
+                                             amplitude=velocity,
+                                             duration=duration,
+                                             channel=channel)
+            self.add_note(note_instance)
+

@@ -328,6 +328,7 @@ class Timeline:
         # Round to several decimal places to avoid 7.999999999 syndrome.
         # http://docs.python.org/tutorial/floatingpoint.html
         #--------------------------------------------------------------------------------
+
         if round(self.current_time, 8) % 1 == 0:
             logger.debug("--------------------------------------------------------------------------------")
             logger.debug("Tick (%d active tracks, %d pending actions)" % (len(self.tracks), len(self.actions)))
@@ -561,7 +562,9 @@ class Timeline:
                  count: Optional[int] = None,
                  interpolate: str = INTERPOLATION_NONE,
                  ramp: Optional[int] = None,
+
                  output_device: Any = None,
+                 input_device: Any = None,
                  remove_when_done: bool = True,
                  name: Optional[str] = None,
                  replace: bool = True,
@@ -705,6 +708,7 @@ class Timeline:
                           max_event_count=count,
                           interpolate=interpolate,
                           output_device=output_device,
+                          input_device=input_device,
                           remove_when_done=remove_when_done,
                           ramp=ramp,
                           name=name)
