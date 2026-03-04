@@ -18,7 +18,7 @@ class CVOutputDevice(OutputDevice):
     def __init__(self, device_name=None, sample_rate=44100):
         """
         Create a control voltage output device.
-
+        
         Control voltage signals require a DC-coupled audio interface, which Python
         sends audio signals to via the sounddevice library. 
 
@@ -42,6 +42,7 @@ class CVOutputDevice(OutputDevice):
         try:
             self.stream = sounddevice.OutputStream(device=device_name,
                                                    samplerate=sample_rate,
+                                                   block_size=256,
                                                    dtype="float32",
                                                    callback=self.audio_callback)
             self.stream.start()
