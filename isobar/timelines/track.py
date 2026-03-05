@@ -259,7 +259,7 @@ class Track:
                 # Jump back to the start of the looping region.
                 #--------------------------------------------------------------------------------
                 self.current_time = looping_region.start_time
-                print("Looping region: jumping back to %.2f" % looping_region.start_time)
+                logger.debug("Looping region: jumping back to %.2f" % looping_region.start_time)
 
         #--------------------------------------------------------------------------------
         # Process LFOs.
