@@ -15,50 +15,70 @@ class AbletonLinkClock (Clock):
     def __init__(self,
                  clock_target: Any = None,
                  tempo: float = DEFAULT_TEMPO,
+                 start_stop_sync_enabled: bool = False,
                  ticks_per_beat: int = DEFAULT_TICKS_PER_BEAT):
+        
         self.link_client = link.Link(tempo)
         self.link_client.enabled = True
-        self.link_client.startStopSyncEnabled = True
-        self.link_client.setTempoCallback(self.tempo_changed_callback)
+        self.link_client.startStopSyncEnabled = start_stop_sync_enabled
 
         super().__init__(clock_target,
                          tempo,
                          ticks_per_beat)
 
-    def tempo_changed_callback(self, tempo):
-        logger.debug("Link: Tempo changed: %.1f" % tempo)
+        def start_stop_callback(is_starting):
+            logger.debug("Link: Start/Stop callback: is_starting=%s" % is_starting)
+            if is_starting:
+                self.running = True
+                
+            else:
+                self.running = False
+
+        if start_stop_sync_enabled:
+            self.link_client.setStartStopCallback(start_stop_callback)
+            self.running = self.link_client.captureSessionState().isPlaying()
+            print("Start/Stop sync enabled, running: %s" % self.running)
+        else:
+            print("Start/Stop sync disabled, running")
+            self.running = True
+
+        def tempo_changed_callback(tempo):
+            logger.debug("Link: Tempo changed: %.1f" % tempo)
+
+        self.link_client.setTempoCallback(tempo_changed_callback)
 
     def run(self):
         ticks_previous = None
         got_sync = False
 
         while True:
-            link_state = self.link_client.captureSessionState()
-            link_time = self.link_client.clock().micros()
-            beats = link_state.beatAtTime(link_time, 4)
+            if self.running:
+                link_state = self.link_client.captureSessionState()
+                link_time = self.link_client.clock().micros()
+                beats = link_state.beatAtTime(link_time, 4)
 
-            ticks_current = int(beats * self.ticks_per_beat)
-            if not got_sync:
-                #--------------------------------------------------------------------------------
-                # Start clock at next 4-beat boundary (next bar, assuming 4/4)
-                #--------------------------------------------------------------------------------
-                if ticks_current % (self.ticks_per_beat * 4) == 0:
-                    got_sync = True
-            if ticks_previous is None or ticks_current > ticks_previous:
-                if ticks_previous is None:
-                    delta_ticks = 1
-                else:
-                    #--------------------------------------------------------------------------------
-                    # Under system load, multiple ticks may have passed since our last timestamp was
-                    # received. In this case, send multiple ticks to the timeline to compensate.
-                    #--------------------------------------------------------------------------------
-                    delta_ticks = ticks_current - ticks_previous
-                ticks_previous = ticks_current
-
+                ticks_current = int(beats * self.ticks_per_beat)
                 if not got_sync:
-                    continue
-                for n in range(delta_ticks):
-                    self.clock_target.tick()
+                    #--------------------------------------------------------------------------------
+                    # Start clock at next 4-beat boundary (next bar, assuming 4/4)
+                    #--------------------------------------------------------------------------------
+                    if ticks_current % (self.ticks_per_beat * 4) == 0:
+                        got_sync = True
+                if ticks_previous is None or ticks_current > ticks_previous:
+                    if ticks_previous is None:
+                        delta_ticks = 1
+                    else:
+                        #--------------------------------------------------------------------------------
+                        # Under system load, multiple ticks may have passed since our last timestamp was
+                        # received. In this case, send multiple ticks to the timeline to compensate.
+                        #--------------------------------------------------------------------------------
+                        delta_ticks = ticks_current - ticks_previous
+                    ticks_previous = ticks_current
+
+                    if not got_sync:
+                        continue
+                    for n in range(delta_ticks):
+                        self.clock_target.tick()
             time.sleep(0.0001)
 
     def get_tempo(self):
