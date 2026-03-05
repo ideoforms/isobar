@@ -875,6 +875,16 @@ class Timeline:
         Disable the metronome.
         """
         self.metronome = None
+
+    @property
+    def is_metronome_enabled(self) -> bool:
+        """
+        Whether the metronome is enabled.
+
+        Returns:
+            True if the metronome is enabled, False otherwise.
+        """
+        return self.metronome is not None
     
     def configure_metronome(self,
                             bar_length: int = None,
