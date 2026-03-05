@@ -11,6 +11,7 @@ from isobar.pattern.sequence import PFadeIn
 from ..pattern import Pattern
 from .track import Track
 from .automation import Automation
+from .metronome import Metronome, MetronomeConfig
 from .clock import Clock
 from .clock_link import AbletonLinkClock
 from .events import EventDefaults
@@ -149,6 +150,9 @@ class Timeline:
         For example, setting defaults.quantize can be used to automatically quantize
         all future scheduling.
         """
+
+        self.metronome: Optional[Metronome] = None
+        self.metronome_config = MetronomeConfig()
 
         self.on_event_callback: Optional[Callable] = None
         """
@@ -334,6 +338,12 @@ class Timeline:
             logger.debug("Tick (%d active tracks, %d pending actions)" % (len(self.tracks), len(self.actions)))
 
         #--------------------------------------------------------------------------------
+        # Process metronome.
+        #--------------------------------------------------------------------------------
+        if self.metronome is not None:
+            self.metronome.tick()
+
+        #--------------------------------------------------------------------------------
         # Process automations.
         #--------------------------------------------------------------------------------
         for automation in self.automations[:]:
@@ -441,6 +451,8 @@ class Timeline:
         needed for different types of reset/rewind operation.
         """
         self.current_time = 0.0
+        if self.metronome is not None:
+            self.metronome.reset()
         for track in self.tracks:
             track.reset()
 
@@ -850,3 +862,64 @@ class Timeline:
         """
         while self.is_running:
             time.sleep(0.1)
+
+    def enable_metronome(self):
+        """
+        Enable the metronome, which generates regular events on a specified output device
+        according to the timeline's current tempo.
+        """
+        self.metronome = Metronome(self)
+
+    def disable_metronome(self):
+        """
+        Disable the metronome.
+        """
+        self.metronome = None
+    
+    def configure_metronome(self,
+                            bar_length: int = None,
+                            interval: float = None,
+                            type: str = None,
+                            midi_output_device: Any = None,
+                            midi_note_major: int = None,
+                            midi_note_minor: int = None,
+                            midi_velocity_major: int = None,
+                            midi_velocity_minor: int = None,
+                            midi_note_duration: float = None):
+        """
+        Update the metronome configuration. Only specified parameters will be updated.
+
+        Args:
+            bar_length (float): specifies how many beats are in a bar, and therefore how often
+                                the major beat is triggered.
+            interval (float): specifies how often the minor beat is triggered, in beats.
+            type (str): specifies the type of metronome event to generate. Currently only "midi" is supported.
+            midi_output_device (Any): specifies the MIDI output device to send metronome events to.
+                                      If not specified, uses the timeline's default output device.
+            midi_note_major (int): specifies the MIDI note number to use for the major beat.
+            midi_note_minor (int): specifies the MIDI note number to use for the minor beat.
+            midi_velocity_major (int): specifies the MIDI velocity to use for the major beat.
+            midi_velocity_minor (int): specifies the MIDI velocity to use for the minor beat.
+            midi_note_duration (float): specifies the duration, in seconds, of the MIDI note for each beat.
+        isobar/timelines/timeline.py"""
+        if bar_length is not None:
+            self.metronome_config.bar_length = bar_length
+        if interval is not None:
+            self.metronome_config.interval = interval
+        if type is not None:
+            self.metronome_config.type = type
+        if midi_output_device is not None:
+            self.metronome_config.midi_output_device = midi_output_device
+        if midi_note_major is not None:
+            self.metronome_config.midi_note_major = midi_note_major
+        if midi_note_minor is not None:
+            self.metronome_config.midi_note_minor = midi_note_minor
+        if midi_velocity_major is not None:
+            self.metronome_config.midi_velocity_major = midi_velocity_major
+        if midi_velocity_minor is not None:
+            self.metronome_config.midi_velocity_minor = midi_velocity_minor
+        if midi_note_duration is not None:
+            self.metronome_config.midi_note_duration = midi_note_duration
+        
+        if self.metronome is not None:
+            self.metronome.config = self.metronome_config
