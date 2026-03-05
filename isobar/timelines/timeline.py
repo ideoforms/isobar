@@ -901,7 +901,7 @@ class Timeline:
             midi_velocity_major (int): specifies the MIDI velocity to use for the major beat.
             midi_velocity_minor (int): specifies the MIDI velocity to use for the minor beat.
             midi_note_duration (float): specifies the duration, in seconds, of the MIDI note for each beat.
-        isobar/timelines/timeline.py"""
+        """
         if bar_length is not None:
             self.metronome_config.bar_length = bar_length
         if interval is not None:
