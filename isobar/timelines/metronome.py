@@ -9,6 +9,7 @@ class MetronomeConfig:
     type: str = "midi"
 
     midi_output_device: Any = None
+    midi_channel: int = 0
     midi_note_major: int = 72
     midi_note_minor: int = 60
     midi_velocity_major: int = 64
@@ -45,9 +46,12 @@ class Metronome:
             velocity = self.config.midi_velocity_minor
             
         if note is not None:
-            self.output_device.note_on(note=note, velocity=velocity)
+            self.output_device.note_on(note=note,
+                                       velocity=velocity,
+                                       channel=self.config.midi_channel)
             def note_off_callback():
-                self.output_device.note_off(note=note)
+                self.output_device.note_off(note=note,
+                                            channel=self.config.midi_channel)
             self.timeline._schedule_action(note_off_callback, delay=self.config.midi_note_duration)
         
         self.current_tick += 1

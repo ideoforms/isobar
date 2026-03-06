@@ -891,6 +891,7 @@ class Timeline:
                             interval: float = None,
                             type: str = None,
                             midi_output_device: Any = None,
+                            midi_channel: int = None,
                             midi_note_major: int = None,
                             midi_note_minor: int = None,
                             midi_velocity_major: int = None,
@@ -906,6 +907,7 @@ class Timeline:
             type (str): specifies the type of metronome event to generate. Currently only "midi" is supported.
             midi_output_device (Any): specifies the MIDI output device to send metronome events to.
                                       If not specified, uses the timeline's default output device.
+            midi_channel (int): specifies the MIDI channel to send metronome events on.
             midi_note_major (int): specifies the MIDI note number to use for the major beat.
             midi_note_minor (int): specifies the MIDI note number to use for the minor beat.
             midi_velocity_major (int): specifies the MIDI velocity to use for the major beat.
@@ -920,6 +922,8 @@ class Timeline:
             self.metronome_config.type = type
         if midi_output_device is not None:
             self.metronome_config.midi_output_device = midi_output_device
+        if midi_channel is not None:
+            self.metronome_config.midi_channel = midi_channel
         if midi_note_major is not None:
             self.metronome_config.midi_note_major = midi_note_major
         if midi_note_minor is not None:
