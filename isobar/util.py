@@ -322,7 +322,7 @@ def make_clock_multiplier(output_clock_rate: int, input_clock_rate: int) -> Gene
     if output_clock_rate and input_clock_rate:
         multiple = output_clock_rate / input_clock_rate
     if (multiple > 1 and int(multiple) != multiple) or (multiple < 1 and 1 / multiple != int(1 / multiple)):
-        raise ClockException("Cannot sync output device (clock rates must integer multiples of each other)")
+        raise ClockException("Cannot sync output device (clock rates must be integer multiples of each other; got %d and %d)" % (output_clock_rate, input_clock_rate))
 
     pos = 1
     while True:
