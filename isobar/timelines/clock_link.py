@@ -29,8 +29,14 @@ class AbletonLinkClock (Clock):
         def start_stop_callback(is_starting):
             logger.debug("Link: Start/Stop callback: is_starting=%s" % is_starting)
             if is_starting:
+                if self.clock_target.is_running:
+                    logger.debug("Timeline is already running, ignoring start message from Link")
+                    return
                 self.clock_target.start()
             else:
+                if not self.clock_target.is_running:
+                    logger.debug("Timeline is not running, ignoring stop message from Link")
+                    return
                 self.clock_target.stop()
                 self.clock_target.reset()
 
