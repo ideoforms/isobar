@@ -49,6 +49,9 @@ class MidiOutputDevice (OutputDevice):
             raise DeviceNotFoundException("Could not find MIDI device")
         self.send_clock = send_clock
         logger.info("Opened MIDI output: %s" % self.midi.name)
+    
+    def __str__(self):
+        return "MidiOutputDevice(%s)" % self.name
 
     def start(self) -> None:
         """
@@ -93,10 +96,7 @@ class MidiOutputDevice (OutputDevice):
 
     def all_notes_off(self) -> None:
         logger.debug("[midi] All notes off")
-        for channel in range(16):
-            for note in range(128):
-                msg = mido.Message('note_off', note=int(note), channel=int(channel))
-                self.midi.send(msg)
+        self.midi.reset()
 
     def control(self, control: int = 0, value: int = 0, channel: int = 0):
         logger.debug("[midi] Control (channel %d, control %d, value %d)" % (channel, control, value))
