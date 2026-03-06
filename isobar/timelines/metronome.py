@@ -19,12 +19,17 @@ class MetronomeConfig:
 class Metronome:
     def __init__(self,
                  timeline,
-                 config: MetronomeConfig = MetronomeConfig(),
-                 output_device: Any = None):
+                 config: MetronomeConfig = MetronomeConfig()):
         self.timeline = timeline
         self.config = config
-        self.output_device = output_device if output_device is not None else self.timeline.output_device
         self.current_tick = 0
+
+    @property
+    def output_device(self):
+        if self.config.midi_output_device is not None:
+            return self.config.midi_output_device
+        else:
+            return self.timeline.output_device
         
     def tick(self):
         # print("metronome tick: current_tick = %d" % self.current_tick)
