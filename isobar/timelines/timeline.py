@@ -96,6 +96,7 @@ class Timeline:
             # If no output device is specified, send to the system default MIDI output.
             #--------------------------------------------------------------------------------
             output_device = MidiOutputDevice()
+
         elif isinstance(output_device, str):
             #--------------------------------------------------------------------------------
             # If a string is specified, find the MIDI output device with a matching name.
@@ -564,8 +565,19 @@ class Timeline:
         """
         Append a new output device to the timeline's device list.
         """
-        self.output_devices.append(output_device)
-        self.clock_multipliers[output_device] = make_clock_multiplier(output_device.ticks_per_beat, self.ticks_per_beat)
+        if output_device not in self.output_devices:
+            self.output_devices.append(output_device)
+            self.clock_multipliers[output_device] = make_clock_multiplier(output_device.ticks_per_beat, self.ticks_per_beat)
+
+    @property
+    def default_output_device(self) -> OutputDevice:
+        """
+        The default output device for this timeline, which is the first device in the `output_devices` list.
+
+        Returns:
+            OutputDevice: The default output device.
+        """
+        return self.output_devices[0]
 
     def schedule(self,
                  params: dict = None,

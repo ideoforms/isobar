@@ -68,7 +68,8 @@ class Track:
         self.ramp: int = ramp
         self.name: str = name
         self.timeline: Timeline = timeline
-        self.output_device: OutputDevice = output_device
+        self._output_device: Optional[OutputDevice] = None
+        self.set_output_device(output_device if output_device is not None else timeline.default_output_device)
 
         self._input_device = None
         self.set_input_device(input_device)
@@ -704,6 +705,27 @@ class Track:
         self.looping_regions.append(looping_region)
         return looping_region
     
+    def set_output_device(self, output_device: Optional[OutputDevice]):
+        """
+        Set the output device for this track. The output device should be an object that can receive MIDI events, such as a synthesizer or a MIDI output port.
+
+        Args:
+            output_device: The output device to set.
+        """
+        self._output_device = output_device
+        if output_device:
+            self.timeline.add_output_device(output_device)
+    
+    def get_output_device(self) -> Optional[OutputDevice]:
+        """
+        Get the output device for this track.
+
+        Returns:
+            The output device for this track.
+        """
+        return self._output_device
+    
+    output_device = property(get_output_device, set_output_device)
 
     def set_input_device(self, input_device):
         """
