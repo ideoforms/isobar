@@ -87,7 +87,7 @@ class MidiOutputDevice (OutputDevice):
         self.midi.send(msg)
 
     def note_off(self, note: int = 60, channel: int = 0) -> None:
-        logger.debug("[midi] Note off (channel = %d, note = %d)" % (channel, note))
+        logger.info("[midi] Note off (channel = %d, note = %d)" % (channel, note))
         msg = mido.Message('note_off', note=int(note), channel=int(channel))
         self.midi.send(msg)
 
