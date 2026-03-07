@@ -29,12 +29,12 @@ class MidiOutputDevice (OutputDevice):
             if device_name is None:
                 device_name = os.getenv("ISOBAR_DEFAULT_MIDI_OUT")
 
-            if device_name:
+            if device_name and not virtual:
                 #--------------------------------------------------------------------------------
                 # For permissive matching, look up device names that start with the given string.
                 #--------------------------------------------------------------------------------
                 available_device_names = mido.get_output_names()
-                matching_device_names = [name for name in available_device_names if name.startswith(device_name)]
+                matching_device_names = [name for name in available_device_names if device_name in name]
 
                 if len(matching_device_names) == 0:
                     raise DeviceNotFoundException("Could not find MIDI device with name starting with: %s" % device_name)
