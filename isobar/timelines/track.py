@@ -566,6 +566,24 @@ class Track:
         else:
             raise ValueError("Note not found in track's scheduled notes")
 
+    def get_notes(self,
+                  start_time: Optional[float] = None,
+                  end_time: Optional[float] = None):
+        # TODO: Make these note queries more efficient
+        if start_time is None:
+            start_time = 0.0
+        if end_time is None:
+            end_time = float('inf')
+        return [note for note in self.notes if start_time <= note.timestamp < end_time]
+    
+    def delete_notes(self,
+                     start_time: Optional[float] = None,
+                     end_time: Optional[float] = None):
+        # TODO: Make these note queries more efficient
+        for note in self.notes[:]:
+            if note.timestamp >= start_time and note.timestamp <= end_time:
+                self.notes.remove(note)
+
     def add_note_effect(self, effect: NoteEffect):
         """
         Add a note effect to the track. The effect will be applied to all notes scheduled on this track.
