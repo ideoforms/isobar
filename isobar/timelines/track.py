@@ -831,7 +831,7 @@ class Track:
             self.output_device.note_on(note.pitch, note.velocity, note.channel)
         
         if self._is_recording:
-            self._recording_notes[note.pitch] = (self.timeline.current_time, note.velocity, note.channel)
+            self._recording_notes[note.pitch] = (self.current_time, note.velocity, note.channel)
 
     def _on_note_off(self, note: MidiNote):
         if not (self._is_recording or self._monitor):
@@ -842,7 +842,7 @@ class Track:
 
         if note.pitch in self._recording_notes:
             start_time, velocity, channel = self._recording_notes.pop(note.pitch)
-            end_time = self.timeline.current_time
+            end_time = self.current_time
             duration = end_time - start_time
             
             #--------------------------------------------------------------------------------
