@@ -25,8 +25,8 @@ def test_track_recording_notes(dummy_timeline):
     input_device.note_on(60, 64)
     
     # Advance time to t=1
-    dummy_timeline.tick() # t=0 event processing
-    dummy_timeline.current_time += 1.0 # Simulate time passing
+    for n in range(dummy_timeline.ticks_per_beat):
+    	dummy_timeline.tick()
     
     # Send note off at t=1
     input_device.note_off(60)

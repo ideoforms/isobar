@@ -263,6 +263,8 @@ class Track:
                 # Jump back to the start of the looping region.
                 #--------------------------------------------------------------------------------
                 self.current_time = looping_region.start_time
+
+                self.stop_all_notes()
                 logger.debug("Looping region: jumping back to %.2f" % looping_region.start_time)
 
         #--------------------------------------------------------------------------------
@@ -570,6 +572,24 @@ class Track:
         else:
             raise ValueError("Note not found in track's scheduled notes")
 
+    def get_notes(self,
+                  start_time: Optional[float] = None,
+                  end_time: Optional[float] = None):
+        # TODO: Make these note queries more efficient
+        if start_time is None:
+            start_time = 0.0
+        if end_time is None:
+            end_time = float('inf')
+        return [note for note in self.notes if start_time <= note.timestamp < end_time]
+    
+    def delete_notes(self,
+                     start_time: Optional[float] = None,
+                     end_time: Optional[float] = None):
+        # TODO: Make these note queries more efficient
+        for note in self.notes[:]:
+            if note.timestamp >= start_time and note.timestamp <= end_time:
+                self.notes.remove(note)
+
     def add_note_effect(self, effect: NoteEffect):
         """
         Add a note effect to the track. The effect will be applied to all notes scheduled on this track.
@@ -581,6 +601,28 @@ class Track:
             raise TypeError("Effect must be an instance of NoteEffect")
         effect.track = self
         self.note_effects.append(effect)
+
+    def stop_all_notes(self):
+        """
+        Send a note off for all currently playing notes, and mark them as not playing.
+        This is useful for preventing hanging notes when stopping a track.
+        """
+        for note in self.notes:
+            if note.is_playing:
+                self.output_device.note_off(note.note, note.channel)
+                note.is_playing = False
+
+    def clear(self):
+        """
+        Clear all notes and events from the track.
+        """
+        # Send a note off for any note currently playing, to prevent hanging notes.
+        self.stop_all_notes()
+
+        self.notes.clear()
+        self.note_effects.clear()
+        self.next_event = None
+        self.event_stream = None
 
     def stop(self):
         """
@@ -850,7 +892,7 @@ class Track:
             self.output_device.note_on(note.pitch, note.velocity, note.channel)
         
         if self._is_recording:
-            self._recording_notes[note.pitch] = (self.timeline.current_time, note.velocity, note.channel)
+            self._recording_notes[note.pitch] = (self.current_time, note.velocity, note.channel)
 
     def _on_note_off(self, note: MidiNote):
         if not (self._is_recording or self._monitor):
@@ -861,7 +903,7 @@ class Track:
 
         if note.pitch in self._recording_notes:
             start_time, velocity, channel = self._recording_notes.pop(note.pitch)
-            end_time = self.timeline.current_time
+            end_time = self.current_time
             duration = end_time - start_time
             
             #--------------------------------------------------------------------------------
