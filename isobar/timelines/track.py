@@ -87,6 +87,9 @@ class Track:
 
         self.looping_regions: list[LoopingRegion] = []
 
+        self.quantize_grid: Optional[float] = None
+        self.quantize_level: Optional[float] = None
+
         self.defaults = EventDefaults(fallback_to=timeline.defaults)
 
         self.is_muted: bool = False
@@ -381,8 +384,9 @@ class Track:
         if any(track.is_soloed for track in self.timeline.tracks) and not self.is_soloed:
             return
         
-        for note in self.notes[:]:                
-            if self.timeline.time_to_ticks_int(note.timestamp) == self.timeline.time_to_ticks_int(self.current_time):
+        for note in self.notes[:]:     
+            note_timestamp_quantized = self._quantize_time(note.timestamp)           
+            if self.timeline.time_to_ticks_int(note_timestamp_quantized) == self.timeline.time_to_ticks_int(self.current_time):
                 if note.is_playing:
                     #--------------------------------------------------------------------------------
                     # If the note is already playing, send a note_off first.
@@ -801,6 +805,39 @@ class Track:
             bool: The current monitoring state.
         """
         return self._monitor
+    
+    def set_quantize(self,
+                     grid: float,
+                     level: float):
+        """
+        Set the quantization grid and level for playback.
+        """
+        if grid is not None and grid <= 0.0:
+            raise ValueError("Quantize grid must be a positive value")
+        if level is not None and (level < 0.0 or level > 1.0):
+            raise ValueError("Quantize level must be between 0.0 and 1.0")
+        self.quantize_grid = grid
+        self.quantize_level = level
+
+    def _quantize_time(self, time: float) -> float:
+        """
+        Quantize the given time according to the track's quantization settings.
+
+        Args:
+            time (float): The time to quantize, in beats.
+
+        Returns:
+            The quantized time, in beats.
+        """
+        if self.quantize_grid is None or self.quantize_level is None:
+            return time
+        
+        grid = self.quantize_grid
+        level = self.quantize_level
+
+        nearest_grid_time = round(time / grid) * grid
+        quantized_time = time + (nearest_grid_time - time) * level
+        return quantized_time
 
     def _on_note_on(self, note: MidiNote):
         if not (self._is_recording or self._monitor):
