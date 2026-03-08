@@ -260,6 +260,8 @@ class Track:
                 # Jump back to the start of the looping region.
                 #--------------------------------------------------------------------------------
                 self.current_time = looping_region.start_time
+
+                self.stop_all_notes()
                 logger.debug("Looping region: jumping back to %.2f" % looping_region.start_time)
 
         #--------------------------------------------------------------------------------
@@ -595,6 +597,28 @@ class Track:
             raise TypeError("Effect must be an instance of NoteEffect")
         effect.track = self
         self.note_effects.append(effect)
+
+    def stop_all_notes(self):
+        """
+        Send a note off for all currently playing notes, and mark them as not playing.
+        This is useful for preventing hanging notes when stopping a track.
+        """
+        for note in self.notes:
+            if note.is_playing:
+                self.output_device.note_off(note.note, note.channel)
+                note.is_playing = False
+
+    def clear(self):
+        """
+        Clear all notes and events from the track.
+        """
+        # Send a note off for any note currently playing, to prevent hanging notes.
+        self.stop_all_notes()
+
+        self.notes.clear()
+        self.note_effects.clear()
+        self.next_event = None
+        self.event_stream = None
 
     def stop(self):
         """
