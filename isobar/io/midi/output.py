@@ -85,12 +85,12 @@ class MidiOutputDevice (OutputDevice):
             self.midi.send(msg)
 
     def note_on(self, note: int = 60, velocity: int = 64, channel: int = 0) -> None:
-        logger.info("[midi] Note on  (channel = %d, note = %d, velocity = %d)" % (channel, note, velocity))
+        logger.info("[midi] Note on (device = %s, channel = %d, note = %d, velocity = %d)" % (self.name, channel, note, velocity))
         msg = mido.Message('note_on', note=int(note), velocity=int(velocity), channel=int(channel))
         self.midi.send(msg)
 
     def note_off(self, note: int = 60, channel: int = 0) -> None:
-        logger.info("[midi] Note off (channel = %d, note = %d)" % (channel, note))
+        logger.info("[midi] Note off (device = %s, channel = %d, note = %d)" % (self.name, channel, note))
         msg = mido.Message('note_off', note=int(note), channel=int(channel))
         self.midi.send(msg)
 
@@ -99,7 +99,7 @@ class MidiOutputDevice (OutputDevice):
         self.midi.reset()
 
     def control(self, control: int = 0, value: int = 0, channel: int = 0):
-        logger.debug("[midi] Control (channel %d, control %d, value %d)" % (channel, control, value))
+        logger.debug("[midi] Control (device = %s, channel %d, control %d, value %d)" % (self.name, channel, control, value))
         msg = mido.Message('control_change', control=int(control), value=int(value), channel=int(channel))
         self.midi.send(msg)
 

@@ -138,6 +138,8 @@ class MidiInputDevice (BaseClockSource):
                 #------------------------------------------------------------------------
                 # Note off event
                 #------------------------------------------------------------------------
+                logger.info("[midi in] Note off (device = %s, channel = %d, note = %d)" % (self.name, message.channel, message.note))
+
                 if self.notes_down_dict[message.note] is not None:
                     note = self.notes_down_dict[message.note]
                     self.notes_down_dict[message.note] = None
@@ -146,6 +148,7 @@ class MidiInputDevice (BaseClockSource):
                         handler(note)
 
             elif message.type == 'note_on':
+                logger.info("[midi in] Note on (device = %s, channel = %d, note = %d, velocity = %d)" % (self.name, message.channel, message.note, message.velocity))
                 #------------------------------------------------------------------------
                 # Note on event
                 #------------------------------------------------------------------------
