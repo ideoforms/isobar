@@ -892,6 +892,9 @@ class Track:
         #--------------------------------------------------------------------------------
         if self._monitor:
             self.output_device.note_on(note.pitch, note.velocity, note.channel)
+
+        if not self.timeline.is_running:
+            return
         
         if self._is_recording:
             self._recording_notes[note.pitch] = (self.current_time, note.velocity, note.channel)
@@ -902,6 +905,9 @@ class Track:
 
         if self._monitor:
             self.output_device.note_off(note.pitch, note.channel)
+
+        if not self.timeline.is_running:
+            return
 
         if note.pitch in self._recording_notes:
             start_time, velocity, channel = self._recording_notes.pop(note.pitch)
