@@ -780,6 +780,8 @@ class Track:
         Args:
             input_device: The input device to set.
         """
+
+        logger.debug("Track %s: set input device: %s" % (self.name, input_device))
         if self._input_device is not None:
             self._input_device.remove_note_on_handler(self._on_note_on)
             self._input_device.remove_note_off_handler(self._on_note_off)
