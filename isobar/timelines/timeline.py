@@ -200,6 +200,49 @@ class Timeline:
         global shared_timeline
         return shared_timeline
 
+
+    def to_dict(self) -> dict:
+        """
+        Serialize the Timeline object to a dictionary.
+
+        Returns:
+            dict: A dictionary representation of the Timeline.
+        """
+        return {
+            "tracks": [track.to_dict() for track in self.tracks],
+            "tempo": self.tempo,
+            "metronome_config": self.metronome_config.to_dict() if self.metronome_config else None,
+            "ticks_per_beat": self.ticks_per_beat,
+            "stop_when_done": self.stop_when_done,
+            "ignore_exceptions": self.ignore_exceptions,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Timeline":
+        """
+        Deserialize a Timeline object from a dictionary.
+
+        Args:
+            data: A dictionary representation of a Timeline.
+
+        Returns:
+            Timeline: The deserialized Timeline object.
+        """
+        timeline = cls(
+            tempo=data.get("tempo", 120),
+            ticks_per_beat=data.get("ticks_per_beat", 480),
+            stop_when_done=data.get("stop_when_done", False),
+            ignore_exceptions=data.get("ignore_exceptions", False),
+        )
+        timeline.metronome_config = MetronomeConfig(data.get("metronome_config"))
+        tracks_data = data.get("tracks", [])
+        for track_data in tracks_data:
+            track = Track.from_dict(track_data,
+                                    timeline=timeline)
+            track.start(None)
+            timeline.tracks.append(track)
+        return timeline
+
     def get_clock_source(self) -> Clock:
         """
         The originating Clock object that sends timing ticks to this timeline.

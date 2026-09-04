@@ -925,3 +925,35 @@ class Track:
                                              channel=channel)
             self.add_note(note_instance)
 
+    def to_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "max_event_count": self.max_event_count,
+            "interpolate": self.interpolate,
+            "remove_when_done": self.remove_when_done,
+            "ramp": self.ramp,
+            "quantize_grid": self.quantize_grid,
+            "quantize_level": self.quantize_level,
+            "notes": [note.to_dict() for note in self.notes if not note.is_ephemeral],
+            "looping_regions": [region.to_dict() for region in self.looping_regions],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict, timeline: Timeline, output_device=None) -> Track:
+        track = cls(timeline=timeline,
+                    name=data.get("name"),
+                    max_event_count=data.get("max_event_count"),
+                    interpolate=data.get("interpolate", INTERPOLATION_NONE),
+                    output_device=output_device or timeline.default_output_device,
+                    remove_when_done=data.get("remove_when_done", True),
+                    ramp=data.get("ramp"))
+        grid = data.get("quantize_grid") or None
+        if grid:
+            track.set_quantize(grid, data.get("quantize_level"))
+        track.is_muted = data.get("is_muted", False)
+        track.is_soloed = data.get("is_soloed", False)
+        for note_data in data.get("notes", []):
+            track.add_note(MidiNoteInstance.from_dict(note_data))
+        for region in data.get("looping_regions", []):
+            track.add_looping_region(region["start_time"], region["end_time"])
+        return track

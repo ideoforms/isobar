@@ -15,6 +15,9 @@ class MetronomeConfig:
     midi_velocity_major: int = 64
     midi_velocity_minor: int = 48
     midi_note_duration: float = 0.1
+
+    def to_dict(self) -> dict:
+        return self.__dict__
     
 
 class Metronome:
