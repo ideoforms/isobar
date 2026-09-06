@@ -173,6 +173,7 @@ class Timeline:
 
         self.events_in_last_second: int = 0
         self.events_per_second: float = 0.0
+
         def _measure_events_per_second():
             """
             Update the events_per_second value based on the number of events
@@ -187,7 +188,7 @@ class Timeline:
 
         if start:
             self.start()
-    
+
     @classmethod
     def get_shared_timeline(cls) -> "Timeline":
         """
@@ -199,7 +200,6 @@ class Timeline:
         """
         global shared_timeline
         return shared_timeline
-
 
     def to_dict(self) -> dict:
         """
@@ -228,12 +228,10 @@ class Timeline:
         Returns:
             Timeline: The deserialized Timeline object.
         """
-        timeline = cls(
-            tempo=data.get("tempo", 120),
-            ticks_per_beat=data.get("ticks_per_beat", 480),
-            stop_when_done=data.get("stop_when_done", False),
-            ignore_exceptions=data.get("ignore_exceptions", False),
-        )
+        timeline = cls(tempo=data.get("tempo", 120),
+                       ticks_per_beat=data.get("ticks_per_beat", 480),
+                       stop_when_done=data.get("stop_when_done", False),
+                       ignore_exceptions=data.get("ignore_exceptions", False))
         timeline.metronome_config = MetronomeConfig(data.get("metronome_config"))
         tracks_data = data.get("tracks", [])
         for track_data in tracks_data:
@@ -315,7 +313,7 @@ class Timeline:
 
     def time_to_ticks(self, time_in_beats: float) -> float:
         return time_in_beats * self.ticks_per_beat
-    
+
     def time_to_ticks_int(self, time_in_beats: float) -> int:
         return int(round(time_in_beats * self.ticks_per_beat))
 
@@ -435,7 +433,7 @@ class Timeline:
                 if self.on_exception_callback:
                     self.on_exception_callback(e, tb)
 
-                if self.ignore_exceptions:    
+                if self.ignore_exceptions:
                     logger.warning("*** Exception in track: %s" % tb)
                     # TODO: Possibly don't remove tracks specifically for the case in which SignalFlow
                     # throws a CPU exception? Generally, tracks should be stopped to prevent runaway repeats
@@ -551,7 +549,7 @@ class Timeline:
         """
         if self.is_running:
             raise TimelineAlreadyRunningException("Timeline is already running")
-        
+
         thread = threading.Thread(target=self.run,
                                   daemon=True)
         thread.start()
@@ -587,7 +585,7 @@ class Timeline:
     def get_output_device(self) -> OutputDevice:
         """
         Query the timeline's current OutputDevice.
-        
+
         If multiple output devices are currently set (e.g., for a timeline that generates
         both MIDI and OSC output), raises an exception.
 
@@ -691,7 +689,7 @@ class Timeline:
         import re
         if isinstance(output_device, AbletonMidiOutputDevice):
             # Match track name to channel
-            
+
             if params.get("type", "") not in ["globals", "control"]:
                 track = output_device.live_set.get_track_named(name)
                 if track is None:
@@ -733,7 +731,7 @@ class Timeline:
                             if key in existing_track.event_stream:
                                 current_pattern = existing_track.event_stream[key]
                                 if isinstance(current_pattern, PFadeIn):
-                                        current_pattern = current_pattern.end
+                                    current_pattern = current_pattern.end
                                 new_pattern = Pattern.pattern(value)
                                 if repr(current_pattern) != repr(new_pattern):
                                     # print("Fading isobar param '%s' '%s': %s -> %s" % (name, key, current_pattern, new_pattern))
@@ -844,7 +842,7 @@ class Timeline:
         scheduled_time = self.current_time
         if quantize:
             scheduled_time = quantize * math.ceil(float(self.current_time) / quantize)
-        
+
         scheduled_time += delay
 
         # Events cannot happen before the timeline has begun.
@@ -899,7 +897,7 @@ class Timeline:
         """
         Remove all tracks.
         """
-        
+
         for device in self.output_devices:
             device.all_notes_off()
         for track in self.tracks[:]:
@@ -951,7 +949,7 @@ class Timeline:
             True if the metronome is enabled, False otherwise.
         """
         return self.metronome is not None
-    
+
     def configure_metronome(self,
                             bar_length: int = None,
                             interval: float = None,
@@ -1000,6 +998,6 @@ class Timeline:
             self.metronome_config.midi_velocity_minor = midi_velocity_minor
         if midi_note_duration is not None:
             self.metronome_config.midi_note_duration = midi_note_duration
-        
+
         if self.metronome is not None:
             self.metronome.config = self.metronome_config

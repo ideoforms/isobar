@@ -17,15 +17,14 @@ class LoopingRegion:
 
     def to_dict(self):
         return {
-            "track": self.track,
             "start_time": self.start_time,
             "end_time": self.end_time,
             "loop": self.loop
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> LoopingRegion:
-        return cls(track=data["track"],
+    def from_dict(cls, track: Track, data: dict) -> LoopingRegion:
+        return cls(track=track,
                    start_time=data["start_time"],
                    end_time=data["end_time"],
                    loop=data.get("loop", True))

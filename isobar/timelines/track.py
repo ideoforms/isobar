@@ -955,5 +955,5 @@ class Track:
         for note_data in data.get("notes", []):
             track.add_note(MidiNoteInstance.from_dict(note_data))
         for region in data.get("looping_regions", []):
-            track.add_looping_region(region["start_time"], region["end_time"])
+            track.add_looping_region(LoopingRegion.from_dict(track, region))
         return track
