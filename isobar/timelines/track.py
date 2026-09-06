@@ -25,7 +25,6 @@ from ..effects import NoteEffect
 from ..io.midinote import MidiNote
 
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -248,7 +247,6 @@ class Track:
                             logger.debug("Tick %f: All notes finished on track: %s" % (self.timeline.current_time, self.name))
                             self.is_finished = True
 
-
     def tick(self):
         """
         Step forward one tick.
@@ -256,7 +254,7 @@ class Track:
 
         if not self.is_started:
             return
-        
+
         for looping_region in self.looping_regions:
             if (self.current_time < looping_region.end_time) and (self.current_time + self.tick_duration >= looping_region.end_time):
                 #--------------------------------------------------------------------------------
@@ -385,9 +383,9 @@ class Track:
             return
         if any(track.is_soloed for track in self.timeline.tracks) and not self.is_soloed:
             return
-        
-        for note in self.notes[:]:     
-            note_timestamp_quantized = self._quantize_time(note.timestamp)           
+
+        for note in self.notes[:]:
+            note_timestamp_quantized = self._quantize_time(note.timestamp)
             if self.timeline.time_to_ticks_int(note_timestamp_quantized) == self.timeline.time_to_ticks_int(self.current_time):
                 if note.is_playing:
                     #--------------------------------------------------------------------------------
@@ -396,8 +394,8 @@ class Track:
                     self.output_device.note_off(note.note, note.channel)
                     note.is_playing = False
 
-                note.start_playing(duration_ticks = self.timeline.time_to_ticks_int(note.duration))
-                
+                note.start_playing(duration_ticks=self.timeline.time_to_ticks_int(note.duration))
+
                 if note.origin is None:
                     effects = self.note_effects
                 else:
@@ -492,7 +490,7 @@ class Track:
             return
         if self.is_muted:
             return
-        
+
         #----------------------------------------------------------------------
         # If any track is soloed, and this track is not soloed, muting takes
         # precedence.
@@ -550,15 +548,15 @@ class Track:
 
         #--------------------------------------------------------------------------------
         # The notes list is sorted by timestamp, so that notes are played in the correct
-        # order. 
-        # 
+        # order.
+        #
         # This is not the most efficient way to keep the list sorted,
         # but notes are typically added in order so the overhead is minimal.
         #--------------------------------------------------------------------------------
         self.notes = sorted(self.notes, key=lambda n: n.timestamp)
-    
+
     schedule_note = add_note
-    
+
     def remove_note(self,
                     note: MidiNoteInstance):
         """
@@ -581,7 +579,7 @@ class Track:
         if end_time is None:
             end_time = float('inf')
         return [note for note in self.notes if start_time <= note.timestamp < end_time]
-    
+
     def delete_notes(self,
                      start_time: Optional[float] = None,
                      end_time: Optional[float] = None):
@@ -662,7 +660,7 @@ class Track:
     def solo(self, exclusive: bool = False) -> None:
         """
         Solos the track.
-        
+
         Args:
             exclusive (bool): If True, unsolos all other tracks.
         """
@@ -671,7 +669,7 @@ class Track:
                 if track is not self:
                     track.unsolo()
         self.is_soloed = True
-    
+
     def unsolo(self) -> None:
         """
         Unsolos the track.
@@ -731,7 +729,7 @@ class Track:
         lfo_object = LFO(self, name=name, **params)
         self.lfos.append(lfo_object)
         return lfo_object
-    
+
     def add_looping_region(self,
                            start_time: float,
                            end_time: float) -> LoopingRegion:
@@ -750,7 +748,7 @@ class Track:
                                        end_time=end_time)
         self.looping_regions.append(looping_region)
         return looping_region
-    
+
     def set_output_device(self, output_device: Optional[OutputDevice]):
         """
         Set the output device for this track. The output device should be an object that can receive MIDI events, such as a synthesizer or a MIDI output port.
@@ -761,7 +759,7 @@ class Track:
         self._output_device = output_device
         if output_device:
             self.timeline.add_output_device(output_device)
-    
+
     def get_output_device(self) -> Optional[OutputDevice]:
         """
         Get the output device for this track.
@@ -770,7 +768,7 @@ class Track:
             The output device for this track.
         """
         return self._output_device
-    
+
     output_device = property(get_output_device, set_output_device)
 
     def set_input_device(self, input_device):
@@ -791,7 +789,7 @@ class Track:
         if self._input_device is not None:
             self._input_device.add_note_on_handler(self._on_note_on)
             self._input_device.add_note_off_handler(self._on_note_off)
-    
+
     def get_input_device(self):
         """
         Get the input device for this track.
@@ -800,7 +798,7 @@ class Track:
             The input device for this track.
         """
         return self._input_device
-    
+
     input_device = property(get_input_device, set_input_device)
 
     @property
@@ -831,7 +829,7 @@ class Track:
         """
         self._is_recording = False
         self._recording_notes.clear()
-        
+
     def set_monitor(self, monitor: bool):
         """
         Set the monitoring state.
@@ -849,7 +847,7 @@ class Track:
             bool: The current monitoring state.
         """
         return self._monitor
-    
+
     def set_quantize(self,
                      grid: float,
                      level: float):
@@ -875,7 +873,7 @@ class Track:
         """
         if self.quantize_grid is None or self.quantize_level is None or self.quantize_grid == 0.0 or self.quantize_level == 0.0:
             return time
-        
+
         grid = self.quantize_grid
         level = self.quantize_level
 
@@ -886,7 +884,7 @@ class Track:
     def _on_note_on(self, note: MidiNote):
         if not (self._is_recording or self._monitor):
             return
-    
+
         #--------------------------------------------------------------------------------
         # Record the start time of the note.
         #--------------------------------------------------------------------------------
@@ -895,7 +893,7 @@ class Track:
 
         if not self.timeline.is_running:
             return
-        
+
         if self._is_recording:
             self._recording_notes[note.pitch] = (self.current_time, note.velocity, note.channel)
 
@@ -913,7 +911,7 @@ class Track:
             start_time, velocity, channel = self._recording_notes.pop(note.pitch)
             end_time = self.current_time
             duration = end_time - start_time
-            
+
             #--------------------------------------------------------------------------------
             # Create a new note instance and add it to the track.
             #--------------------------------------------------------------------------------
@@ -955,5 +953,8 @@ class Track:
         for note_data in data.get("notes", []):
             track.add_note(MidiNoteInstance.from_dict(note_data))
         for region in data.get("looping_regions", []):
-            track.add_looping_region(LoopingRegion.from_dict(track, region))
+            looping_region = LoopingRegion.from_dict(track=track, data=region)
+            # TODO: Improve this
+            track.add_looping_region(looping_region.start_time,
+                                     looping_region.end_time)
         return track
