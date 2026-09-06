@@ -17,7 +17,18 @@ class MetronomeConfig:
     midi_note_duration: float = 0.1
 
     def to_dict(self) -> dict:
-        return self.__dict__
+        # TODO: Honour MIDI output device
+        return {
+            "bar_length": self.bar_length,
+            "interval": self.interval,
+            "type": self.type,
+            "midi_channel": self.midi_channel,
+            "midi_note_major": self.midi_note_major,
+            "midi_note_minor": self.midi_note_minor,
+            "midi_velocity_major": self.midi_velocity_major,
+            "midi_velocity_minor": self.midi_velocity_minor,
+            "midi_note_duration": self.midi_note_duration,
+        }
     
 
 class Metronome:
