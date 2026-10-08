@@ -161,8 +161,8 @@ class DummyClock (BaseClockSource):
     """
     Clock subclass used in testing, which ticks at the highest rate possible.
     """
-    def __init__(self, clock_target):
-        self.clock_target = clock_target
+    def __init__(self, clock_target: Any = None):
+        super().__init__(clock_target)
         self.is_running = False
 
     def run(self):
