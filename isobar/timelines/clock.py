@@ -32,6 +32,9 @@ class BaseClockSource:
     def run(self):
         raise NotImplementedError("Subclasses should implement this")
 
+    def stop(self):
+        raise NotImplementedError("Subclasses should implement this")
+
 class Clock (BaseClockSource):
     def __init__(self,
                  clock_target: BaseClockTarget = None,
@@ -66,7 +69,7 @@ class Clock (BaseClockSource):
         self.warpers = []
         self.accelerate: float = 1.0
         self.thread: threading.Thread = None
-        self.running: bool = False
+        self.is_running: bool = False
         self.jitter: float = 0.0
 
         target_ticks_per_beat = self.clock_target.ticks_per_beat if self.clock_target else ticks_per_beat
@@ -107,8 +110,8 @@ class Clock (BaseClockSource):
         # Allow a tick to elapse before we call tick() for the first time
         # to keep Warp patterns in sync
         #------------------------------------------------------------------------
-        self.running = True
-        while self.running:
+        self.is_running = True
+        while self.is_running:
             if clock1 - clock0 >= (2.0 * self.tick_duration_seconds):
                 delay_time = (clock1 - clock0 - self.tick_duration_seconds * 2)
                 if delay_time > MIN_CLOCK_DELAY_WARNING_TIME:
@@ -143,7 +146,7 @@ class Clock (BaseClockSource):
             clock1 = time.time() * self.accelerate
 
     def stop(self):
-        self.running = False
+        self.is_running = False
 
     def warp(self, warper):
         self.warpers.append(warper)
@@ -158,7 +161,13 @@ class DummyClock (BaseClockSource):
     """
     Clock subclass used in testing, which ticks at the highest rate possible.
     """
+    def __init__(self, clock_target):
+        self.clock_target = clock_target
+        self.is_running = False
 
     def run(self):
-        while True:
+        while self.is_running:
             self.clock_target.tick()
+
+    def stop(self):
+        self.is_running = False
