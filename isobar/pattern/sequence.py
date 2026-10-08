@@ -58,6 +58,12 @@ class PSequence(Pattern):
         if len(sequence) == 0 or self.rcount >= repeats:
             raise StopIteration
 
+        # This may happen if the sequence length is changed by the consumer, 
+        # so we check it on every call to next.    
+        if self.pos >= len(sequence):
+            self.pos = 0
+            self.rcount += 1
+
         rv = Pattern.value(sequence[self.pos])
         self.pos += 1
         if self.pos >= len(sequence):
