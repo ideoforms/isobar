@@ -166,6 +166,7 @@ class DummyClock (BaseClockSource):
         self.is_running = False
 
     def run(self):
+        self.is_running = True
         while self.is_running:
             self.clock_target.tick()
 
