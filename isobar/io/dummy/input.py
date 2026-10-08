@@ -11,10 +11,10 @@ class DummyInputDevice:
     def add_note_off_handler(self, callback):
         self.on_note_off = callback
 
-    def remove_note_on_handler(self):
+    def remove_note_on_handler(self, callback):
         self.on_note_on = None
 
-    def remove_note_off_handler(self):
+    def remove_note_off_handler(self, callback):
         self.on_note_off = None
         
     def note_on(self, pitch, velocity, channel=0):
