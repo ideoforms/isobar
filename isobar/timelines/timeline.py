@@ -103,7 +103,7 @@ class Timeline:
             # Partial matching is supported (e.g. specifying "IAC Driver" will match
             # "IAC Driver Bus 1" on macOS).
             #--------------------------------------------------------------------------------
-            if output_device == "dummy":
+            if output_device == "Dummy Output Device":
                 output_device = DummyOutputDevice()
             else:
                 output_device_names = MidiOutputDevice.get_device_names()
