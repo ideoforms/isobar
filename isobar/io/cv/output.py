@@ -60,7 +60,7 @@ class CVOutputDevice(OutputDevice):
         """
         super().__init__()
 
-        from signalflow import AudioGraph, Constant, ChannelArray, Impulse
+        from signalflow import AudioGraph, Constant, ChannelArray, Impulse, RectangularEnvelope
 
         self.channel_mappings = channel_mappings
         if channel_mappings is None:
@@ -88,10 +88,12 @@ class CVOutputDevice(OutputDevice):
         for mapping in self.channel_mappings:
             if mapping.property_name == "note":
                 self.channel_outputs[mapping.channel_index] = Constant(0)
+            if mapping.property_name == "velocity":
+                self.channel_outputs[mapping.channel_index] = Constant(0)
             elif mapping.property_name == "trigger":
-                self.channel_outputs[mapping.channel_index] = Impulse(0)
+                self.channel_outputs[mapping.channel_index] = RectangularEnvelope(0.02)
             elif mapping.property_name == "clock":
-                self.channel_outputs[mapping.channel_index] = Impulse(0)
+                self.channel_outputs[mapping.channel_index] = RectangularEnvelope(0.02)
 
         self.note_slots = [None] * self.channel_mappings.polyphony
         self.channel_array = ChannelArray(self.channel_outputs)
@@ -99,6 +101,12 @@ class CVOutputDevice(OutputDevice):
         self.midi_note_base = 60
 
         logger.info("Started CV output with %d channels" % self.num_channels)
+
+    @property
+    def ticks_per_beat(self):
+        # Specify that CV devices should receive 1 tick() per quarter note,
+        # i.e., one tick per beat at the specified tempo. Used to send clock signals.
+        return 1
 
     def _note_index_to_amplitude(self, note):
         note_float = (note - self.midi_note_base) / (12 * self.output_voltage_max)
@@ -128,7 +136,8 @@ class CVOutputDevice(OutputDevice):
                 if mapping.property_name == "note":
                     self.channel_outputs[mapping.channel_index].set_value(note_float)
                 elif mapping.property_name == "velocity":
-                    self.channel_outputs[mapping.channel_index].set_value(velocity / 127.0)
+                    value = 2.0 * (velocity / 127.0) - 1.0
+                    self.channel_outputs[mapping.channel_index].set_value(value)
                 elif mapping.property_name == "trigger":
                     self.channel_outputs[mapping.channel_index].trigger()
 
@@ -140,6 +149,11 @@ class CVOutputDevice(OutputDevice):
 
     def control(self, control, value, channel=0):
         pass
+
+    def tick(self):
+        for mapping in self.channel_mappings:
+            if mapping.property_name == "clock":
+                self.channel_outputs[mapping.channel_index].trigger()
 
 
 if __name__ == "__main__":
