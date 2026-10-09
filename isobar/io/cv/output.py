@@ -90,6 +90,9 @@ class CVOutputDevice(OutputDevice):
                 self.channel_outputs[mapping.channel_index] = Constant(0)
             elif mapping.property_name == "trigger":
                 self.channel_outputs[mapping.channel_index] = Impulse(0)
+            elif mapping.property_name == "clock":
+                self.channel_outputs[mapping.channel_index] = Impulse(0)
+
         self.note_slots = [None] * self.channel_mappings.polyphony
         self.channel_array = ChannelArray(self.channel_outputs)
         self.channel_array.play()
