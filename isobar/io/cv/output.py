@@ -1,4 +1,9 @@
+import logging
+
 from ..output import OutputDevice
+from signalflow import AudioGraph, Constant, ChannelArray, Impulse
+
+logger = logging.getLogger("isobar")
 
 
 def get_cv_output_devices():
@@ -10,7 +15,7 @@ class CVChannelMapping:
                  channel_index: int,
                  property_name: str):
 
-        if property_name not in ["note", "gate", "velocity", "clock"]:
+        if property_name not in ["note", "gate", "trigger", "envelope", "velocity", "clock"]:
             raise ValueError("Invalid property_name: %s" % property_name)
 
         self.channel_index = channel_index
@@ -24,27 +29,24 @@ class CVChannelMappings:
         self.note_priority = "last"
 
         # Maximum number of simultaneous notes
-        self.polyphony = 4
+        self.polyphony = 1
 
     def add_mapping(self, mapping: CVChannelMapping):
         self.mappings.append(mapping)
+
+    def __iter__(self):
+        return iter(self.mappings)
 
 class CVOutputDevice(OutputDevice):
     """
     CVOutputDevice: Sends output to CV over an audio I/O device.
     """
 
-    def audio_callback(self, out_data, frames, time, status):
-        for channel in range(self.channels):
-            value = self.channel_notes[channel]
-            if value is None:
-                value = 0.0
-            out_data[:, channel] = value
-
     def __init__(self,
                  device_name: str = None,
                  sample_rate: int = 44100,
-                 channel_mappings: CVChannelMappings = None):
+                 channel_mappings: CVChannelMappings = None,
+                 graph: AudioGraph = None):
         """
         Create a control voltage output device.
 
@@ -63,54 +65,87 @@ class CVOutputDevice(OutputDevice):
         if channel_mappings is None:
             self.channel_mappings = CVChannelMappings()
 
+        if graph:
+            self.graph = graph
+        else:
+            self.graph = AudioGraph.get_shared_graph()
+            if self.graph is None:
+                try:
+                    self.graph = AudioGraph(start=True)
+                except NameError:
+                    raise Exception("Could not instantiate SignalFlowOutputDevice, signalflow not installed?")
+
         #--------------------------------------------------------------------------------
         # Lazily import sounddevice, to avoid the additional time cost of initializing
         # PortAudio when not needed
         #--------------------------------------------------------------------------------
-        try:
-            import sounddevice
-            import numpy as np
-        except ModuleNotFoundError:
-            raise RuntimeError("CVOutputDevice: Couldn't import the sounddevice or numpy modules (to install: pip3 install sounddevice numpy)")
-
-        try:
-            self.stream = sounddevice.OutputStream(device=device_name,
-                                                   samplerate=sample_rate,
-                                                   blocksize=256,
-                                                   dtype="float32",
-                                                   callback=self.audio_callback)
-            self.stream.start()
-
-        except NameError:
-            raise Exception("For CV support, the sounddevice and numpy modules must be installed")
 
         # Expert Sleepers ES-8 supports entire -10V to +10V range
-        self.output_voltage_max = 10
-        self.channels = self.stream.channels
-        self.channel_notes = [None] * self.channels
+        self.output_voltage_max = 3
+        self.num_channels = self.graph.num_output_channels
+        self.channel_outputs = [0] * self.num_channels
+        for mapping in self.channel_mappings:
+            if mapping.property_name == "note":
+                self.channel_outputs[mapping.channel_index] = Constant(0)
+            elif mapping.property_name == "trigger":
+                self.channel_outputs[mapping.channel_index] = Impulse(0)
+        self.note_slots = [None] * self.channel_mappings.polyphony
+        self.channel_array = ChannelArray(self.channel_outputs)
+        self.channel_array.play()
         self.midi_note_base = 60
 
-        print("Started CV output with %d channels" % self.channels)
+        logger.info("Started CV output with %d channels" % self.num_channels)
 
     def _note_index_to_amplitude(self, note):
         note_float = (note - self.midi_note_base) / (12 * self.output_voltage_max)
         if note_float < -1.0 or note_float > 1.0:
             raise ValueError("Note index %d is outside the voltage range supported by this device" % note)
-        print("note %d, float %f" % (note, note_float))
         return note_float
+
+    def _get_next_slot_index(self):
+        for index, slot in enumerate(self.note_slots):
+            if slot is None:
+                return index
+        return None
+
+    def _clear_slot_for_note(self, note: int):
+        for index, slot_note in enumerate(self.note_slots):
+            if slot_note == note:
+                self.note_slots[index] = None
 
     def note_on(self, note=60, velocity=64, channel=0):
         note_float = self._note_index_to_amplitude(note)
-        for index, channel_note in enumerate(self.channel_notes):
-            if channel_note is None:
-                self.channel_notes[index] = note_float
-                break
+        slot_index = self._get_next_slot_index()
+        if slot_index is not None:
+            # Begin playing note through slot
+            self.note_slots[slot_index] = note
+
+            for mapping in self.channel_mappings:
+                if mapping.property_name == "note":
+                    self.channel_outputs[mapping.channel_index].set_value(note_float)
+                elif mapping.property_name == "velocity":
+                    self.channel_outputs[mapping.channel_index].set_value(velocity / 127.0)
+                elif mapping.property_name == "trigger":
+                    self.channel_outputs[mapping.channel_index].trigger()
+
+        else:
+            logger.warning("No free slots available for note %d" % note)
 
     def note_off(self, note=60, channel=0):
-        note_float = self._note_index_to_amplitude(note)
-        for index, channel_note in enumerate(self.channel_notes):
-            if channel_note is not None and channel_note == note_float:
-                self.channel_notes[index] = None
+        self._clear_slot_for_note(note)
 
     def control(self, control, value, channel=0):
         pass
+
+
+if __name__ == "__main__":
+    import time
+    mappings = CVChannelMappings([CVChannelMapping(0, "note"), CVChannelMapping(1, "trigger")])
+    cv_output = CVOutputDevice(channel_mappings=mappings)
+    while True:
+        for note in [60, 62, 64, 67]:
+            cv_output.note_on(note=note, velocity=64, channel=0)
+            time.sleep(0.25)
+            cv_output.note_off(note=note)
+            time.sleep(0.25)
+    
