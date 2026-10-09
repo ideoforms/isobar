@@ -8,6 +8,8 @@ class OutputDevice:
 
         added_latency_seconds can be negative if the device is fast.
         """
+
+        self.name = "Unnamed Output Device"
     
     def __str__(self):  
         return "Device (%s)" % (self.__class__.__name__)

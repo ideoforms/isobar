@@ -7,6 +7,8 @@ class DummyOutputDevice(OutputDevice):
         Dummy output device.
         """
         super().__init__()
+        
+        self.name = "Dummy Output Device"
         self.current_time = 0.0
         self.events = []
 

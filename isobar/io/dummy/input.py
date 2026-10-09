@@ -2,6 +2,7 @@ from ..midinote import MidiNote
 
 class DummyInputDevice:
     def __init__(self):
+        self.name = "Dummy Input Device"
         self.on_note_on_handlers: list[callable] = []
         self.on_note_off_handlers: list[callable] = []
         
