@@ -159,16 +159,27 @@ class Clock (BaseClockSource):
 
 class DummyClock (BaseClockSource):
     """
-    Clock subclass used in testing, which ticks at the highest rate possible.
+    Clock subclass used in testing, which can be configured to either:
+     - ticks at the highest rate possible (when run_at_max_rate is True), or
+     - only tick when explicitly instructed.
     """
-    def __init__(self, clock_target: Any = None):
+    def __init__(self,
+                 clock_target: Any = None,
+                 run_at_max_rate: bool = True):
         super().__init__(clock_target)
         self.is_running = False
+        self.run_at_max_rate = run_at_max_rate
 
     def run(self):
         self.is_running = True
         while self.is_running:
-            self.clock_target.tick()
+            if self.run_at_max_rate:
+                self.clock_target.tick()
+            else:
+                time.sleep(0.01)
+
+    def tick(self):
+        self.clock_target.tick()
 
     def stop(self):
         self.is_running = False
