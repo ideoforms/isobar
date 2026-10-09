@@ -1,7 +1,6 @@
 import logging
 
 from ..output import OutputDevice
-from signalflow import AudioGraph, Constant, ChannelArray, Impulse
 
 logger = logging.getLogger("isobar")
 
@@ -46,7 +45,7 @@ class CVOutputDevice(OutputDevice):
                  device_name: str = None,
                  sample_rate: int = 44100,
                  channel_mappings: CVChannelMappings = None,
-                 graph: AudioGraph = None):
+                 graph: "AudioGraph" = None):
         """
         Create a control voltage output device.
 
@@ -60,6 +59,8 @@ class CVOutputDevice(OutputDevice):
             channel_mappings (CVChannelMappings): Mapping of CV channels to properties (note, gate, velocity, clock).
         """
         super().__init__()
+
+        from signalflow import AudioGraph, Constant, ChannelArray, Impulse
 
         self.channel_mappings = channel_mappings
         if channel_mappings is None:
