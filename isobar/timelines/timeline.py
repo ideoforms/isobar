@@ -15,7 +15,7 @@ from .metronome import Metronome, MetronomeConfig
 from .clock import Clock
 from .clock_link import AbletonLinkClock
 from .events import EventDefaults
-from ..io import MidiOutputDevice, OutputDevice, MidiInputDevice
+from ..io import MidiOutputDevice, OutputDevice, MidiInputDevice, DummyOutputDevice
 from ..constants import DEFAULT_TICKS_PER_BEAT, DEFAULT_TEMPO
 from ..constants import INTERPOLATION_NONE
 from ..exceptions import TrackLimitReachedException, TrackNotFoundException, MultipleOutputDevicesException, TimelineAlreadyRunningException, TimelineNotRunningException
@@ -103,13 +103,16 @@ class Timeline:
             # Partial matching is supported (e.g. specifying "IAC Driver" will match
             # "IAC Driver Bus 1" on macOS).
             #--------------------------------------------------------------------------------
-            output_device_names = MidiOutputDevice.get_device_names()
-            matching_output_device_names = [name for name in output_device_names if name.startswith(output_device)]
-            if len(matching_output_device_names) == 0:
-                raise ValueError("No MIDI output device found matching '%s'" % output_device)
-            elif len(matching_output_device_names) > 1:
-                raise ValueError("Multiple MIDI output devices found matching '%s': %s" % (output_device, matching_output_device_names))
-            output_device = MidiOutputDevice(matching_output_device_names[0])
+            if output_device == "dummy":
+                output_device = DummyOutputDevice()
+            else:
+                output_device_names = MidiOutputDevice.get_device_names()
+                matching_output_device_names = [name for name in output_device_names if name.startswith(output_device)]
+                if len(matching_output_device_names) == 0:
+                    raise ValueError("No MIDI output device found matching '%s'" % output_device)
+                elif len(matching_output_device_names) > 1:
+                    raise ValueError("Multiple MIDI output devices found matching '%s': %s" % (output_device, matching_output_device_names))
+                output_device = MidiOutputDevice(matching_output_device_names[0])
         elif isinstance(output_device, OutputDevice):
             pass
         else:
@@ -215,6 +218,7 @@ class Timeline:
             "ticks_per_beat": self.ticks_per_beat,
             "stop_when_done": self.stop_when_done,
             "ignore_exceptions": self.ignore_exceptions,
+            "output_device": self.default_output_device.name if self.default_output_device else None,
         }
 
     @classmethod
@@ -231,6 +235,7 @@ class Timeline:
         timeline = cls(tempo=data.get("tempo", 120),
                        ticks_per_beat=data.get("ticks_per_beat", 480),
                        stop_when_done=data.get("stop_when_done", False),
+                       output_device=data.get("output_device", None),
                        ignore_exceptions=data.get("ignore_exceptions", False))
         timeline.metronome_config = MetronomeConfig(data.get("metronome_config"))
         tracks_data = data.get("tracks", [])
