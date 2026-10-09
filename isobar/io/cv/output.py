@@ -1,7 +1,33 @@
 from ..output import OutputDevice
 
+
 def get_cv_output_devices():
+    import sounddevice
     return list(sounddevice.query_devices())
+
+class CVChannelMapping:
+    def __init__(self,
+                 channel_index: int,
+                 property_name: str):
+
+        if property_name not in ["note", "gate", "velocity", "clock"]:
+            raise ValueError("Invalid property_name: %s" % property_name)
+
+        self.channel_index = channel_index
+        self.property_name = property_name
+
+class CVChannelMappings:
+    def __init__(self, mappings: list[CVChannelMapping] = []):
+        self.mappings = mappings.copy()
+
+        # Note stealing mode. Might consider: last, highest, lowest, random, none
+        self.note_priority = "last"
+
+        # Maximum number of simultaneous notes
+        self.polyphony = 4
+
+    def add_mapping(self, mapping: CVChannelMapping):
+        self.mappings.append(mapping)
 
 class CVOutputDevice(OutputDevice):
     """
@@ -15,10 +41,13 @@ class CVOutputDevice(OutputDevice):
                 value = 0.0
             out_data[:, channel] = value
 
-    def __init__(self, device_name=None, sample_rate=44100):
+    def __init__(self,
+                 device_name: str = None,
+                 sample_rate: int = 44100,
+                 channel_mappings: CVChannelMappings = None):
         """
         Create a control voltage output device.
-        
+
         Control voltage signals require a DC-coupled audio interface, which Python
         sends audio signals to via the sounddevice library. 
 
@@ -26,11 +55,16 @@ class CVOutputDevice(OutputDevice):
             device_name (str): Name of the audio output device to use.
                                To query possible names, call get_cv_output_devices().
             sample_rate (int): Audio sample rate to use.
+            channel_mappings (CVChannelMappings): Mapping of CV channels to properties (note, gate, velocity, clock).
         """
         super().__init__()
 
+        self.channel_mappings = channel_mappings
+        if channel_mappings is None:
+            self.channel_mappings = CVChannelMappings()
+
         #--------------------------------------------------------------------------------
-        # Lazily import sounddevice, to avoid the additional time cost of initializing 
+        # Lazily import sounddevice, to avoid the additional time cost of initializing
         # PortAudio when not needed
         #--------------------------------------------------------------------------------
         try:
@@ -42,7 +76,7 @@ class CVOutputDevice(OutputDevice):
         try:
             self.stream = sounddevice.OutputStream(device=device_name,
                                                    samplerate=sample_rate,
-                                                   block_size=256,
+                                                   blocksize=256,
                                                    dtype="float32",
                                                    callback=self.audio_callback)
             self.stream.start()
@@ -54,12 +88,12 @@ class CVOutputDevice(OutputDevice):
         self.output_voltage_max = 10
         self.channels = self.stream.channels
         self.channel_notes = [None] * self.channels
-        self.midi_c0 = 0
+        self.midi_note_base = 60
 
         print("Started CV output with %d channels" % self.channels)
 
     def _note_index_to_amplitude(self, note):
-        note_float = (note - self.midi_c0) / (12 * self.output_voltage_max)
+        note_float = (note - self.midi_note_base) / (12 * self.output_voltage_max)
         if note_float < -1.0 or note_float > 1.0:
             raise ValueError("Note index %d is outside the voltage range supported by this device" % note)
         print("note %d, float %f" % (note, note_float))
