@@ -2,25 +2,25 @@ from ..midinote import MidiNote
 
 class DummyInputDevice:
     def __init__(self):
-        self.on_note_on = None
-        self.on_note_off = None
+        self.on_note_on_handlers: list[callable] = []
+        self.on_note_off_handlers: list[callable] = []
         
     def add_note_on_handler(self, callback):
-        self.on_note_on = callback
+        self.on_note_on_handlers.append(callback)
         
     def add_note_off_handler(self, callback):
-        self.on_note_off = callback
+        self.on_note_off_handlers.append(callback)
 
     def remove_note_on_handler(self, callback):
-        self.on_note_on = None
+        self.on_note_on_handlers.remove(callback)
 
     def remove_note_off_handler(self, callback):
-        self.on_note_off = None
+        self.on_note_off_handlers.remove(callback)
         
     def note_on(self, pitch, velocity, channel=0):
-        if self.on_note_on:
-            self.on_note_on(MidiNote(pitch=pitch, velocity=velocity, channel=channel))
+        for handler in self.on_note_on_handlers:
+            handler(MidiNote(pitch=pitch, velocity=velocity, channel=channel))
 
     def note_off(self, pitch, channel=0):
-        if self.on_note_off:
-            self.on_note_off(MidiNote(pitch=pitch, velocity=0, channel=channel))
+        for handler in self.on_note_off_handlers:
+            handler(MidiNote(pitch=pitch, velocity=0, channel=channel))
