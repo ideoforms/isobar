@@ -19,6 +19,20 @@ def test_util_midi_note_to_note_name():
     assert midi_note_to_note_name(60 + 48) == 'C8'
     assert midi_note_to_note_name(60 + 60) == 'C9'
 
+    # include_octave
+    assert midi_note_to_note_name(60, include_octave=False) == 'C'
+    assert midi_note_to_note_name(61, include_octave=False) == 'C#'
+    assert midi_note_to_note_name(0, include_octave=False) == 'C'
+    assert midi_note_to_note_name(127, include_octave=False) == 'G'
+
+    # accidental
+    assert midi_note_to_note_name(61, accidental="flat") == 'Db4'
+    assert midi_note_to_note_name(58, accidental="flat") == 'Bb3'
+    assert midi_note_to_note_name(61, accidental="sharp") == 'C#4'
+    assert midi_note_to_note_name(60, accidental="flat") == 'C4'
+    assert midi_note_to_note_name(63, include_octave=False, accidental="flat") == 'Eb'
+    assert midi_note_to_note_name(62, include_octave=False, accidental="flat") == 'D'
+
 def test_util_note_name_to_midi_note():
     assert note_name_to_midi_note('C-1') == 60 - 60
     assert note_name_to_midi_note('C0') == 60 - 48

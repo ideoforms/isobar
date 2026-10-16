@@ -83,22 +83,38 @@ def note_name_to_midi_note(name):
 
     return (octave + 1) * 12 + index
 
-def midi_note_to_note_name(note: float) -> str:
+def midi_note_to_note_name(note: float,
+                           include_octave: bool = True,
+                           accidental: str = "sharp") -> str:
     """
     Maps a MIDI note index to a note name.
-    Supports fractional pitches.
+
+    Args:
+        note (float): The MIDI note index.
+        include_octave (bool): Whether to include the octave in the note name.
+        accidental (str): The accidental style to use ("sharp" or "flat").
+
+    Returns:
+        str: The corresponding note name.
     """
     if (type(note) is not int and type(note) is not float) or (note < 0 or note > 127):
         raise InvalidMIDIPitch()
 
     degree = int(note) % len(note_names)
-    octave = int(note / len(note_names)) - 1
-    str = "%s%d" % (note_names[degree][0], octave)
+    if accidental == "flat" and len(note_names[degree]) > 1:
+        note_name_str = note_names[degree][1]
+    else:
+        note_name_str = note_names[degree][0]
+
+    if include_octave:
+        octave = int(note / len(note_names)) - 1
+        note_name_str = note_name_str + str(octave)
+
     frac = math.modf(note)[0]
     if frac > 0:
-        str = (str + " + %2f" % frac)
+        note_name_str = (note_name_str + " + %2f" % frac)
 
-    return str
+    return note_name_str
 
 def frequency_to_midi_note(frequency: Union[float, Iterable],
                            omit_invalid_frequencies: bool = True) -> float:
