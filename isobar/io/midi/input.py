@@ -16,19 +16,25 @@ class MidiInputDevice (BaseClockSource):
     def __init__(self, 
                  device_name: str = None,
                  clock_target: Any = None,
+                 event_filter: Callable[[mido.Message], bool] = None,
                  virtual: bool = False):
         """
         Create a MIDI input device.
         Use `isobar.get_midi_input_names()` to query all available devices.
 
         Args:
-            device_name (str): The name of the target device to use.
-                               The default MIDI output device name can also be specified
-                               with the environmental variable ISOBAR_DEFAULT_MIDI_IN.
-            clock_target:      Target to send clocking events to. To sync a specific
-                               Timeline to a MidiInputDevice device, use
-                               `timeline.clock_source = midi_in`.
-            virtual (bool):    Whether to create a "virtual" rtmidi device.
+            device_name:  The name of the target device to use.
+                          The default MIDI output device name can also be specified
+                          with the environmental variable ISOBAR_DEFAULT_MIDI_IN.
+            clock_target: Target to send clocking events to. To sync a specific
+                          Timeline to a MidiInputDevice device, use
+                          `timeline.clock_source = midi_in`.
+            event_filter: Event filter: A function that takes a mido.Message and returns True
+                          if the message should be processed, False otherwise.
+                          Event filtering is applied to any "channel voice" message:
+                          note on/off, control change, pitch bend, etc.
+            virtual:      Whether to create a "virtual" rtmidi device.
+            
         """
         if device_name is None:
             device_name = os.getenv("ISOBAR_DEFAULT_MIDI_IN")
@@ -56,6 +62,7 @@ class MidiInputDevice (BaseClockSource):
 
         self.name = device_name
         self.clock_target = clock_target
+        self.event_filter = event_filter
         self.queue = queue.Queue()
         self.estimated_tempo = None
         self.last_clock_time = None
@@ -87,6 +94,14 @@ class MidiInputDevice (BaseClockSource):
             message: A mido.Message.
         """
         logger.debug(" - MIDI message received: %s" % message)
+
+        if hasattr(message, "channel") and self.event_filter is not None:
+            #--------------------------------------------------------------------------------
+            # Apply the event filter to the incoming message. If the filter returns False,
+            # the message should be ignored.
+            #--------------------------------------------------------------------------------
+            if not self.event_filter(message):
+                return
 
         if message.type == 'clock':
             if self.last_clock_time is not None:
@@ -192,7 +207,8 @@ class MidiInputDevice (BaseClockSource):
                 # Polyphonic aftertouch event
                 #------------------------------------------------------------------------
                 note = self.notes_down_dict[message.note]
-                note.aftertouch = message.value
+                if note is not None:
+                    note.aftertouch = message.value
                 for handler in self.on_polytouch_handlers:
                     handler(message)
             
@@ -370,9 +386,9 @@ if __name__ == "__main__":
     midi_in = MidiInputDevice(device_name=args.device)
     logger.info("Listening for MIDI input on device: %s" % midi_in.device_name)
 
-    midi_in.set_note_on_handler(lambda msg: logger.info("Note on: %s" % msg))
-    midi_in.set_note_off_handler(lambda msg: logger.info("Note off: %s" % msg))
-    midi_in.set_control_change_handler(lambda msg: logger.info("Control change: %s" % msg))
+    midi_in.add_note_on_handler(lambda msg: logger.info("Note on: %s" % msg))
+    midi_in.add_note_off_handler(lambda msg: logger.info("Note off: %s" % msg))
+    midi_in.add_control_change_handler(lambda msg: logger.info("Control change: %s" % msg))
 
     try:
         midi_in.run()
