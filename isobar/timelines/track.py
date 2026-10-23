@@ -98,6 +98,8 @@ class Track:
         self._is_recording: bool = False
         self._monitor: bool = False
         self._recording_notes: dict[int, tuple[float, int, int]] = {}
+        # Notes from the input device that are currently being monitored, indexed by input pitch
+        self._monitored_notes: dict[int, MidiNoteInstance] = {}
         self.on_event_callbacks: list[Callable] = []
 
         #--------------------------------------------------------------------------------
@@ -236,8 +238,7 @@ class Track:
             if note.is_playing:
                 note.tick()
                 if note.is_finished or immediately:
-                    self.output_device.note_off(note.output_note.note, note.output_note.channel)
-                    note.sounding = None
+                    self.note_off(note)
                     if note.is_ephemeral:
                         self.notes.remove(note)
                     note.is_playing = False
@@ -392,40 +393,11 @@ class Track:
                     #--------------------------------------------------------------------------------
                     # If the note is already playing, send a note_off first.
                     #--------------------------------------------------------------------------------
-                    self.output_device.note_off(note.output_note.note, note.output_note.channel)
-                    note.sounding = None
+                    self.note_off(note)
                     note.is_playing = False
 
                 note.start_playing(duration_ticks=self.timeline.time_to_ticks_int(note.duration))
-
-                if note.origin is None:
-                    effects = self.note_effects
-                else:
-                    #--------------------------------------------------------------------------------
-                    # If the note was created by an effect (e.g. echo), apply the effects
-                    # that come after the effect that created the note.
-                    #--------------------------------------------------------------------------------
-                    if note.origin in self.note_effects:
-                        effects = self.note_effects[self.note_effects.index(note.origin) + 1:]
-                    else:
-                        effects = []
-
-                #--------------------------------------------------------------------------------
-                # Apply the effects to a copy of the note, so that the note itself is unchanged
-                # and the effects aren't applied again each time it is played (e.g. in a loop).
-                # The copy is kept so that its note_off matches what was played.
-                #--------------------------------------------------------------------------------
-                sounding = note.copy()
-                sounding.sounding = None
-                for effect in effects:
-                    effect.apply(sounding)
-                note.sounding = sounding
-
-                if hasattr(self.output_device, "perform"):
-                    self.output_device.perform(sounding)
-                else:
-                    self.output_device.note_on(sounding.note, sounding.amplitude, sounding.channel)
-
+                self.note_on(note)
                 note.is_playing = True
 
     def reset_to_beat(self):
@@ -541,6 +513,58 @@ class Track:
         if t1 - t0 > 0.01:
             logger.info("Track %s: Event took %.2f seconds to execute" % (self.name, t1 - t0))
 
+    def note_on(self, note: MidiNoteInstance) -> MidiNoteInstance:
+        """
+        Play a note on the track's output device, applying the track's note effects.
+
+        Effects are applied to a copy of the note, so that the note itself is unchanged
+        and the effects aren't applied again each time it is played (e.g. in a loop).
+        The copy is stored in `note.sounding`, so that `note_off` matches what was played.
+
+        Args:
+            note (MidiNoteInstance): The note to play.
+
+        Returns:
+            MidiNoteInstance: The copy of the note that was sent to the output.
+        """
+        if note.track is None:
+            note.track = self
+
+        if note.origin is None:
+            effects = self.note_effects
+        elif note.origin in self.note_effects:
+            #--------------------------------------------------------------------------------
+            # If the note was created by an effect (e.g. echo), apply only the effects
+            # that come after the effect that created the note.
+            #--------------------------------------------------------------------------------
+            effects = self.note_effects[self.note_effects.index(note.origin) + 1:]
+        else:
+            effects = []
+
+        sounding = note.copy()
+        sounding.sounding = None
+        for effect in effects:
+            effect.apply(sounding)
+        note.sounding = sounding
+
+        if hasattr(self.output_device, "perform"):
+            self.output_device.perform(sounding)
+        else:
+            self.output_device.note_on(sounding.note, sounding.amplitude, sounding.channel)
+
+        return sounding
+
+    def note_off(self, note: MidiNoteInstance) -> None:
+        """
+        Stop a note that was played with `note_on`, sending the note_off for the
+        pitch and channel that were actually played (after effects were applied).
+
+        Args:
+            note (MidiNoteInstance): The note to stop.
+        """
+        self.output_device.note_off(note.output_note.note, note.output_note.channel)
+        note.sounding = None
+
     def add_note(self,
                  note: MidiNoteInstance):
         """
@@ -617,9 +641,12 @@ class Track:
         """
         for note in self.notes:
             if note.is_playing:
-                self.output_device.note_off(note.output_note.note, note.output_note.channel)
-                note.sounding = None
+                self.note_off(note)
                 note.is_playing = False
+
+        for note in self._monitored_notes.values():
+            self.note_off(note)
+        self._monitored_notes.clear()
 
     def clear(self):
         """
@@ -792,14 +819,14 @@ class Track:
 
         logger.debug("Track %s: set input device: %s" % (self.name, input_device))
         if self._input_device is not None:
-            self._input_device.remove_note_on_handler(self._on_note_on)
-            self._input_device.remove_note_off_handler(self._on_note_off)
+            self._input_device.remove_note_on_handler(self._on_note_on_received)
+            self._input_device.remove_note_off_handler(self._on_note_off_received)
 
         self._input_device = input_device
 
         if self._input_device is not None:
-            self._input_device.add_note_on_handler(self._on_note_on)
-            self._input_device.add_note_off_handler(self._on_note_off)
+            self._input_device.add_note_on_handler(self._on_note_on_received)
+            self._input_device.add_note_off_handler(self._on_note_off_received)
 
     def get_input_device(self):
         """
@@ -892,28 +919,44 @@ class Track:
         quantized_time = time + (nearest_grid_time - time) * level
         return quantized_time
 
-    def _on_note_on(self, note: MidiNote):
+    def _on_note_on_received(self, note: MidiNote):
         if not (self._is_recording or self._monitor):
             return
+
+        if self._monitor:
+            #--------------------------------------------------------------------------------
+            # Play the note through the track's note effects. It is kept so that the
+            # matching note_off is sent for the pitch that was actually played.
+            #--------------------------------------------------------------------------------
+            if note.pitch in self._monitored_notes:
+                self.note_off(self._monitored_notes.pop(note.pitch))
+            monitored_note = MidiNoteInstance(timestamp=self.current_time,
+                                              track=self,
+                                              note=note.pitch,
+                                              amplitude=note.velocity,
+                                              channel=note.channel)
+            self.note_on(monitored_note)
+            self._monitored_notes[note.pitch] = monitored_note
 
         #--------------------------------------------------------------------------------
         # Record the start time of the note.
         #--------------------------------------------------------------------------------
-        if self._monitor:
-            self.output_device.note_on(note.pitch, note.velocity, note.channel)
-
         if not self.timeline.is_running:
             return
 
         if self._is_recording:
             self._recording_notes[note.pitch] = (self.current_time, note.velocity, note.channel)
 
-    def _on_note_off(self, note: MidiNote):
+    def _on_note_off_received(self, note: MidiNote):
+        #--------------------------------------------------------------------------------
+        # Release any monitored note, even if monitoring has since been disabled,
+        # to prevent hanging notes.
+        #--------------------------------------------------------------------------------
+        if note.pitch in self._monitored_notes:
+            self.note_off(self._monitored_notes.pop(note.pitch))
+
         if not (self._is_recording or self._monitor):
             return
-
-        if self._monitor:
-            self.output_device.note_off(note.pitch, note.channel)
 
         if not self.timeline.is_running:
             return
