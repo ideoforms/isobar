@@ -236,7 +236,8 @@ class Track:
             if note.is_playing:
                 note.tick()
                 if note.is_finished or immediately:
-                    self.output_device.note_off(note.note, note.channel)
+                    self.output_device.note_off(note.output_note.note, note.output_note.channel)
+                    note.sounding = None
                     if note.is_ephemeral:
                         self.notes.remove(note)
                     note.is_playing = False
@@ -391,7 +392,8 @@ class Track:
                     #--------------------------------------------------------------------------------
                     # If the note is already playing, send a note_off first.
                     #--------------------------------------------------------------------------------
-                    self.output_device.note_off(note.note, note.channel)
+                    self.output_device.note_off(note.output_note.note, note.output_note.channel)
+                    note.sounding = None
                     note.is_playing = False
 
                 note.start_playing(duration_ticks=self.timeline.time_to_ticks_int(note.duration))
@@ -408,13 +410,21 @@ class Track:
                     else:
                         effects = []
 
+                #--------------------------------------------------------------------------------
+                # Apply the effects to a copy of the note, so that the note itself is unchanged
+                # and the effects aren't applied again each time it is played (e.g. in a loop).
+                # The copy is kept so that its note_off matches what was played.
+                #--------------------------------------------------------------------------------
+                sounding = note.copy()
+                sounding.sounding = None
                 for effect in effects:
-                    effect.apply(note)
+                    effect.apply(sounding)
+                note.sounding = sounding
 
                 if hasattr(self.output_device, "perform"):
-                    self.output_device.perform(note)
+                    self.output_device.perform(sounding)
                 else:
-                    self.output_device.note_on(note.note, note.amplitude, note.channel)
+                    self.output_device.note_on(sounding.note, sounding.amplitude, sounding.channel)
 
                 note.is_playing = True
 
@@ -607,7 +617,8 @@ class Track:
         """
         for note in self.notes:
             if note.is_playing:
-                self.output_device.note_off(note.note, note.channel)
+                self.output_device.note_off(note.output_note.note, note.output_note.channel)
+                note.sounding = None
                 note.is_playing = False
 
     def clear(self):

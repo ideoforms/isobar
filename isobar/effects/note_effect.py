@@ -1,5 +1,7 @@
 from ..pattern import Pattern
 from ..timelines.midi_note import MidiNoteInstance
+from ..scale import Scale
+from ..key import Key
 
 class NoteEffect:
     def __init__(self):
@@ -38,6 +40,14 @@ class NoteEffectEcho (NoteEffect):
         count = Pattern.value(self.count)
         for i in range(count):
             note_copy = note.copy()
+            #--------------------------------------------------------------------------------
+            # Echoes are generated each time the note is played, so they are ephemeral:
+            # removed once they have played, and not saved with the track.
+            #--------------------------------------------------------------------------------
+            note_copy.is_ephemeral = True
+            note_copy.is_playing = False
+            note_copy.is_finished = False
+            note_copy.sounding = None
             note_copy.timestamp += Pattern.value(self.delay * (i + 1))
             note_copy.amplitude = int(round(note_copy.amplitude * Pattern.value(self.scale)))
             if insert is not None:
@@ -72,3 +82,19 @@ class NoteEffectScale(NoteEffect):
 
         note.amplitude = int(round(note.amplitude * Pattern.value(self.scale)))
 
+class NoteEffectSnapToKey(NoteEffect):
+    def __init__(self, active=1, scale=Scale.major, tonic=0):
+        super().__init__()
+        self.active = Pattern.pattern(active)
+        self.scale = Pattern.pattern(scale)
+        self.tonic = Pattern.pattern(tonic)
+
+    def apply(self, note: MidiNoteInstance):
+        active = Pattern.value(self.active)
+        if not active:
+            return
+
+        scale = Pattern.value(self.scale)
+        tonic = Pattern.value(self.tonic)
+        key = Key(tonic, scale)
+        note.note = key.nearest_note(note.note)

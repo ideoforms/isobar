@@ -1,6 +1,6 @@
 import copy
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from .track import Track
 
@@ -31,6 +31,11 @@ class MidiNoteInstance:
         self.is_playing = False
         self.is_finished = False
         self.origin: NoteEffect = None
+
+        # The copy of this note that was sent to the output while it is playing, with the track's note effects
+        # applied. Effects are applied to a copy so that the note itself is unchanged, and the note_off is sent
+        # for the pitch and channel that were actually played.
+        self.sounding: Optional["MidiNoteInstance"] = None
 
         # If True, the note is ephemeral (e.g. created by a realtime process),
         # and should not be stored in history.
@@ -93,6 +98,13 @@ class MidiNoteInstance:
 
     def copy(self):
         return copy.copy(self)
+
+    @property
+    def output_note(self) -> "MidiNoteInstance":
+        """
+        The note as sent to the output: its sounding copy if it is playing, or the note itself otherwise.
+        """
+        return self.sounding if self.sounding is not None else self
 
     def get_note(self) -> int:
         return self._note if self._note is not None else self.track.defaults.note
