@@ -340,3 +340,95 @@ def test_timeline_tempo(dummy_timeline):
     except iso.DeviceNotFoundException:
         # Fail quietly on machines that don't support MIDI
         pass
+
+
+def test_timeline_metronome_config_round_trip():
+    metronome_output = DummyOutputDevice()
+    metronome_output.name = "Metronome port"
+
+    timeline = iso.Timeline(output_device=DummyOutputDevice())
+    timeline.metronome_config.midi_output_device = metronome_output
+    timeline.metronome_config.midi_channel = 9
+    timeline.metronome_config.midi_note_major = 50
+
+    data = timeline.to_dict()
+    # The output device is saved by name
+    assert data["metronome_config"]["midi_output_device"] == "Metronome port"
+
+    loaded = iso.Timeline.from_dict(data, open_output_device=lambda name: metronome_output)
+    assert loaded.metronome_config.midi_output_device is metronome_output
+    assert loaded.metronome_config.midi_channel == 9
+    assert loaded.metronome_config.midi_note_major == 50
+
+
+def test_timeline_enable_metronome_uses_metronome_config():
+    timeline = iso.Timeline(output_device=DummyOutputDevice())
+    metronome_output = DummyOutputDevice()
+    timeline.metronome_config.midi_output_device = metronome_output
+    timeline.enable_metronome()
+    assert timeline.metronome.config is timeline.metronome_config
+    assert timeline.metronome.output_device is metronome_output
+
+
+@pytest.mark.parametrize("enabled", [True, False])
+def test_timeline_metronome_enabled_round_trip(enabled):
+    timeline = iso.Timeline(output_device=DummyOutputDevice())
+    if enabled:
+        timeline.enable_metronome()
+
+    data = timeline.to_dict()
+    assert data["metronome_enabled"] == enabled
+
+    loaded = iso.Timeline.from_dict(data)
+    assert loaded.is_metronome_enabled == enabled
+    if enabled:
+        assert loaded.metronome.config is loaded.metronome_config
+
+
+def test_timeline_metronome_disabled_when_not_saved():
+    data = iso.Timeline(output_device=DummyOutputDevice()).to_dict()
+    del data["metronome_enabled"]
+    assert not iso.Timeline.from_dict(data).is_metronome_enabled
+
+
+def test_timeline_output_devices_and_channel_round_trip():
+    def named_output_device(name):
+        device = DummyOutputDevice()
+        device.name = name
+        return device
+
+    timeline = iso.Timeline(output_device=named_output_device("Main port"))
+    track = iso.Track(timeline, name="T1", output_device=named_output_device("Track port"))
+    track.defaults.channel = 5
+    timeline.tracks.append(track)
+    timeline.tracks.append(iso.Track(timeline, name="T2"))
+    timeline.metronome_config.midi_output_device = named_output_device("Track port")
+
+    data = timeline.to_dict()
+    assert data["tracks"][0]["output_device"] == "Track port"
+    assert data["tracks"][0]["channel"] == 5
+
+    # Each name is opened once, and shared wherever it appears
+    opened = []
+    def open_output_device(name):
+        opened.append(name)
+        return named_output_device(name)
+
+    loaded = iso.Timeline.from_dict(data, open_output_device=open_output_device)
+    assert sorted(opened) == ["Main port", "Track port"]
+    assert loaded.default_output_device.name == "Main port"
+    assert loaded.tracks[0].output_device.name == "Track port"
+    assert loaded.tracks[0].defaults.channel == 5
+    assert loaded.tracks[1].output_device is loaded.default_output_device
+    assert loaded.metronome_config.midi_output_device is loaded.tracks[0].output_device
+
+
+def test_timeline_from_dict_without_devices_uses_timeline_output():
+    data = iso.Timeline(output_device=DummyOutputDevice()).to_dict()
+    data["tracks"] = [{"name": "T1"}]
+    data["metronome_config"]["midi_output_device"] = None
+
+    loaded = iso.Timeline.from_dict(data)
+    assert isinstance(loaded.output_device, DummyOutputDevice)
+    assert loaded.tracks[0].output_device is loaded.output_device
+    assert loaded.metronome_config.midi_output_device is None

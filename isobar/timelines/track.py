@@ -846,20 +846,24 @@ class Track:
         """
         return self._is_recording
 
-    def start_recording(self, monitor: bool = True):
+    def start_recording(self, monitor: bool = True, overwrite: str = "replace"):
         """
         Start recording events from the input device.
 
         Args:
             monitor (bool): If True, events received from the input device are
                             immediately sent to the output device.
+            overwrite (str): The overwrite mode for recording. Can be "replace" or "overdub".
+                             "replace" will erase any previous notes;
+                             "overdub" will add to them.
         """
         if self.input_device is None:
             raise RuntimeError("Track does not have an input_device set")
 
         self._is_recording = True
         self._monitor = monitor
-        logger.info("Track %s: Started recording (monitor=%s)" % (self.name, monitor))
+        self._overwrite = overwrite
+        logger.info("Track %s: Started recording (monitor=%s, overwrite=%s)" % (self.name, monitor, overwrite))
 
     def stop_recording(self):
         """
@@ -984,6 +988,9 @@ class Track:
             "interpolate": self.interpolate,
             "remove_when_done": self.remove_when_done,
             "ramp": self.ramp,
+            # Saved by name: Timeline.from_dict opens it again
+            "output_device": getattr(self.output_device, "name", None),
+            "channel": self.defaults.channel,
             "quantize_grid": self.quantize_grid,
             "quantize_level": self.quantize_level,
             "notes": [note.to_dict() for note in self.notes if not note.is_ephemeral],
@@ -999,6 +1006,8 @@ class Track:
                     output_device=output_device or timeline.default_output_device,
                     remove_when_done=data.get("remove_when_done", True),
                     ramp=data.get("ramp"))
+        if data.get("channel") is not None:
+            track.defaults.channel = data["channel"]
         grid = data.get("quantize_grid") or None
         if grid:
             track.set_quantize(grid, data.get("quantize_level"))

@@ -35,6 +35,22 @@ class Action:
     time: float
     function: Callable
 
+def open_output_device_by_name(name: str) -> OutputDevice:
+    """
+    Open the MIDI output device with a matching name. Partial matching is supported (e.g. specifying "IAC Driver"
+    will match "IAC Driver Bus 1" on macOS). "Dummy Output Device" opens a DummyOutputDevice.
+    """
+    if name == "Dummy Output Device":
+        return DummyOutputDevice()
+    output_device_names = MidiOutputDevice.get_device_names()
+    matching_output_device_names = [device_name for device_name in output_device_names if device_name.startswith(name)]
+    if len(matching_output_device_names) == 0:
+        raise ValueError("No MIDI output device found matching '%s'" % name)
+    elif len(matching_output_device_names) > 1:
+        raise ValueError("Multiple MIDI output devices found matching '%s': %s" % (name, matching_output_device_names))
+    return MidiOutputDevice(matching_output_device_names[0])
+
+
 class Timeline:
     def __init__(self,
                  tempo: float = DEFAULT_TEMPO,
@@ -98,21 +114,7 @@ class Timeline:
             output_device = MidiOutputDevice()
 
         elif isinstance(output_device, str):
-            #--------------------------------------------------------------------------------
-            # If a string is specified, find the MIDI output device with a matching name.
-            # Partial matching is supported (e.g. specifying "IAC Driver" will match
-            # "IAC Driver Bus 1" on macOS).
-            #--------------------------------------------------------------------------------
-            if output_device == "Dummy Output Device":
-                output_device = DummyOutputDevice()
-            else:
-                output_device_names = MidiOutputDevice.get_device_names()
-                matching_output_device_names = [name for name in output_device_names if name.startswith(output_device)]
-                if len(matching_output_device_names) == 0:
-                    raise ValueError("No MIDI output device found matching '%s'" % output_device)
-                elif len(matching_output_device_names) > 1:
-                    raise ValueError("Multiple MIDI output devices found matching '%s': %s" % (output_device, matching_output_device_names))
-                output_device = MidiOutputDevice(matching_output_device_names[0])
+            output_device = open_output_device_by_name(output_device)
         elif isinstance(output_device, OutputDevice):
             pass
         else:
@@ -215,6 +217,7 @@ class Timeline:
             "tracks": [track.to_dict() for track in self.tracks],
             "tempo": self.tempo,
             "metronome_config": self.metronome_config.to_dict() if self.metronome_config else None,
+            "metronome_enabled": self.is_metronome_enabled,
             "ticks_per_beat": self.ticks_per_beat,
             "stop_when_done": self.stop_when_done,
             "ignore_exceptions": self.ignore_exceptions,
@@ -222,26 +225,51 @@ class Timeline:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Timeline":
+    def from_dict(cls, data: dict,
+                  open_output_device: Optional[Callable[[str], OutputDevice]] = None) -> "Timeline":
         """
         Deserialize a Timeline object from a dictionary.
 
+        Output devices are saved by name. Each name is opened once, and the device is shared by the timeline, its
+        tracks and the metronome wherever the name appears. Anything saved without a device uses the timeline's.
+
         Args:
             data: A dictionary representation of a Timeline.
+            open_output_device: Opens the output device with a given name. Defaults to open_output_device_by_name.
+                                Pass your own to reuse devices that are already open, or to fall back to another
+                                device when one isn't available.
 
         Returns:
             Timeline: The deserialized Timeline object.
         """
+        open_output_device = open_output_device or open_output_device_by_name
+        output_devices = {}
+
+        def get_output_device(name: Optional[str]) -> Optional[OutputDevice]:
+            if name is None:
+                return None
+            if name not in output_devices:
+                output_devices[name] = open_output_device(name)
+            return output_devices[name]
+
         timeline = cls(tempo=data.get("tempo", 120),
                        ticks_per_beat=data.get("ticks_per_beat", 480),
                        stop_when_done=data.get("stop_when_done", False),
-                       output_device=data.get("output_device", None),
+                       output_device=get_output_device(data.get("output_device")),
                        ignore_exceptions=data.get("ignore_exceptions", False))
-        timeline.metronome_config = MetronomeConfig(data.get("metronome_config"))
+        metronome_data = data.get("metronome_config")
+        if metronome_data:
+            timeline.metronome_config = MetronomeConfig.from_dict(
+                metronome_data, get_output_device(metronome_data.get("midi_output_device")))
+        else:
+            timeline.metronome_config = MetronomeConfig()
+        if data.get("metronome_enabled", False):
+            timeline.enable_metronome()
         tracks_data = data.get("tracks", [])
         for track_data in tracks_data:
             track = Track.from_dict(track_data,
-                                    timeline=timeline)
+                                    timeline=timeline,
+                                    output_device=get_output_device(track_data.get("output_device")))
             track.start(None)
             timeline.tracks.append(track)
         return timeline
@@ -937,7 +965,7 @@ class Timeline:
         Enable the metronome, which generates regular events on a specified output device
         according to the timeline's current tempo.
         """
-        self.metronome = Metronome(self)
+        self.metronome = Metronome(self, self.metronome_config)
 
     def disable_metronome(self):
         """

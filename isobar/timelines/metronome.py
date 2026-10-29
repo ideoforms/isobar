@@ -17,11 +17,12 @@ class MetronomeConfig:
     midi_note_duration: float = 0.1
 
     def to_dict(self) -> dict:
-        # TODO: Honour MIDI output device
+        # The output device is saved by name: it is opened again when loaded, by the caller of from_dict
         return {
             "bar_length": self.bar_length,
             "interval": self.interval,
             "type": self.type,
+            "midi_output_device": getattr(self.midi_output_device, "name", None),
             "midi_channel": self.midi_channel,
             "midi_note_major": self.midi_note_major,
             "midi_note_minor": self.midi_note_minor,
@@ -29,14 +30,34 @@ class MetronomeConfig:
             "midi_velocity_minor": self.midi_velocity_minor,
             "midi_note_duration": self.midi_note_duration,
         }
+
+    @classmethod
+    def from_dict(cls, data: dict, midi_output_device: Any = None) -> "MetronomeConfig":
+        """
+        Deserialize a MetronomeConfig from a dictionary made by to_dict.
+
+        The dictionary holds only the output device's name (as data["midi_output_device"]), so the open device
+        is passed in as midi_output_device. If it is None, the metronome plays on the timeline's output device.
+        """
+        defaults = cls()
+        return cls(bar_length=data.get("bar_length", defaults.bar_length),
+                   interval=data.get("interval", defaults.interval),
+                   type=data.get("type", defaults.type),
+                   midi_output_device=midi_output_device,
+                   midi_channel=data.get("midi_channel", defaults.midi_channel),
+                   midi_note_major=data.get("midi_note_major", defaults.midi_note_major),
+                   midi_note_minor=data.get("midi_note_minor", defaults.midi_note_minor),
+                   midi_velocity_major=data.get("midi_velocity_major", defaults.midi_velocity_major),
+                   midi_velocity_minor=data.get("midi_velocity_minor", defaults.midi_velocity_minor),
+                   midi_note_duration=data.get("midi_note_duration", defaults.midi_note_duration))
     
 
 class Metronome:
     def __init__(self,
                  timeline,
-                 config: MetronomeConfig = MetronomeConfig()):
+                 config: MetronomeConfig = None):
         self.timeline = timeline
-        self.config = config
+        self.config = config if config is not None else MetronomeConfig()
         self.current_tick = 0
 
     @property
