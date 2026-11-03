@@ -540,6 +540,8 @@ class Timeline:
             self.metronome.reset()
         for track in self.tracks:
             track.reset()
+        for device in self.output_devices:
+            device.reset()
 
     def run(self, stop_when_done: bool = None) -> None:
         """

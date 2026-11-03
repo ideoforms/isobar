@@ -27,6 +27,12 @@ class OutputDevice:
     def stop(self):
         pass
 
+    def reset(self):
+        """
+        Called when the timeline rewinds to the start, e.g. so that a device's clock restarts on the first beat.
+        """
+        pass
+
     def note_on(self, note=60, velocity=64, channel=0):
         pass
 
