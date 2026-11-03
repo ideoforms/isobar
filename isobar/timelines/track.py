@@ -387,7 +387,14 @@ class Track:
             return
 
         for note in self.notes[:]:
-            note_timestamp_quantized = self._quantize_time(note.timestamp)
+            #--------------------------------------------------------------------------------
+            # Notes created by effects (e.g. echoes) are already timed from the quantized
+            # note that created them, so they aren't quantized again.
+            #--------------------------------------------------------------------------------
+            if note.origin is None:
+                note_timestamp_quantized = self._quantize_time(note.timestamp)
+            else:
+                note_timestamp_quantized = note.timestamp
             if self.timeline.time_to_ticks_int(note_timestamp_quantized) == self.timeline.time_to_ticks_int(self.current_time):
                 if note.is_playing:
                     #--------------------------------------------------------------------------------
@@ -590,6 +597,25 @@ class Track:
         self.notes = sorted(self.notes, key=lambda n: n.timestamp)
 
     schedule_note = add_note
+
+    def loop_time(self, time: float) -> float:
+        """
+        Maps a time after the end of the looping region that the track is playing back into the region, where
+        it will next be played. e.g. with a region from 0 to 4 beats, 5 becomes 1. Other times are unchanged.
+
+        Args:
+            time (float): A time in beats.
+
+        Returns:
+            float: The time at which it will be played.
+        """
+        for looping_region in self.looping_regions:
+            if (looping_region.loop
+                    and looping_region.start_time <= self.current_time < looping_region.end_time
+                    and time >= looping_region.end_time):
+                length = looping_region.end_time - looping_region.start_time
+                return looping_region.start_time + (time - looping_region.start_time) % length
+        return time
 
     def remove_note(self,
                     note: MidiNoteInstance):

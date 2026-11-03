@@ -84,6 +84,44 @@ def test_echoes_do_not_accumulate(dummy_timeline):
     assert len(track.to_dict()["notes"]) == 1
 
 
+def test_echoes_wrap_round_the_loop(dummy_timeline):
+    # A note at 0.5 in a 1-beat loop, with echoes at 1 and 1.5 that wrap round to 0 and 0.5
+    dummy_timeline.stop_when_done = False
+    track = dummy_timeline.add_track(name="test_track", remove_when_done=False)
+    track.add_note(iso.MidiNoteInstance(note=60, amplitude=64, channel=0, timestamp=0.5, duration=0.25))
+    track.add_looping_region(0, 1)
+    track.add_note_effect(NoteEffectEcho(delay=0.5, count=2))
+    run(dummy_timeline, 2)
+
+    # Pass 1: the note. Pass 2: both echoes, then the note again
+    assert [event[0] for event in dummy_timeline.output_device.events if event[1] == "note_on"] == [0.5, 1.0, 1.5, 1.5]
+    # The echoes still to be played (from the second pass) are all within the loop
+    assert all(note.timestamp < 1 for note in track.notes)
+
+
+def test_echoes_fade(dummy_timeline):
+    track = make_looping_track(dummy_timeline, amplitude=100, loop_length=4.0)
+    track.add_note_effect(NoteEffectEcho(delay=0.5, count=3, scale=0.5))
+    run(dummy_timeline, 2)
+
+    assert [event[2] for event in events_of_type(dummy_timeline, "note_on")] == [100, 50, 25, 12]
+
+
+def test_echoes_are_not_quantized(dummy_timeline):
+    # A note just after beat 1, quantized to the beat, with echoes 1/8 beat apart
+    dummy_timeline.stop_when_done = False
+    track = dummy_timeline.add_track(name="test_track", remove_when_done=False)
+    track.add_note(iso.MidiNoteInstance(note=60, amplitude=64, channel=0, timestamp=1.125, duration=0.0625))
+    track.add_looping_region(0, 4)
+    track.quantize_grid = 1
+    track.quantize_level = 1
+    track.add_note_effect(NoteEffectEcho(delay=0.125, count=2))
+    run(dummy_timeline, 2)
+
+    # The echoes follow the quantized note, rather than being quantized onto the beat with it
+    assert [event[0] for event in dummy_timeline.output_device.events if event[1] == "note_on"] == [1, 1.125, 1.25]
+
+
 def test_stop_all_notes_sends_played_pitch(dummy_timeline):
     track = make_looping_track(dummy_timeline)
     track.add_note_effect(NoteEffectTranspose(transpose=3))

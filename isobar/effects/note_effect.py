@@ -23,6 +23,13 @@ class NoteEffect:
             effect.apply(note)
 
 class NoteEffectEcho (NoteEffect):
+    """
+    Repeats each note `count` times, `delay` beats apart. Each echo's amplitude is `scale` times the one before
+    it, so a scale below 1 fades the echoes out (e.g. 0.5 plays them at 1/2, 1/4, 1/8... of the note's amplitude).
+    `insert` is an effect applied to each echo, e.g. a NoteEffectTranspose. Echoes are timed from the note's
+    quantized time, and aren't quantized themselves. Echoes that fall after the end of the track's looping region
+    wrap round to its start.
+    """
     def __init__(self, active=1, delay=0.5, count=1, scale=1.0, insert: NoteEffect = None):
         super().__init__()
         self.active = Pattern.pattern(active)
@@ -48,8 +55,10 @@ class NoteEffectEcho (NoteEffect):
             note_copy.is_playing = False
             note_copy.is_finished = False
             note_copy.sounding = None
-            note_copy.timestamp += Pattern.value(self.delay * (i + 1))
-            note_copy.amplitude = int(round(note_copy.amplitude * Pattern.value(self.scale)))
+            # Echoes follow the note's quantized time, and aren't quantized themselves
+            echo_time = note.track._quantize_time(note.timestamp) + Pattern.value(self.delay * (i + 1))
+            note_copy.timestamp = note.track.loop_time(echo_time)
+            note_copy.amplitude = int(round(note_copy.amplitude * Pattern.value(self.scale) ** (i + 1)))
             if insert is not None:
                 insert.apply(note_copy)
             note_copy.origin = self
