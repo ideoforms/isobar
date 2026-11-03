@@ -10,6 +10,9 @@ logger = logging.getLogger("isobar")
 # whole, half, quarter, eighth, sixteenth and thirty-second notes and their triplets.
 CV_CLOCK_TICKS_PER_BEAT = 24
 
+# Length of trigger and clock pulses, in seconds
+CV_TRIGGER_DURATION = 0.02
+
 # Properties that belong to a single voice, and so take a voice_index
 CV_VOICE_PROPERTIES = ["note", "gate", "trigger", "envelope", "velocity"]
 CV_PROPERTIES = CV_VOICE_PROPERTIES + ["clock"]
@@ -165,7 +168,8 @@ class CVOutputDevice(OutputDevice):
                  graph: "AudioGraph" = None,
                  output_voltage_range: tuple[float, float] = (-3, 3),
                  zero_volt_note: float = 60,
-                 beats_per_bar: float = 4):
+                 beats_per_bar: float = 4,
+                 name: str = "CV"):
         """
         Create a control voltage output device.
 
@@ -173,17 +177,20 @@ class CVOutputDevice(OutputDevice):
         sends audio signals to via the sounddevice library.
 
         Args:
-            device_name (str): Name of the audio output device to use.
-                               To query possible names, call get_cv_output_devices().
-            sample_rate (int): Audio sample rate to use.
+            device_name (str): Name of the audio output device to use, or None for the system default.
+                               To query possible names, call get_cv_output_devices(). Ignored if graph is given,
+                               or if another device has already started the shared graph.
+            sample_rate (int): Audio sample rate to use, when starting the graph.
             channel_mappings (CVChannelMappings): Mapping of CV channels to properties (note, gate, velocity, clock).
             output_voltage_range: The voltages that the interface outputs at sample values -1 and 1.
             zero_volt_note: The MIDI note that is sent as 0V on note channels, at 1V per octave.
             beats_per_bar: The number of beats in a bar, for clock divisions in bars such as "1m".
+            name: The device's name, e.g. as saved with a track.
         """
         super().__init__()
+        self.name = name
 
-        from signalflow import AudioGraph, Constant, ChannelArray, RectangularEnvelope
+        from signalflow import AudioGraph, AudioGraphConfig, Constant, ChannelArray, RectangularEnvelope
 
         self.channel_mappings = channel_mappings
         if channel_mappings is None:
@@ -194,10 +201,13 @@ class CVOutputDevice(OutputDevice):
         else:
             self.graph = AudioGraph.get_shared_graph()
             if self.graph is None:
-                try:
-                    self.graph = AudioGraph(start=True)
-                except NameError:
-                    raise Exception("Could not instantiate SignalFlowOutputDevice, signalflow not installed?")
+                config = AudioGraphConfig()
+                config.sample_rate = sample_rate
+                if device_name is not None:
+                    config.output_device_name = device_name
+                self.graph = AudioGraph(config=config, start=True)
+            elif device_name is not None and self.graph.output_device_name != device_name:
+                logger.warning("CV output is using the shared audio graph's device, not %s" % device_name)
 
         # Expert Sleepers ES-8 supports entire -10V to +10V range
         self.output_voltage_min, self.output_voltage_max = output_voltage_range
@@ -220,7 +230,7 @@ class CVOutputDevice(OutputDevice):
             if mapping.property_name in ("note", "velocity", "gate"):
                 self.channel_outputs[mapping.channel_index] = Constant(0)
             elif mapping.property_name in ("trigger", "clock"):
-                self.channel_outputs[mapping.channel_index] = RectangularEnvelope(0.02)
+                self.channel_outputs[mapping.channel_index] = RectangularEnvelope(CV_TRIGGER_DURATION)
 
             if mapping.voice_index is not None:
                 self.voices[mapping.voice_index].mappings.append(mapping)
