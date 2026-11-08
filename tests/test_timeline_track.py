@@ -94,15 +94,25 @@ def test_track_callbacks(dummy_timeline):
     assert len(track_events) == 2
     assert len(timeline_events) == 2
 
+def wait_for_callbacks(track, timeout: float = 1.0):
+    # Callbacks are called on the track's callback thread
+    import time
+    end = time.monotonic() + timeout
+    while not track.callback_queue.empty() and time.monotonic() < end:
+        time.sleep(0.001)
+    time.sleep(0.01)
+
+
 def test_track_callbacks_report_note_list_notes(dummy_timeline):
     track = dummy_timeline.schedule(name="notes")
     track.add_note(iso.MidiNoteInstance(note=60, amplitude=100, channel=0, timestamp=0, duration=0.5))
     track.add_note(iso.MidiNoteInstance(note=64, amplitude=50, channel=0, timestamp=1, duration=0.5))
     events = []
     track.add_event_callback(events.append)
-    dummy_timeline.stop_when_done = True
-    dummy_timeline.run()
-    track.callback_queue.join() if hasattr(track.callback_queue, "join") else None
+    # A track of notes never finishes, so the timeline is ticked through the notes rather than run
+    for _ in range(int(1.5 / dummy_timeline.tick_duration)):
+        dummy_timeline.tick()
+    wait_for_callbacks(track)
     assert [(event.type, event.note, event.amplitude) for event in events] == \
            [(iso.EVENT_TYPE_NOTE, 60, 100), (iso.EVENT_TYPE_NOTE, 64, 50)]
     assert all(event.track is track for event in events)

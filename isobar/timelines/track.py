@@ -523,11 +523,10 @@ class Track:
         Queues the timeline's and the track's event callbacks for the event, or the note that was played, to be
         called on the track's callback thread.
         """
-        if self.timeline.on_event_callback:
-            callback = self.timeline.on_event_callback
-            self.callback_queue.put(lambda: callback(event))
-        for callback in self.on_event_callbacks:
-            # Bound as a default argument, so that each lambda calls its own callback rather than the last one
+        # Each callback is bound as a default argument, so that each lambda calls its own callback rather than
+        # whichever the variable last held
+        callbacks = [self.timeline.on_event_callback] if self.timeline.on_event_callback else []
+        for callback in callbacks + self.on_event_callbacks:
             self.callback_queue.put(lambda callback=callback: callback(event))
 
     def note_on(self, note: MidiNoteInstance) -> MidiNoteInstance:
