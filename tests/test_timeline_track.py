@@ -94,6 +94,45 @@ def test_track_callbacks(dummy_timeline):
     assert len(track_events) == 2
     assert len(timeline_events) == 2
 
+def test_track_callbacks_report_note_list_notes(dummy_timeline):
+    track = dummy_timeline.schedule(name="notes")
+    track.add_note(iso.MidiNoteInstance(note=60, amplitude=100, channel=0, timestamp=0, duration=0.5))
+    track.add_note(iso.MidiNoteInstance(note=64, amplitude=50, channel=0, timestamp=1, duration=0.5))
+    events = []
+    track.add_event_callback(events.append)
+    dummy_timeline.stop_when_done = True
+    dummy_timeline.run()
+    track.callback_queue.join() if hasattr(track.callback_queue, "join") else None
+    assert [(event.type, event.note, event.amplitude) for event in events] == \
+           [(iso.EVENT_TYPE_NOTE, 60, 100), (iso.EVENT_TYPE_NOTE, 64, 50)]
+    assert all(event.track is track for event in events)
+
+
+def test_track_callbacks_report_each_note_of_a_chord(dummy_timeline):
+    track = dummy_timeline.schedule({"note": (60, 64, 67)}, count=1)
+    events = []
+    track.add_event_callback(events.append)
+    dummy_timeline.run()
+    assert sorted(event.note for event in events) == [60, 64, 67]
+
+
+def test_track_callbacks_report_other_events(dummy_timeline):
+    track = dummy_timeline.schedule({"control": 1, "value": 64}, count=2)
+    events = []
+    track.add_event_callback(events.append)
+    dummy_timeline.run()
+    assert [event.type for event in events] == [iso.EVENT_TYPE_CONTROL] * 2
+
+
+def test_several_track_callbacks_each_called(dummy_timeline):
+    track = dummy_timeline.schedule({"note": 60}, count=1)
+    first, second = [], []
+    track.add_event_callback(first.append)
+    track.add_event_callback(second.append)
+    dummy_timeline.run()
+    assert len(first) == 1 and len(second) == 1
+
+
 def test_track_add_remove_note(dummy_timeline):
     track = dummy_timeline.schedule(name="test_track")
 

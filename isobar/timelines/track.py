@@ -505,13 +505,11 @@ class Track:
         self.timeline.events_in_last_second += 1
 
         #----------------------------------------------------------------------
-        # Callbacks
+        # Callbacks. Note events are reported note by note as they are played
+        # (see note_on), like the notes in the track's note list.
         #----------------------------------------------------------------------
-        if self.timeline.on_event_callback:
-            self.callback_queue.put(lambda: self.timeline.on_event_callback(event))
-        if self.on_event_callbacks:
-            for callback in self.on_event_callbacks:
-                self.callback_queue.put(lambda: callback(event))
+        if getattr(event, "type", None) != EVENT_TYPE_NOTE:
+            self._queue_event_callbacks(event)
 
         #----------------------------------------------------------------------
         # Temporary debugging logging to catch any long-running events.
@@ -519,6 +517,18 @@ class Track:
         t1 = time.time()
         if t1 - t0 > 0.01:
             logger.info("Track %s: Event took %.2f seconds to execute" % (self.name, t1 - t0))
+
+    def _queue_event_callbacks(self, event):
+        """
+        Queues the timeline's and the track's event callbacks for the event, or the note that was played, to be
+        called on the track's callback thread.
+        """
+        if self.timeline.on_event_callback:
+            callback = self.timeline.on_event_callback
+            self.callback_queue.put(lambda: callback(event))
+        for callback in self.on_event_callbacks:
+            # Bound as a default argument, so that each lambda calls its own callback rather than the last one
+            self.callback_queue.put(lambda callback=callback: callback(event))
 
     def note_on(self, note: MidiNoteInstance) -> MidiNoteInstance:
         """
@@ -558,6 +568,12 @@ class Track:
             self.output_device.perform(sounding)
         else:
             self.output_device.note_on(sounding.note, sounding.amplitude, sounding.channel)
+
+        #--------------------------------------------------------------------------------
+        # Every note played is reported to the event callbacks, whether it came from a
+        # pattern, the track's note list, a note effect or a monitored input.
+        #--------------------------------------------------------------------------------
+        self._queue_event_callbacks(sounding)
 
         return sounding
 
@@ -745,7 +761,9 @@ class Track:
         Callback to trigger when an event takes place.
         Useful for displaying GUI changes to reflect underlying events.
 
-        The callback receives a single arg containing the Event.
+        The callback receives a single arg containing the Event. Notes are reported each time one is played,
+        as the MidiNoteInstance that was sent (with the track's note effects applied), which has the same type,
+        note, amplitude, channel, duration and track as a note Event. A chord is reported note by note.
         """
         self.on_event_callbacks.append(callback)
 

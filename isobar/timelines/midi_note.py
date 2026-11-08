@@ -1,10 +1,16 @@
 import copy
 
+from ..constants import EVENT_TYPE_NOTE
+
 from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from .track import Track
 
 class MidiNoteInstance:
+    # Notes are passed to event callbacks when they are played, like events. They have the same note, amplitude,
+    # channel, duration, track and output_device as a MidiNoteEvent, and its type.
+    type = EVENT_TYPE_NOTE
+
     def __init__(self,
                  timestamp: float,
                  track=None,
@@ -40,6 +46,10 @@ class MidiNoteInstance:
         # If True, the note is ephemeral (e.g. created by a realtime process),
         # and should not be stored in history.
         self.is_ephemeral = False
+
+    @property
+    def output_device(self):
+        return self.track.output_device if self.track is not None else None
 
     def to_dict(self) -> dict:
         return {
