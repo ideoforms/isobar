@@ -15,7 +15,7 @@ CV_TRIGGER_DURATION = 0.02
 
 # Properties that belong to a single voice, and so take a voice_index
 CV_VOICE_PROPERTIES = ["note", "gate", "trigger", "envelope", "velocity"]
-CV_PROPERTIES = CV_VOICE_PROPERTIES + ["clock"]
+CV_PROPERTIES = CV_VOICE_PROPERTIES + ["clock", "control"]
 
 # Which notes keep sounding when more notes are held than there are voices
 CV_NOTE_PRIORITIES = ["last", "first", "lowest", "highest"]
@@ -59,17 +59,23 @@ class CVChannelMapping:
                  channel_index: int,
                  property_name: str,
                  voice_index: int = None,
-                 division: Union[str, float, int] = "4n"):
+                 division: Union[str, float, int] = "4n",
+                 control_index: int = None,
+                 voltage_range: tuple[float, float] = None):
         """
         Maps one output channel to a property.
 
         Args:
             channel_index (int): The output channel, from 0.
-            property_name (str): One of: note (pitch), gate, trigger, envelope, velocity, clock.
+            property_name (str): One of: note (pitch), gate, trigger, envelope, velocity, clock, control.
             voice_index (int): For note, gate, trigger, envelope and velocity: the voice whose property is sent.
                                Defaults to 0.
             division: For clock: how often to send a pulse, as a number of beats or a note length such as "16n"
                       (see parse_clock_division). Defaults to once per beat.
+            control_index (int): For control: the control whose continuous value is sent, set with
+                                 CVOutputDevice.set_control. Defaults to 0.
+            voltage_range: For control: the voltages sent at the control's minimum and maximum values.
+                           Defaults to the device's whole output voltage range.
         """
         if property_name not in CV_PROPERTIES:
             raise ValueError("Invalid property_name: %s" % property_name)
@@ -82,10 +88,24 @@ class CVChannelMapping:
         elif voice_index is not None:
             raise ValueError("%s outputs do not belong to a voice" % property_name)
 
+        if property_name == "control":
+            if control_index is None:
+                control_index = 0
+            if control_index < 0:
+                raise ValueError("Invalid control_index: %d" % control_index)
+            if voltage_range is not None:
+                voltage_range = (float(voltage_range[0]), float(voltage_range[1]))
+                if voltage_range[1] <= voltage_range[0]:
+                    raise ValueError("Invalid voltage_range: %s" % (voltage_range,))
+        elif control_index is not None or voltage_range is not None:
+            raise ValueError("Only control outputs take a control_index or voltage_range")
+
         self.channel_index = channel_index
         self.property_name = property_name
         self.voice_index = voice_index
         self.division = division if property_name == "clock" else None
+        self.control_index = control_index
+        self.voltage_range = voltage_range
 
 
 class CVChannelMappings:
@@ -131,6 +151,20 @@ class CVChannelMappings:
             raise ValueError("Voices must be numbered from 0 with no gaps, but voice %d has no outputs"
                              % min(missing_indices))
         return len(voice_indices)
+
+    @property
+    def num_controls(self) -> int:
+        """
+        The number of controls that the mappings send. Several channels can send the same control.
+        Raises a ValueError if the control numbers have a gap.
+        """
+        control_indices = set(mapping.control_index for mapping in self.mappings
+                              if mapping.property_name == "control")
+        missing_indices = set(range(len(control_indices))) - control_indices
+        if missing_indices:
+            raise ValueError("Controls must be numbered from 0 with no gaps, but control %d has no outputs"
+                             % min(missing_indices))
+        return len(control_indices)
 
     def add_mapping(self, mapping: CVChannelMapping):
         self.mappings.append(mapping)
@@ -219,6 +253,7 @@ class CVOutputDevice(OutputDevice):
         self.num_channels = self.graph.num_output_channels
         self.channel_outputs = [0] * self.num_channels
         self.voices = [CVVoice(index) for index in range(self.channel_mappings.num_voices)]
+        self.num_controls = self.channel_mappings.num_controls
         self.clock_mappings: list[tuple[CVChannelMapping, int]] = []
         """ Each clock mapping, with its division in ticks. """
 
@@ -231,6 +266,16 @@ class CVOutputDevice(OutputDevice):
                 self.channel_outputs[mapping.channel_index] = Constant(0)
             elif mapping.property_name in ("trigger", "clock"):
                 self.channel_outputs[mapping.channel_index] = RectangularEnvelope(CV_TRIGGER_DURATION)
+            elif mapping.property_name == "control":
+                if mapping.voltage_range is not None:
+                    low, high = mapping.voltage_range
+                    if low < self.output_voltage_min or high > self.output_voltage_max:
+                        raise ValueError("Channel %d's voltage range (%gV to %gV) is outside the device's (%gV to %gV)"
+                                         % (mapping.channel_index, low, high,
+                                            self.output_voltage_min, self.output_voltage_max))
+                # Starts at the bottom of its range, the control's minimum value
+                self.channel_outputs[mapping.channel_index] = Constant(
+                    self._voltage_to_amplitude(self._control_voltage(mapping, 0.0)))
 
             if mapping.voice_index is not None:
                 self.voices[mapping.voice_index].mappings.append(mapping)
@@ -266,6 +311,23 @@ class CVOutputDevice(OutputDevice):
             raise ValueError("%.3fV is outside the voltage range supported by this device (%.3fV to %.3fV)"
                              % (voltage, self.output_voltage_min, self.output_voltage_max))
         return 2.0 * (voltage - self.output_voltage_min) / (self.output_voltage_max - self.output_voltage_min) - 1.0
+
+    def _control_voltage(self, mapping: CVChannelMapping, value: float) -> float:
+        # The voltage of a control's value, from 0 (the bottom of its range) to 1 (the top)
+        low, high = mapping.voltage_range or (self.output_voltage_min, self.output_voltage_max)
+        return low + max(0.0, min(1.0, value)) * (high - low)
+
+    def set_control(self, index: int, value: float):
+        """
+        Sets a control's continuous value, from 0 (the bottom of its voltage range) to 1 (the top), on every
+        channel that sends it. Values outside 0 to 1 are clamped.
+        """
+        if not 0 <= index < self.num_controls:
+            raise ValueError("Invalid control index: %d (the device has %d controls)" % (index, self.num_controls))
+        for mapping in self.channel_mappings:
+            if mapping.property_name == "control" and mapping.control_index == index:
+                voltage = self._control_voltage(mapping, value)
+                self.channel_outputs[mapping.channel_index].set_value(self._voltage_to_amplitude(voltage))
 
     def _note_index_to_amplitude(self, note):
         try:

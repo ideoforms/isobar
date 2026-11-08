@@ -244,3 +244,61 @@ def test_clock_subdivisions(graph):
 def test_clock_mapping_has_no_voice():
     with pytest.raises(ValueError):
         CVChannelMapping(0, "clock", voice_index=0)
+
+
+def control_mappings():
+    return CVChannelMappings([CVChannelMapping(0, "note", 0),
+                              CVChannelMapping(1, "control", control_index=0),
+                              CVChannelMapping(2, "control", control_index=1, voltage_range=(0, 5)),
+                              CVChannelMapping(3, "control", control_index=1, voltage_range=(-5, 0))])
+
+
+def test_controls_start_at_minimum(graph):
+    device = make_device(graph, control_mappings(), output_voltage_range=(-10, 10))
+    assert device.num_controls == 2
+    assert device.channel_outputs[1].value == pytest.approx(-1.0)
+    assert device.channel_outputs[2].value == pytest.approx(0.0)
+    assert device.channel_outputs[3].value == pytest.approx(-0.5)
+
+
+def test_set_control(graph):
+    device = make_device(graph, control_mappings(), output_voltage_range=(-10, 10))
+    device.set_control(0, 0.5)
+    assert device.channel_outputs[1].value == pytest.approx(0.0)
+    # Every channel that sends a control follows it, each over its own voltage range
+    device.set_control(1, 1.0)
+    assert device.channel_outputs[2].value == pytest.approx(0.5)
+    assert device.channel_outputs[3].value == pytest.approx(0.0)
+    # Clamped to the range
+    device.set_control(0, 2.0)
+    assert device.channel_outputs[1].value == pytest.approx(1.0)
+
+
+def test_set_control_invalid_index(graph):
+    device = make_device(graph, control_mappings(), output_voltage_range=(-10, 10))
+    with pytest.raises(ValueError):
+        device.set_control(2, 0.5)
+
+
+def test_control_voltage_range_outside_device(graph):
+    mappings = CVChannelMappings([CVChannelMapping(0, "control", voltage_range=(0, 5))])
+    with pytest.raises(ValueError):
+        make_device(graph, mappings, output_voltage_range=(-3, 3))
+
+
+def test_gap_in_controls(graph):
+    mappings = CVChannelMappings([CVChannelMapping(0, "control", control_index=1)])
+    with pytest.raises(ValueError):
+        make_device(graph, mappings)
+
+
+@pytest.mark.parametrize("kwargs", [
+    dict(property_name="control", control_index=-1),
+    dict(property_name="control", voltage_range=(5, 0)),
+    dict(property_name="control", voice_index=0),
+    dict(property_name="note", control_index=0),
+    dict(property_name="gate", voltage_range=(0, 5)),
+])
+def test_invalid_control_mappings(kwargs):
+    with pytest.raises(ValueError):
+        CVChannelMapping(0, **kwargs)
