@@ -13,6 +13,11 @@ CV_CLOCK_TICKS_PER_BEAT = 24
 # Length of trigger and clock pulses, in seconds
 CV_TRIGGER_DURATION = 0.02
 
+# Attack and release of envelope outputs, in seconds. Envelopes rise from 0V to the top of the output voltage range,
+# and sustain for the note's duration.
+CV_ENVELOPE_ATTACK = 0.01
+CV_ENVELOPE_RELEASE = 0.1
+
 # Properties that belong to a single voice, and so take a voice_index
 CV_VOICE_PROPERTIES = ["note", "gate", "trigger", "envelope", "velocity"]
 CV_PROPERTIES = CV_VOICE_PROPERTIES + ["clock", "control"]
@@ -224,7 +229,7 @@ class CVOutputDevice(OutputDevice):
         super().__init__()
         self.name = name
 
-        from signalflow import AudioGraph, AudioGraphConfig, Constant, ChannelArray, RectangularEnvelope
+        from signalflow import AudioGraph, AudioGraphConfig, Constant, ChannelArray, RectangularEnvelope, ASREnvelope
 
         self.channel_mappings = channel_mappings
         if channel_mappings is None:
@@ -266,6 +271,8 @@ class CVOutputDevice(OutputDevice):
                 self.channel_outputs[mapping.channel_index] = Constant(0)
             elif mapping.property_name in ("trigger", "clock"):
                 self.channel_outputs[mapping.channel_index] = RectangularEnvelope(CV_TRIGGER_DURATION)
+            elif mapping.property_name == "envelope":
+                self.channel_outputs[mapping.channel_index] = ASREnvelope(CV_ENVELOPE_ATTACK, 0, CV_ENVELOPE_RELEASE)
             elif mapping.property_name == "control":
                 if mapping.voltage_range is not None:
                     low, high = mapping.voltage_range
@@ -416,7 +423,21 @@ class CVOutputDevice(OutputDevice):
     # OutputDevice
     #--------------------------------------------------------------------------------
 
-    def note_on(self, note=60, velocity=64, channel=0):
+    def perform(self, note) -> None:
+        """
+        Plays a MidiNoteInstance, passing its duration (in seconds, at the timeline's tempo) to note_on, so that
+        envelope outputs sustain for as long as the note.
+        """
+        duration = None
+        if note.duration is not None and note.track is not None and note.track.timeline is not None:
+            duration = note.duration * 60.0 / note.track.timeline.tempo
+        self.note_on(note.note, note.amplitude, note.channel, duration=duration)
+
+    def note_on(self, note=60, velocity=64, channel=0, duration: Optional[float] = None):
+        """
+        Starts a note. duration, in seconds, is how long envelope outputs sustain: without one, they keep the
+        sustain of the last note that had one.
+        """
         if velocity == 0:
             self.note_off(note, channel)
             return
@@ -425,18 +446,26 @@ class CVOutputDevice(OutputDevice):
         self._note_index_to_amplitude(note)
 
         # A note that is already sounding is retriggered on its own voice
-        for voice in self.voices:
-            if voice.note == note:
-                self.held_notes = [(held, velocity if held == note else held_velocity)
-                                   for held, held_velocity in self.held_notes]
-                self._start_voice(voice, note, velocity, retrigger=True)
+        voice = next((voice for voice in self.voices if voice.note == note), None)
+        if voice is not None:
+            self.held_notes = [(held, velocity if held == note else held_velocity)
+                               for held, held_velocity in self.held_notes]
+            self._start_voice(voice, note, velocity, retrigger=True)
+        else:
+            self.held_notes = [held for held in self.held_notes if held[0] != note]
+            self.held_notes.append((note, velocity))
+            self._update_voices(new_note=note)
+            voice = next((voice for voice in self.voices if voice.note == note), None)
+            if voice is None:
+                logger.debug("No voice available for note %d" % note)
                 return
 
-        self.held_notes = [held for held in self.held_notes if held[0] != note]
-        self.held_notes.append((note, velocity))
-        self._update_voices(new_note=note)
-        if all(voice.note != note for voice in self.voices):
-            logger.debug("No voice available for note %d" % note)
+        for mapping in voice.mappings:
+            if mapping.property_name == "envelope":
+                envelope = self.channel_outputs[mapping.channel_index]
+                if duration is not None:
+                    envelope.set_input("sustain", duration)
+                envelope.trigger()
 
     def note_off(self, note=60, channel=0):
         if all(held_note != note for held_note, _ in self.held_notes):

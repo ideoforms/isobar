@@ -302,3 +302,35 @@ def test_gap_in_controls(graph):
 def test_invalid_control_mappings(kwargs):
     with pytest.raises(ValueError):
         CVChannelMapping(0, **kwargs)
+
+
+def envelope_mappings():
+    return CVChannelMappings([CVChannelMapping(0, "note", 0), CVChannelMapping(1, "envelope", 0)])
+
+
+def test_envelope_sustains_for_the_notes_duration(graph):
+    device = make_device(graph, envelope_mappings())
+    envelope = device.channel_outputs[1]
+    assert isinstance(envelope, signalflow.ASREnvelope)
+
+    device.note_on(60, 100, duration=0.25)
+    assert envelope.get_input("sustain").value == pytest.approx(0.25)
+    # Triggered: it rises from 0 over its attack
+    envelope.process(64)
+    assert 0 < envelope.output_buffer[0][63] < 1
+
+    # A note without a duration keeps the last one
+    device.note_off(60)
+    device.note_on(62, 100)
+    assert envelope.get_input("sustain").value == pytest.approx(0.25)
+
+
+def test_perform_passes_the_notes_duration_in_seconds(graph):
+    from isobar import Timeline, MidiNoteInstance
+    timeline = Timeline(120, output_device=make_device(graph, envelope_mappings()))
+    track = timeline.schedule({"note": 60})
+    device = track.output_device
+    # 1.5 beats at 120 bpm
+    device.perform(MidiNoteInstance(timestamp=0, track=track, note=60, amplitude=100, duration=1.5))
+    assert device.channel_outputs[1].get_input("sustain").value == pytest.approx(0.75)
+    assert device.voices[0].note == 60
